@@ -42,10 +42,6 @@ Everything in this section is a plan. It moves up to "What exists today" only wh
 - **March 2026:** the idea took shape as theorycrafting about how low-cost drones could coordinate to track other drones.
 - **Summer 2026:** simulator code written; first commit July 1, 2026.
 
-## Notes
-
-Built by Abyan Kashif with substantial AI assistance.
-
 ## License
 
 MIT. See `LICENSE`.
