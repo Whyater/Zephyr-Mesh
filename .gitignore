@@ -1,2 +1,7 @@
 __pycache__/
 *.pyc
+
+# Local environment and OS/editor files
+.venv/
+.DS_Store
+.vscode/
