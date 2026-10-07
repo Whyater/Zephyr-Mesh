@@ -1,0 +1,50 @@
+{
+  "schema": "zephyr-s0-baseline-1",
+  "config": {
+    "dt": 0.01,
+    "total_time": 7.0,
+    "target_position": [
+      0.0,
+      0.0,
+      3.0
+    ],
+    "initial_position": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "command": "'/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/main.py' --output '/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/runs/s0-baseline' --no-plot",
+  "argv": [
+    "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/main.py",
+    "--output",
+    "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/runs/s0-baseline",
+    "--no-plot"
+  ],
+  "cwd": "/private/tmp",
+  "output_dir": "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/runs/s0-baseline",
+  "python": "3.13.15",
+  "numpy": "2.5.1",
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "git_revision": "700348375f0eb5889411e970a91102def12404d7",
+  "git_tree_state": "dirty",
+  "random_seed": null,
+  "known_issues": [
+    "step_physics is labeled RK4 but currently behaves as first-order Euler",
+    "calculate_drag is not applied by the current physics step"
+  ],
+  "status": "baseline measurement hook; not flight performance",
+  "prediction": "Initial vertical acceleration is 9 m/s^2, so vz at the first recorded sample should be 3*target_z*dt.",
+  "independent_check": {
+    "name": "initial vertical acceleration hand check",
+    "expected_vz_first_sample": 0.09,
+    "actual_vz_first_sample": 0.09000000000000002,
+    "passed": true
+  },
+  "artifacts": {
+    "telemetry.csv": {
+      "path": "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/runs/s0-baseline/telemetry.csv",
+      "sha256": "10c9400bacfc1c192a35894508cc883c1dac2fdfa1a367e04d4695dcf7590d02"
+    }
+  }
+}
