@@ -76,27 +76,53 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _repo_revision() -> tuple[str | None, str]:
+def _repo_revision() -> tuple[str | None, str, dict]:
     repo = Path(__file__).resolve().parents[1]
     try:
         revision = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True).strip()
-        dirty = subprocess.run(["git", "-C", str(repo), "diff", "--quiet"], check=False).returncode != 0
-        return revision, "dirty" if dirty else "clean"
+        status = subprocess.check_output(
+            ["git", "-C", str(repo), "status", "--porcelain=v1", "--untracked-files=all"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).splitlines()
+        staged = bool(subprocess.check_output(
+            ["git", "-C", str(repo), "diff", "--cached", "--name-only"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip())
+        unstaged = bool(subprocess.check_output(
+            ["git", "-C", str(repo), "diff", "--name-only"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()) or any(line.startswith("??") for line in status)
+        return revision, "dirty" if status else "clean", {
+            "staged": staged,
+            "unstaged": unstaged,
+            "entries": status,
+        }
     except (OSError, subprocess.CalledProcessError):
-        return None, "unavailable"
+        return None, "unavailable", {"staged": None, "unstaged": None, "entries": []}
 
 
 def build_manifest(config: BaselineConfig, *, command=None, output_dir=None, telemetry=None) -> dict:
     """Return run metadata needed to reproduce an S0 result."""
-    revision, tree_state = _repo_revision()
+    revision, tree_state, git_status = _repo_revision()
+    repo = Path(__file__).resolve().parents[1]
+    argv = list(sys.argv)
+    invocation = [sys.executable, *argv]
+    command_text = command or " ".join(shlex.quote(arg) for arg in invocation)
+    replay_command = f"cd {shlex.quote(str(repo))} && {command_text}"
     target = np.asarray(config.target_position)
     predicted_vz = 3.0 * target[2] * config.dt
     actual_vz = None if telemetry is None else float(telemetry["vz"][0])
     return {
         "schema": "zephyr-s0-baseline-1",
         "config": asdict(config),
-        "command": command or " ".join(shlex.quote(arg) for arg in sys.argv),
-        "argv": list(sys.argv),
+        "command": command_text,
+        "executable": sys.executable,
+        "argv": argv,
+        "invocation": invocation,
+        "replay_command": replay_command,
         "cwd": os.getcwd(),
         "output_dir": str(Path(output_dir).resolve()) if output_dir else None,
         "python": platform.python_version(),
@@ -104,6 +130,7 @@ def build_manifest(config: BaselineConfig, *, command=None, output_dir=None, tel
         "platform": platform.platform(),
         "git_revision": revision,
         "git_tree_state": tree_state,
+        "git_status": git_status,
         "random_seed": None,
         "known_issues": [
             "step_physics is labeled RK4 but currently behaves as first-order Euler",

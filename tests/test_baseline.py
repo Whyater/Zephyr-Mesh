@@ -1,4 +1,6 @@
 import json
+import hashlib
+from pathlib import Path
 
 import numpy as np
 
@@ -19,6 +21,10 @@ def test_manifest_records_current_known_issues():
     assert manifest["schema"] == "zephyr-s0-baseline-1"
     assert len(manifest["known_issues"]) == 2
     assert manifest["config"]["dt"] == 0.01
+    assert manifest["executable"]
+    assert manifest["invocation"][0] == manifest["executable"]
+    assert manifest["replay_command"].startswith("cd ")
+    assert set(manifest["git_status"]) == {"staged", "unstaged", "entries"}
 
 
 def test_writer_emits_machine_readable_outputs(tmp_path):
@@ -28,3 +34,18 @@ def test_writer_emits_machine_readable_outputs(tmp_path):
     assert manifest["config"]["total_time"] == 0.3
     assert manifest["independent_check"]["passed"]
     assert (tmp_path / "manifest.sha256").exists()
+
+
+def test_retained_default_baseline_matches_fresh_rerun():
+    """The checked-in S0 telemetry remains reproducible after code changes."""
+    artifact = Path(__file__).parents[1] / "runs" / "s0-baseline" / "telemetry.csv"
+    retained = np.genfromtxt(artifact, delimiter=",", names=True)
+    fresh = run_baseline(BaselineConfig())
+    assert tuple(retained.dtype.names) == tuple(fresh)
+    for name in fresh:
+        assert np.array_equal(retained[name], fresh[name]), name
+
+    manifest_path = artifact.with_name("manifest.json")
+    manifest = json.loads(manifest_path.read_text())
+    digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    assert manifest["artifacts"]["telemetry.csv"]["sha256"] == digest
