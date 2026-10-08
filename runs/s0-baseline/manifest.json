@@ -14,8 +14,8 @@
       0.0
     ]
   },
-  "command": "'/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python' main.py --output runs/s0-baseline --no-plot",
-  "executable": "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python",
+  "command": ".venv/bin/python main.py --output runs/s0-baseline --no-plot",
+  "executable": ".venv/bin/python",
   "argv": [
     "main.py",
     "--output",
@@ -23,15 +23,15 @@
     "--no-plot"
   ],
   "invocation": [
-    "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python",
+    ".venv/bin/python",
     "main.py",
     "--output",
     "runs/s0-baseline",
     "--no-plot"
   ],
-  "replay_command": "cd '/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh' && '/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python' main.py --output runs/s0-baseline --no-plot",
-  "cwd": "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh",
-  "output_dir": "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/runs/s0-baseline",
+  "replay_command": ".venv/bin/python main.py --output runs/s0-baseline --no-plot",
+  "cwd": ".",
+  "output_dir": "runs/s0-baseline",
   "python": "3.13.15",
   "numpy": "2.5.1",
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
@@ -56,7 +56,7 @@
   },
   "random_seed": null,
   "known_issues": [],
-  "status": "post-S2 baseline measurement hook; not flight performance",
+  "status": "frozen post-S2 historical fixture; not current-worktree provenance or flight performance",
   "physics_revision": "S2 true RK4 with quadratic drag",
   "prediction": "Initial vertical acceleration is 9 m/s^2, so vz at the first recorded sample should be 3*target_z*dt.",
   "independent_check": {
@@ -69,8 +69,10 @@
   },
   "artifacts": {
     "telemetry.csv": {
-      "path": "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/runs/s0-baseline/telemetry.csv",
+      "path": "runs/s0-baseline/telemetry.csv",
       "sha256": "a0c74fa0e5da12d01cb2577524d120404167c5d683bcd2379119fc6eeff4d8df"
     }
-  }
+  },
+  "artifact_status": "frozen historical fixture",
+  "provenance_note": "The recorded revision and dirty tree state belong to the original run. Telemetry is retained unchanged. No match to the current worktree is claimed. Machine-specific paths are normalized for public distribution."
 }

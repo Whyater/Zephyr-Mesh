@@ -10,6 +10,9 @@ def test_allowlisted_endpoints_and_rejections():
     try:
         assert request(s,"/").status == 200
         data=json.load(request(s,"/api/run?limit=3")); assert len(data["telemetry"]["time"]) == 3
+        assert data["report"]["payload"] == {"sample_count": 3, "source_sample_count": 700, "truncated": True}
+        assert data["report"]["checksum_scope"] == "full retained source files, not truncated payload arrays"
+        assert data["report"]["provenance"]["current_worktree_match"] == "not claimed"
         assert request(s,"/download/telemetry.csv").headers["Content-Disposition"]
         assert request(s,"/download/run.json").status == 200
         for path in ("/private", "/api/run?wat=1", "/api/run?limit=no"):
@@ -25,11 +28,11 @@ def test_rerun_rejects_arbitrary_input():
     finally: s.shutdown()
 
 
-def test_ui_states_tailscale_trust_boundary():
+def test_ui_declares_read_only_replay():
     from pathlib import Path
     html = Path("demo/index.html").read_text()
-    assert "unauthenticated replay only to trusted peers" in html
-    assert "loopback is the default" in html
+    assert "replay" in html.lower()
+    assert "no live control path" in html
 
 def test_s2_payload_and_malformed_replay_request():
     s=ThreadingHTTPServer(("127.0.0.1",0),Handler); threading.Thread(target=s.serve_forever,daemon=True).start()
@@ -46,8 +49,8 @@ def test_s2_payload_and_malformed_replay_request():
 def test_ui_physical_model_and_accessible_state_labels():
     from pathlib import Path
     html = Path("demo/index.html").read_text()
-    for text in ("Physical flight view", "ground frame", "Target confidence", "Radio delay / loss",
-                 "Control authority", "PLANNED", "ABORT / STOP", "NO FLIGHT ACTION", "Stop replay", "disabled", "Recorded sample age", "RECORDED SAMPLE", "CONFIDENCE · UNAVAILABLE", "RADIO · UNAVAILABLE", "Accessible state summary", "+Z / thrust", "skewX", "pitchRad"):
+    for text in ("Physical replay", "ground frame", "Link health", "Evidence rail",
+                 "Stop replay", "Recorded S2 baseline", "no live control path", "skewX", "thrustArrow"):
         assert text in html
 
 
@@ -75,5 +78,21 @@ def test_s3_link_fixture_is_deterministic_and_read_only():
 def test_ui_contains_s3_link_replay_panel():
     from pathlib import Path
     html = Path("demo/index.html").read_text()
-    for text in ("S3 link replay", "packet age", "DUPLICATE", "OUT OF ORDER", "Live radio", "/api/link"):
+    for text in ("Link health", "Open packet event log", "synthetic", "/api/link"):
         assert text in html
+
+
+def test_s4_s5_s6_fixture_endpoints_are_explicitly_synthetic():
+    s = ThreadingHTTPServer(("127.0.0.1", 0), Handler); threading.Thread(target=s.serve_forever, daemon=True).start()
+    try:
+        sensor = json.load(request(s, "/api/sensor"))
+        tracker = json.load(request(s, "/api/tracker"))
+        sweep = json.load(request(s, "/api/investigation"))
+        assert sensor["schema"].startswith("zephyr-s4") and "synthetic" in sensor["status"]
+        assert tracker["schema"].startswith("zephyr-s5") and "not controller" in tracker["status"]
+        assert sweep["schema"].startswith("zephyr-s6") and "not flight" in sweep["status"]
+        assert sweep["rows"] and "criterion" in sweep["rows"][0]
+        assert "held_last_p95_error_m" in sweep["rows"][0]
+        assert any(row["target_acceleration_mps2"] == 0.5 for row in sweep["rows"])
+    finally:
+        s.shutdown()

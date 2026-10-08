@@ -37,7 +37,9 @@ def step_response(t, y, goal, *, tolerance=0.05, rise_fraction=0.1):
 
 def tracking_error(truth, estimate):
     a,b=np.asarray(truth,float),np.asarray(estimate,float)
-    if a.shape!=b.shape or a.size==0: return {"count":0,"empty":True,"rms_m":None,"median_m":None,"p90_m":None,"p95_m":None,"max_m":None,"per_axis":None}
+    if a.shape!=b.shape: raise ValueError("truth and estimate must have equal shape")
+    if a.ndim not in (1, 2): raise ValueError("truth and estimate must be 1-D or 2-D arrays")
+    if a.size==0: return {"count":0,"empty":True,"rms_m":None,"median_m":None,"p90_m":None,"p95_m":None,"max_m":None,"per_axis":None}
     if a.ndim==1: a,b=a[:,None],b[:,None]
     if a.ndim!=2 or np.any(~np.isfinite(a)) or np.any(~np.isfinite(b)): raise ValueError("truth and estimate must be finite arrays")
     e=np.linalg.norm(b-a,axis=1); return {"count":len(e),"empty":False,"rms_m":float(np.sqrt(np.mean(e*e))),"median_m":float(np.percentile(e,50)),"p90_m":float(np.percentile(e,90)),"p95_m":float(np.percentile(e,95)),"max_m":float(np.max(e)),"per_axis":{"rms_m":np.sqrt(np.mean((b-a)**2,axis=0)).tolist()}}
@@ -45,13 +47,18 @@ def tracking_error(truth, estimate):
 def packet_delivery(records, *, sent_denominator=None):
     rows=list(records); sent=set(); received=set(); duplicates=0; out_of_order=0; previous={}
     for r in rows:
-        seq=r.get("seq"); sender=r.get("sender_id"); key=(sender,seq)
-        if r.get("sent",False): sent.add(key)
-        if r.get("received",False):
-            if key in received: duplicates+=1
+        seq=r.get("seq"); sender=r.get("sender_id", r.get("sender")); receiver=r.get("receiver_id", r.get("receiver")); key=(sender, receiver, seq)
+        sent_flag = bool(r.get("sent", "send_time" in r))
+        receive_time = r.get("receive_time")
+        received_flag = bool(r.get("received", "receive_time" in r and receive_time is not None))
+        if sent_flag: sent.add(key)
+        if received_flag:
+            duplicate = key in received
+            if duplicate: duplicates+=1
             received.add(key)
-            if sender in previous and seq is not None and seq < previous[sender]: out_of_order+=1
-            if seq is not None: previous[sender]=seq
+            route = (sender, receiver)
+            if not duplicate and route in previous and seq is not None and seq < previous[route]: out_of_order+=1
+            if seq is not None: previous[route]=max(seq, previous.get(route, seq))
     explicit = sent_denominator is not None
     if explicit:
         if not isinstance(sent_denominator, (int, np.integer)) or isinstance(sent_denominator, bool):
@@ -62,19 +69,30 @@ def packet_delivery(records, *, sent_denominator=None):
         denom=len(sent) if sent else None
     if denom is not None and len(received)>denom:
         raise ValueError("received unique packets exceed declared sent denominator")
-    seqs=sorted(k[1] for k in received if isinstance(k[1],(int,np.integer)) and not isinstance(k[1],bool))
-    known_seq = sorted(k[1] for k in (sent | received) if isinstance(k[1],(int,np.integer)) and not isinstance(k[1],bool))
-    if denom is None or not known_seq:
-        missing_sequences=None
-    else:
-        origin=min(known_seq) if explicit or known_seq else 0
-        expected=set(range(origin, origin+denom))
-        missing_sequences=sorted(expected-set(seqs))
+    # Actual attempted packet identities are stronger evidence than a guessed
+    # contiguous range, especially when routes share sequence numbers.
+    routes = {(key[0], key[1]) for key in sent | received}
+    missing_packets = None
+    missing_sequences = None
+    if sent:
+        absent = sent - received
+        missing_packets = [
+            {"sender_id": key[0], "receiver_id": key[1], "seq": key[2]}
+            for key in sorted(absent, key=lambda key: tuple(str(value) for value in key))
+        ]
+        if len(routes) == 1:
+            missing_sequences = sorted(key[2] for key in absent)
+    elif explicit and len(routes) == 1:
+        seqs = {key[2] for key in received
+                if isinstance(key[2], (int, np.integer)) and not isinstance(key[2], bool)}
+        if seqs and len(seqs) == len(received):
+            origin = min(seqs)
+            missing_sequences = sorted(set(range(origin, origin + denom)) - seqs)
     if denom is None:
         missing=loss_rate=None
     else:
         missing=denom-len(received); loss_rate=None if denom==0 else missing/denom
-    return {"sent_unique":denom,"received_unique":len(received),"lost_unique":missing,"missing_sequences":missing_sequences,"loss_rate":loss_rate,"duplicates":duplicates,"out_of_order":out_of_order}
+    return {"sent_unique":denom,"received_unique":len(received),"lost_unique":missing,"missing_sequences":missing_sequences,"missing_packets":missing_packets,"loss_rate":loss_rate,"duplicates":duplicates,"out_of_order":out_of_order}
 
 def packet_age(now, observation_time, *, same_clock=True):
     if not same_clock: raise ValueError("packet age requires a shared clock domain")

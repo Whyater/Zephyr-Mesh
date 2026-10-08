@@ -13,3 +13,8 @@ def test_report_contract_is_json_and_read_only(tmp_path):
     assert "/" not in r["source"].get("telemetry_path", "")
     assert r["provenance"]["output_sha256"] is None
     assert r["provenance"]["hash_parity"]["telemetry_sha256"].startswith("sha256")
+    assert r["provenance"]["artifact_status"] == "frozen historical fixture"
+    assert r["provenance"]["current_worktree_match"] == "not claimed"
+    manifest=json.load(open(src+"/manifest.json"))
+    assert r["provenance"]["source_git_revision"] == manifest["git_revision"]
+    assert r["provenance"]["source_git_tree_state"] == "dirty"

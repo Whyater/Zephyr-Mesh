@@ -19,6 +19,16 @@ class GeometricFlightController:
         Executes the cascaded control loop. Takes current drone state and target,
         outputs the required collective thrust force and 3D body torque vector.
         """
+        dt = float(dt)
+        if not np.isfinite(dt) or dt <= 0:
+            raise ValueError("dt must be positive and finite")
+        target_position = np.asarray(target_position, dtype=float)
+        if target_position.shape != (3,) or not np.all(np.isfinite(target_position)):
+            raise ValueError("target_position must be a finite length-3 vector")
+        if not np.all(np.isfinite(drone.position)) or not np.all(np.isfinite(drone.velocity)):
+            raise ValueError("drone state must be finite")
+        if not np.all(np.isfinite(drone.quaternion)) or not np.all(np.isfinite(drone.angular_velocity)):
+            raise ValueError("drone state must be finite")
         # =====================================================================
         # LAYER 1: OUTER LOOP (Position Control)
         # =====================================================================
@@ -57,7 +67,9 @@ class GeometricFlightController:
         desired_z_body = desired_force_inertial / np.linalg.norm(desired_force_inertial)
 
         # Collective Thrust is the amount of force directed along the drone's actual current body Z-axis
-        collective_thrust = np.dot(desired_force_inertial, current_z_body)
+        # A rotor cannot pull downward.  If the vehicle is inverted or tilted
+        # past 90 degrees, command zero thrust and let the attitude loop recover.
+        collective_thrust = max(0.0, float(np.dot(desired_force_inertial, current_z_body)))
 
         # Geometric Tilt Error: Take the cross product of where we are pointing vs where we want to point
         # This gives us a vector showing the exact axis and magnitude of tilt error instantly

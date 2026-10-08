@@ -11,6 +11,9 @@ from urllib.parse import urlsplit, parse_qs
 import numpy as np
 from sim.baseline import BaselineConfig, run_baseline, write_baseline
 from sim.link import LinkConfig, SimulatedLink
+from sim.sensor import SensorConfig, SensorModel
+from sim.tracker import ConstantVelocityTracker
+from sim.investigation import run_sweep
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT / "demo" / "index.html"
@@ -53,7 +56,9 @@ def _retained_telemetry():
 def _payload(telemetry, report=None, report_error=None):
     arrays = {k: [float(x) for x in v] for k, v in telemetry.items()}
     if report is None:
-        report = {"schema": "zephyr-s2-report-1", "status": "retained S2 physics verification fixture; not flight performance",
+        report = {"schema": "zephyr-s2-report-1", "status": "frozen historical S2 verification fixture; report unavailable",
+                  "checksum_scope": "full retained source files, not truncated payload arrays",
+                  "payload": {"sample_count": len(next(iter(telemetry.values()), [])), "source_sample_count": None, "truncated": None},
                   "source": {"telemetry_path": "runs/s0-baseline/telemetry.csv", "telemetry_sha256": _sha256(S2_TELEMETRY)},
                   "unavailable_metrics": ["radio latency/loss", "sensor noise", "recovery"]}
     return {"schema": "zephyr-s2-demo-1", "label": "Synthetic single-drone S2 baseline replay",
@@ -61,12 +66,22 @@ def _payload(telemetry, report=None, report_error=None):
             "report": report, "report_error": report_error}
 
 def _report(telemetry):
-    """Return the retained S2 verification report with durable source checksums."""
+    """Describe the payload separately from checksums of the full frozen source."""
     try:
         convergence = json.loads(S2_REPORT.read_text())
+        manifest = json.loads(S2_MANIFEST.read_text())
+        source_count = len(_retained_telemetry()["time"])
+        payload_count = len(telemetry["time"])
         return {
             "schema": "zephyr-s2-report-1",
-            "status": "retained S2 physics verification fixture; not flight performance",
+            "status": "frozen historical S2 verification fixture; not current-worktree provenance or flight performance",
+            "checksum_scope": "full retained source files, not truncated payload arrays",
+            "payload": {"sample_count": payload_count, "source_sample_count": source_count,
+                        "truncated": payload_count < source_count},
+            "provenance": {"artifact_status": manifest.get("artifact_status", "historical fixture"),
+                           "source_git_revision": manifest.get("git_revision"),
+                           "source_git_tree_state": manifest.get("git_tree_state"),
+                           "current_worktree_match": "not claimed"},
             "source": {
                 "report_path": "runs/s2-physics/convergence.json",
                 "report_sha256": _sha256(S2_REPORT),
@@ -80,6 +95,40 @@ def _report(telemetry):
         }
     except Exception as exc:
         return {"schema": "zephyr-s2-report-error-1", "status": "report unavailable", "error": "report unavailable", "detail": str(exc)}
+
+def _sensor_fixture():
+    """Deterministic S4 truth/measurement fixture; it is not camera data."""
+    model = SensorModel(SensorConfig(noise_std_m=0.02, bias_m=(0.01, -0.01, 0.0),
+                                     dropout_probability=0.15), seed=7)
+    rows = model.sample_series(((0.7 * i * 0.1, 0.0, 2.0) for i in range(40)),
+                               (i * 0.1 for i in range(40)))
+    return {"schema": "zephyr-s4-sensor-fixture-1",
+            "status": "synthetic sensing fixture; no camera or flight measurement",
+            "config": {"noise_std_m": 0.02, "bias_m": [0.01, -0.01, 0.0],
+                       "dropout_probability": 0.15, "seed": 7},
+            "samples": [row.as_dict() for row in rows]}
+
+def _tracker_fixture():
+    """Deterministic S5 constant-velocity recovery fixture."""
+    sensor = SensorModel(SensorConfig(noise_std_m=0.02, dropout_probability=0.15), seed=9)
+    tracker = ConstantVelocityTracker(position_m=(0, 0, 2), velocity_mps=(0.0, 0, 0),
+                                       measurement_std_m=0.02)
+    rows = []
+    for i in range(80):
+        t = i * 0.05
+        truth = np.array((0.7 * t, 0.0, 2.0))
+        sample = sensor.sample(truth, t if t > 0 else 1e-9)
+        if sample.available:
+            tracker.update(sample.measurement_m, sample.timestamp_s)
+        state = tracker.predict(t if t > tracker.timestamp_s else tracker.timestamp_s)
+        rows.append({"timestamp_s": t, "truth_m": truth.tolist(),
+                     "measurement_m": None if not sample.available else list(sample.measurement_m),
+                     "estimate_m": list(state.position_m), "available": sample.available,
+                     "error_m": float(np.linalg.norm(np.asarray(state.position_m) - truth))})
+    return {"schema": "zephyr-s5-tracker-fixture-1",
+            "status": "synthetic tracker fixture; not controller recovery or flight performance",
+            "config": {"model": "constant_velocity_kalman", "seed": 9, "noise_std_m": 0.02,
+                       "dropout_probability": 0.15}, "samples": rows}
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "ZephyrS2/1.0"
@@ -104,6 +153,15 @@ class Handler(BaseHTTPRequestHandler):
             if u.query:
                 return self._send(400, json.dumps({"error": "query parameters are not allowed"}))
             return self._send(200, json.dumps(_link_fixture()))
+        if u.path == "/api/sensor":
+            if u.query: return self._send(400, json.dumps({"error": "query parameters are not allowed"}))
+            return self._send(200, json.dumps(_sensor_fixture()))
+        if u.path == "/api/tracker":
+            if u.query: return self._send(400, json.dumps({"error": "query parameters are not allowed"}))
+            return self._send(200, json.dumps(_tracker_fixture()))
+        if u.path == "/api/investigation":
+            if u.query: return self._send(400, json.dumps({"error": "query parameters are not allowed"}))
+            return self._send(200, json.dumps(run_sweep()))
         if u.path in ("/download/telemetry.csv", "/download/run.json"):
             t = _retained_telemetry()
             if u.path.endswith("csv"):
@@ -131,6 +189,6 @@ def serve(host="127.0.0.1", port=8765):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Serve the offline Zephyr S2 physics replay")
-    p.add_argument("--host", default="127.0.0.1", help="bind address; use a Tailscale IP explicitly for phone access")
+    p.add_argument("--host", default="127.0.0.1", help="explicit local bind address")
     p.add_argument("--port", type=int, default=8765)
     args = p.parse_args(); serve(args.host, args.port)

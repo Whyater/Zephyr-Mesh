@@ -3,8 +3,11 @@ import hashlib
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from sim.baseline import BaselineConfig, build_manifest, run_baseline, write_baseline
+from sim.controller import GeometricFlightController
+from sim.drone import SixDOFInterceptor
 
 
 def test_baseline_is_deterministic_and_has_expected_samples():
@@ -53,3 +56,18 @@ def test_retained_default_baseline_matches_fresh_rerun():
     manifest = json.loads(manifest_path.read_text())
     digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
     assert manifest["artifacts"]["telemetry.csv"]["sha256"] == digest
+
+def test_controller_rejects_invalid_inputs_before_producing_forces():
+    controller = GeometricFlightController()
+    drone = SixDOFInterceptor()
+    with pytest.raises(ValueError):
+        controller.update_control(drone, [0.0, 0.0, 1.0], 0.0)
+    with pytest.raises(ValueError):
+        controller.update_control(drone, [0.0, np.nan, 1.0], 0.01)
+
+def test_controller_never_commands_negative_rotor_thrust_when_inverted():
+    controller = GeometricFlightController()
+    drone = SixDOFInterceptor()
+    drone.quaternion[:] = [0.0, 1.0, 0.0, 0.0]  # 180 degrees about x
+    force_body, _ = controller.update_control(drone, [0.0, 0.0, 3.0], 0.01)
+    assert force_body[2] == 0.0

@@ -65,3 +65,11 @@ def test_v_times_l_hand_check():
     assert lag_error(0.7, 0.1) == pytest.approx(0.07)
     with pytest.raises(ValueError):
         lag_error(-1, 0.1)
+
+def test_link_rejects_boolean_and_backwards_requested_time_without_contention():
+    link = SimulatedLink(LinkConfig(loss_model="none"))
+    with pytest.raises(ValueError):
+        link.send("A", "B", True, 0.0)
+    link.send("A", "B", 0, 1.0)
+    with pytest.raises(ValueError):
+        link.send("A", "B", 1, 0.5)

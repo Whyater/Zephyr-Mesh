@@ -1,10 +1,10 @@
 {
   "schema": "zephyr-s1-report-1",
-  "status": "local post-S2 baseline measurement; not flight performance",
+  "status": "retained baseline measurement; source revision is recorded separately; not flight performance",
   "source": {
     "telemetry_source": "runs/s0-baseline/telemetry.csv",
     "telemetry_sha256": "a0c74fa0e5da12d01cb2577524d120404167c5d683bcd2379119fc6eeff4d8df",
-    "manifest_sha256": "7bc180cd9d28425bd0026c65588b55bb2e1dd28d05fd39360dde5e21d5d25f64",
+    "manifest_sha256": "9bd08cccf6b8b4b4df5997d37d5a255446eab1a4f6720603830fc6f6125eadf4",
     "columns": [
       "time",
       "x",
@@ -23,6 +23,10 @@
     ]
   },
   "provenance": {
+    "artifact_status": "frozen historical fixture",
+    "source_git_revision": "8e8512a786ca65e51a5d2c452657d65f1e534c8a",
+    "source_git_tree_state": "dirty",
+    "current_worktree_match": "not claimed",
     "python": "3.13.15",
     "numpy": "2.5.1",
     "command": "python -m sim.report runs/s0-baseline --output <report.json>",

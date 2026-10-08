@@ -76,6 +76,7 @@ class SimulatedLink:
         self._pending: list[PacketEvent] = []
         self._seen: dict[tuple[str, str], set[int]] = {}
         self._highest: dict[tuple[str, str], int] = {}
+        self._last_send_time: dict[tuple[str, str], float] = {}
         self._burst_active = False
         self._next_available_time = 0.0
 
@@ -111,16 +112,21 @@ class SimulatedLink:
         del payload
         if not isinstance(sender, str) or not isinstance(receiver, str) or not sender or not receiver:
             raise ValueError("sender and receiver must be non-empty strings")
-        if int(seq) != seq or seq < 0:
+        if isinstance(seq, (bool, np.bool_)) or int(seq) != seq or seq < 0:
             raise ValueError("seq must be a nonnegative integer")
         send_time = float(send_time)
         if not np.isfinite(send_time) or send_time < 0:
             raise ValueError("send_time must be finite and nonnegative")
         c = self.config
+        route = (sender, receiver)
         actual_send = send_time
         if c.contention_mode == "serialized":
             actual_send = max(send_time, self._next_available_time)
             self._next_available_time = actual_send + c.packet_duration_s
+        previous_send = self._last_send_time.get(route)
+        if previous_send is not None and actual_send < previous_send:
+            raise ValueError("send_time must be nondecreasing per sender/receiver route")
+        self._last_send_time[route] = actual_send
         reason = self._loss_reason()
         receive_time = None if reason else actual_send + self._sample_delay()
         event = PacketEvent(sender, receiver, int(seq), actual_send, receive_time,
