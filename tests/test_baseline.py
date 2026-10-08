@@ -16,15 +16,19 @@ def test_baseline_is_deterministic_and_has_expected_samples():
     assert np.all(np.isfinite(first["z"]))
 
 
-def test_manifest_records_current_known_issues():
+def test_manifest_records_s2_physics_and_independent_check():
     manifest = build_manifest(BaselineConfig())
     assert manifest["schema"] == "zephyr-s0-baseline-1"
-    assert len(manifest["known_issues"]) == 2
+    assert manifest["known_issues"] == []
     assert manifest["config"]["dt"] == 0.01
     assert manifest["executable"]
     assert manifest["invocation"][0] == manifest["executable"]
     assert manifest["replay_command"].startswith("cd ")
     assert set(manifest["git_status"]) == {"staged", "unstaged", "entries"}
+    check = manifest["independent_check"]
+    assert check["name"].endswith("limiting-case check")
+    assert check["method"].startswith("stationary initial state")
+    assert check["passed"] is False  # no telemetry was supplied to build_manifest
 
 
 def test_writer_emits_machine_readable_outputs(tmp_path):

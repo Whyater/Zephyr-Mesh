@@ -30,3 +30,22 @@ def test_ui_states_tailscale_trust_boundary():
     html = Path("demo/index.html").read_text()
     assert "unauthenticated replay only to trusted peers" in html
     assert "loopback is the default" in html
+
+def test_s2_payload_and_malformed_replay_request():
+    s=ThreadingHTTPServer(("127.0.0.1",0),Handler); threading.Thread(target=s.serve_forever,daemon=True).start()
+    try:
+        data=json.load(request(s,"/api/run?limit=2"))
+        assert data["schema"] == "zephyr-s2-demo-1"
+        assert data["telemetry"]["qw"] == [1.0, 1.0]
+        assert "radio" in data["status"] and "replay" in data["status"]
+        try: request(s,"/api/rerun","POST",b'{"position":[1]}'); assert False
+        except urllib.error.HTTPError as e: assert e.code == 400
+    finally: s.shutdown()
+
+
+def test_ui_physical_model_and_accessible_state_labels():
+    from pathlib import Path
+    html = Path("demo/index.html").read_text()
+    for text in ("Physical flight view", "ground frame", "Target confidence", "Radio delay / loss",
+                 "Control authority", "PLANNED", "ABORT / STOP", "NO FLIGHT ACTION", "Stop replay", "disabled", "Recorded sample age", "RECORDED SAMPLE", "CONFIDENCE · UNAVAILABLE", "RADIO · UNAVAILABLE", "Accessible state summary", "+Z / thrust", "skewX", "pitchRad"):
+        assert text in html

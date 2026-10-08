@@ -14,37 +14,63 @@
       0.0
     ]
   },
-  "command": "'/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/main.py' --output '/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/runs/s0-baseline' --no-plot",
+  "command": "'/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python' main.py --output runs/s0-baseline --no-plot",
+  "executable": "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python",
   "argv": [
-    "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/main.py",
+    "main.py",
     "--output",
-    "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/runs/s0-baseline",
+    "runs/s0-baseline",
     "--no-plot"
   ],
-  "cwd": "/private/tmp",
+  "invocation": [
+    "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python",
+    "main.py",
+    "--output",
+    "runs/s0-baseline",
+    "--no-plot"
+  ],
+  "replay_command": "cd '/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh' && '/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python' main.py --output runs/s0-baseline --no-plot",
+  "cwd": "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh",
   "output_dir": "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/runs/s0-baseline",
   "python": "3.13.15",
   "numpy": "2.5.1",
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
-  "git_revision": "700348375f0eb5889411e970a91102def12404d7",
+  "git_revision": "8e8512a786ca65e51a5d2c452657d65f1e534c8a",
   "git_tree_state": "dirty",
+  "git_status": {
+    "staged": false,
+    "unstaged": true,
+    "entries": [
+      " M README.md",
+      " M runs/s0-baseline/manifest.json",
+      " M runs/s0-baseline/manifest.sha256",
+      " M runs/s0-baseline/report.json",
+      " M runs/s0-baseline/telemetry.csv",
+      " M sim/baseline.py",
+      " M sim/drone.py",
+      " M sim/environment.py",
+      " M sim/report.py",
+      " M tests/test_baseline.py",
+      "?? tests/test_physics.py"
+    ]
+  },
   "random_seed": null,
-  "known_issues": [
-    "step_physics is labeled RK4 but currently behaves as first-order Euler",
-    "calculate_drag is not applied by the current physics step"
-  ],
-  "status": "baseline measurement hook; not flight performance",
+  "known_issues": [],
+  "status": "post-S2 baseline measurement hook; not flight performance",
+  "physics_revision": "S2 true RK4 with quadratic drag",
   "prediction": "Initial vertical acceleration is 9 m/s^2, so vz at the first recorded sample should be 3*target_z*dt.",
   "independent_check": {
-    "name": "initial vertical acceleration hand check",
+    "name": "initial vertical acceleration limiting-case check",
     "expected_vz_first_sample": 0.09,
-    "actual_vz_first_sample": 0.09000000000000002,
+    "actual_vz_first_sample": 0.08999761132132401,
+    "absolute_tolerance": 0.0018,
+    "method": "stationary initial state implies zero drag; compare first-step result to a*dt",
     "passed": true
   },
   "artifacts": {
     "telemetry.csv": {
       "path": "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/runs/s0-baseline/telemetry.csv",
-      "sha256": "10c9400bacfc1c192a35894508cc883c1dac2fdfa1a367e04d4695dcf7590d02"
+      "sha256": "a0c74fa0e5da12d01cb2577524d120404167c5d683bcd2379119fc6eeff4d8df"
     }
   }
 }

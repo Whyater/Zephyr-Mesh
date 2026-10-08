@@ -1,10 +1,10 @@
 {
   "schema": "zephyr-s1-report-1",
-  "status": "local baseline measurement; not flight performance",
+  "status": "local post-S2 baseline measurement; not flight performance",
   "source": {
     "telemetry_source": "runs/s0-baseline/telemetry.csv",
-    "telemetry_sha256": "10c9400bacfc1c192a35894508cc883c1dac2fdfa1a367e04d4695dcf7590d02",
-    "manifest_sha256": "0c7c739391a591a5c72fa61a1cccae174901f3c4994476094c1938ed64b3a693",
+    "telemetry_sha256": "a0c74fa0e5da12d01cb2577524d120404167c5d683bcd2379119fc6eeff4d8df",
+    "manifest_sha256": "7bc180cd9d28425bd0026c65588b55bb2e1dd28d05fd39360dde5e21d5d25f64",
     "columns": [
       "time",
       "x",
@@ -43,8 +43,8 @@
   "step_response": {
     "goal_m": 3.0,
     "rise_time_s": 0.28,
-    "overshoot_pct": 11.2140753674615,
-    "settling_time_s": 3.0300000000000002,
+    "overshoot_pct": 8.352685040847744,
+    "settling_time_s": 2.99,
     "censored": {
       "rise_time_s": false,
       "overshoot_pct": false,
@@ -60,16 +60,16 @@
   "tracking_error": {
     "count": 700,
     "empty": false,
-    "rms_m": 0.8632936278013712,
-    "median_m": 0.037634456099454816,
-    "p90_m": 1.6735316501657291,
-    "p95_m": 2.556123235797068,
-    "max_m": 3.0,
+    "rms_m": 0.8672098350136157,
+    "median_m": 0.03553176613526743,
+    "p90_m": 1.7042616232476357,
+    "p95_m": 2.551326635658565,
+    "max_m": 2.999550005971756,
     "per_axis": {
       "rms_m": [
         0.0,
         0.0,
-        0.8632936278013715
+        0.8672098350136161
       ]
     }
   },
@@ -80,8 +80,5 @@
     "controller_recovery": "No outage and settled-window events in S0 telemetry",
     "miss_distance": "No target trajectory/capture event in S0 telemetry"
   },
-  "known_issues": [
-    "S0 integrator labeled RK4 is effectively forward Euler",
-    "S0 drag is not applied"
-  ]
+  "known_issues": []
 }

@@ -1,0 +1,33 @@
+{
+  "schema": "zephyr-s2-convergence-1",
+  "fixture": "x_ddot_plus_omega2_x=0",
+  "omega_rad_s": 2.3,
+  "duration_s": 1.0,
+  "exact_final_position": -0.6662760212798241,
+  "results": [
+    {
+      "dt_s": 0.2,
+      "final_position": -0.6654703507463396,
+      "absolute_error": 0.0008056705334844594,
+      "error_ratio_to_next": 17.49614480453494
+    },
+    {
+      "dt_s": 0.1,
+      "final_position": -0.6662299728192926,
+      "absolute_error": 4.604846053146705e-05,
+      "error_ratio_to_next": 17.044265621967828
+    },
+    {
+      "dt_s": 0.05,
+      "final_position": -0.6662733195816957,
+      "absolute_error": 2.7016981284377906e-06,
+      "error_ratio_to_next": 16.601395702917785
+    },
+    {
+      "dt_s": 0.025,
+      "final_position": -0.6662758585406077,
+      "absolute_error": 1.627392164360586e-07
+    }
+  ],
+  "interpretation": "Ratios are observed fixture error ratios only; they are not flight-performance measurements."
+}

@@ -115,6 +115,11 @@ def build_manifest(config: BaselineConfig, *, command=None, output_dir=None, tel
     target = np.asarray(config.target_position)
     predicted_vz = 3.0 * target[2] * config.dt
     actual_vz = None if telemetry is None else float(telemetry["vz"][0])
+    # At t=0 the drone is stationary, so drag is exactly zero and the
+    # controller's initial vertical acceleration is 3*target_z m/s^2.  The
+    # first-step prediction is therefore a limiting-case check, not a claim
+    # that the controlled, drag-inclusive step is exactly Euler.
+    check_tolerance = max(1e-5, 0.02 * abs(predicted_vz))
     return {
         "schema": "zephyr-s0-baseline-1",
         "config": asdict(config),
@@ -132,13 +137,18 @@ def build_manifest(config: BaselineConfig, *, command=None, output_dir=None, tel
         "git_tree_state": tree_state,
         "git_status": git_status,
         "random_seed": None,
-        "known_issues": [
-            "step_physics is labeled RK4 but currently behaves as first-order Euler",
-            "calculate_drag is not applied by the current physics step",
-        ],
-        "status": "baseline measurement hook; not flight performance",
+        "known_issues": [],
+        "status": "post-S2 baseline measurement hook; not flight performance",
+        "physics_revision": "S2 true RK4 with quadratic drag",
         "prediction": "Initial vertical acceleration is 9 m/s^2, so vz at the first recorded sample should be 3*target_z*dt.",
-        "independent_check": {"name": "initial vertical acceleration hand check", "expected_vz_first_sample": float(predicted_vz), "actual_vz_first_sample": actual_vz, "passed": bool(actual_vz is not None and np.isclose(actual_vz, predicted_vz))},
+        "independent_check": {
+            "name": "initial vertical acceleration limiting-case check",
+            "expected_vz_first_sample": float(predicted_vz),
+            "actual_vz_first_sample": actual_vz,
+            "absolute_tolerance": float(check_tolerance),
+            "method": "stationary initial state implies zero drag; compare first-step result to a*dt",
+            "passed": bool(actual_vz is not None and abs(actual_vz - predicted_vz) <= check_tolerance),
+        },
     }
 
 
