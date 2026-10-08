@@ -43,7 +43,7 @@ S6 adds `sim/investigation.py`, a deterministic grid over observation delay, ind
 
 The browser is now a phone-first Horizon replay cockpit. The scene is dominant, camera views and timeline controls are grouped together, packet details are behind disclosure, and S4, S5, and S6 load their synthetic fixtures on demand. The cockpit uses the existing APIs and marks simulated, recorded, and unavailable data explicitly. Its SVG scene is a visual replay model, not a full 3D rigid-body renderer.
 
-The full Python suite currently passes with 85 tests:
+The full Python suite currently passes with 124 tests (one GUI-construction check is skipped when no desktop display is available):
 
 ```bash
 .venv/bin/python -m pytest -q
@@ -53,9 +53,30 @@ The full Python suite currently passes with 85 tests:
 
 There are eight simulator phases. S0 baseline hooks, S1 metrics, S2 physics correctness, and S3 deterministic link replay are implemented. S4 seeded sensing, S5 constant-velocity tracking recovery, and S6 bounded latency/loss/noise investigation are implemented as synthetic fixtures. S7 now has a **local coordination foundation**, not a flight-ready swarm: `sim/swarm.py` models seeded target and neighbor packet paths, cooperative target fusion, formation slots, dropout schedules, pairwise separation, spherical keep-out constraints, and replayable event data. `sim/hardware.py` defines SI-unit motor, propeller, and airframe profiles with explicit torque, wattage, RPM, diameter, pitch, and transparent static-thrust estimates. `sim/scenarios.py` creates a deterministic 50-agent ring with unique synthetic profile IDs and a scenario manifest. The checked-in `runs/s7-swarm/` artifact is synthetic and not flight performance.
 
+### Actuator and hardware profile foundation
+
+`sim/actuator.py` adds a transparent four-motor actuator layer behind the profile contract. It models first-order motor lag, per-rotor RPM limits, static thrust and power estimates, X-quad body torque mixing, battery energy draw, and voltage sag. These values are scenario inputs and calibration placeholders. They are not a measured motor map, a crash-risk estimate, or a flight envelope.
+
+`sim/vehicle.py` now couples that actuator output into the 6-DOF body. The
+controller requests a body wrench, `QuadrotorMixer` allocates four rotor
+commands with explicit saturation, and only the lagged, battery-limited thrust
+and reaction torque enter `SixDOFInterceptor`. This is a calibrated-simulation
+foundation, not evidence that the synthetic profile can fly.
+
+### Adapter, authority, and failsafe foundation
+
+`sim/adapters.py` defines the typed `DroneAdapter` boundary and a deterministic
+`SimAdapter` with normalized telemetry. `sim/authority.py` makes mission,
+formation, manual, and safety ownership explicit with priorities, TTL expiry,
+and stable tie-breaking. `sim/failsafe.py` provides a replayable link-age and
+battery policy that can degrade, hold, land, acknowledge landing, or latch a
+kill state. These contracts make the later ESP-NOW and vendor adapters
+replaceable without letting UI code reach into a vendor API. They are local
+simulation seams and do not operate a real aircraft.
+
 ### Native macOS cockpit preview
 
-`macos/ZephyrMeshApp` is a native SwiftUI + SceneKit desktop surface. It loads a compact projection of the canonical Python S7 event log and provides a 3D fleet view, 50-agent fleet rail, link-health badges, safety gate, obstacle toggle, and replay controls. The app is read-only and labels live radio, camera input, manual authority, and flight performance as unavailable. Build it on macOS 14 or newer with:
+`macos/ZephyrMeshApp` is a native SwiftUI + SceneKit desktop surface. It loads a compact projection of the canonical Python S7 event log and provides a 3D fleet view, a compact fleet table, selected-vehicle telemetry, a single replay status, obstacle toggle, and replay controls. The app is read-only and labels live radio, camera input, manual authority, and flight performance as unavailable. Its tokens live in `DesignSystem.swift` and follow native semantic colors and system typography rather than decorative gradients or repeated status bubbles. Build it on macOS 14 or newer with:
 
 ```bash
 cd macos/ZephyrMeshApp
@@ -64,6 +85,57 @@ swift run
 ```
 
 The renderer is local and dependency-free. It is a cockpit surface, not a substitute for the Python physics or a flight-validation result. Recreate the canonical fixture with `PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm --agents 50 --steps 6 --seed 17`.
+
+During native UI work, `python3 macos/watch_app.py` rebuilds and opens a fresh
+bundle when SwiftUI source or fixture files change. It is a local development
+watcher; the published app still uses the explicit release updater contract.
+
+For a Finder-launchable desktop build, run `python3 macos/build_app.py` from
+the repository root. It assembles `macos/ZephyrMesh.app`, which you can open
+with a double-click or `open macos/ZephyrMesh.app`. The generated bundle is a
+local release artifact and is ignored by git; rebuild it after source or
+fixture changes.
+
+### Windows desktop preview and updates
+
+`desktop/windows_preview.py` is the Windows-first portability surface. It uses
+Tkinter and the same canonical S7 replay as the native app, with a fleet list,
+2D operator view, timeline controls, selected-vehicle telemetry, provenance,
+and an explicit synthetic-only boundary. It does not send radio, motor, or
+swarm commands. Run a dependency-light smoke check anywhere with:
+
+```bash
+python -m desktop.windows_preview --headless
+```
+
+On Windows, build the double-clickable preview and its detached updater from a
+PowerShell prompt at the repository root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File desktop/build_windows.ps1
+```
+
+This creates `dist/ZephyrMeshWindows/ZephyrMeshWindows.exe` and the sibling
+`dist/ZephyrMeshUpdater.exe`. The preview's **Check updates** action selects an
+architecture-matched GitHub release asset, requires the GitHub SHA-256 digest,
+stages a path-safe ZIP extraction, then closes and lets the sibling helper
+replace the application directory before relaunching it. The packaging script
+and staging path are implemented locally; the end-to-end install and relaunch
+path remains unexercised because the repository currently has no published
+release asset. Linux packaging is intentionally later work.
+
+### Release updater contract
+
+The macOS cockpit and Windows preview share the release protocol in
+`tools/release_updater.py`. A published release must provide a platform ZIP
+whose GitHub API asset includes a SHA-256 digest. The updater verifies the
+digest, rejects path traversal, keeps a `.previous` rollback directory, and
+only swaps the application after the running process exits. A checkout with no
+published release remains on its local version and reports that update status
+without pretending that a release exists. GitHub currently returns 404 for
+`/repos/Whyater/Zephyr-Mesh/releases/latest`, so no automatic update has been
+claimed as exercised. The macOS **Update** button has the same behavior and is
+available from the app menu.
 
 ### S1 baseline metrics
 
@@ -120,6 +192,7 @@ The core question: how much radio latency, packet loss, and tracking noise can a
 - A multi-drone physical view that shows each model, identity, command authority, and stale data state
 - Small indoor drones for real flight tests, non-contact only
 - Motor and propeller coefficients calibrated from bench measurements and replayed through the profile contract
+- Bench calibration and measured motor/propeller maps for the actuator-coupled 6-DOF model
 - Native cockpit loading of full event-log timelines, with target-device frame-time and accessibility measurements
 
 Everything in this section is a plan. It moves up to "What exists today" only when it works and has been checked.

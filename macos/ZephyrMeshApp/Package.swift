@@ -11,6 +11,7 @@ let package = Package(
         .executableTarget(
             name: "ZephyrMeshApp",
             resources: [.process("Resources")]
-        )
+        ),
+        .testTarget(name: "ZephyrMeshAppTests", dependencies: ["ZephyrMeshApp"])
     ]
 )

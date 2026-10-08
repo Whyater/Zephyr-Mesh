@@ -7,3 +7,7 @@ __pycache__/
 .vscode/
 .build/
 macos/**/.build/
+macos/ZephyrMesh.app/
+dist/
+build/
+*.spec

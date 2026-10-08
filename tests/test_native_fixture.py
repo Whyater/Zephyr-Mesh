@@ -13,6 +13,9 @@ def test_native_fixture_matches_canonical_s7_frames_and_provenance():
     assert native["seed"] == canonical["seed"]
     assert native["command_authority"] == canonical["command_authority"] == "replay only"
     assert native["failsafe"] == canonical["failsafe"]
+    assert native["source"] == "canonical Python S7 event-log projection"
+    assert "flight performance" in native["evidence_boundary"].lower()
+    assert {"live radio", "camera", "flight performance"}.issubset(set(native["unavailable"]))
     assert len(native["frames"]) == len(canonical["steps"])
     for native_frame, canonical_step in zip(native["frames"], canonical["steps"]):
         assert native_frame["time"] == canonical_step["time_s"]
