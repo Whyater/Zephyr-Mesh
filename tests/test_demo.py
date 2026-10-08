@@ -96,3 +96,18 @@ def test_s4_s5_s6_fixture_endpoints_are_explicitly_synthetic():
         assert any(row["target_acceleration_mps2"] == 0.5 for row in sweep["rows"])
     finally:
         s.shutdown()
+
+
+def test_s7_fixture_endpoint_exposes_manifest_and_provenance():
+    s = ThreadingHTTPServer(("127.0.0.1", 0), Handler); threading.Thread(target=s.serve_forever, daemon=True).start()
+    try:
+        payload = json.load(request(s, "/api/swarm"))
+        assert payload["schema"] == "zephyr-s7-swarm-fixture-1"
+        assert payload["status"].startswith("synthetic")
+        assert payload["run"]["scenario_id"] == "s7-ring-50-seed-17"
+        assert payload["manifest"]["agent_count"] == 50
+        assert payload["source"]["run_sha256"]
+        try: request(s, "/api/swarm?seed=1"); assert False
+        except urllib.error.HTTPError as e: assert e.code == 400
+    finally:
+        s.shutdown()

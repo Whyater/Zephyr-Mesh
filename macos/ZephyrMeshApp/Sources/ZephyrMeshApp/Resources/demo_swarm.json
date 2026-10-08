@@ -1,0 +1,7749 @@
+{
+  "schema": "zephyr-s7-native-fixture-1",
+  "run_id": "s7-ring-50-seed-17",
+  "source": "canonical Python S7 event-log projection",
+  "seed": 17,
+  "model": "bounded point-mass coordination fixture; 6 recorded frames from Python S7",
+  "unavailable": [
+    "live radio",
+    "camera",
+    "manual authority",
+    "flight performance"
+  ],
+  "drones": [
+    {
+      "id": "drone-001",
+      "name": "Vehicle 01",
+      "role": "lead",
+      "color": "sky",
+      "position": [
+        6.0,
+        0.0,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 96,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-001-synthetic-profile"
+    },
+    {
+      "id": "drone-002",
+      "name": "Vehicle 02",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        5.952688207886867,
+        0.7519994013858255,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 95,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-002-synthetic-profile"
+    },
+    {
+      "id": "drone-003",
+      "name": "Vehicle 03",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        5.8114989667717865,
+        1.4921393229891287,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 94,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-003-synthetic-profile"
+    },
+    {
+      "id": "drone-004",
+      "name": "Vehicle 04",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        5.578658915329509,
+        2.2087473161080675,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 93,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-004-synthetic-profile"
+    },
+    {
+      "id": "drone-005",
+      "name": "Vehicle 05",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        5.257840080263182,
+        2.890522044610292,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 92,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-005-synthetic-profile"
+    },
+    {
+      "id": "drone-006",
+      "name": "Vehicle 06",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        4.854101966249685,
+        3.526711513754839,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 91,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-006-synthetic-profile"
+    },
+    {
+      "id": "drone-007",
+      "name": "Vehicle 07",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        4.373811764528469,
+        4.1072826355721315,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 90,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-007-synthetic-profile"
+    },
+    {
+      "id": "drone-008",
+      "name": "Vehicle 08",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        3.8245439384921385,
+        4.623079456654736,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 89,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-008-synthetic-profile"
+    },
+    {
+      "id": "drone-009",
+      "name": "Vehicle 09",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        3.2149607698739793,
+        5.06596755301209,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 88,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-009-synthetic-profile"
+    },
+    {
+      "id": "drone-010",
+      "name": "Vehicle 10",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        2.554675749390436,
+        5.4289623147961175,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 87,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-010-synthetic-profile"
+    },
+    {
+      "id": "drone-011",
+      "name": "Vehicle 11",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        1.8541019662496847,
+        5.706339097770921,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 86,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-011-synthetic-profile"
+    },
+    {
+      "id": "drone-012",
+      "name": "Vehicle 12",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        1.1242878875143485,
+        5.893723504372131,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 85,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-012-synthetic-profile"
+    },
+    {
+      "id": "drone-013",
+      "name": "Vehicle 13",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        0.37674311717588116,
+        5.988160370569629,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 84,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-013-synthetic-profile"
+    },
+    {
+      "id": "drone-014",
+      "name": "Vehicle 14",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -0.3767431171758804,
+        5.988160370569629,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 83,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-014-synthetic-profile"
+    },
+    {
+      "id": "drone-015",
+      "name": "Vehicle 15",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -1.1242878875143476,
+        5.893723504372132,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 82,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-015-synthetic-profile"
+    },
+    {
+      "id": "drone-016",
+      "name": "Vehicle 16",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -1.8541019662496827,
+        5.706339097770922,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 81,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-016-synthetic-profile"
+    },
+    {
+      "id": "drone-017",
+      "name": "Vehicle 17",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -2.5546757493904364,
+        5.428962314796117,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 80,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-017-synthetic-profile"
+    },
+    {
+      "id": "drone-018",
+      "name": "Vehicle 18",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -3.214960769873981,
+        5.06596755301209,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 79,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-018-synthetic-profile"
+    },
+    {
+      "id": "drone-019",
+      "name": "Vehicle 19",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -3.8245439384921385,
+        4.623079456654736,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 78,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-019-synthetic-profile"
+    },
+    {
+      "id": "drone-020",
+      "name": "Vehicle 20",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -4.373811764528468,
+        4.107282635572133,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 77,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-020-synthetic-profile"
+    },
+    {
+      "id": "drone-021",
+      "name": "Vehicle 21",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -4.854101966249684,
+        3.5267115137548393,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 76,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-021-synthetic-profile"
+    },
+    {
+      "id": "drone-022",
+      "name": "Vehicle 22",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -5.257840080263182,
+        2.8905220446102913,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 75,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-022-synthetic-profile"
+    },
+    {
+      "id": "drone-023",
+      "name": "Vehicle 23",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -5.578658915329508,
+        2.208747316108069,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 74,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-023-synthetic-profile"
+    },
+    {
+      "id": "drone-024",
+      "name": "Vehicle 24",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -5.811498966771786,
+        1.4921393229891313,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 73,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-024-synthetic-profile"
+    },
+    {
+      "id": "drone-025",
+      "name": "Vehicle 25",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -5.952688207886867,
+        0.7519994013858272,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 72,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-025-synthetic-profile"
+    },
+    {
+      "id": "drone-026",
+      "name": "Vehicle 26",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -6.0,
+        7.347880794884119e-16,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 71,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-026-synthetic-profile"
+    },
+    {
+      "id": "drone-027",
+      "name": "Vehicle 27",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -5.952688207886867,
+        -0.7519994013858258,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 70,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-027-synthetic-profile"
+    },
+    {
+      "id": "drone-028",
+      "name": "Vehicle 28",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -5.811498966771787,
+        -1.4921393229891273,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 69,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-028-synthetic-profile"
+    },
+    {
+      "id": "drone-029",
+      "name": "Vehicle 29",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -5.578658915329509,
+        -2.2087473161080675,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 68,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-029-synthetic-profile"
+    },
+    {
+      "id": "drone-030",
+      "name": "Vehicle 30",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -5.257840080263181,
+        -2.890522044610292,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 67,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-030-synthetic-profile"
+    },
+    {
+      "id": "drone-031",
+      "name": "Vehicle 31",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -4.8541019662496865,
+        -3.526711513754836,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 66,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-031-synthetic-profile"
+    },
+    {
+      "id": "drone-032",
+      "name": "Vehicle 32",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -4.3738117645284715,
+        -4.107282635572131,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 65,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-032-synthetic-profile"
+    },
+    {
+      "id": "drone-033",
+      "name": "Vehicle 33",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -3.824543938492137,
+        -4.623079456654736,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 64,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-033-synthetic-profile"
+    },
+    {
+      "id": "drone-034",
+      "name": "Vehicle 34",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -3.214960769873978,
+        -5.065967553012092,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 63,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-034-synthetic-profile"
+    },
+    {
+      "id": "drone-035",
+      "name": "Vehicle 35",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -2.554675749390433,
+        -5.428962314796118,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 62,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-035-synthetic-profile"
+    },
+    {
+      "id": "drone-036",
+      "name": "Vehicle 36",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -1.8541019662496854,
+        -5.706339097770921,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 61,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-036-synthetic-profile"
+    },
+    {
+      "id": "drone-037",
+      "name": "Vehicle 37",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -1.1242878875143478,
+        -5.893723504372132,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 60,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-037-synthetic-profile"
+    },
+    {
+      "id": "drone-038",
+      "name": "Vehicle 38",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        -0.37674311717587927,
+        -5.988160370569629,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 59,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-038-synthetic-profile"
+    },
+    {
+      "id": "drone-039",
+      "name": "Vehicle 39",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        0.376743117175877,
+        -5.988160370569629,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 58,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-039-synthetic-profile"
+    },
+    {
+      "id": "drone-040",
+      "name": "Vehicle 40",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        1.1242878875143456,
+        -5.893723504372132,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 57,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-040-synthetic-profile"
+    },
+    {
+      "id": "drone-041",
+      "name": "Vehicle 41",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        1.8541019662496834,
+        -5.706339097770922,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 56,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-041-synthetic-profile"
+    },
+    {
+      "id": "drone-042",
+      "name": "Vehicle 42",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        2.554675749390431,
+        -5.428962314796119,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 55,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-042-synthetic-profile"
+    },
+    {
+      "id": "drone-043",
+      "name": "Vehicle 43",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        3.2149607698739806,
+        -5.06596755301209,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 54,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-043-synthetic-profile"
+    },
+    {
+      "id": "drone-044",
+      "name": "Vehicle 44",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        3.824543938492136,
+        -4.623079456654738,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 53,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-044-synthetic-profile"
+    },
+    {
+      "id": "drone-045",
+      "name": "Vehicle 45",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        4.373811764528468,
+        -4.107282635572133,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 52,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-045-synthetic-profile"
+    },
+    {
+      "id": "drone-046",
+      "name": "Vehicle 46",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        4.854101966249684,
+        -3.52671151375484,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 51,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-046-synthetic-profile"
+    },
+    {
+      "id": "drone-047",
+      "name": "Vehicle 47",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        5.257840080263179,
+        -2.8905220446102966,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 50,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-047-synthetic-profile"
+    },
+    {
+      "id": "drone-048",
+      "name": "Vehicle 48",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        5.578658915329509,
+        -2.208747316108067,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 49,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-048-synthetic-profile"
+    },
+    {
+      "id": "drone-049",
+      "name": "Vehicle 49",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        5.811498966771786,
+        -1.4921393229891322,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 48,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-049-synthetic-profile"
+    },
+    {
+      "id": "drone-050",
+      "name": "Vehicle 50",
+      "role": "cooperative",
+      "color": "aurora",
+      "position": [
+        5.952688207886867,
+        -0.7519994013858279,
+        1.5
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "battery": 47,
+      "link_delay_ms": 80,
+      "link_loss_pct": 8,
+      "state": "Flying",
+      "confidence": 0.98,
+      "profile_id": "drone-050-synthetic-profile"
+    }
+  ],
+  "frames": [
+    {
+      "time": 0.0,
+      "drones": [
+        {
+          "id": "drone-001",
+          "name": "Vehicle 01",
+          "role": "lead",
+          "color": "sky",
+          "position": [
+            6.0,
+            0.0,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 96,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-001-synthetic-profile"
+        },
+        {
+          "id": "drone-002",
+          "name": "Vehicle 02",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.952688207886867,
+            0.7519994013858255,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 95,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-002-synthetic-profile"
+        },
+        {
+          "id": "drone-003",
+          "name": "Vehicle 03",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.8114989667717865,
+            1.4921393229891287,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 94,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-003-synthetic-profile"
+        },
+        {
+          "id": "drone-004",
+          "name": "Vehicle 04",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.578658915329509,
+            2.2087473161080675,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 93,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-004-synthetic-profile"
+        },
+        {
+          "id": "drone-005",
+          "name": "Vehicle 05",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.257840080263182,
+            2.890522044610292,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 92,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-005-synthetic-profile"
+        },
+        {
+          "id": "drone-006",
+          "name": "Vehicle 06",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.854101966249685,
+            3.526711513754839,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 91,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-006-synthetic-profile"
+        },
+        {
+          "id": "drone-007",
+          "name": "Vehicle 07",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.373811764528469,
+            4.1072826355721315,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 90,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-007-synthetic-profile"
+        },
+        {
+          "id": "drone-008",
+          "name": "Vehicle 08",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.8245439384921385,
+            4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 89,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-008-synthetic-profile"
+        },
+        {
+          "id": "drone-009",
+          "name": "Vehicle 09",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.2149607698739793,
+            5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 88,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-009-synthetic-profile"
+        },
+        {
+          "id": "drone-010",
+          "name": "Vehicle 10",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            2.554675749390436,
+            5.4289623147961175,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 87,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-010-synthetic-profile"
+        },
+        {
+          "id": "drone-011",
+          "name": "Vehicle 11",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.8541019662496847,
+            5.706339097770921,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 86,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-011-synthetic-profile"
+        },
+        {
+          "id": "drone-012",
+          "name": "Vehicle 12",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.1242878875143485,
+            5.893723504372131,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 85,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-012-synthetic-profile"
+        },
+        {
+          "id": "drone-013",
+          "name": "Vehicle 13",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            0.37674311717588116,
+            5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 84,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-013-synthetic-profile"
+        },
+        {
+          "id": "drone-014",
+          "name": "Vehicle 14",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -0.3767431171758804,
+            5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 83,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-014-synthetic-profile"
+        },
+        {
+          "id": "drone-015",
+          "name": "Vehicle 15",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.1242878875143476,
+            5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 82,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-015-synthetic-profile"
+        },
+        {
+          "id": "drone-016",
+          "name": "Vehicle 16",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.8541019662496827,
+            5.706339097770922,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 81,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-016-synthetic-profile"
+        },
+        {
+          "id": "drone-017",
+          "name": "Vehicle 17",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -2.5546757493904364,
+            5.428962314796117,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 80,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-017-synthetic-profile"
+        },
+        {
+          "id": "drone-018",
+          "name": "Vehicle 18",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.214960769873981,
+            5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 79,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-018-synthetic-profile"
+        },
+        {
+          "id": "drone-019",
+          "name": "Vehicle 19",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.8245439384921385,
+            4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 78,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-019-synthetic-profile"
+        },
+        {
+          "id": "drone-020",
+          "name": "Vehicle 20",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.373811764528468,
+            4.107282635572133,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 77,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-020-synthetic-profile"
+        },
+        {
+          "id": "drone-021",
+          "name": "Vehicle 21",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.854101966249684,
+            3.5267115137548393,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 76,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-021-synthetic-profile"
+        },
+        {
+          "id": "drone-022",
+          "name": "Vehicle 22",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.257840080263182,
+            2.8905220446102913,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 75,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-022-synthetic-profile"
+        },
+        {
+          "id": "drone-023",
+          "name": "Vehicle 23",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.578658915329508,
+            2.208747316108069,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 74,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-023-synthetic-profile"
+        },
+        {
+          "id": "drone-024",
+          "name": "Vehicle 24",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.811498966771786,
+            1.4921393229891313,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 73,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-024-synthetic-profile"
+        },
+        {
+          "id": "drone-025",
+          "name": "Vehicle 25",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.952688207886867,
+            0.7519994013858272,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 72,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-025-synthetic-profile"
+        },
+        {
+          "id": "drone-026",
+          "name": "Vehicle 26",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -6.0,
+            7.347880794884119e-16,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 71,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-026-synthetic-profile"
+        },
+        {
+          "id": "drone-027",
+          "name": "Vehicle 27",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.952688207886867,
+            -0.7519994013858258,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 70,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-027-synthetic-profile"
+        },
+        {
+          "id": "drone-028",
+          "name": "Vehicle 28",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.811498966771787,
+            -1.4921393229891273,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 69,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-028-synthetic-profile"
+        },
+        {
+          "id": "drone-029",
+          "name": "Vehicle 29",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.578658915329509,
+            -2.2087473161080675,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 68,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-029-synthetic-profile"
+        },
+        {
+          "id": "drone-030",
+          "name": "Vehicle 30",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.257840080263181,
+            -2.890522044610292,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 67,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-030-synthetic-profile"
+        },
+        {
+          "id": "drone-031",
+          "name": "Vehicle 31",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.8541019662496865,
+            -3.526711513754836,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 66,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-031-synthetic-profile"
+        },
+        {
+          "id": "drone-032",
+          "name": "Vehicle 32",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.3738117645284715,
+            -4.107282635572131,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 65,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-032-synthetic-profile"
+        },
+        {
+          "id": "drone-033",
+          "name": "Vehicle 33",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.824543938492137,
+            -4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 64,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-033-synthetic-profile"
+        },
+        {
+          "id": "drone-034",
+          "name": "Vehicle 34",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.214960769873978,
+            -5.065967553012092,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 63,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-034-synthetic-profile"
+        },
+        {
+          "id": "drone-035",
+          "name": "Vehicle 35",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -2.554675749390433,
+            -5.428962314796118,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 62,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-035-synthetic-profile"
+        },
+        {
+          "id": "drone-036",
+          "name": "Vehicle 36",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.8541019662496854,
+            -5.706339097770921,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 61,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-036-synthetic-profile"
+        },
+        {
+          "id": "drone-037",
+          "name": "Vehicle 37",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.1242878875143478,
+            -5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 60,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-037-synthetic-profile"
+        },
+        {
+          "id": "drone-038",
+          "name": "Vehicle 38",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -0.37674311717587927,
+            -5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 59,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-038-synthetic-profile"
+        },
+        {
+          "id": "drone-039",
+          "name": "Vehicle 39",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            0.376743117175877,
+            -5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 58,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-039-synthetic-profile"
+        },
+        {
+          "id": "drone-040",
+          "name": "Vehicle 40",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.1242878875143456,
+            -5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 57,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-040-synthetic-profile"
+        },
+        {
+          "id": "drone-041",
+          "name": "Vehicle 41",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.8541019662496834,
+            -5.706339097770922,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 56,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-041-synthetic-profile"
+        },
+        {
+          "id": "drone-042",
+          "name": "Vehicle 42",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            2.554675749390431,
+            -5.428962314796119,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 55,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-042-synthetic-profile"
+        },
+        {
+          "id": "drone-043",
+          "name": "Vehicle 43",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.2149607698739806,
+            -5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 54,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-043-synthetic-profile"
+        },
+        {
+          "id": "drone-044",
+          "name": "Vehicle 44",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.824543938492136,
+            -4.623079456654738,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 53,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-044-synthetic-profile"
+        },
+        {
+          "id": "drone-045",
+          "name": "Vehicle 45",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.373811764528468,
+            -4.107282635572133,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 52,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-045-synthetic-profile"
+        },
+        {
+          "id": "drone-046",
+          "name": "Vehicle 46",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.854101966249684,
+            -3.52671151375484,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 51,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-046-synthetic-profile"
+        },
+        {
+          "id": "drone-047",
+          "name": "Vehicle 47",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.257840080263179,
+            -2.8905220446102966,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 50,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-047-synthetic-profile"
+        },
+        {
+          "id": "drone-048",
+          "name": "Vehicle 48",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.578658915329509,
+            -2.208747316108067,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 49,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-048-synthetic-profile"
+        },
+        {
+          "id": "drone-049",
+          "name": "Vehicle 49",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.811498966771786,
+            -1.4921393229891322,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 48,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-049-synthetic-profile"
+        },
+        {
+          "id": "drone-050",
+          "name": "Vehicle 50",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.952688207886867,
+            -0.7519994013858279,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 47,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-050-synthetic-profile"
+        }
+      ]
+    },
+    {
+      "time": 0.05,
+      "drones": [
+        {
+          "id": "drone-001",
+          "name": "Vehicle 01",
+          "role": "lead",
+          "color": "sky",
+          "position": [
+            6.0,
+            0.0,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 96,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-001-synthetic-profile"
+        },
+        {
+          "id": "drone-002",
+          "name": "Vehicle 02",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.952688207886867,
+            0.7519994013858255,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 95,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-002-synthetic-profile"
+        },
+        {
+          "id": "drone-003",
+          "name": "Vehicle 03",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.8114989667717865,
+            1.4921393229891287,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 94,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-003-synthetic-profile"
+        },
+        {
+          "id": "drone-004",
+          "name": "Vehicle 04",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.578658915329509,
+            2.2087473161080675,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 93,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-004-synthetic-profile"
+        },
+        {
+          "id": "drone-005",
+          "name": "Vehicle 05",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.257840080263182,
+            2.890522044610292,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 92,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-005-synthetic-profile"
+        },
+        {
+          "id": "drone-006",
+          "name": "Vehicle 06",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.854101966249685,
+            3.526711513754839,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 91,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-006-synthetic-profile"
+        },
+        {
+          "id": "drone-007",
+          "name": "Vehicle 07",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.373811764528469,
+            4.1072826355721315,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 90,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-007-synthetic-profile"
+        },
+        {
+          "id": "drone-008",
+          "name": "Vehicle 08",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.8245439384921385,
+            4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 89,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-008-synthetic-profile"
+        },
+        {
+          "id": "drone-009",
+          "name": "Vehicle 09",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.2149607698739793,
+            5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 88,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-009-synthetic-profile"
+        },
+        {
+          "id": "drone-010",
+          "name": "Vehicle 10",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            2.554675749390436,
+            5.4289623147961175,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 87,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-010-synthetic-profile"
+        },
+        {
+          "id": "drone-011",
+          "name": "Vehicle 11",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.8541019662496847,
+            5.706339097770921,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 86,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-011-synthetic-profile"
+        },
+        {
+          "id": "drone-012",
+          "name": "Vehicle 12",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.1242878875143485,
+            5.893723504372131,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 85,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-012-synthetic-profile"
+        },
+        {
+          "id": "drone-013",
+          "name": "Vehicle 13",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            0.37674311717588116,
+            5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 84,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-013-synthetic-profile"
+        },
+        {
+          "id": "drone-014",
+          "name": "Vehicle 14",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -0.3767431171758804,
+            5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 83,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-014-synthetic-profile"
+        },
+        {
+          "id": "drone-015",
+          "name": "Vehicle 15",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.1242878875143476,
+            5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 82,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-015-synthetic-profile"
+        },
+        {
+          "id": "drone-016",
+          "name": "Vehicle 16",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.8541019662496827,
+            5.706339097770922,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 81,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-016-synthetic-profile"
+        },
+        {
+          "id": "drone-017",
+          "name": "Vehicle 17",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -2.5546757493904364,
+            5.428962314796117,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 80,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-017-synthetic-profile"
+        },
+        {
+          "id": "drone-018",
+          "name": "Vehicle 18",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.214960769873981,
+            5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 79,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-018-synthetic-profile"
+        },
+        {
+          "id": "drone-019",
+          "name": "Vehicle 19",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.8245439384921385,
+            4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 78,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-019-synthetic-profile"
+        },
+        {
+          "id": "drone-020",
+          "name": "Vehicle 20",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.373811764528468,
+            4.107282635572133,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 77,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-020-synthetic-profile"
+        },
+        {
+          "id": "drone-021",
+          "name": "Vehicle 21",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.854101966249684,
+            3.5267115137548393,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 76,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-021-synthetic-profile"
+        },
+        {
+          "id": "drone-022",
+          "name": "Vehicle 22",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.257840080263182,
+            2.8905220446102913,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 75,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-022-synthetic-profile"
+        },
+        {
+          "id": "drone-023",
+          "name": "Vehicle 23",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.578658915329508,
+            2.208747316108069,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 74,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-023-synthetic-profile"
+        },
+        {
+          "id": "drone-024",
+          "name": "Vehicle 24",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.811498966771786,
+            1.4921393229891313,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 73,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-024-synthetic-profile"
+        },
+        {
+          "id": "drone-025",
+          "name": "Vehicle 25",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.952688207886867,
+            0.7519994013858272,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 72,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-025-synthetic-profile"
+        },
+        {
+          "id": "drone-026",
+          "name": "Vehicle 26",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -6.0,
+            7.347880794884119e-16,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 71,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-026-synthetic-profile"
+        },
+        {
+          "id": "drone-027",
+          "name": "Vehicle 27",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.952688207886867,
+            -0.7519994013858258,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 70,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-027-synthetic-profile"
+        },
+        {
+          "id": "drone-028",
+          "name": "Vehicle 28",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.811498966771787,
+            -1.4921393229891273,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 69,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-028-synthetic-profile"
+        },
+        {
+          "id": "drone-029",
+          "name": "Vehicle 29",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.578658915329509,
+            -2.2087473161080675,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 68,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-029-synthetic-profile"
+        },
+        {
+          "id": "drone-030",
+          "name": "Vehicle 30",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.257840080263181,
+            -2.890522044610292,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 67,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-030-synthetic-profile"
+        },
+        {
+          "id": "drone-031",
+          "name": "Vehicle 31",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.8541019662496865,
+            -3.526711513754836,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 66,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-031-synthetic-profile"
+        },
+        {
+          "id": "drone-032",
+          "name": "Vehicle 32",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.3738117645284715,
+            -4.107282635572131,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 65,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-032-synthetic-profile"
+        },
+        {
+          "id": "drone-033",
+          "name": "Vehicle 33",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.824543938492137,
+            -4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 64,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-033-synthetic-profile"
+        },
+        {
+          "id": "drone-034",
+          "name": "Vehicle 34",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.214960769873978,
+            -5.065967553012092,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 63,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-034-synthetic-profile"
+        },
+        {
+          "id": "drone-035",
+          "name": "Vehicle 35",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -2.554675749390433,
+            -5.428962314796118,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 62,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-035-synthetic-profile"
+        },
+        {
+          "id": "drone-036",
+          "name": "Vehicle 36",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.8541019662496854,
+            -5.706339097770921,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 61,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-036-synthetic-profile"
+        },
+        {
+          "id": "drone-037",
+          "name": "Vehicle 37",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.1242878875143478,
+            -5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 60,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-037-synthetic-profile"
+        },
+        {
+          "id": "drone-038",
+          "name": "Vehicle 38",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -0.37674311717587927,
+            -5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 59,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-038-synthetic-profile"
+        },
+        {
+          "id": "drone-039",
+          "name": "Vehicle 39",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            0.376743117175877,
+            -5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 58,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-039-synthetic-profile"
+        },
+        {
+          "id": "drone-040",
+          "name": "Vehicle 40",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.1242878875143456,
+            -5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 57,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-040-synthetic-profile"
+        },
+        {
+          "id": "drone-041",
+          "name": "Vehicle 41",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.8541019662496834,
+            -5.706339097770922,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 56,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-041-synthetic-profile"
+        },
+        {
+          "id": "drone-042",
+          "name": "Vehicle 42",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            2.554675749390431,
+            -5.428962314796119,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 55,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-042-synthetic-profile"
+        },
+        {
+          "id": "drone-043",
+          "name": "Vehicle 43",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.2149607698739806,
+            -5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 54,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-043-synthetic-profile"
+        },
+        {
+          "id": "drone-044",
+          "name": "Vehicle 44",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.824543938492136,
+            -4.623079456654738,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 53,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-044-synthetic-profile"
+        },
+        {
+          "id": "drone-045",
+          "name": "Vehicle 45",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.373811764528468,
+            -4.107282635572133,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 52,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-045-synthetic-profile"
+        },
+        {
+          "id": "drone-046",
+          "name": "Vehicle 46",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.854101966249684,
+            -3.52671151375484,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 51,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-046-synthetic-profile"
+        },
+        {
+          "id": "drone-047",
+          "name": "Vehicle 47",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.257840080263179,
+            -2.8905220446102966,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 50,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-047-synthetic-profile"
+        },
+        {
+          "id": "drone-048",
+          "name": "Vehicle 48",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.578658915329509,
+            -2.208747316108067,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 49,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-048-synthetic-profile"
+        },
+        {
+          "id": "drone-049",
+          "name": "Vehicle 49",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.811498966771786,
+            -1.4921393229891322,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 48,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-049-synthetic-profile"
+        },
+        {
+          "id": "drone-050",
+          "name": "Vehicle 50",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.952688207886867,
+            -0.7519994013858279,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 47,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-050-synthetic-profile"
+        }
+      ]
+    },
+    {
+      "time": 0.1,
+      "drones": [
+        {
+          "id": "drone-001",
+          "name": "Vehicle 01",
+          "role": "lead",
+          "color": "sky",
+          "position": [
+            6.0,
+            0.0,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 96,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-001-synthetic-profile"
+        },
+        {
+          "id": "drone-002",
+          "name": "Vehicle 02",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.952688207886867,
+            0.7519994013858255,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 95,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-002-synthetic-profile"
+        },
+        {
+          "id": "drone-003",
+          "name": "Vehicle 03",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.8114989667717865,
+            1.4921393229891287,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 94,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-003-synthetic-profile"
+        },
+        {
+          "id": "drone-004",
+          "name": "Vehicle 04",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.578658915329509,
+            2.2087473161080675,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 93,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-004-synthetic-profile"
+        },
+        {
+          "id": "drone-005",
+          "name": "Vehicle 05",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.257840080263182,
+            2.890522044610292,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 92,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-005-synthetic-profile"
+        },
+        {
+          "id": "drone-006",
+          "name": "Vehicle 06",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.854101966249685,
+            3.526711513754839,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 91,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-006-synthetic-profile"
+        },
+        {
+          "id": "drone-007",
+          "name": "Vehicle 07",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.373811764528469,
+            4.1072826355721315,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 90,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-007-synthetic-profile"
+        },
+        {
+          "id": "drone-008",
+          "name": "Vehicle 08",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.8245439384921385,
+            4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 89,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-008-synthetic-profile"
+        },
+        {
+          "id": "drone-009",
+          "name": "Vehicle 09",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.2149607698739793,
+            5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 88,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-009-synthetic-profile"
+        },
+        {
+          "id": "drone-010",
+          "name": "Vehicle 10",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            2.554675749390436,
+            5.4289623147961175,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 87,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-010-synthetic-profile"
+        },
+        {
+          "id": "drone-011",
+          "name": "Vehicle 11",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.8541019662496847,
+            5.706339097770921,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 86,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-011-synthetic-profile"
+        },
+        {
+          "id": "drone-012",
+          "name": "Vehicle 12",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.1242878875143485,
+            5.893723504372131,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 85,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-012-synthetic-profile"
+        },
+        {
+          "id": "drone-013",
+          "name": "Vehicle 13",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            0.37674311717588116,
+            5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 84,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-013-synthetic-profile"
+        },
+        {
+          "id": "drone-014",
+          "name": "Vehicle 14",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -0.3767431171758804,
+            5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 83,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-014-synthetic-profile"
+        },
+        {
+          "id": "drone-015",
+          "name": "Vehicle 15",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.1242878875143476,
+            5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 82,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-015-synthetic-profile"
+        },
+        {
+          "id": "drone-016",
+          "name": "Vehicle 16",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.8541019662496827,
+            5.706339097770922,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 81,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-016-synthetic-profile"
+        },
+        {
+          "id": "drone-017",
+          "name": "Vehicle 17",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -2.5546757493904364,
+            5.428962314796117,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 80,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-017-synthetic-profile"
+        },
+        {
+          "id": "drone-018",
+          "name": "Vehicle 18",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.214960769873981,
+            5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 79,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-018-synthetic-profile"
+        },
+        {
+          "id": "drone-019",
+          "name": "Vehicle 19",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.8245439384921385,
+            4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 78,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-019-synthetic-profile"
+        },
+        {
+          "id": "drone-020",
+          "name": "Vehicle 20",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.373811764528468,
+            4.107282635572133,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 77,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-020-synthetic-profile"
+        },
+        {
+          "id": "drone-021",
+          "name": "Vehicle 21",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.854101966249684,
+            3.5267115137548393,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 76,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-021-synthetic-profile"
+        },
+        {
+          "id": "drone-022",
+          "name": "Vehicle 22",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.257840080263182,
+            2.8905220446102913,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 75,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-022-synthetic-profile"
+        },
+        {
+          "id": "drone-023",
+          "name": "Vehicle 23",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.578658915329508,
+            2.208747316108069,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 74,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-023-synthetic-profile"
+        },
+        {
+          "id": "drone-024",
+          "name": "Vehicle 24",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.811498966771786,
+            1.4921393229891313,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 73,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-024-synthetic-profile"
+        },
+        {
+          "id": "drone-025",
+          "name": "Vehicle 25",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.952688207886867,
+            0.7519994013858272,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 72,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-025-synthetic-profile"
+        },
+        {
+          "id": "drone-026",
+          "name": "Vehicle 26",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -6.0,
+            7.347880794884119e-16,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 71,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-026-synthetic-profile"
+        },
+        {
+          "id": "drone-027",
+          "name": "Vehicle 27",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.952688207886867,
+            -0.7519994013858258,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 70,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-027-synthetic-profile"
+        },
+        {
+          "id": "drone-028",
+          "name": "Vehicle 28",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.811498966771787,
+            -1.4921393229891273,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 69,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-028-synthetic-profile"
+        },
+        {
+          "id": "drone-029",
+          "name": "Vehicle 29",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.578658915329509,
+            -2.2087473161080675,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 68,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-029-synthetic-profile"
+        },
+        {
+          "id": "drone-030",
+          "name": "Vehicle 30",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.257840080263181,
+            -2.890522044610292,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 67,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-030-synthetic-profile"
+        },
+        {
+          "id": "drone-031",
+          "name": "Vehicle 31",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.8541019662496865,
+            -3.526711513754836,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 66,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-031-synthetic-profile"
+        },
+        {
+          "id": "drone-032",
+          "name": "Vehicle 32",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.3738117645284715,
+            -4.107282635572131,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 65,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-032-synthetic-profile"
+        },
+        {
+          "id": "drone-033",
+          "name": "Vehicle 33",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.824543938492137,
+            -4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 64,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-033-synthetic-profile"
+        },
+        {
+          "id": "drone-034",
+          "name": "Vehicle 34",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.214960769873978,
+            -5.065967553012092,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 63,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-034-synthetic-profile"
+        },
+        {
+          "id": "drone-035",
+          "name": "Vehicle 35",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -2.554675749390433,
+            -5.428962314796118,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 62,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-035-synthetic-profile"
+        },
+        {
+          "id": "drone-036",
+          "name": "Vehicle 36",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.8541019662496854,
+            -5.706339097770921,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 61,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-036-synthetic-profile"
+        },
+        {
+          "id": "drone-037",
+          "name": "Vehicle 37",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.1242878875143478,
+            -5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 60,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-037-synthetic-profile"
+        },
+        {
+          "id": "drone-038",
+          "name": "Vehicle 38",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -0.37674311717587927,
+            -5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 59,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-038-synthetic-profile"
+        },
+        {
+          "id": "drone-039",
+          "name": "Vehicle 39",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            0.376743117175877,
+            -5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 58,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-039-synthetic-profile"
+        },
+        {
+          "id": "drone-040",
+          "name": "Vehicle 40",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.1242878875143456,
+            -5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 57,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-040-synthetic-profile"
+        },
+        {
+          "id": "drone-041",
+          "name": "Vehicle 41",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.8541019662496834,
+            -5.706339097770922,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 56,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-041-synthetic-profile"
+        },
+        {
+          "id": "drone-042",
+          "name": "Vehicle 42",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            2.554675749390431,
+            -5.428962314796119,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 55,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-042-synthetic-profile"
+        },
+        {
+          "id": "drone-043",
+          "name": "Vehicle 43",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.2149607698739806,
+            -5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 54,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-043-synthetic-profile"
+        },
+        {
+          "id": "drone-044",
+          "name": "Vehicle 44",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.824543938492136,
+            -4.623079456654738,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 53,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-044-synthetic-profile"
+        },
+        {
+          "id": "drone-045",
+          "name": "Vehicle 45",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.373811764528468,
+            -4.107282635572133,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 52,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-045-synthetic-profile"
+        },
+        {
+          "id": "drone-046",
+          "name": "Vehicle 46",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.854101966249684,
+            -3.52671151375484,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 51,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-046-synthetic-profile"
+        },
+        {
+          "id": "drone-047",
+          "name": "Vehicle 47",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.257840080263179,
+            -2.8905220446102966,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 50,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-047-synthetic-profile"
+        },
+        {
+          "id": "drone-048",
+          "name": "Vehicle 48",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.578658915329509,
+            -2.208747316108067,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 49,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-048-synthetic-profile"
+        },
+        {
+          "id": "drone-049",
+          "name": "Vehicle 49",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.811498966771786,
+            -1.4921393229891322,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 48,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-049-synthetic-profile"
+        },
+        {
+          "id": "drone-050",
+          "name": "Vehicle 50",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.952688207886867,
+            -0.7519994013858279,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 47,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-050-synthetic-profile"
+        }
+      ]
+    },
+    {
+      "time": 0.15000000000000002,
+      "drones": [
+        {
+          "id": "drone-001",
+          "name": "Vehicle 01",
+          "role": "lead",
+          "color": "sky",
+          "position": [
+            6.0,
+            0.0,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 96,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-001-synthetic-profile"
+        },
+        {
+          "id": "drone-002",
+          "name": "Vehicle 02",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.952688207886867,
+            0.7519994013858255,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 95,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-002-synthetic-profile"
+        },
+        {
+          "id": "drone-003",
+          "name": "Vehicle 03",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.8114989667717865,
+            1.4921393229891287,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 94,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-003-synthetic-profile"
+        },
+        {
+          "id": "drone-004",
+          "name": "Vehicle 04",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.578658915329509,
+            2.2087473161080675,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 93,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-004-synthetic-profile"
+        },
+        {
+          "id": "drone-005",
+          "name": "Vehicle 05",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.257840080263182,
+            2.890522044610292,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 92,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-005-synthetic-profile"
+        },
+        {
+          "id": "drone-006",
+          "name": "Vehicle 06",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.854101966249685,
+            3.526711513754839,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 91,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-006-synthetic-profile"
+        },
+        {
+          "id": "drone-007",
+          "name": "Vehicle 07",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.373811764528469,
+            4.1072826355721315,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 90,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.9575,
+          "profile_id": "drone-007-synthetic-profile"
+        },
+        {
+          "id": "drone-008",
+          "name": "Vehicle 08",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.8245439384921385,
+            4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 89,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.9575,
+          "profile_id": "drone-008-synthetic-profile"
+        },
+        {
+          "id": "drone-009",
+          "name": "Vehicle 09",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.2149607698739793,
+            5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 88,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-009-synthetic-profile"
+        },
+        {
+          "id": "drone-010",
+          "name": "Vehicle 10",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            2.554675749390436,
+            5.4289623147961175,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 87,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-010-synthetic-profile"
+        },
+        {
+          "id": "drone-011",
+          "name": "Vehicle 11",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.8541019662496847,
+            5.706339097770921,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 86,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-011-synthetic-profile"
+        },
+        {
+          "id": "drone-012",
+          "name": "Vehicle 12",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.1242878875143485,
+            5.893723504372131,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 85,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-012-synthetic-profile"
+        },
+        {
+          "id": "drone-013",
+          "name": "Vehicle 13",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            0.37674311717588116,
+            5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 84,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-013-synthetic-profile"
+        },
+        {
+          "id": "drone-014",
+          "name": "Vehicle 14",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -0.3767431171758804,
+            5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 83,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-014-synthetic-profile"
+        },
+        {
+          "id": "drone-015",
+          "name": "Vehicle 15",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.1242878875143476,
+            5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 82,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-015-synthetic-profile"
+        },
+        {
+          "id": "drone-016",
+          "name": "Vehicle 16",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.8541019662496827,
+            5.706339097770922,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 81,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.9575,
+          "profile_id": "drone-016-synthetic-profile"
+        },
+        {
+          "id": "drone-017",
+          "name": "Vehicle 17",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -2.5546757493904364,
+            5.428962314796117,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 80,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-017-synthetic-profile"
+        },
+        {
+          "id": "drone-018",
+          "name": "Vehicle 18",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.214960769873981,
+            5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 79,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-018-synthetic-profile"
+        },
+        {
+          "id": "drone-019",
+          "name": "Vehicle 19",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.8245439384921385,
+            4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 78,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-019-synthetic-profile"
+        },
+        {
+          "id": "drone-020",
+          "name": "Vehicle 20",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.373811764528468,
+            4.107282635572133,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 77,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-020-synthetic-profile"
+        },
+        {
+          "id": "drone-021",
+          "name": "Vehicle 21",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.854101966249684,
+            3.5267115137548393,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 76,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-021-synthetic-profile"
+        },
+        {
+          "id": "drone-022",
+          "name": "Vehicle 22",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.257840080263182,
+            2.8905220446102913,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 75,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-022-synthetic-profile"
+        },
+        {
+          "id": "drone-023",
+          "name": "Vehicle 23",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.578658915329508,
+            2.208747316108069,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 74,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.9575,
+          "profile_id": "drone-023-synthetic-profile"
+        },
+        {
+          "id": "drone-024",
+          "name": "Vehicle 24",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.811498966771786,
+            1.4921393229891313,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 73,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-024-synthetic-profile"
+        },
+        {
+          "id": "drone-025",
+          "name": "Vehicle 25",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.952688207886867,
+            0.7519994013858272,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 72,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-025-synthetic-profile"
+        },
+        {
+          "id": "drone-026",
+          "name": "Vehicle 26",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -6.0,
+            7.347880794884119e-16,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 71,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-026-synthetic-profile"
+        },
+        {
+          "id": "drone-027",
+          "name": "Vehicle 27",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.952688207886867,
+            -0.7519994013858258,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 70,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.98,
+          "profile_id": "drone-027-synthetic-profile"
+        },
+        {
+          "id": "drone-028",
+          "name": "Vehicle 28",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.811498966771787,
+            -1.4921393229891273,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 69,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-028-synthetic-profile"
+        },
+        {
+          "id": "drone-029",
+          "name": "Vehicle 29",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.578658915329509,
+            -2.2087473161080675,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 68,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-029-synthetic-profile"
+        },
+        {
+          "id": "drone-030",
+          "name": "Vehicle 30",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.257840080263181,
+            -2.890522044610292,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 67,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-030-synthetic-profile"
+        },
+        {
+          "id": "drone-031",
+          "name": "Vehicle 31",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.8541019662496865,
+            -3.526711513754836,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 66,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-031-synthetic-profile"
+        },
+        {
+          "id": "drone-032",
+          "name": "Vehicle 32",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.3738117645284715,
+            -4.107282635572131,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 65,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-032-synthetic-profile"
+        },
+        {
+          "id": "drone-033",
+          "name": "Vehicle 33",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.824543938492137,
+            -4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 64,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-033-synthetic-profile"
+        },
+        {
+          "id": "drone-034",
+          "name": "Vehicle 34",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.214960769873978,
+            -5.065967553012092,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 63,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-034-synthetic-profile"
+        },
+        {
+          "id": "drone-035",
+          "name": "Vehicle 35",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -2.554675749390433,
+            -5.428962314796118,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 62,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-035-synthetic-profile"
+        },
+        {
+          "id": "drone-036",
+          "name": "Vehicle 36",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.8541019662496854,
+            -5.706339097770921,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 61,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-036-synthetic-profile"
+        },
+        {
+          "id": "drone-037",
+          "name": "Vehicle 37",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.1242878875143478,
+            -5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 60,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-037-synthetic-profile"
+        },
+        {
+          "id": "drone-038",
+          "name": "Vehicle 38",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -0.37674311717587927,
+            -5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 59,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-038-synthetic-profile"
+        },
+        {
+          "id": "drone-039",
+          "name": "Vehicle 39",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            0.376743117175877,
+            -5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 58,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-039-synthetic-profile"
+        },
+        {
+          "id": "drone-040",
+          "name": "Vehicle 40",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.1242878875143456,
+            -5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 57,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-040-synthetic-profile"
+        },
+        {
+          "id": "drone-041",
+          "name": "Vehicle 41",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.8541019662496834,
+            -5.706339097770922,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 56,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-041-synthetic-profile"
+        },
+        {
+          "id": "drone-042",
+          "name": "Vehicle 42",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            2.554675749390431,
+            -5.428962314796119,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 55,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-042-synthetic-profile"
+        },
+        {
+          "id": "drone-043",
+          "name": "Vehicle 43",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.2149607698739806,
+            -5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 54,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-043-synthetic-profile"
+        },
+        {
+          "id": "drone-044",
+          "name": "Vehicle 44",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.824543938492136,
+            -4.623079456654738,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 53,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-044-synthetic-profile"
+        },
+        {
+          "id": "drone-045",
+          "name": "Vehicle 45",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.373811764528468,
+            -4.107282635572133,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 52,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-045-synthetic-profile"
+        },
+        {
+          "id": "drone-046",
+          "name": "Vehicle 46",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.854101966249684,
+            -3.52671151375484,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 51,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-046-synthetic-profile"
+        },
+        {
+          "id": "drone-047",
+          "name": "Vehicle 47",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.257840080263179,
+            -2.8905220446102966,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 50,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-047-synthetic-profile"
+        },
+        {
+          "id": "drone-048",
+          "name": "Vehicle 48",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.578658915329509,
+            -2.208747316108067,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 49,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-048-synthetic-profile"
+        },
+        {
+          "id": "drone-049",
+          "name": "Vehicle 49",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.811498966771786,
+            -1.4921393229891322,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 48,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-049-synthetic-profile"
+        },
+        {
+          "id": "drone-050",
+          "name": "Vehicle 50",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.952688207886867,
+            -0.7519994013858279,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 47,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-050-synthetic-profile"
+        }
+      ]
+    },
+    {
+      "time": 0.2,
+      "drones": [
+        {
+          "id": "drone-001",
+          "name": "Vehicle 01",
+          "role": "lead",
+          "color": "sky",
+          "position": [
+            6.0,
+            0.0,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 96,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-001-synthetic-profile"
+        },
+        {
+          "id": "drone-002",
+          "name": "Vehicle 02",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.952688207886867,
+            0.7519994013858255,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 95,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-002-synthetic-profile"
+        },
+        {
+          "id": "drone-003",
+          "name": "Vehicle 03",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.8114989667717865,
+            1.4921393229891287,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 94,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-003-synthetic-profile"
+        },
+        {
+          "id": "drone-004",
+          "name": "Vehicle 04",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.578658915329509,
+            2.2087473161080675,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 93,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-004-synthetic-profile"
+        },
+        {
+          "id": "drone-005",
+          "name": "Vehicle 05",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.257840080263182,
+            2.890522044610292,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 92,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-005-synthetic-profile"
+        },
+        {
+          "id": "drone-006",
+          "name": "Vehicle 06",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.854101966249685,
+            3.526711513754839,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 91,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-006-synthetic-profile"
+        },
+        {
+          "id": "drone-007",
+          "name": "Vehicle 07",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.373811764528469,
+            4.1072826355721315,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 90,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-007-synthetic-profile"
+        },
+        {
+          "id": "drone-008",
+          "name": "Vehicle 08",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.8245439384921385,
+            4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 89,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-008-synthetic-profile"
+        },
+        {
+          "id": "drone-009",
+          "name": "Vehicle 09",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.2149607698739793,
+            5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 88,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-009-synthetic-profile"
+        },
+        {
+          "id": "drone-010",
+          "name": "Vehicle 10",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            2.554675749390436,
+            5.4289623147961175,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 87,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-010-synthetic-profile"
+        },
+        {
+          "id": "drone-011",
+          "name": "Vehicle 11",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.8541019662496847,
+            5.706339097770921,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 86,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-011-synthetic-profile"
+        },
+        {
+          "id": "drone-012",
+          "name": "Vehicle 12",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.1242878875143485,
+            5.893723504372131,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 85,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-012-synthetic-profile"
+        },
+        {
+          "id": "drone-013",
+          "name": "Vehicle 13",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            0.37674311717588116,
+            5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 84,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-013-synthetic-profile"
+        },
+        {
+          "id": "drone-014",
+          "name": "Vehicle 14",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -0.3767431171758804,
+            5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 83,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-014-synthetic-profile"
+        },
+        {
+          "id": "drone-015",
+          "name": "Vehicle 15",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.1242878875143476,
+            5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 82,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-015-synthetic-profile"
+        },
+        {
+          "id": "drone-016",
+          "name": "Vehicle 16",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.8541019662496827,
+            5.706339097770922,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 81,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-016-synthetic-profile"
+        },
+        {
+          "id": "drone-017",
+          "name": "Vehicle 17",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -2.5546757493904364,
+            5.428962314796117,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 80,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-017-synthetic-profile"
+        },
+        {
+          "id": "drone-018",
+          "name": "Vehicle 18",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.214960769873981,
+            5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 79,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-018-synthetic-profile"
+        },
+        {
+          "id": "drone-019",
+          "name": "Vehicle 19",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.8245439384921385,
+            4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 78,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-019-synthetic-profile"
+        },
+        {
+          "id": "drone-020",
+          "name": "Vehicle 20",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.373811764528468,
+            4.107282635572133,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 77,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-020-synthetic-profile"
+        },
+        {
+          "id": "drone-021",
+          "name": "Vehicle 21",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.854101966249684,
+            3.5267115137548393,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 76,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.9575,
+          "profile_id": "drone-021-synthetic-profile"
+        },
+        {
+          "id": "drone-022",
+          "name": "Vehicle 22",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.257840080263182,
+            2.8905220446102913,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 75,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-022-synthetic-profile"
+        },
+        {
+          "id": "drone-023",
+          "name": "Vehicle 23",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.578658915329508,
+            2.208747316108069,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 74,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-023-synthetic-profile"
+        },
+        {
+          "id": "drone-024",
+          "name": "Vehicle 24",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.811498966771786,
+            1.4921393229891313,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 73,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-024-synthetic-profile"
+        },
+        {
+          "id": "drone-025",
+          "name": "Vehicle 25",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.952688207886867,
+            0.7519994013858272,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 72,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.9575,
+          "profile_id": "drone-025-synthetic-profile"
+        },
+        {
+          "id": "drone-026",
+          "name": "Vehicle 26",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -6.0,
+            7.347880794884119e-16,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 71,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-026-synthetic-profile"
+        },
+        {
+          "id": "drone-027",
+          "name": "Vehicle 27",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.952688207886867,
+            -0.7519994013858258,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 70,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-027-synthetic-profile"
+        },
+        {
+          "id": "drone-028",
+          "name": "Vehicle 28",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.811498966771787,
+            -1.4921393229891273,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 69,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-028-synthetic-profile"
+        },
+        {
+          "id": "drone-029",
+          "name": "Vehicle 29",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.578658915329509,
+            -2.2087473161080675,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 68,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-029-synthetic-profile"
+        },
+        {
+          "id": "drone-030",
+          "name": "Vehicle 30",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.257840080263181,
+            -2.890522044610292,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 67,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-030-synthetic-profile"
+        },
+        {
+          "id": "drone-031",
+          "name": "Vehicle 31",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.8541019662496865,
+            -3.526711513754836,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 66,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-031-synthetic-profile"
+        },
+        {
+          "id": "drone-032",
+          "name": "Vehicle 32",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.3738117645284715,
+            -4.107282635572131,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 65,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-032-synthetic-profile"
+        },
+        {
+          "id": "drone-033",
+          "name": "Vehicle 33",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.824543938492137,
+            -4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 64,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.9575,
+          "profile_id": "drone-033-synthetic-profile"
+        },
+        {
+          "id": "drone-034",
+          "name": "Vehicle 34",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.214960769873978,
+            -5.065967553012092,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 63,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-034-synthetic-profile"
+        },
+        {
+          "id": "drone-035",
+          "name": "Vehicle 35",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -2.554675749390433,
+            -5.428962314796118,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 62,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-035-synthetic-profile"
+        },
+        {
+          "id": "drone-036",
+          "name": "Vehicle 36",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.8541019662496854,
+            -5.706339097770921,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 61,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-036-synthetic-profile"
+        },
+        {
+          "id": "drone-037",
+          "name": "Vehicle 37",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.1242878875143478,
+            -5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 60,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-037-synthetic-profile"
+        },
+        {
+          "id": "drone-038",
+          "name": "Vehicle 38",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -0.37674311717587927,
+            -5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 59,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-038-synthetic-profile"
+        },
+        {
+          "id": "drone-039",
+          "name": "Vehicle 39",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            0.376743117175877,
+            -5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 58,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-039-synthetic-profile"
+        },
+        {
+          "id": "drone-040",
+          "name": "Vehicle 40",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.1242878875143456,
+            -5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 57,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-040-synthetic-profile"
+        },
+        {
+          "id": "drone-041",
+          "name": "Vehicle 41",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.8541019662496834,
+            -5.706339097770922,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 56,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.9575,
+          "profile_id": "drone-041-synthetic-profile"
+        },
+        {
+          "id": "drone-042",
+          "name": "Vehicle 42",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            2.554675749390431,
+            -5.428962314796119,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 55,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-042-synthetic-profile"
+        },
+        {
+          "id": "drone-043",
+          "name": "Vehicle 43",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.2149607698739806,
+            -5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 54,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-043-synthetic-profile"
+        },
+        {
+          "id": "drone-044",
+          "name": "Vehicle 44",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.824543938492136,
+            -4.623079456654738,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 53,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-044-synthetic-profile"
+        },
+        {
+          "id": "drone-045",
+          "name": "Vehicle 45",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.373811764528468,
+            -4.107282635572133,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 52,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-045-synthetic-profile"
+        },
+        {
+          "id": "drone-046",
+          "name": "Vehicle 46",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.854101966249684,
+            -3.52671151375484,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 51,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-046-synthetic-profile"
+        },
+        {
+          "id": "drone-047",
+          "name": "Vehicle 47",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.257840080263179,
+            -2.8905220446102966,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 50,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-047-synthetic-profile"
+        },
+        {
+          "id": "drone-048",
+          "name": "Vehicle 48",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.578658915329509,
+            -2.208747316108067,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 49,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-048-synthetic-profile"
+        },
+        {
+          "id": "drone-049",
+          "name": "Vehicle 49",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.811498966771786,
+            -1.4921393229891322,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 48,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-049-synthetic-profile"
+        },
+        {
+          "id": "drone-050",
+          "name": "Vehicle 50",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.952688207886867,
+            -0.7519994013858279,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 47,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-050-synthetic-profile"
+        }
+      ]
+    },
+    {
+      "time": 0.25,
+      "drones": [
+        {
+          "id": "drone-001",
+          "name": "Vehicle 01",
+          "role": "lead",
+          "color": "sky",
+          "position": [
+            6.0,
+            0.0,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 96,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-001-synthetic-profile"
+        },
+        {
+          "id": "drone-002",
+          "name": "Vehicle 02",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.952688207886867,
+            0.7519994013858255,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 95,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-002-synthetic-profile"
+        },
+        {
+          "id": "drone-003",
+          "name": "Vehicle 03",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.8114989667717865,
+            1.4921393229891287,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 94,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-003-synthetic-profile"
+        },
+        {
+          "id": "drone-004",
+          "name": "Vehicle 04",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.578658915329509,
+            2.2087473161080675,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 93,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-004-synthetic-profile"
+        },
+        {
+          "id": "drone-005",
+          "name": "Vehicle 05",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.257840080263182,
+            2.890522044610292,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 92,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-005-synthetic-profile"
+        },
+        {
+          "id": "drone-006",
+          "name": "Vehicle 06",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.854101966249685,
+            3.526711513754839,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 91,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-006-synthetic-profile"
+        },
+        {
+          "id": "drone-007",
+          "name": "Vehicle 07",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.373811764528469,
+            4.1072826355721315,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 90,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-007-synthetic-profile"
+        },
+        {
+          "id": "drone-008",
+          "name": "Vehicle 08",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.8245439384921385,
+            4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 89,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-008-synthetic-profile"
+        },
+        {
+          "id": "drone-009",
+          "name": "Vehicle 09",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.2149607698739793,
+            5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 88,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-009-synthetic-profile"
+        },
+        {
+          "id": "drone-010",
+          "name": "Vehicle 10",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            2.554675749390436,
+            5.4289623147961175,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 87,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-010-synthetic-profile"
+        },
+        {
+          "id": "drone-011",
+          "name": "Vehicle 11",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.8541019662496847,
+            5.706339097770921,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 86,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-011-synthetic-profile"
+        },
+        {
+          "id": "drone-012",
+          "name": "Vehicle 12",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.1242878875143485,
+            5.893723504372131,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 85,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-012-synthetic-profile"
+        },
+        {
+          "id": "drone-013",
+          "name": "Vehicle 13",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            0.37674311717588116,
+            5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 84,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-013-synthetic-profile"
+        },
+        {
+          "id": "drone-014",
+          "name": "Vehicle 14",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -0.3767431171758804,
+            5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 83,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-014-synthetic-profile"
+        },
+        {
+          "id": "drone-015",
+          "name": "Vehicle 15",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.1242878875143476,
+            5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 82,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-015-synthetic-profile"
+        },
+        {
+          "id": "drone-016",
+          "name": "Vehicle 16",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.8541019662496827,
+            5.706339097770922,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 81,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-016-synthetic-profile"
+        },
+        {
+          "id": "drone-017",
+          "name": "Vehicle 17",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -2.5546757493904364,
+            5.428962314796117,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 80,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.9575,
+          "profile_id": "drone-017-synthetic-profile"
+        },
+        {
+          "id": "drone-018",
+          "name": "Vehicle 18",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.214960769873981,
+            5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 79,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-018-synthetic-profile"
+        },
+        {
+          "id": "drone-019",
+          "name": "Vehicle 19",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.8245439384921385,
+            4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 78,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-019-synthetic-profile"
+        },
+        {
+          "id": "drone-020",
+          "name": "Vehicle 20",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.373811764528468,
+            4.107282635572133,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 77,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-020-synthetic-profile"
+        },
+        {
+          "id": "drone-021",
+          "name": "Vehicle 21",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.854101966249684,
+            3.5267115137548393,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 76,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-021-synthetic-profile"
+        },
+        {
+          "id": "drone-022",
+          "name": "Vehicle 22",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.257840080263182,
+            2.8905220446102913,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 75,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-022-synthetic-profile"
+        },
+        {
+          "id": "drone-023",
+          "name": "Vehicle 23",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.578658915329508,
+            2.208747316108069,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 74,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-023-synthetic-profile"
+        },
+        {
+          "id": "drone-024",
+          "name": "Vehicle 24",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.811498966771786,
+            1.4921393229891313,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 73,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-024-synthetic-profile"
+        },
+        {
+          "id": "drone-025",
+          "name": "Vehicle 25",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.952688207886867,
+            0.7519994013858272,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 72,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-025-synthetic-profile"
+        },
+        {
+          "id": "drone-026",
+          "name": "Vehicle 26",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -6.0,
+            7.347880794884119e-16,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 71,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-026-synthetic-profile"
+        },
+        {
+          "id": "drone-027",
+          "name": "Vehicle 27",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.952688207886867,
+            -0.7519994013858258,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 70,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-027-synthetic-profile"
+        },
+        {
+          "id": "drone-028",
+          "name": "Vehicle 28",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.811498966771787,
+            -1.4921393229891273,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 69,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.9575,
+          "profile_id": "drone-028-synthetic-profile"
+        },
+        {
+          "id": "drone-029",
+          "name": "Vehicle 29",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.578658915329509,
+            -2.2087473161080675,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 68,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-029-synthetic-profile"
+        },
+        {
+          "id": "drone-030",
+          "name": "Vehicle 30",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -5.257840080263181,
+            -2.890522044610292,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 67,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-030-synthetic-profile"
+        },
+        {
+          "id": "drone-031",
+          "name": "Vehicle 31",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.8541019662496865,
+            -3.526711513754836,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 66,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-031-synthetic-profile"
+        },
+        {
+          "id": "drone-032",
+          "name": "Vehicle 32",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -4.3738117645284715,
+            -4.107282635572131,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 65,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-032-synthetic-profile"
+        },
+        {
+          "id": "drone-033",
+          "name": "Vehicle 33",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.824543938492137,
+            -4.623079456654736,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 64,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-033-synthetic-profile"
+        },
+        {
+          "id": "drone-034",
+          "name": "Vehicle 34",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -3.214960769873978,
+            -5.065967553012092,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 63,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-034-synthetic-profile"
+        },
+        {
+          "id": "drone-035",
+          "name": "Vehicle 35",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -2.554675749390433,
+            -5.428962314796118,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 62,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-035-synthetic-profile"
+        },
+        {
+          "id": "drone-036",
+          "name": "Vehicle 36",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.8541019662496854,
+            -5.706339097770921,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 61,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-036-synthetic-profile"
+        },
+        {
+          "id": "drone-037",
+          "name": "Vehicle 37",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -1.1242878875143478,
+            -5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 60,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.9575,
+          "profile_id": "drone-037-synthetic-profile"
+        },
+        {
+          "id": "drone-038",
+          "name": "Vehicle 38",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            -0.37674311717587927,
+            -5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 59,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-038-synthetic-profile"
+        },
+        {
+          "id": "drone-039",
+          "name": "Vehicle 39",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            0.376743117175877,
+            -5.988160370569629,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 58,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-039-synthetic-profile"
+        },
+        {
+          "id": "drone-040",
+          "name": "Vehicle 40",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.1242878875143456,
+            -5.893723504372132,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 57,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-040-synthetic-profile"
+        },
+        {
+          "id": "drone-041",
+          "name": "Vehicle 41",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            1.8541019662496834,
+            -5.706339097770922,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 56,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-041-synthetic-profile"
+        },
+        {
+          "id": "drone-042",
+          "name": "Vehicle 42",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            2.554675749390431,
+            -5.428962314796119,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 55,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-042-synthetic-profile"
+        },
+        {
+          "id": "drone-043",
+          "name": "Vehicle 43",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.2149607698739806,
+            -5.06596755301209,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 54,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-043-synthetic-profile"
+        },
+        {
+          "id": "drone-044",
+          "name": "Vehicle 44",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            3.824543938492136,
+            -4.623079456654738,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 53,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-044-synthetic-profile"
+        },
+        {
+          "id": "drone-045",
+          "name": "Vehicle 45",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.373811764528468,
+            -4.107282635572133,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 52,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-045-synthetic-profile"
+        },
+        {
+          "id": "drone-046",
+          "name": "Vehicle 46",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            4.854101966249684,
+            -3.52671151375484,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 51,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.9575,
+          "profile_id": "drone-046-synthetic-profile"
+        },
+        {
+          "id": "drone-047",
+          "name": "Vehicle 47",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.257840080263179,
+            -2.8905220446102966,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 50,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-047-synthetic-profile"
+        },
+        {
+          "id": "drone-048",
+          "name": "Vehicle 48",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.578658915329509,
+            -2.208747316108067,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 49,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-048-synthetic-profile"
+        },
+        {
+          "id": "drone-049",
+          "name": "Vehicle 49",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.811498966771786,
+            -1.4921393229891322,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 48,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-049-synthetic-profile"
+        },
+        {
+          "id": "drone-050",
+          "name": "Vehicle 50",
+          "role": "cooperative",
+          "color": "aurora",
+          "position": [
+            5.952688207886867,
+            -0.7519994013858279,
+            1.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "battery": 47,
+          "link_delay_ms": 80,
+          "link_loss_pct": 8,
+          "state": "Flying",
+          "confidence": 0.965,
+          "profile_id": "drone-050-synthetic-profile"
+        }
+      ]
+    }
+  ],
+  "command_authority": "replay only",
+  "failsafe": "synthetic constraints only; live failsafe unavailable"
+}

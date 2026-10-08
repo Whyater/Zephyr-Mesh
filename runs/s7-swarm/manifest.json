@@ -1,0 +1,2255 @@
+{
+  "schema": "zephyr-s7-scenario-manifest-1",
+  "scenario_id": "s7-ring-50-seed-17",
+  "seed": 17,
+  "agent_count": 50,
+  "target_position_m": [
+    0.0,
+    0.0,
+    1.5
+  ],
+  "target_velocity_mps": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "dt_s": 0.05,
+  "constraints": {
+    "min_separation_m": 0.35,
+    "target_keepout_radius_m": 0.75,
+    "ground_plane_z_m": 0.0
+  },
+  "link_models": {
+    "target": {
+      "delay_s": 0.08,
+      "delay_jitter_s": 0.0,
+      "loss_model": "independent",
+      "loss_probability": 0.08,
+      "burst_start_probability": 0.0,
+      "burst_end_probability": 1.0,
+      "contention_mode": "none",
+      "packet_duration_s": 0.0
+    },
+    "neighbor": {
+      "delay_s": 0.04,
+      "delay_jitter_s": 0.0,
+      "loss_model": "independent",
+      "loss_probability": 0.03,
+      "burst_start_probability": 0.0,
+      "burst_end_probability": 1.0,
+      "contention_mode": "none",
+      "packet_duration_s": 0.0
+    },
+    "target_overrides": {}
+  },
+  "agents": [
+    {
+      "agent_id": "drone-001",
+      "position_m": [
+        6.0,
+        0.0,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        6.0,
+        0.0,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-001-synthetic-profile",
+        "motor": {
+          "part_id": "drone-001-motor",
+          "max_torque_nm": 0.001872,
+          "max_power_w": 18.72,
+          "max_rpm": 39520.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-001-prop",
+          "diameter_m": 0.0782,
+          "pitch_m": 0.039,
+          "max_rpm": 37440.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.134971975266999
+      }
+    },
+    {
+      "agent_id": "drone-002",
+      "position_m": [
+        5.952688207886867,
+        0.7519994013858255,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        5.952688207886867,
+        0.7519994013858255,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-002-synthetic-profile",
+        "motor": {
+          "part_id": "drone-002-motor",
+          "max_torque_nm": 0.001872,
+          "max_power_w": 18.72,
+          "max_rpm": 39520.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-002-prop",
+          "diameter_m": 0.0772,
+          "pitch_m": 0.04,
+          "max_rpm": 37440.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.776952797693807
+      }
+    },
+    {
+      "agent_id": "drone-003",
+      "position_m": [
+        5.8114989667717865,
+        1.4921393229891287,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        5.8114989667717865,
+        1.4921393229891287,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-003-synthetic-profile",
+        "motor": {
+          "part_id": "drone-003-motor",
+          "max_torque_nm": 0.001872,
+          "max_power_w": 18.72,
+          "max_rpm": 39520.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-003-prop",
+          "diameter_m": 0.0762,
+          "pitch_m": 0.041,
+          "max_rpm": 37440.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.4325792394289545
+      }
+    },
+    {
+      "agent_id": "drone-004",
+      "position_m": [
+        5.578658915329509,
+        2.2087473161080675,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        5.578658915329509,
+        2.2087473161080675,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-004-synthetic-profile",
+        "motor": {
+          "part_id": "drone-004-motor",
+          "max_torque_nm": 0.001872,
+          "max_power_w": 18.72,
+          "max_rpm": 39520.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-004-prop",
+          "diameter_m": 0.08020000000000001,
+          "pitch_m": 0.038,
+          "max_rpm": 37440.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.8933749397951685
+      }
+    },
+    {
+      "agent_id": "drone-005",
+      "position_m": [
+        5.257840080263182,
+        2.890522044610292,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        5.257840080263182,
+        2.890522044610292,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-005-synthetic-profile",
+        "motor": {
+          "part_id": "drone-005-motor",
+          "max_torque_nm": 0.001872,
+          "max_power_w": 18.72,
+          "max_rpm": 39520.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-005-prop",
+          "diameter_m": 0.0792,
+          "pitch_m": 0.039,
+          "max_rpm": 37440.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.506992565247283
+      }
+    },
+    {
+      "agent_id": "drone-006",
+      "position_m": [
+        4.854101966249685,
+        3.526711513754839,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        4.854101966249685,
+        3.526711513754839,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-006-synthetic-profile",
+        "motor": {
+          "part_id": "drone-006-motor",
+          "max_torque_nm": 0.001872,
+          "max_power_w": 18.72,
+          "max_rpm": 39520.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-006-prop",
+          "diameter_m": 0.0782,
+          "pitch_m": 0.04,
+          "max_rpm": 37440.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.134971975266999
+      }
+    },
+    {
+      "agent_id": "drone-007",
+      "position_m": [
+        4.373811764528469,
+        4.1072826355721315,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        4.373811764528469,
+        4.1072826355721315,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-007-synthetic-profile",
+        "motor": {
+          "part_id": "drone-007-motor",
+          "max_torque_nm": 0.001872,
+          "max_power_w": 18.72,
+          "max_rpm": 39520.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-007-prop",
+          "diameter_m": 0.0772,
+          "pitch_m": 0.041,
+          "max_rpm": 37440.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.776952797693807
+      }
+    },
+    {
+      "agent_id": "drone-008",
+      "position_m": [
+        3.8245439384921385,
+        4.623079456654736,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        3.8245439384921385,
+        4.623079456654736,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-008-synthetic-profile",
+        "motor": {
+          "part_id": "drone-008-motor",
+          "max_torque_nm": 0.001872,
+          "max_power_w": 18.72,
+          "max_rpm": 39520.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-008-prop",
+          "diameter_m": 0.0762,
+          "pitch_m": 0.038,
+          "max_rpm": 37440.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.4325792394289545
+      }
+    },
+    {
+      "agent_id": "drone-009",
+      "position_m": [
+        3.2149607698739793,
+        5.06596755301209,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        3.2149607698739793,
+        5.06596755301209,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-009-synthetic-profile",
+        "motor": {
+          "part_id": "drone-009-motor",
+          "max_torque_nm": 0.001872,
+          "max_power_w": 18.72,
+          "max_rpm": 39520.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-009-prop",
+          "diameter_m": 0.08020000000000001,
+          "pitch_m": 0.039,
+          "max_rpm": 37440.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.8933749397951685
+      }
+    },
+    {
+      "agent_id": "drone-010",
+      "position_m": [
+        2.554675749390436,
+        5.4289623147961175,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        2.554675749390436,
+        5.4289623147961175,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-010-synthetic-profile",
+        "motor": {
+          "part_id": "drone-010-motor",
+          "max_torque_nm": 0.001854,
+          "max_power_w": 18.54,
+          "max_rpm": 39140.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-010-prop",
+          "diameter_m": 0.0772,
+          "pitch_m": 0.038,
+          "max_rpm": 37080.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.647253349734984
+      }
+    },
+    {
+      "agent_id": "drone-011",
+      "position_m": [
+        1.8541019662496847,
+        5.706339097770921,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        1.8541019662496847,
+        5.706339097770921,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-011-synthetic-profile",
+        "motor": {
+          "part_id": "drone-011-motor",
+          "max_torque_nm": 0.001854,
+          "max_power_w": 18.54,
+          "max_rpm": 39140.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-011-prop",
+          "diameter_m": 0.0762,
+          "pitch_m": 0.039,
+          "max_rpm": 37080.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.309470520627013
+      }
+    },
+    {
+      "agent_id": "drone-012",
+      "position_m": [
+        1.1242878875143485,
+        5.893723504372131,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        1.1242878875143485,
+        5.893723504372131,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-012-synthetic-profile",
+        "motor": {
+          "part_id": "drone-012-motor",
+          "max_torque_nm": 0.001854,
+          "max_power_w": 18.54,
+          "max_rpm": 39140.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-012-prop",
+          "diameter_m": 0.08020000000000001,
+          "pitch_m": 0.04,
+          "max_rpm": 37080.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.742309054760257
+      }
+    },
+    {
+      "agent_id": "drone-013",
+      "position_m": [
+        0.37674311717588116,
+        5.988160370569629,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        0.37674311717588116,
+        5.988160370569629,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-013-synthetic-profile",
+        "motor": {
+          "part_id": "drone-013-motor",
+          "max_torque_nm": 0.001854,
+          "max_power_w": 18.54,
+          "max_rpm": 39140.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-013-prop",
+          "diameter_m": 0.0792,
+          "pitch_m": 0.041,
+          "max_rpm": 37080.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.3633213872696395
+      }
+    },
+    {
+      "agent_id": "drone-014",
+      "position_m": [
+        -0.3767431171758804,
+        5.988160370569629,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -0.3767431171758804,
+        5.988160370569629,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-014-synthetic-profile",
+        "motor": {
+          "part_id": "drone-014-motor",
+          "max_torque_nm": 0.001854,
+          "max_power_w": 18.54,
+          "max_rpm": 39140.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-014-prop",
+          "diameter_m": 0.0782,
+          "pitch_m": 0.038,
+          "max_rpm": 37080.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.998420644009577
+      }
+    },
+    {
+      "agent_id": "drone-015",
+      "position_m": [
+        -1.1242878875143476,
+        5.893723504372132,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -1.1242878875143476,
+        5.893723504372132,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-015-synthetic-profile",
+        "motor": {
+          "part_id": "drone-015-motor",
+          "max_torque_nm": 0.001854,
+          "max_power_w": 18.54,
+          "max_rpm": 39140.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-015-prop",
+          "diameter_m": 0.0772,
+          "pitch_m": 0.039,
+          "max_rpm": 37080.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.647253349734984
+      }
+    },
+    {
+      "agent_id": "drone-016",
+      "position_m": [
+        -1.8541019662496827,
+        5.706339097770922,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -1.8541019662496827,
+        5.706339097770922,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-016-synthetic-profile",
+        "motor": {
+          "part_id": "drone-016-motor",
+          "max_torque_nm": 0.001854,
+          "max_power_w": 18.54,
+          "max_rpm": 39140.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-016-prop",
+          "diameter_m": 0.0762,
+          "pitch_m": 0.04,
+          "max_rpm": 37080.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.309470520627013
+      }
+    },
+    {
+      "agent_id": "drone-017",
+      "position_m": [
+        -2.5546757493904364,
+        5.428962314796117,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -2.5546757493904364,
+        5.428962314796117,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-017-synthetic-profile",
+        "motor": {
+          "part_id": "drone-017-motor",
+          "max_torque_nm": 0.001854,
+          "max_power_w": 18.54,
+          "max_rpm": 39140.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-017-prop",
+          "diameter_m": 0.08020000000000001,
+          "pitch_m": 0.041,
+          "max_rpm": 37080.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.742309054760257
+      }
+    },
+    {
+      "agent_id": "drone-018",
+      "position_m": [
+        -3.214960769873981,
+        5.06596755301209,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -3.214960769873981,
+        5.06596755301209,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-018-synthetic-profile",
+        "motor": {
+          "part_id": "drone-018-motor",
+          "max_torque_nm": 0.001854,
+          "max_power_w": 18.54,
+          "max_rpm": 39140.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-018-prop",
+          "diameter_m": 0.0792,
+          "pitch_m": 0.038,
+          "max_rpm": 37080.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.3633213872696395
+      }
+    },
+    {
+      "agent_id": "drone-019",
+      "position_m": [
+        -3.8245439384921385,
+        4.623079456654736,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -3.8245439384921385,
+        4.623079456654736,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-019-synthetic-profile",
+        "motor": {
+          "part_id": "drone-019-motor",
+          "max_torque_nm": 0.001854,
+          "max_power_w": 18.54,
+          "max_rpm": 39140.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-019-prop",
+          "diameter_m": 0.0782,
+          "pitch_m": 0.039,
+          "max_rpm": 37080.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.998420644009577
+      }
+    },
+    {
+      "agent_id": "drone-020",
+      "position_m": [
+        -4.373811764528468,
+        4.107282635572133,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -4.373811764528468,
+        4.107282635572133,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-020-synthetic-profile",
+        "motor": {
+          "part_id": "drone-020-motor",
+          "max_torque_nm": 0.001836,
+          "max_power_w": 18.36,
+          "max_rpm": 38760.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-020-prop",
+          "diameter_m": 0.08020000000000001,
+          "pitch_m": 0.038,
+          "max_rpm": 36720.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.5927027434938
+      }
+    },
+    {
+      "agent_id": "drone-021",
+      "position_m": [
+        -4.854101966249684,
+        3.5267115137548393,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -4.854101966249684,
+        3.5267115137548393,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-021-synthetic-profile",
+        "motor": {
+          "part_id": "drone-021-motor",
+          "max_torque_nm": 0.001836,
+          "max_power_w": 18.36,
+          "max_rpm": 38760.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-021-prop",
+          "diameter_m": 0.0792,
+          "pitch_m": 0.039,
+          "max_rpm": 36720.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.221038336615453
+      }
+    },
+    {
+      "agent_id": "drone-022",
+      "position_m": [
+        -5.257840080263182,
+        2.8905220446102913,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -5.257840080263182,
+        2.8905220446102913,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-022-synthetic-profile",
+        "motor": {
+          "part_id": "drone-022-motor",
+          "max_torque_nm": 0.001836,
+          "max_power_w": 18.36,
+          "max_rpm": 38760.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-022-prop",
+          "diameter_m": 0.0782,
+          "pitch_m": 0.04,
+          "max_rpm": 36720.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.8631886492860446
+      }
+    },
+    {
+      "agent_id": "drone-023",
+      "position_m": [
+        -5.578658915329508,
+        2.208747316108069,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -5.578658915329508,
+        2.208747316108069,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-023-synthetic-profile",
+        "motor": {
+          "part_id": "drone-023-motor",
+          "max_torque_nm": 0.001836,
+          "max_power_w": 18.36,
+          "max_rpm": 38760.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-023-prop",
+          "diameter_m": 0.0772,
+          "pitch_m": 0.041,
+          "max_rpm": 36720.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.518807036539051
+      }
+    },
+    {
+      "agent_id": "drone-024",
+      "position_m": [
+        -5.811498966771786,
+        1.4921393229891313,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -5.811498966771786,
+        1.4921393229891313,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-024-synthetic-profile",
+        "motor": {
+          "part_id": "drone-024-motor",
+          "max_torque_nm": 0.001836,
+          "max_power_w": 18.36,
+          "max_rpm": 38760.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-024-prop",
+          "diameter_m": 0.0762,
+          "pitch_m": 0.038,
+          "max_rpm": 36720.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.1875512580453815
+      }
+    },
+    {
+      "agent_id": "drone-025",
+      "position_m": [
+        -5.952688207886867,
+        0.7519994013858272,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -5.952688207886867,
+        0.7519994013858272,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-025-synthetic-profile",
+        "motor": {
+          "part_id": "drone-025-motor",
+          "max_torque_nm": 0.001836,
+          "max_power_w": 18.36,
+          "max_rpm": 38760.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-025-prop",
+          "diameter_m": 0.08020000000000001,
+          "pitch_m": 0.039,
+          "max_rpm": 36720.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.5927027434938
+      }
+    },
+    {
+      "agent_id": "drone-026",
+      "position_m": [
+        -6.0,
+        7.347880794884119e-16,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -6.0,
+        7.347880794884119e-16,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-026-synthetic-profile",
+        "motor": {
+          "part_id": "drone-026-motor",
+          "max_torque_nm": 0.001836,
+          "max_power_w": 18.36,
+          "max_rpm": 38760.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-026-prop",
+          "diameter_m": 0.0792,
+          "pitch_m": 0.04,
+          "max_rpm": 36720.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.221038336615453
+      }
+    },
+    {
+      "agent_id": "drone-027",
+      "position_m": [
+        -5.952688207886867,
+        -0.7519994013858258,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -5.952688207886867,
+        -0.7519994013858258,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-027-synthetic-profile",
+        "motor": {
+          "part_id": "drone-027-motor",
+          "max_torque_nm": 0.001836,
+          "max_power_w": 18.36,
+          "max_rpm": 38760.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-027-prop",
+          "diameter_m": 0.0782,
+          "pitch_m": 0.041,
+          "max_rpm": 36720.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.8631886492860446
+      }
+    },
+    {
+      "agent_id": "drone-028",
+      "position_m": [
+        -5.811498966771787,
+        -1.4921393229891273,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -5.811498966771787,
+        -1.4921393229891273,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-028-synthetic-profile",
+        "motor": {
+          "part_id": "drone-028-motor",
+          "max_torque_nm": 0.001836,
+          "max_power_w": 18.36,
+          "max_rpm": 38760.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-028-prop",
+          "diameter_m": 0.0772,
+          "pitch_m": 0.038,
+          "max_rpm": 36720.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.518807036539051
+      }
+    },
+    {
+      "agent_id": "drone-029",
+      "position_m": [
+        -5.578658915329509,
+        -2.2087473161080675,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -5.578658915329509,
+        -2.2087473161080675,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-029-synthetic-profile",
+        "motor": {
+          "part_id": "drone-029-motor",
+          "max_torque_nm": 0.001836,
+          "max_power_w": 18.36,
+          "max_rpm": 38760.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-029-prop",
+          "diameter_m": 0.0762,
+          "pitch_m": 0.039,
+          "max_rpm": 36720.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.1875512580453815
+      }
+    },
+    {
+      "agent_id": "drone-030",
+      "position_m": [
+        -5.257840080263181,
+        -2.890522044610292,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -5.257840080263181,
+        -2.890522044610292,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-030-synthetic-profile",
+        "motor": {
+          "part_id": "drone-030-motor",
+          "max_torque_nm": 0.001818,
+          "max_power_w": 18.18,
+          "max_rpm": 38380.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-030-prop",
+          "diameter_m": 0.0782,
+          "pitch_m": 0.038,
+          "max_rpm": 36360.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.729275991096399
+      }
+    },
+    {
+      "agent_id": "drone-031",
+      "position_m": [
+        -4.8541019662496865,
+        -3.526711513754836,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -4.8541019662496865,
+        -3.526711513754836,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-031-synthetic-profile",
+        "motor": {
+          "part_id": "drone-031-motor",
+          "max_torque_nm": 0.001818,
+          "max_power_w": 18.18,
+          "max_rpm": 38380.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-031-prop",
+          "diameter_m": 0.0772,
+          "pitch_m": 0.039,
+          "max_rpm": 36360.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.391613858106003
+      }
+    },
+    {
+      "agent_id": "drone-032",
+      "position_m": [
+        -4.3738117645284715,
+        -4.107282635572131,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -4.3738117645284715,
+        -4.107282635572131,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-032-synthetic-profile",
+        "motor": {
+          "part_id": "drone-032-motor",
+          "max_torque_nm": 0.001818,
+          "max_power_w": 18.18,
+          "max_rpm": 38380.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-032-prop",
+          "diameter_m": 0.0762,
+          "pitch_m": 0.04,
+          "max_rpm": 36360.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.066821451684057
+      }
+    },
+    {
+      "agent_id": "drone-033",
+      "position_m": [
+        -3.824543938492137,
+        -4.623079456654736,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -3.824543938492137,
+        -4.623079456654736,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-033-synthetic-profile",
+        "motor": {
+          "part_id": "drone-033-motor",
+          "max_torque_nm": 0.001818,
+          "max_power_w": 18.18,
+          "max_rpm": 38380.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-033-prop",
+          "diameter_m": 0.08020000000000001,
+          "pitch_m": 0.041,
+          "max_rpm": 36360.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.4445560059957945
+      }
+    },
+    {
+      "agent_id": "drone-034",
+      "position_m": [
+        -3.214960769873978,
+        -5.065967553012092,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -3.214960769873978,
+        -5.065967553012092,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-034-synthetic-profile",
+        "motor": {
+          "part_id": "drone-034-motor",
+          "max_torque_nm": 0.001818,
+          "max_power_w": 18.18,
+          "max_rpm": 38380.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-034-prop",
+          "diameter_m": 0.0792,
+          "pitch_m": 0.038,
+          "max_rpm": 36360.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.08014341328472
+      }
+    },
+    {
+      "agent_id": "drone-035",
+      "position_m": [
+        -2.554675749390433,
+        -5.428962314796118,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -2.554675749390433,
+        -5.428962314796118,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-035-synthetic-profile",
+        "motor": {
+          "part_id": "drone-035-motor",
+          "max_torque_nm": 0.001818,
+          "max_power_w": 18.18,
+          "max_rpm": 38380.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-035-prop",
+          "diameter_m": 0.0782,
+          "pitch_m": 0.039,
+          "max_rpm": 36360.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.729275991096399
+      }
+    },
+    {
+      "agent_id": "drone-036",
+      "position_m": [
+        -1.8541019662496854,
+        -5.706339097770921,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -1.8541019662496854,
+        -5.706339097770921,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-036-synthetic-profile",
+        "motor": {
+          "part_id": "drone-036-motor",
+          "max_torque_nm": 0.001818,
+          "max_power_w": 18.18,
+          "max_rpm": 38380.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-036-prop",
+          "diameter_m": 0.0772,
+          "pitch_m": 0.04,
+          "max_rpm": 36360.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.391613858106003
+      }
+    },
+    {
+      "agent_id": "drone-037",
+      "position_m": [
+        -1.1242878875143478,
+        -5.893723504372132,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -1.1242878875143478,
+        -5.893723504372132,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-037-synthetic-profile",
+        "motor": {
+          "part_id": "drone-037-motor",
+          "max_torque_nm": 0.001818,
+          "max_power_w": 18.18,
+          "max_rpm": 38380.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-037-prop",
+          "diameter_m": 0.0762,
+          "pitch_m": 0.041,
+          "max_rpm": 36360.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.066821451684057
+      }
+    },
+    {
+      "agent_id": "drone-038",
+      "position_m": [
+        -0.37674311717587927,
+        -5.988160370569629,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        -0.37674311717587927,
+        -5.988160370569629,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-038-synthetic-profile",
+        "motor": {
+          "part_id": "drone-038-motor",
+          "max_torque_nm": 0.001818,
+          "max_power_w": 18.18,
+          "max_rpm": 38380.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-038-prop",
+          "diameter_m": 0.08020000000000001,
+          "pitch_m": 0.038,
+          "max_rpm": 36360.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.4445560059957945
+      }
+    },
+    {
+      "agent_id": "drone-039",
+      "position_m": [
+        0.376743117175877,
+        -5.988160370569629,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        0.376743117175877,
+        -5.988160370569629,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-039-synthetic-profile",
+        "motor": {
+          "part_id": "drone-039-motor",
+          "max_torque_nm": 0.001818,
+          "max_power_w": 18.18,
+          "max_rpm": 38380.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-039-prop",
+          "diameter_m": 0.0792,
+          "pitch_m": 0.039,
+          "max_rpm": 36360.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.08014341328472
+      }
+    },
+    {
+      "agent_id": "drone-040",
+      "position_m": [
+        1.1242878875143456,
+        -5.893723504372132,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        1.1242878875143456,
+        -5.893723504372132,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-040-synthetic-profile",
+        "motor": {
+          "part_id": "drone-040-motor",
+          "max_torque_nm": 0.0018,
+          "max_power_w": 18.0,
+          "max_rpm": 38000.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-040-prop",
+          "diameter_m": 0.0762,
+          "pitch_m": 0.038,
+          "max_rpm": 36000.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 5.947281101543043
+      }
+    },
+    {
+      "agent_id": "drone-041",
+      "position_m": [
+        1.8541019662496834,
+        -5.706339097770922,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        1.8541019662496834,
+        -5.706339097770922,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-041-synthetic-profile",
+        "motor": {
+          "part_id": "drone-041-motor",
+          "max_torque_nm": 0.0018,
+          "max_power_w": 18.0,
+          "max_rpm": 38000.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-041-prop",
+          "diameter_m": 0.08020000000000001,
+          "pitch_m": 0.039,
+          "max_rpm": 36000.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.297868842266244
+      }
+    },
+    {
+      "agent_id": "drone-042",
+      "position_m": [
+        2.554675749390431,
+        -5.428962314796119,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        2.554675749390431,
+        -5.428962314796119,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-042-synthetic-profile",
+        "motor": {
+          "part_id": "drone-042-motor",
+          "max_torque_nm": 0.0018,
+          "max_power_w": 18.0,
+          "max_rpm": 38000.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-042-prop",
+          "diameter_m": 0.0792,
+          "pitch_m": 0.04,
+          "max_rpm": 36000.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.940636617277444
+      }
+    },
+    {
+      "agent_id": "drone-043",
+      "position_m": [
+        3.2149607698739806,
+        -5.06596755301209,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        3.2149607698739806,
+        -5.06596755301209,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-043-synthetic-profile",
+        "motor": {
+          "part_id": "drone-043-motor",
+          "max_torque_nm": 0.0018,
+          "max_power_w": 18.0,
+          "max_rpm": 38000.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-043-prop",
+          "diameter_m": 0.0782,
+          "pitch_m": 0.041,
+          "max_rpm": 36000.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.596682669440643
+      }
+    },
+    {
+      "agent_id": "drone-044",
+      "position_m": [
+        3.824543938492136,
+        -4.623079456654738,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        3.824543938492136,
+        -4.623079456654738,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-044-synthetic-profile",
+        "motor": {
+          "part_id": "drone-044-motor",
+          "max_torque_nm": 0.0018,
+          "max_power_w": 18.0,
+          "max_rpm": 38000.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-044-prop",
+          "diameter_m": 0.0772,
+          "pitch_m": 0.038,
+          "max_rpm": 36000.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.265673814435843
+      }
+    },
+    {
+      "agent_id": "drone-045",
+      "position_m": [
+        4.373811764528468,
+        -4.107282635572133,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        4.373811764528468,
+        -4.107282635572133,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-045-synthetic-profile",
+        "motor": {
+          "part_id": "drone-045-motor",
+          "max_torque_nm": 0.0018,
+          "max_power_w": 18.0,
+          "max_rpm": 38000.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-045-prop",
+          "diameter_m": 0.0762,
+          "pitch_m": 0.039,
+          "max_rpm": 36000.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 5.947281101543043
+      }
+    },
+    {
+      "agent_id": "drone-046",
+      "position_m": [
+        4.854101966249684,
+        -3.52671151375484,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        4.854101966249684,
+        -3.52671151375484,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-046-synthetic-profile",
+        "motor": {
+          "part_id": "drone-046-motor",
+          "max_torque_nm": 0.0018,
+          "max_power_w": 18.0,
+          "max_rpm": 38000.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-046-prop",
+          "diameter_m": 0.08020000000000001,
+          "pitch_m": 0.04,
+          "max_rpm": 36000.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 7.297868842266244
+      }
+    },
+    {
+      "agent_id": "drone-047",
+      "position_m": [
+        5.257840080263179,
+        -2.8905220446102966,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        5.257840080263179,
+        -2.8905220446102966,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-047-synthetic-profile",
+        "motor": {
+          "part_id": "drone-047-motor",
+          "max_torque_nm": 0.0018,
+          "max_power_w": 18.0,
+          "max_rpm": 38000.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-047-prop",
+          "diameter_m": 0.0792,
+          "pitch_m": 0.041,
+          "max_rpm": 36000.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.940636617277444
+      }
+    },
+    {
+      "agent_id": "drone-048",
+      "position_m": [
+        5.578658915329509,
+        -2.208747316108067,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        5.578658915329509,
+        -2.208747316108067,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-048-synthetic-profile",
+        "motor": {
+          "part_id": "drone-048-motor",
+          "max_torque_nm": 0.0018,
+          "max_power_w": 18.0,
+          "max_rpm": 38000.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-048-prop",
+          "diameter_m": 0.0782,
+          "pitch_m": 0.038,
+          "max_rpm": 36000.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.596682669440643
+      }
+    },
+    {
+      "agent_id": "drone-049",
+      "position_m": [
+        5.811498966771786,
+        -1.4921393229891322,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        5.811498966771786,
+        -1.4921393229891322,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-049-synthetic-profile",
+        "motor": {
+          "part_id": "drone-049-motor",
+          "max_torque_nm": 0.0018,
+          "max_power_w": 18.0,
+          "max_rpm": 38000.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-049-prop",
+          "diameter_m": 0.0772,
+          "pitch_m": 0.039,
+          "max_rpm": 36000.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 6.265673814435843
+      }
+    },
+    {
+      "agent_id": "drone-050",
+      "position_m": [
+        5.952688207886867,
+        -0.7519994013858279,
+        1.5
+      ],
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "slot_offset_m": [
+        5.952688207886867,
+        -0.7519994013858279,
+        0.0
+      ],
+      "hardware_profile": {
+        "profile_id": "drone-050-synthetic-profile",
+        "motor": {
+          "part_id": "drone-050-motor",
+          "max_torque_nm": 0.001944,
+          "max_power_w": 19.44,
+          "max_rpm": 41040.0,
+          "mass_kg": 0.01,
+          "nominal_voltage_v": 3.7
+        },
+        "propeller": {
+          "part_id": "drone-050-prop",
+          "diameter_m": 0.0792,
+          "pitch_m": 0.038,
+          "max_rpm": 38880.0,
+          "thrust_coefficient": 0.1,
+          "power_coefficient": 0.04,
+          "mass_kg": 0.002
+        },
+        "motor_count": 4,
+        "arm_length_m": 0.1,
+        "frame_mass_kg": 0.03,
+        "battery_capacity_wh": 5.0,
+        "total_mass_kg": 0.078,
+        "estimated_max_thrust_n": 8.09555855039241
+      }
+    }
+  ],
+  "evidence_boundary": "Coordination and hardware-parameter fixture only; numeric motor and propeller values are scenario inputs, not measured flight performance.",
+  "reproducibility": {
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm",
+    "module": "sim.scenarios.make_ring_swarm_config + sim.swarm.SwarmSimulator",
+    "steps": 6
+  },
+  "command_authority": "replay only",
+  "failsafe": "synthetic constraints only; live failsafe unavailable"
+}

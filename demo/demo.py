@@ -21,6 +21,8 @@ MAX_RUNTIME_STEPS = 2000
 S2_REPORT = ROOT / "runs" / "s2-physics" / "convergence.json"
 S2_TELEMETRY = ROOT / "runs" / "s0-baseline" / "telemetry.csv"
 S2_MANIFEST = ROOT / "runs" / "s0-baseline" / "manifest.json"
+S7_RUN = ROOT / "runs" / "s7-swarm" / "run.json"
+S7_MANIFEST = ROOT / "runs" / "s7-swarm" / "manifest.json"
 
 def _link_fixture():
     """Return one retained, deterministic S3 link replay.
@@ -130,6 +132,26 @@ def _tracker_fixture():
             "config": {"model": "constant_velocity_kalman", "seed": 9, "noise_std_m": 0.02,
                        "dropout_probability": 0.15}, "samples": rows}
 
+def _swarm_fixture():
+    """Return the checked-in deterministic S7 event-log projection."""
+    if not S7_RUN.exists() or not S7_MANIFEST.exists():
+        return {"schema": "zephyr-s7-swarm-fixture-error-1", "status": "fixture unavailable"}
+    run = json.loads(S7_RUN.read_text())
+    manifest = json.loads(S7_MANIFEST.read_text())
+    return {
+        "schema": "zephyr-s7-swarm-fixture-1",
+        "status": "synthetic deterministic replay; not flight performance",
+        "run": run,
+        "manifest": manifest,
+        "source": {
+            "run_path": "runs/s7-swarm/run.json",
+            "run_sha256": _sha256(S7_RUN),
+            "manifest_path": "runs/s7-swarm/manifest.json",
+            "manifest_sha256": _sha256(S7_MANIFEST),
+        },
+        "unavailable": ["live radio", "camera", "manual authority", "flight performance"],
+    }
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "ZephyrS2/1.0"
     def _send(self, code, body, ctype="application/json; charset=utf-8", disposition=None):
@@ -162,6 +184,10 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/investigation":
             if u.query: return self._send(400, json.dumps({"error": "query parameters are not allowed"}))
             return self._send(200, json.dumps(run_sweep()))
+        if u.path == "/api/swarm":
+            if u.query:
+                return self._send(400, json.dumps({"error": "query parameters are not allowed"}))
+            return self._send(200, json.dumps(_swarm_fixture()))
         if u.path in ("/download/telemetry.csv", "/download/run.json"):
             t = _retained_telemetry()
             if u.path.endswith("csv"):

@@ -43,7 +43,7 @@ S6 adds `sim/investigation.py`, a deterministic grid over observation delay, ind
 
 The browser is now a phone-first Horizon replay cockpit. The scene is dominant, camera views and timeline controls are grouped together, packet details are behind disclosure, and S4, S5, and S6 load their synthetic fixtures on demand. The cockpit uses the existing APIs and marks simulated, recorded, and unavailable data explicitly. Its SVG scene is a visual replay model, not a full 3D rigid-body renderer.
 
-The full test suite currently passes with 73 tests:
+The full Python suite currently passes with 85 tests:
 
 ```bash
 .venv/bin/python -m pytest -q
@@ -51,7 +51,19 @@ The full test suite currently passes with 73 tests:
 
 ### Simulator phase map
 
-There are eight simulator phases. S0 baseline hooks, S1 metrics, S2 physics correctness, and S3 deterministic link replay are implemented. S4 seeded sensing, S5 constant-velocity tracking recovery, and S6 bounded latency/loss/noise investigation are implemented as synthetic fixtures and remain local until reviewed. S7 multi-agent simulation is planned and has not started.
+There are eight simulator phases. S0 baseline hooks, S1 metrics, S2 physics correctness, and S3 deterministic link replay are implemented. S4 seeded sensing, S5 constant-velocity tracking recovery, and S6 bounded latency/loss/noise investigation are implemented as synthetic fixtures. S7 now has a **local coordination foundation**, not a flight-ready swarm: `sim/swarm.py` models seeded target and neighbor packet paths, cooperative target fusion, formation slots, dropout schedules, pairwise separation, spherical keep-out constraints, and replayable event data. `sim/hardware.py` defines SI-unit motor, propeller, and airframe profiles with explicit torque, wattage, RPM, diameter, pitch, and transparent static-thrust estimates. `sim/scenarios.py` creates a deterministic 50-agent ring with unique synthetic profile IDs and a scenario manifest. The checked-in `runs/s7-swarm/` artifact is synthetic and not flight performance.
+
+### Native macOS cockpit preview
+
+`macos/ZephyrMeshApp` is a native SwiftUI + SceneKit desktop surface. It loads a compact projection of the canonical Python S7 event log and provides a 3D fleet view, 50-agent fleet rail, link-health badges, safety gate, obstacle toggle, and replay controls. The app is read-only and labels live radio, camera input, manual authority, and flight performance as unavailable. Build it on macOS 14 or newer with:
+
+```bash
+cd macos/ZephyrMeshApp
+swift build
+swift run
+```
+
+The renderer is local and dependency-free. It is a cockpit surface, not a substitute for the Python physics or a flight-validation result. Recreate the canonical fixture with `PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm --agents 50 --steps 6 --seed 17`.
 
 ### S1 baseline metrics
 
@@ -82,7 +94,7 @@ To run the browser replay locally from the repository root:
 .venv/bin/python -m demo.demo --host 127.0.0.1 --port 8765
 ```
 
-Open `http://127.0.0.1:8765` in a browser on the same computer. The server serves the retained, synthetic replay and read-only S4-S6 fixtures. It does not expose a radio, camera, motor, controller, or swarm command path.
+Open `http://127.0.0.1:8765` in a browser on the same computer. The server serves the retained, synthetic replay, read-only S4-S6 fixtures, and the versioned S7 event-log projection at `/api/swarm`. It does not expose a radio, camera, motor, controller, or swarm command path.
 
 Stop the local server with `Ctrl-C` when finished. The repository does not claim a hosted public deployment. See `--help` for local server options.
 
@@ -107,6 +119,8 @@ The core question: how much radio latency, packet loss, and tracking noise can a
 - Swarm task commands with clear team-command and joystick arbitration
 - A multi-drone physical view that shows each model, identity, command authority, and stale data state
 - Small indoor drones for real flight tests, non-contact only
+- Motor and propeller coefficients calibrated from bench measurements and replayed through the profile contract
+- Native cockpit loading of full event-log timelines, with target-device frame-time and accessibility measurements
 
 Everything in this section is a plan. It moves up to "What exists today" only when it works and has been checked.
 

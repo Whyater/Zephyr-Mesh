@@ -12,12 +12,12 @@ def run_mission(output_dir=None, plot=True):
     z_velocity_history = telemetry["vz"]
 
     print("====================================================")
-    print("  LAUNCHING PROJECT ZEPHYR-MESH RIGID-BODY SIMULATOR")
+    print("  LAUNCHING PROJECT ZEPHYR-MESH FLIGHT SIMULATOR")
     print("====================================================")
 
     # 2. Real-Time Flight Loop
     for step in range(0, len(time_history), 50):
-        print(f"Time: {time_history[step]:.1f}s | Altitude: {z_position_history[step]:.2f}m | Vertical Speed: {z_velocity_history[step]:.2f}m/s")
+        print(f"Time: {time_history[step]:.1f}s | Vehicle altitude: {z_position_history[step]:.2f}m | Vertical speed: {z_velocity_history[step]:.2f}m/s")
 
     if output_dir is not None:
         print(f"Telemetry written to {write_baseline(output_dir, config, telemetry=telemetry)}")
@@ -31,10 +31,10 @@ def run_mission(output_dir=None, plot=True):
     import matplotlib.pyplot as plt
     target_position = np.asarray(config.target_position)
     plt.figure(figsize=(10, 5))
-    plt.plot(time_history, z_position_history, label='Actual Interceptor Altitude (Z)', color='#1f77b4', linewidth=2.5)
-    plt.axhline(y=target_position[2], color='red', linestyle='--', label='Target Waypoint Target (3.0m)', linewidth=1.5)
+    plt.plot(time_history, z_position_history, label='Simulated vehicle altitude (Z)', color='#7CC4FF', linewidth=2.5)
+    plt.axhline(y=target_position[2], color='#9AA8C0', linestyle='--', label='Target waypoint (3.0 m)', linewidth=1.5)
     
-    plt.title('Zephyr-Mesh Guidance & Control System: Step Response Validation', fontsize=12, fontweight='bold')
+    plt.title('Zephyr-Mesh guidance and control: step response fixture', fontsize=12, fontweight='bold')
     plt.xlabel('Time (seconds)', fontsize=10)
     plt.ylabel('Altitude (meters)', fontsize=10)
     plt.grid(True, linestyle=':', alpha=0.6)
