@@ -1,0 +1,87 @@
+{
+  "schema": "zephyr-s1-report-1",
+  "status": "local baseline measurement; not flight performance",
+  "source": {
+    "telemetry_source": "runs/s0-baseline/telemetry.csv",
+    "telemetry_sha256": "10c9400bacfc1c192a35894508cc883c1dac2fdfa1a367e04d4695dcf7590d02",
+    "manifest_sha256": "0c7c739391a591a5c72fa61a1cccae174901f3c4994476094c1938ed64b3a693",
+    "columns": [
+      "time",
+      "x",
+      "y",
+      "z",
+      "vx",
+      "vy",
+      "vz",
+      "qw",
+      "qx",
+      "qy",
+      "qz",
+      "p",
+      "q",
+      "r"
+    ]
+  },
+  "provenance": {
+    "python": "3.13.15",
+    "numpy": "2.5.1",
+    "command": "python -m sim.report runs/s0-baseline --output <report.json>",
+    "runtime_s": "unavailable: report builder does not time simulation",
+    "output_sha256": null,
+    "output_hash_status": "not claimed before serialization",
+    "hash_parity": {
+      "telemetry_sha256": "sha256 of retained telemetry.csv bytes",
+      "manifest_sha256": "sha256 of retained manifest.json bytes if present"
+    }
+  },
+  "sampling": {
+    "time_column": "time",
+    "time_semantics": "S0 pre-step label for the state recorded after that step; no relabeling performed",
+    "sample_count": 700,
+    "duration_s": 6.99
+  },
+  "step_response": {
+    "goal_m": 3.0,
+    "rise_time_s": 0.28,
+    "overshoot_pct": 11.2140753674615,
+    "settling_time_s": 3.0300000000000002,
+    "censored": {
+      "rise_time_s": false,
+      "overshoot_pct": false,
+      "settling_time_s": false
+    },
+    "count": 700,
+    "definitions": {
+      "rise": "first sample at rise_fraction of step amplitude",
+      "overshoot": "peak beyond goal divided by step amplitude",
+      "settling": "first sample after which all samples stay within tolerance of goal"
+    }
+  },
+  "tracking_error": {
+    "count": 700,
+    "empty": false,
+    "rms_m": 0.8632936278013712,
+    "median_m": 0.037634456099454816,
+    "p90_m": 1.6735316501657291,
+    "p95_m": 2.556123235797068,
+    "max_m": 3.0,
+    "per_axis": {
+      "rms_m": [
+        0.0,
+        0.0,
+        0.8632936278013715
+      ]
+    }
+  },
+  "unavailable_metrics": {
+    "packet_loss": "No packet events in S0 telemetry",
+    "packet_age": "No shared-clock observation timestamps in S0 telemetry",
+    "detection_reacquisition": "No detection availability events in S0 telemetry",
+    "controller_recovery": "No outage and settled-window events in S0 telemetry",
+    "miss_distance": "No target trajectory/capture event in S0 telemetry"
+  },
+  "known_issues": [
+    "S0 integrator labeled RK4 is effectively forward Euler",
+    "S0 drag is not applied"
+  ]
+}
