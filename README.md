@@ -23,6 +23,18 @@ The browser payload is served by `demo/demo.py` with schema `zephyr-s2-demo-1`. 
 
 The physical view is an explanatory replay, not a flight display and not evidence of flight performance. Live radio, camera, manual controller input, swarm commands, and age-of-data timestamps are not implemented. Manual controller assignment, per-drone takeover and return authority, team-command arbitration, and swarm task views remain planned design work.
 
+### S3 deterministic link replay
+
+S3 adds `sim/link.py`, a seeded packet-link fixture for testing how a tracker records imperfect delivery. `LinkConfig` can apply a fixed delay with optional seeded jitter, independent loss, burst loss, or no loss. The `serialized` contention mode queues packets on one declared FIFO transmission resource. It is an explicit abstraction, not a model of ESP-NOW airtime, CSMA/CA, or radio backoff.
+
+Each attempted packet retains sender, receiver, sequence number, send and receive times, packet age, loss reason, and duplicate or out-of-order flags. `SimulatedLink` keeps the event log deterministic for a given seed and exposes `advance()` and `deliver_all()` for replay fixtures. The `lag_error()` helper checks the first-order `v × L` relationship between target speed and communication delay. These are simulator checks only. They do not measure a radio or establish a tolerable field link budget.
+
+The browser's **S3 link replay** panel calls `GET /api/link` and shows the retained synthetic fixture, including delay, loss, serialized contention, packet age, and delivery flags. The endpoint rejects query parameters and has no control or live-radio path. Its payload uses schema `zephyr-s3-link-fixture-1` and labels live radio, manual controller input, swarm commands, and measured link quality as unavailable. The full test suite currently passes with 44 tests:
+
+```bash
+.venv/bin/python -m pytest -q
+```
+
 ### S1 baseline metrics
 
 S1 adds a local browser demo and read-only report for the retained S0 telemetry. It is a **synthetic single-drone baseline replay**, not flight performance. The report covers step response and position-error metrics; radio latency or packet loss, sensor noise, packet age, detection reacquisition, and controller recovery are unavailable because this telemetry contains no link or sensor events.
@@ -72,7 +84,8 @@ Run the test suite with:
 
 The core question: how much radio latency, packet loss, and tracking noise can a group of drones tolerate while tracking a target, and what helps them recover?
 
-- Simulated radio link (delay, loss, update rate) and camera noise, sized from real measurements
+- Radio behavior measured with ESP-NOW hardware, including latency, loss, update rate, and contention
+- Sensor and camera noise sized from real measurements
 - Kalman-filter target tracking
 - ESP-NOW radio experiments on ESP32 boards
 - Ground-camera vision tracking (OpenCV, then YOLO)
