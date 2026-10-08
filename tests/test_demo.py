@@ -49,3 +49,31 @@ def test_ui_physical_model_and_accessible_state_labels():
     for text in ("Physical flight view", "ground frame", "Target confidence", "Radio delay / loss",
                  "Control authority", "PLANNED", "ABORT / STOP", "NO FLIGHT ACTION", "Stop replay", "disabled", "Recorded sample age", "RECORDED SAMPLE", "CONFIDENCE · UNAVAILABLE", "RADIO · UNAVAILABLE", "Accessible state summary", "+Z / thrust", "skewX", "pitchRad"):
         assert text in html
+
+
+def test_s3_link_fixture_is_deterministic_and_read_only():
+    s = ThreadingHTTPServer(("127.0.0.1", 0), Handler); threading.Thread(target=s.serve_forever, daemon=True).start()
+    try:
+        first = json.load(request(s, "/api/link"))
+    finally:
+        s.shutdown()
+    s2 = ThreadingHTTPServer(("127.0.0.1", 0), Handler); threading.Thread(target=s2.serve_forever, daemon=True).start()
+    try:
+        second = json.load(request(s2, "/api/link"))
+        assert first == second
+        assert first["schema"] == "zephyr-s3-link-fixture-1"
+        assert first["status"].startswith("replay only")
+        assert first["config"]["contention_mode"] == "serialized"
+        assert any(e["loss_reason"] for e in first["events"])
+        assert any(e["duplicate"] or e["out_of_order"] for e in first["events"])
+        assert all("packet_age" in e for e in first["events"])
+        try: request(s2, "/api/link?seed=9") ; assert False
+        except urllib.error.HTTPError as e: assert e.code == 400
+    finally: s2.shutdown()
+
+
+def test_ui_contains_s3_link_replay_panel():
+    from pathlib import Path
+    html = Path("demo/index.html").read_text()
+    for text in ("S3 link replay", "packet age", "DUPLICATE", "OUT OF ORDER", "Live radio", "/api/link"):
+        assert text in html

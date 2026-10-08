@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import urlsplit, parse_qs
 import numpy as np
 from sim.baseline import BaselineConfig, run_baseline, write_baseline
+from sim.link import LinkConfig, SimulatedLink
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT / "demo" / "index.html"
@@ -17,6 +18,29 @@ MAX_RUNTIME_STEPS = 2000
 S2_REPORT = ROOT / "runs" / "s2-physics" / "convergence.json"
 S2_TELEMETRY = ROOT / "runs" / "s0-baseline" / "telemetry.csv"
 S2_MANIFEST = ROOT / "runs" / "s0-baseline" / "manifest.json"
+
+def _link_fixture():
+    """Return one retained, deterministic S3 link replay.
+
+    This is deliberately a synthetic fixture. It exercises loss, delay,
+    duplicate, reordering, and serialized contention fields without implying
+    measured radio behavior.
+    """
+    config = LinkConfig(delay_s=0.12, delay_jitter_s=0.08,
+                        loss_model="independent", loss_probability=0.2,
+                        contention_mode="serialized", packet_duration_s=0.03)
+    link = SimulatedLink(config, seed=1)
+    for seq, send_time in ((0, 0.0), (1, 0.01), (2, 0.02), (2, 0.03),
+                           (3, 0.04), (4, 0.05), (5, 0.06), (6, 0.07)):
+        link.send("D1", "GCS", seq, send_time)
+    link.deliver_all()
+    return {"schema": "zephyr-s3-link-fixture-1", "status": "replay only; synthetic link fixture",
+            "config": {"delay_s": config.delay_s, "delay_jitter_s": config.delay_jitter_s,
+                       "loss_model": config.loss_model, "loss_probability": config.loss_probability,
+                       "contention_mode": config.contention_mode,
+                       "packet_duration_s": config.packet_duration_s},
+            "events": [event.as_dict() for event in link.events],
+            "unavailable": ["live radio", "manual controller", "swarm command", "measured link quality"]}
 
 def _sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -76,6 +100,10 @@ class Handler(BaseHTTPRequestHandler):
             if not 1 <= limit <= MAX_RUNTIME_STEPS: return self._send(400, json.dumps({"error": "limit out of range"}))
             t = _retained_telemetry(); t = {k: v[:limit] for k, v in t.items()}
             return self._send(200, json.dumps(_payload(t, _report(t))))
+        if u.path == "/api/link":
+            if u.query:
+                return self._send(400, json.dumps({"error": "query parameters are not allowed"}))
+            return self._send(200, json.dumps(_link_fixture()))
         if u.path in ("/download/telemetry.csv", "/download/run.json"):
             t = _retained_telemetry()
             if u.path.endswith("csv"):
