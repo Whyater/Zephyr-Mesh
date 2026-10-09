@@ -60,7 +60,9 @@ enum ReleaseUpdaterError: Error, LocalizedError {
 
 enum ReleaseUpdater {
     static let repository = "Whyater/Zephyr-Mesh"
-    static let currentVersion = "0.1.0"
+    static let currentVersion: String = {
+        (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "0.1.0"
+    }()
 
     static func platformKey() -> String {
         #if arch(arm64)

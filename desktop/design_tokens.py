@@ -18,9 +18,9 @@ class DesktopTokens:
     grid: str = "#d5dce3"
     accent: str = "#276ea5"
     warning: str = "#c77b30"
-    control_background: str = "#172033"
-    control_track: str = "#2b3a55"
-    control_active: str = "#7cc4ff"
+    control_background: str = "#ffffff"
+    control_track: str = "#d5dce3"
+    control_active: str = "#276ea5"
     window_min_width: int = 1180
     window_min_height: int = 760
     fleet_row_height: int = 28

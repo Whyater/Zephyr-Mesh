@@ -10,4 +10,6 @@ macos/**/.build/
 macos/ZephyrMesh.app/
 dist/
 build/
+release/
+release-assets/
 *.spec

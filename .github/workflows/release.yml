@@ -1,0 +1,155 @@
+name: Desktop release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version without the leading v"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - id: version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            tag="$GITHUB_REF_NAME"
+          else
+            tag="v${INPUT_VERSION#v}"
+          fi
+          version="${tag#v}"
+          if [[ -z "$version" || "$version" =~ [[:space:]] ]]; then
+            echo "Invalid release version: $version" >&2
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  macos:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            architecture: arm64
+          - runner: macos-13
+            architecture: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run native tests
+        working-directory: macos/ZephyrMeshApp
+        run: swift test
+      - name: Build the local macOS bundle
+        run: python3 macos/build_app.py --version "${{ needs.prepare.outputs.version }}"
+      - name: Package the macOS asset
+        run: |
+          platform_key="macos-${{ matrix.architecture }}"
+          python3 tools/package_release.py \
+            --source macos/ZephyrMesh.app \
+            --output release \
+            --platform "$platform_key" \
+            --version "${{ needs.prepare.outputs.version }}"
+          unzip -t "release/ZephyrMesh-${platform_key}-v${{ needs.prepare.outputs.version }}.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-release-${{ matrix.architecture }}
+          path: |
+            release/*.zip
+            release/*.sha256
+          if-no-files-found: error
+
+  windows:
+    needs: prepare
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build and package the Windows preview
+        shell: powershell
+        run: |
+          powershell -ExecutionPolicy Bypass -File desktop/build_windows.ps1 -Python py -Output dist -Version "${{ needs.prepare.outputs.version }}" -Package
+      - name: Validate the frozen Windows bundle
+        run: py tools/validate_windows_bundle.py dist/ZephyrMeshWindows --gui-smoke
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: |
+            dist/release/*.zip
+            dist/release/*.sha256
+          if-no-files-found: error
+
+  publish:
+    needs: [prepare, macos, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: macos-release-*
+          path: release-assets/macos
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-release
+          path: release-assets/windows
+      - name: Build the public release manifest
+        run: |
+          python3 tools/build_release_manifest.py \
+            --version "${{ needs.prepare.outputs.version }}" \
+            --repository "${{ github.repository }}" \
+            --output release-assets/release-manifest.json \
+            release-assets/macos/*.zip release-assets/windows/*.zip
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > release-notes.md <<'EOF'
+          ## Zephyr Mesh desktop preview
+
+          This release contains the read-only synthetic replay cockpit for macOS and Windows.
+          It does not connect to a radio, camera, motor, flight controller, or swarm.
+
+          The ZIP assets are architecture-labeled and accompanied by SHA-256 sidecars and a release manifest.
+          EOF
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            gh release create "$RELEASE_TAG" \
+              --verify-tag \
+              --title "Zephyr Mesh $RELEASE_TAG" \
+              --notes-file release-notes.md \
+              release-assets/macos/*.zip \
+              release-assets/macos/*.sha256 \
+              release-assets/windows/*.zip \
+              release-assets/windows/*.sha256 \
+              release-assets/release-manifest.json
+          else
+            gh release create "$RELEASE_TAG" \
+              --title "Zephyr Mesh $RELEASE_TAG" \
+              --notes-file release-notes.md \
+              release-assets/macos/*.zip \
+              release-assets/macos/*.sha256 \
+              release-assets/windows/*.zip \
+              release-assets/windows/*.sha256 \
+              release-assets/release-manifest.json
+          fi

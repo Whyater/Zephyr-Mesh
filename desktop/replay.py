@@ -9,11 +9,55 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
 
 class ReplayFormatError(ValueError):
     """Raised when a replay file does not satisfy the S7 event-log contract."""
+
+
+@dataclass(frozen=True)
+class LinkStats:
+    """Observed link metrics for one receiver in a replay manifest.
+
+    These values are calculated from the event log, so the desktop surfaces can
+    show a useful link diagnostic without pretending that a live radio is
+    attached.  ``None`` means the manifest contained no packet-age samples.
+    """
+
+    receiver: str
+    event_count: int
+    loss_count: int
+    mean_delay_ms: float | None
+    max_delay_ms: float | None
+
+    @property
+    def loss_pct(self) -> float:
+        if self.event_count <= 0:
+            return 0.0
+        return self.loss_count / self.event_count * 100.0
+
+
+@dataclass(frozen=True)
+class HardwareProfile:
+    """A compact, typed projection of an agent's synthetic parts manifest."""
+
+    profile_id: str
+    motor_part_id: str
+    motor_max_torque_nm: float
+    motor_max_power_w: float
+    motor_max_rpm: float
+    motor_nominal_voltage_v: float
+    propeller_part_id: str
+    propeller_diameter_m: float
+    propeller_pitch_m: float
+    propeller_max_rpm: float
+    motor_count: int
+    arm_length_m: float
+    frame_mass_kg: float
+    battery_capacity_wh: float
+    total_mass_kg: float
+    estimated_max_thrust_n: float
 
 
 @dataclass(frozen=True)
@@ -52,6 +96,8 @@ class ReplayModel:
         self.command_authority = _required_str(document, "command_authority")
         self.failsafe = _required_str(document, "failsafe")
         self.evidence_boundary = _required_str(document, "evidence_boundary")
+        self.agent_profiles = _decode_profiles(document.get("agent_profiles", []))
+        self._link_stats = _decode_link_stats(document.get("link_events", []))
         self.source_path = source_path
         raw_steps = document.get("steps")
         if not isinstance(raw_steps, list) or not raw_steps:
@@ -113,7 +159,36 @@ class ReplayModel:
             "command_authority": self.command_authority,
             "failsafe": self.failsafe,
             "status": self.status,
+            "link_event_count": sum(item.event_count for item in self._link_stats.values()),
+            "link_loss_pct": _aggregate_loss_pct(self._link_stats.values()),
+            "profile_count": len(self.agent_profiles),
         }
+
+    def link_stats_for(self, agent_id: str) -> LinkStats | None:
+        """Return replay-derived link metrics for ``agent_id`` when available."""
+
+        return self._link_stats.get(agent_id)
+
+    def profile_for(self, agent_id: str) -> HardwareProfile | None:
+        """Return the immutable synthetic parts profile for ``agent_id``."""
+
+        agent = next((item for item in self.frame.agents if item.agent_id == agent_id), None)
+        if agent is None:
+            return None
+        return self.agent_profiles.get(agent.profile_id)
+
+
+def filter_agents(agents: Sequence[AgentSnapshot], query: str) -> tuple[AgentSnapshot, ...]:
+    """Filter a fleet by stable ID or profile ID using case-insensitive matching."""
+
+    needle = query.strip().casefold()
+    if not needle:
+        return tuple(agents)
+    return tuple(
+        agent
+        for agent in agents
+        if needle in agent.agent_id.casefold() or needle in agent.profile_id.casefold()
+    )
 
 
 def _decode_frame(raw: Any) -> ReplayFrame:
@@ -131,6 +206,83 @@ def _decode_frame(raw: Any) -> ReplayFrame:
         active_count=_required_int(raw, "active_count"),
         agents=agents,
     )
+
+
+def _decode_profiles(raw: Any) -> dict[str, HardwareProfile]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, list):
+        raise ReplayFormatError("agent_profiles must be a list when present")
+    profiles: dict[str, HardwareProfile] = {}
+    for item in raw:
+        if not isinstance(item, Mapping):
+            raise ReplayFormatError("each agent profile must be an object")
+        profile_id = _required_str(item, "profile_id")
+        motor = item.get("motor")
+        propeller = item.get("propeller")
+        if not isinstance(motor, Mapping) or not isinstance(propeller, Mapping):
+            raise ReplayFormatError(f"profile {profile_id} must contain motor and propeller objects")
+        if profile_id in profiles:
+            raise ReplayFormatError(f"duplicate agent profile {profile_id}")
+        profiles[profile_id] = HardwareProfile(
+            profile_id=profile_id,
+            motor_part_id=_required_str(motor, "part_id"),
+            motor_max_torque_nm=_required_float(motor, "max_torque_nm"),
+            motor_max_power_w=_required_float(motor, "max_power_w"),
+            motor_max_rpm=_required_float(motor, "max_rpm"),
+            motor_nominal_voltage_v=_required_float(motor, "nominal_voltage_v"),
+            propeller_part_id=_required_str(propeller, "part_id"),
+            propeller_diameter_m=_required_float(propeller, "diameter_m"),
+            propeller_pitch_m=_required_float(propeller, "pitch_m"),
+            propeller_max_rpm=_required_float(propeller, "max_rpm"),
+            motor_count=_required_int(item, "motor_count"),
+            arm_length_m=_required_float(item, "arm_length_m"),
+            frame_mass_kg=_required_float(item, "frame_mass_kg"),
+            battery_capacity_wh=_required_float(item, "battery_capacity_wh"),
+            total_mass_kg=_required_float(item, "total_mass_kg"),
+            estimated_max_thrust_n=_required_float(item, "estimated_max_thrust_n"),
+        )
+    return profiles
+
+
+def _decode_link_stats(raw: Any) -> dict[str, LinkStats]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, list):
+        raise ReplayFormatError("link_events must be a list when present")
+    counts: dict[str, int] = {}
+    losses: dict[str, int] = {}
+    delays: dict[str, list[float]] = {}
+    for event in raw:
+        if not isinstance(event, Mapping):
+            raise ReplayFormatError("each link event must be an object")
+        receiver = event.get("receiver")
+        if not isinstance(receiver, str) or not receiver:
+            raise ReplayFormatError("each link event must have a receiver")
+        counts[receiver] = counts.get(receiver, 0) + 1
+        if event.get("loss_reason") is not None:
+            losses[receiver] = losses.get(receiver, 0) + 1
+        packet_age = event.get("packet_age")
+        if packet_age is not None:
+            if isinstance(packet_age, bool) or not isinstance(packet_age, (int, float)) or packet_age < 0:
+                raise ReplayFormatError("packet_age must be a non-negative number when present")
+            delays.setdefault(receiver, []).append(float(packet_age) * 1000.0)
+    return {
+        receiver: LinkStats(
+            receiver=receiver,
+            event_count=count,
+            loss_count=losses.get(receiver, 0),
+            mean_delay_ms=(sum(delays[receiver]) / len(delays[receiver])) if delays.get(receiver) else None,
+            max_delay_ms=max(delays[receiver]) if delays.get(receiver) else None,
+        )
+        for receiver, count in counts.items()
+    }
+
+
+def _aggregate_loss_pct(stats: Iterable[LinkStats]) -> float:
+    items = tuple(stats)
+    events = sum(item.event_count for item in items)
+    return sum(item.loss_count for item in items) / events * 100.0 if events else 0.0
 
 
 def _decode_agent(raw: Any) -> AgentSnapshot:

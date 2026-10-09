@@ -9,8 +9,8 @@ This roadmap is written for contributors and reviewers. It separates shipped cod
 - Actuator foundation: first-order motor lag, rotor saturation, body torque mixing, power draw, and battery sag with independent limiting-case tests.
 - Adapter foundation: typed `DroneAdapter`, deterministic `SimAdapter`, explicit command authority arbitration, and latched link/battery failsafe states.
 - Native macOS cockpit preview in `macos/ZephyrMeshApp` using SwiftUI and SceneKit. It is synthetic and read-only, and it already consumes a compact projection of the canonical Python S7 event log.
-- Windows-first Tkinter preview in `desktop/windows_preview.py`, with a PyInstaller build script and a detached updater helper for digest-verified GitHub release ZIPs. Linux packaging remains later work.
-- Shared release updater contract with digest verification, safe extraction, rollback backup, and post-exit replacement for the macOS bundle and Windows directory build. The code is local and tested with offline fixtures; no published release has exercised install and relaunch yet.
+- Windows-first Tkinter preview in `desktop/windows_preview.py`, with a depth-aware quadcopter projection, fleet filtering, focus/reset controls, keep-out volume, cooperative diagnostics, parts profiles, and the same replay controls as the macOS cockpit. It uses the same Python replay model and stays synthetic and read-only.
+- Shared release updater contract with digest verification, safe extraction, rollback backup, runtime version discovery, and post-exit replacement for the macOS bundle and Windows directory build. The tag-driven workflow builds Apple Silicon, Intel macOS, and Windows assets and runs a frozen Windows GUI smoke check. No published release has exercised physical install and relaunch yet.
 
 ## Next evidence gates
 
@@ -19,7 +19,7 @@ This roadmap is written for contributors and reviewers. It separates shipped cod
 3. Add custom motor and propeller profile schemas with SI-unit validation, then calibrate parameters from bench measurements.
 4. Measure target-device frame time, memory, accessibility behavior, and offline loading before making UX or performance claims.
 5. Feed measured ESP-NOW and camera traces into the existing link and sensor contracts.
-6. Publish architecture-matched, digest-published macOS and Windows release ZIPs so the in-app update actions can be exercised against a real release. macOS code signing and Windows publisher signing are release gates; neither is claimed for the local build.
+6. Publish architecture-matched, digest-published macOS and Windows release ZIPs so the in-app update actions can be exercised against a real release. The workflow is ready for the first tag; macOS code signing/notarization and Windows publisher signing remain release gates, and neither is claimed for the local build.
 
 ## Later
 

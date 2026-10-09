@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from desktop.replay import ReplayFormatError, ReplayModel
+from desktop.replay import ReplayFormatError, ReplayModel, filter_agents
 
 
 ROOT = Path(__file__).parents[1]
@@ -44,6 +44,55 @@ def test_replay_preserves_optional_telemetry_without_inventing_defaults():
     agent = model.frame.agents[0]
     assert agent.battery_pct is None
     assert agent.link_delay_ms is None
+
+
+def test_replay_exposes_parts_and_observed_link_metrics():
+    model = ReplayModel.from_path(RUN)
+    profile = model.profile_for("drone-001")
+    assert profile is not None
+    assert profile.motor_count == 4
+    assert profile.estimated_max_thrust_n > 0
+    link = model.link_stats_for("drone-001")
+    assert link is not None
+    assert link.event_count == 300
+    assert link.loss_count == 7
+    assert link.mean_delay_ms is not None
+    assert link.mean_delay_ms > 0
+    assert model.summary()["profile_count"] == 50
+
+
+def test_fleet_filter_matches_ids_and_profile_ids_without_reordering():
+    model = ReplayModel.from_path(RUN)
+    agents = model.frame.agents[:3]
+    assert [agent.agent_id for agent in filter_agents(agents, "DRONE-002")] == ["drone-002"]
+    assert [agent.agent_id for agent in filter_agents(agents, "synthetic-profile")] == [
+        "drone-001",
+        "drone-002",
+        "drone-003",
+    ]
+    assert filter_agents(agents, "   ") == agents
+
+
+def test_windows_runtime_version_prefers_frozen_internal_resource(tmp_path, monkeypatch):
+    import desktop.windows_preview as preview
+
+    internal = tmp_path / "_internal"
+    internal.mkdir()
+    (internal / "VERSION.txt").write_text("v0.2.0", encoding="utf-8")
+    monkeypatch.setattr(preview, "RESOURCE_ROOTS", (internal, tmp_path))
+
+    assert preview._runtime_version() == "0.2.0"
+
+
+def test_windows_glyph_rotation_keeps_quad_geometry_bounded():
+    from desktop.windows_preview import WindowsReplayApp
+
+    points = WindowsReplayApp._rotated_points(0.0, 0.20, 0.11)
+    assert points[0] == (0.20, 0.0)
+    assert points[2] == (-0.20, 0.0)
+    rotated = WindowsReplayApp._rotated_points(1.5707963267948966, 0.20, 0.11)
+    assert abs(rotated[0][0]) < 1e-9
+    assert abs(rotated[0][1] - 0.20) < 1e-9
 
 
 def test_windows_preview_constructs_when_tk_display_is_available():

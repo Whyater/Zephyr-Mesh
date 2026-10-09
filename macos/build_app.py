@@ -21,8 +21,11 @@ PACKAGE = ROOT / "macos" / "ZephyrMeshApp"
 DEFAULT_OUTPUT = ROOT / "macos" / "ZephyrMesh.app"
 
 
-def build_bundle(output: Path) -> Path:
+def build_bundle(output: Path, *, version: str = "0.1.0") -> Path:
     """Compile the Swift release product and assemble an app bundle."""
+    version = version.removeprefix("v")
+    if not version or any(character.isspace() for character in version):
+        raise ValueError("version must be a non-empty tag-safe value")
     subprocess.run(["swift", "build", "-c", "release"], cwd=PACKAGE, check=True)
     products = PACKAGE / ".build" / "release"
     executable = products / "ZephyrMeshApp"
@@ -48,7 +51,7 @@ def build_bundle(output: Path) -> Path:
         "CFBundleInfoDictionaryVersion": "6.0",
         "CFBundleName": "Zephyr Mesh",
         "CFBundlePackageType": "APPL",
-        "CFBundleShortVersionString": "0.1.0",
+        "CFBundleShortVersionString": version,
         "CFBundleVersion": "1",
         "LSMinimumSystemVersion": "14.0",
         "NSHighResolutionCapable": True,
@@ -66,8 +69,9 @@ def build_bundle(output: Path) -> Path:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build the local Zephyr Mesh macOS app bundle")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT, help="app bundle path")
+    parser.add_argument("--version", default="0.1.0", help="bundle version, with or without a leading v")
     args = parser.parse_args()
-    bundle = build_bundle(args.output)
+    bundle = build_bundle(args.output, version=args.version)
     print(f"Built {bundle}")
     print(f"Open it with: open {bundle}")
 
