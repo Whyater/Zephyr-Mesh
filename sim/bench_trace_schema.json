@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zephyr-mesh.dev/schemas/bench-trace-1.json",
+  "title": "Zephyr Mesh bench trace",
+  "description": "Raw SI-unit motor and propeller bench observations. This schema does not imply a fitted motor map or flight performance. Shared-clock timestamp ordering is enforced by the Python loader.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "trace_id", "status", "profile_id", "motor_part_id", "propeller_part_id", "measurement_scope", "clock_domain", "capture", "samples"],
+  "properties": {
+    "schema": {"const": "zephyr-bench-trace-1"},
+    "trace_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["measured", "synthetic", "fixture"]},
+    "profile_id": {"type": "string", "minLength": 1},
+    "motor_part_id": {"type": "string", "minLength": 1},
+    "propeller_part_id": {"type": "string", "minLength": 1},
+    "measurement_scope": {"enum": ["single_rotor", "airframe"]},
+    "clock_domain": {"enum": ["shared_monotonic", "device_and_host", "unknown"]},
+    "source": {"type": "string", "minLength": 1},
+    "calibration_id": {"type": "string", "minLength": 1},
+    "code_revision": {"type": "string", "minLength": 1},
+    "notes": {"type": "string", "minLength": 1},
+    "capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["device_ids", "instrument_ids", "air_density_kg_m3", "ambient_temperature_c"],
+      "properties": {
+        "device_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "instrument_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "air_density_kg_m3": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+        "ambient_temperature_c": {"type": ["number", "integer"]},
+        "test_notes": {"type": "string", "minLength": 1}
+      }
+    },
+    "samples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sample_id", "timestamp_s", "quality"],
+        "properties": {
+          "sample_id": {"type": "string", "minLength": 1},
+          "timestamp_s": {"type": ["number", "integer"], "minimum": 0},
+          "quality": {"enum": ["valid", "invalid", "unknown"]},
+          "rpm": {"type": ["number", "integer", "null"], "minimum": 0},
+          "thrust_n": {"type": ["number", "integer", "null"], "minimum": 0},
+          "voltage_v": {"type": ["number", "integer", "null"], "minimum": 0},
+          "current_a": {"type": ["number", "integer", "null"], "minimum": 0},
+          "duration_s": {"type": ["number", "integer", "null"], "minimum": 0},
+          "temperature_c": {"type": ["number", "integer", "null"]},
+          "quality_reason": {"type": ["string", "null"], "minLength": 1}
+        },
+        "allOf": [
+          {"if": {"properties": {"quality": {"const": "valid"}}, "required": ["quality"]}, "then": {"required": ["rpm", "thrust_n", "voltage_v", "current_a", "duration_s"], "properties": {"quality_reason": {"type": "null"}}}},
+          {"if": {"properties": {"quality": {"const": "invalid"}}, "required": ["quality"]}, "then": {"required": ["quality_reason"], "properties": {"quality_reason": {"type": "string", "minLength": 1}}}},
+          {"if": {"properties": {"quality": {"const": "unknown"}}, "required": ["quality"]}, "then": {"required": ["quality_reason"], "properties": {"quality_reason": {"type": "string", "minLength": 1}}}}
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "measured"}}, "required": ["status"]}, "then": {"required": ["source", "calibration_id"]}}
+  ]
+}

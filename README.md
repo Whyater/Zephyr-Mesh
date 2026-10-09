@@ -49,6 +49,7 @@ The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\Zeph
 - Stage 7 coordination foundation with a seeded multi-agent event log, stable identities, formation slots, cooperative target fusion, dropout events, separation checks, and keep-out constraints.
 - Hardware profile and actuator foundation with SI-unit motor and propeller inputs, first-order motor lag, RPM saturation, torque mixing, power draw, and battery sag.
 - Strict SI-unit hardware-profile documents with custom motor and propeller part IDs, status/source/calibration provenance, JSON Schema validation, round-trip loading, and a normalization CLI.
+- Versioned bench trace schema and summary CLI for RPM, thrust, voltage, current, temperature, test conditions, incomplete readings, and transparent electrical input power summaries without curve fitting.
 - Typed drone adapter, authority arbitration, and replayable link or battery failsafe contracts.
 - Native macOS SwiftUI and SceneKit cockpit plus a Windows Tkinter desktop surface built from the same canonical replay.
 - Local release updater contract with digest verification, path-safe extraction, rollback staging, and architecture-aware asset selection.
@@ -67,6 +68,7 @@ PYTHONPATH=. python tools/generate_s7_fixture.py --output "$TMP_DIR/s7-swarm"
 PYTHONPATH=. python tools/analyze_trace.py sim/trace_example.json
 PYTHONPATH=. python tools/analyze_vision_trace.py sim/vision_trace_example.json
 PYTHONPATH=. python tools/validate_hardware_profile.py sim/hardware_profile_example.json
+PYTHONPATH=. python tools/analyze_bench_trace.py sim/bench_trace_example.json
 python -m demo.demo --host 127.0.0.1 --port 8765
 ```
 
@@ -88,6 +90,7 @@ Open `http://127.0.0.1:8765` in a browser on the same computer. The demo is read
 - The checked-in event logs and desktop views are synthetic replays. They do not represent a measured radio link, camera, motor, controller, or flight test.
 - No measured ESP-NOW or camera trace is included yet. The versioned schemas are ready for documented hardware captures, but no radio tolerance, camera calibration, tracker, or flight-performance result is claimed.
 - Motor, propeller, battery, drag, and airflow values are scenario inputs or calibration placeholders. The profile document loader validates units, provenance fields, and schema structure, but it does not calibrate coefficients. Its thrust field is a declared-coefficient estimate at the lower motor/propeller RPM limit and does not apply torque or electrical power limits. Downwash, ground effect, propeller wake interaction, and venue airflow still need measured models.
+- The bench trace boundary and electrical input power summary are synthetic until a documented run records instruments, part identity, calibration, units, clock conditions, and repeatable test settings. No fitted motor map is included.
 - The release workflow builds and smoke-tests the Windows package, but physical Windows install, updater relaunch, accessibility, and frame-time measurements remain open. Linux packaging is later work.
 - The v0.1.5 macOS package is not notarized. Broad distribution still needs a Developer ID signature and notarization.
 

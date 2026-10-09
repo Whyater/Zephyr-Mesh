@@ -1,0 +1,24 @@
+{
+  "schema": "zephyr-bench-trace-1",
+  "trace_id": "fixture-bench-2026-10-09-001",
+  "status": "fixture",
+  "profile_id": "bench-quadcopter-fixture",
+  "motor_part_id": "fixture-motor-2204",
+  "propeller_part_id": "fixture-prop-3in",
+  "measurement_scope": "single_rotor",
+  "clock_domain": "shared_monotonic",
+  "capture": {
+    "device_ids": ["bench-host"],
+    "instrument_ids": ["fixture-tachometer", "fixture-load-cell", "fixture-power-meter"],
+    "air_density_kg_m3": 1.225,
+    "ambient_temperature_c": 22.0,
+    "test_notes": "Synthetic fixture only; no bench hardware was measured."
+  },
+  "calibration_id": "fixture-calibration-1",
+  "notes": "Electrical input power is computed only by the summary tool as voltage times current.",
+  "samples": [
+    {"sample_id": "sample-001", "timestamp_s": 1.0, "quality": "valid", "rpm": 12000, "thrust_n": 0.42, "voltage_v": 3.7, "current_a": 1.2, "duration_s": 2.0, "temperature_c": 22.1},
+    {"sample_id": "sample-002", "timestamp_s": 4.0, "quality": "valid", "rpm": 18000, "thrust_n": 0.93, "voltage_v": 3.65, "current_a": 2.4, "duration_s": 2.0, "temperature_c": 23.0},
+    {"sample_id": "sample-003", "timestamp_s": 7.0, "quality": "unknown", "quality_reason": "fixture_gap"}
+  ]
+}
