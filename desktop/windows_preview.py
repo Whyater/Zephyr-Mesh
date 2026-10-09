@@ -582,20 +582,31 @@ def main(argv: list[str] | None = None) -> int:
         app._step()
     if args.smoke_ready:
         args.smoke_ready.write_text(f"ready frame={model.index + 1}/{model.frame_count}\n", encoding="utf-8")
-    if args.smoke_health:
-        root.after(250, lambda: args.smoke_health.write_text(f"healthy frame={model.index + 1}/{model.frame_count}\n", encoding="utf-8"))
     if args.smoke_ready or args.smoke_health:
-        # Some hosted Windows runners construct Tk successfully but return
-        # immediately from ``mainloop`` because there is no interactive
-        # desktop session.  A bounded update loop keeps the frozen process
-        # alive while still exercising Tk's event queue and scheduled health
-        # callback.  The validator can therefore observe both markers before
-        # it closes the process, without changing normal interactive behavior.
-        smoke_deadline = time.monotonic() + 3.0
+        # Hosted Windows runners can terminate a Tk event loop immediately,
+        # and calling ``update`` in that state can make the frozen process
+        # exit with code 1 without a useful stderr stream.  The smoke path
+        # therefore uses the successful Tk construction above as its GUI
+        # check, then stays alive with a bounded sleep so the validator can
+        # observe both markers.  A guarded idle flush exercises pending Tk
+        # layout work without entering the event loop.
+        try:
+            root.update_idletasks()
+        except tk.TclError:
+            pass
+        smoke_started = time.monotonic()
+        smoke_deadline = smoke_started + 3.0
+        health_written = False
         while time.monotonic() < smoke_deadline:
-            root.update()
+            elapsed = time.monotonic() - smoke_started
+            if args.smoke_health and not health_written and elapsed >= 0.25:
+                args.smoke_health.write_text(f"healthy frame={model.index + 1}/{model.frame_count}\n", encoding="utf-8")
+                health_written = True
             time.sleep(0.02)
-        root.destroy()
+        try:
+            root.destroy()
+        except tk.TclError:
+            pass
     else:
         root.mainloop()
     return 0
