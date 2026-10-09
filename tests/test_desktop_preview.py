@@ -152,6 +152,8 @@ def test_windows_release_job_runs_python_suite_before_packaging():
     windows_job = workflow.split("  windows:\n", 1)[1].split("  publish:\n", 1)[0]
     assert "pip install --requirement requirements.txt" in windows_job
     assert "python -m pytest -q" in windows_job
+    assert "run: python tools/validate_windows_bundle.py dist/ZephyrMeshWindows --gui-smoke" in windows_job
+    assert "run: py tools/validate_windows_bundle.py" not in windows_job
     assert windows_job.index("python -m pytest -q") < windows_job.index("Build and package the Windows preview")
 
 

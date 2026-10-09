@@ -92,7 +92,7 @@ jobs:
         run: |
           powershell -ExecutionPolicy Bypass -File desktop/build_windows.ps1 -Python python -Output dist -Version "${{ needs.prepare.outputs.version }}" -Package
       - name: Validate the frozen Windows bundle
-        run: py tools/validate_windows_bundle.py dist/ZephyrMeshWindows --gui-smoke
+        run: python tools/validate_windows_bundle.py dist/ZephyrMeshWindows --gui-smoke
       - uses: actions/upload-artifact@v4
         with:
           name: windows-release
