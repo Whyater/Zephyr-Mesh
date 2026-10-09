@@ -60,6 +60,47 @@ def _runtime_version() -> str:
 CURRENT_VERSION = _runtime_version()
 
 
+def mission_event_lines(model: Any, selected_id: str) -> tuple[str, ...]:
+    """Build the compact event list shown by the macOS mission inspector.
+
+    The Windows surface uses the same replay-only event vocabulary as the
+    native cockpit, while keeping the output plain text for Tkinter.  Every
+    line is derived from the current frame or manifest metadata.  It is an
+    operator explanation of the fixture, not a live alert stream.
+    """
+
+    selected = next((agent for agent in model.frame.agents if agent.agent_id == selected_id), None)
+    events = [
+        f"INFO  Replay manifest loaded · {model.scenario_id} · seed {model.seed}",
+        f"WARN  Command authority locked · {model.command_authority}",
+        f"WARN  Failsafe boundary recorded · {model.failsafe}",
+        (
+            f"OK    Frame {model.frame.step_index} committed · "
+            f"{model.frame.active_count} active vehicles · Δt {model.dt_s:.3f} s"
+        ),
+    ]
+    minimum_confidence = min((agent.confidence for agent in model.frame.agents), default=1.0)
+    if minimum_confidence < 0.98:
+        events.append(f"WARN  Estimator confidence changed · minimum {minimum_confidence:.3f}")
+    if selected is not None and selected.min_neighbor_distance_m > 0:
+        events.append(
+            f"OK    Separation margin observed · {selected.agent_id} nearest neighbor "
+            f"{selected.min_neighbor_distance_m:.3f} m"
+        )
+    # The canonical S7 steps do not attach link events to frame rows.
+    # Match the macOS worst-loss event contract with the replay-wide observed
+    # envelope and label it as modeled replay evidence.
+    link_losses = [
+        link.loss_pct
+        for agent in model.frame.agents
+        if (link := model.link_stats_for(agent.agent_id)) is not None
+    ]
+    worst_loss = max(link_losses, default=0.0)
+    if worst_loss >= 8:
+        events.append(f"WARN  Link envelope visible · modeled loss {worst_loss:.1f}%")
+    return tuple(events)
+
+
 def updater_launch_path(updater: Path, install_dir: Path, *, pid: int) -> Path:
     """Return a runnable helper path that is outside the directory being swapped.
 
@@ -206,6 +247,7 @@ class WindowsReplayApp:
         self._add_disclosure(inspector, "Flight state", self._flight_state_text)
         self._add_disclosure(inspector, "Cooperative context", self._cooperative_context_text)
         self._add_disclosure(inspector, "Parts profile", self._parts_profile_text)
+        self._add_disclosure(inspector, "Mission events", self._mission_events_text)
         self._add_disclosure(inspector, "Replay notes", self._replay_notes_text)
         self._add_disclosure(inspector, "Provenance", self._provenance_text)
 
@@ -289,6 +331,11 @@ class WindowsReplayApp:
             f"{link_line}\n\n"
             "No live radio, camera, motor, or swarm command path is attached."
         )
+
+    def _mission_events_text(self) -> str:
+        """Return the same compact replay event vocabulary as the macOS app."""
+
+        return "\n".join(mission_event_lines(self.model, self.selected_id))
 
     def _provenance_text(self) -> str:
         return (

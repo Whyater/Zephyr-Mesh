@@ -5,7 +5,12 @@ Tkinter window and projects the canonical S7 event log with depth-aware
 quadcopter glyphs, a target marker, and an optional keep-out volume. The
 operator surface mirrors the macOS cockpit's replay controls, fleet filtering,
 vehicle selection, telemetry disclosures, parts profile, link diagnostics,
-provenance, focus/reset view controls, and GitHub release check. It shares
+provenance, mission-event history, focus/reset view controls, and GitHub release
+check. The mission-event history uses the same replay-only vocabulary as the
+macOS inspector, so authority and failsafe boundaries stay visible on both
+platforms. Because canonical S7 link events are not attached to individual
+frame rows, Windows derives the link-envelope line from the replay-wide
+observed loss envelope and labels it as modeled replay evidence. It shares
 `desktop/replay.py` with tests and uses no SVG or network data for the replay.
 
 Keyboard access is built in: Space plays or pauses, Right Arrow advances one

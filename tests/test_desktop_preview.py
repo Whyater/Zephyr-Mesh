@@ -61,6 +61,45 @@ def test_replay_exposes_parts_and_observed_link_metrics():
     assert model.summary()["profile_count"] == 50
 
 
+def test_windows_mission_events_mirror_native_replay_vocabulary():
+    from desktop.windows_preview import mission_event_lines
+
+    model = ReplayModel.from_path(RUN)
+    lines = mission_event_lines(model, "drone-001")
+
+    assert lines[0].startswith("INFO  Replay manifest loaded")
+    assert [
+        line[6:].strip().split(" · ", 1)[0]
+        for line in lines
+    ] == [
+        "Replay manifest loaded",
+        "Command authority locked",
+        "Failsafe boundary recorded",
+        "Frame 0 committed",
+        "Separation margin observed",
+    ]
+
+
+def test_windows_mission_events_cover_warning_branches_and_missing_selection(monkeypatch):
+    from dataclasses import replace
+    from desktop.replay import LinkStats
+    from desktop.windows_preview import mission_event_lines
+
+    model = ReplayModel.from_path(RUN)
+    low_confidence = replace(model.frame.agents[0], confidence=0.9)
+    model.frames = (replace(model.frame, agents=(low_confidence,) + model.frame.agents[1:]),) + model.frames[1:]
+    monkeypatch.setattr(
+        model,
+        "link_stats_for",
+        lambda _agent_id: LinkStats("receiver", 10, 9, 0.08, 0.08),
+    )
+
+    lines = mission_event_lines(model, "missing-agent")
+    assert any("Estimator confidence changed" in line for line in lines)
+    assert any("Link envelope visible" in line for line in lines)
+    assert not any("Separation margin observed" in line for line in lines)
+
+
 def test_fleet_filter_matches_ids_and_profile_ids_without_reordering():
     model = ReplayModel.from_path(RUN)
     agents = model.frame.agents[:3]
