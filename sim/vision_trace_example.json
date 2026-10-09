@@ -1,0 +1,49 @@
+{
+  "schema": "zephyr-vision-trace-1",
+  "trace_id": "fixture-camera-2026-10-09-001",
+  "status": "fixture",
+  "clock_domain": "shared_monotonic",
+  "capture": {
+    "source_type": "camera",
+    "source_id": "front-camera-fixture",
+    "device_ids": ["camera-host"],
+    "model": "synthetic-marker-detector",
+    "calibration_id": "fixture-calibration-1",
+    "resolution_px": {"width": 1280, "height": 720},
+    "frame_rate_hz": 30
+  },
+  "code_revision": "fixture",
+  "notes": "Synthetic fixture only; not a camera measurement or tracker-performance result.",
+  "observations": [
+    {
+      "observation_id": "obs-0001",
+      "frame_id": "frame-0001",
+      "subject_id": "marker-001",
+      "capture_time_s": 1.0,
+      "processing_time_s": 1.012,
+      "outcome": "detected",
+      "confidence": 0.94,
+      "bbox_px": {"x": 612, "y": 318, "width": 42, "height": 39},
+      "position_m": [0.2, -0.1, 2.4],
+      "position_frame": "camera"
+    },
+    {
+      "observation_id": "obs-0002",
+      "frame_id": "frame-0002",
+      "subject_id": "marker-001",
+      "capture_time_s": 1.033,
+      "processing_time_s": 1.047,
+      "outcome": "missed",
+      "miss_reason": "occluded"
+    },
+    {
+      "observation_id": "obs-0003",
+      "frame_id": "frame-0003",
+      "subject_id": "marker-001",
+      "capture_time_s": 1.067,
+      "processing_time_s": 1.081,
+      "outcome": "unknown",
+      "unknown_reason": "recording_truncated"
+    }
+  ]
+}

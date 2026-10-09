@@ -19,7 +19,8 @@ This roadmap is written for contributors and reviewers. It separates shipped cod
 3. Add custom motor and propeller profile schemas with SI-unit validation, then calibrate parameters from bench measurements.
 4. Measure target-device frame time, memory, accessibility behavior, and offline loading before making UX or performance claims.
 5. Capture a first documented ESP-NOW run, validate it against `sim/trace_schema.json`, replay it through `sim.link.replay_trace`, and inspect it with `tools/analyze_trace.py` before fitting any link parameters.
-6. Exercise the v0.1.5 downloads on physical macOS and Windows hosts, including updater staging and relaunch. macOS code signing/notarization and Windows publisher signing remain release gates.
+6. Capture a documented camera/tracker run, validate it against `sim/vision_trace_schema.json`, and inspect it with `tools/analyze_vision_trace.py` before fitting noise, latency, or recovery parameters.
+7. Exercise the v0.1.5 downloads on physical macOS and Windows hosts, including updater staging and relaunch. macOS code signing/notarization and Windows publisher signing remain release gates.
 
 ## Later
 
