@@ -48,7 +48,7 @@ missing digest.
 ## Release packaging
 
 The repository contains a tag-driven workflow at
-`.github/workflows/release.yml`. A tag such as `v0.1.0` builds native macOS
+`.github/workflows/release.yml`. A tag such as `v0.1.5` builds native macOS
 bundles on Apple Silicon (`macos-14`) and Intel (`macos-15-intel`), builds the
 Windows preview and helper on `windows-2022`, validates the frozen Windows replay, and publishes
 architecture-labeled ZIP assets. Each ZIP contains exactly one app directory,
@@ -59,16 +59,16 @@ The local packaging commands are useful when checking an artifact before a
 tagged build:
 
 ```bash
-python3 macos/build_app.py --version 0.1.0
+python3 macos/build_app.py --version 0.1.5
 python3 tools/package_release.py \
   --source macos/ZephyrMesh.app \
   --output release \
   --platform macos-arm64 \
-  --version 0.1.0
+  --version 0.1.5
 python3 tools/build_release_manifest.py \
-  --version 0.1.0 \
+  --version 0.1.5 \
   --output release/release-manifest.json \
-  release/ZephyrMesh-macos-arm64-v0.1.0.zip
+  release/ZephyrMesh-macos-arm64-v0.1.5.zip
 ```
 
 On Windows, pass `-Package` to the build script to produce the Windows ZIP
@@ -78,7 +78,7 @@ development version:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File desktop/build_windows.ps1 `
-  -Version 0.1.0 -Package
+  -Version 0.1.5 -Package
 ```
 
 The local macOS bundle is ad-hoc signed for Finder launch. The release workflow
