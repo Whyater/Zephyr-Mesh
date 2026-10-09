@@ -6,7 +6,7 @@ import types
 import pytest
 
 from desktop.replay import ReplayFormatError, ReplayModel, filter_agents
-from desktop.scenario_run import ScenarioRunCursor, load_scenario_run, project_scenario_point, scenario_frame_geometry, selected_frame_summary
+from desktop.scenario_run import ScenarioFrame, ScenarioRunCursor, clamp_scenario_rail_x, load_scenario_run, project_scenario_altitude, project_scenario_altitude_radius, project_scenario_point, scenario_frame_geometry, scenario_rail_endpoints, selected_frame_summary
 
 
 ROOT = Path(__file__).parents[1]
@@ -82,6 +82,10 @@ def test_windows_cli_exposes_scenario_run_inspection_path():
     source = (ROOT / "desktop" / "windows_preview.py").read_text(encoding="utf-8")
     assert "--scenario-run" in source
     assert "Open scenario run" in source
+    assert "Integrity and provenance" in source
+    assert "project_scenario_altitude" in source
+    assert "altitude m" in source
+    assert "selected_frame_summary(run, cursor)" in source
     assert "load_scenario_run(args.scenario_run).summary()" in source
     assert callable(preview.load_scenario_run)
 
@@ -221,6 +225,42 @@ def test_scenario_geometry_is_bounded_and_follows_selected_frame():
     projected = project_scenario_point(first.target, first.bounds, 300, 180)
     assert 0.0 <= projected[0] <= 300.0
     assert 0.0 <= projected[1] <= 180.0
+    assert first.target_altitude == 1.5
+    assert first.agent_altitudes == (1.5,)
+    assert first.keep_out_altitudes == (1.5,)
+    altitude_y = project_scenario_altitude(first.target_altitude, first.altitude_bounds, 180)
+    assert 0.0 <= altitude_y <= 180.0
+
+
+def test_scenario_geometry_preserves_varied_altitudes_and_tiny_profile_bounds():
+    frame = ScenarioFrame(
+        step_index=0,
+        time_s=0.0,
+        target_position_m=(0.0, 0.0, 3.0),
+        active_count=1,
+        agent_count=1,
+        agents=({"agent_id": "agent-1", "position_m": [1.0, 2.0, -1.0], "active": True},),
+        keep_out_spheres=({"label": "ceiling", "center_m": [0.0, 0.0, 2.0], "radius_m": 0.75},),
+    )
+    geometry = scenario_frame_geometry(frame)
+    assert geometry.target_altitude == 3.0
+    assert geometry.agent_altitudes == (-1.0,)
+    assert geometry.keep_out_altitudes == (2.0,)
+    assert geometry.altitude_bounds.min_z < 1.25
+    assert geometry.altitude_bounds.max_z > 2.75
+    assert 0.0 <= project_scenario_altitude(-1.0, geometry.altitude_bounds, 2.0, inset=30.0) <= 2.0
+    assert 0.0 <= project_scenario_altitude(3.0, geometry.altitude_bounds, 2.0, inset=30.0) <= 2.0
+    assert project_scenario_altitude_radius(0.75, geometry.altitude_bounds, 2.0, inset=30.0) <= 1.0
+    assert clamp_scenario_rail_x(1.0, 12.0) == 1.0
+    assert scenario_rail_endpoints(1.0) == (0.5, 0.5)
+    assert geometry.altitude_bounds.min_z == -1.25
+    assert geometry.altitude_bounds.max_z == 3.25
+    assert project_scenario_altitude(3.0, geometry.altitude_bounds, 100.0, inset=18.0) == pytest.approx(21.555555555555557)
+    assert project_scenario_altitude(-1.0, geometry.altitude_bounds, 100.0, inset=18.0) == pytest.approx(78.44444444444444)
+    assert project_scenario_altitude(2.0, geometry.altitude_bounds, 100.0, inset=18.0) == pytest.approx(35.77777777777778)
+    assert project_scenario_altitude_radius(0.75, geometry.altitude_bounds, 100.0, inset=18.0) == pytest.approx(10.666666666666666)
+    run = types.SimpleNamespace(frames=(frame,))
+    assert "synthetic altitude 3.000 m" in selected_frame_summary(run, ScenarioRunCursor(1))
 
 
 def test_replay_model_rejects_missing_steps(tmp_path):

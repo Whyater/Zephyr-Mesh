@@ -44,11 +44,23 @@ class ScenarioPlotBounds:
 
 
 @dataclass(frozen=True)
+class ScenarioAltitudeBounds:
+    """Finite altitude range used by the selected-frame synthetic profile."""
+
+    min_z: float
+    max_z: float
+
+
+@dataclass(frozen=True)
 class ScenarioPlotGeometry:
     bounds: ScenarioPlotBounds
+    altitude_bounds: ScenarioAltitudeBounds
     target: tuple[float, float]
+    target_altitude: float
     agents: tuple[tuple[str, float, float, bool], ...]
+    agent_altitudes: tuple[float, ...]
     keep_out_spheres: tuple[tuple[str, float, float, float], ...]
+    keep_out_altitudes: tuple[float, ...]
 
 
 def scenario_frame_geometry(frame: ScenarioFrame) -> ScenarioPlotGeometry:
@@ -63,6 +75,7 @@ def scenario_frame_geometry(frame: ScenarioFrame) -> ScenarioPlotGeometry:
         )
         for agent in frame.agents
     )
+    agent_altitudes = tuple(float(agent["position_m"][2]) for agent in frame.agents)
     keep_out_spheres = tuple(
         (
             str(sphere["label"]),
@@ -72,6 +85,7 @@ def scenario_frame_geometry(frame: ScenarioFrame) -> ScenarioPlotGeometry:
         )
         for sphere in frame.keep_out_spheres
     )
+    keep_out_altitudes = tuple(float(sphere["center_m"][2]) for sphere in frame.keep_out_spheres)
     x_values = [target[0], *(agent[1] for agent in agents)]
     y_values = [target[1], *(agent[2] for agent in agents)]
     x_values.extend(center_x + radius for _, center_x, _, radius in keep_out_spheres)
@@ -80,11 +94,20 @@ def scenario_frame_geometry(frame: ScenarioFrame) -> ScenarioPlotGeometry:
     y_values.extend(center_y - radius for _, _, center_y, radius in keep_out_spheres)
     span = max(max(x_values) - min(x_values), max(y_values) - min(y_values), 1.0)
     margin = max(span * 0.05, 0.25)
+    z_values = [float(frame.target_position_m[2]), *agent_altitudes]
+    z_values.extend(center_z + radius for center_z, (_, _, _, radius) in zip(keep_out_altitudes, keep_out_spheres))
+    z_values.extend(center_z - radius for center_z, (_, _, _, radius) in zip(keep_out_altitudes, keep_out_spheres))
+    z_span = max(max(z_values) - min(z_values), 1.0)
+    z_margin = max(z_span * 0.05, 0.25)
     return ScenarioPlotGeometry(
         bounds=ScenarioPlotBounds(min(x_values) - margin, max(x_values) + margin, min(y_values) - margin, max(y_values) + margin),
+        altitude_bounds=ScenarioAltitudeBounds(min(z_values) - z_margin, max(z_values) + z_margin),
         target=target,
+        target_altitude=float(frame.target_position_m[2]),
         agents=agents,
+        agent_altitudes=agent_altitudes,
         keep_out_spheres=keep_out_spheres,
+        keep_out_altitudes=keep_out_altitudes,
     )
 
 
@@ -109,6 +132,46 @@ def project_scenario_radius(radius_m: float, bounds: ScenarioPlotBounds, width: 
     span_y = max(bounds.max_y - bounds.min_y, 1.0)
     scale = min(max(width - 2.0 * inset, 1.0) / span_x, max(height - 2.0 * inset, 1.0) / span_y)
     return max(float(radius_m), 0.0) * scale
+
+
+def project_scenario_altitude(altitude_m: float, bounds: ScenarioAltitudeBounds, height: float, inset: float = 18.0) -> float:
+    """Project altitude into a vertical profile rail in canvas coordinates."""
+
+    height = max(float(height), 1.0)
+    inset = min(max(float(inset), 0.0), height / 2.0)
+    span = max(bounds.max_z - bounds.min_z, 1.0)
+    usable = max(height - 2.0 * inset, 0.0)
+    projected = height - inset - (float(altitude_m) - bounds.min_z) * usable / span
+    return min(max(projected, 0.0), height)
+
+
+def project_scenario_altitude_radius(radius_m: float, bounds: ScenarioAltitudeBounds, height: float, inset: float = 18.0) -> float:
+    """Project a sphere radius onto the altitude profile rail."""
+
+    height = max(float(height), 1.0)
+    inset = min(max(float(inset), 0.0), height / 2.0)
+    span = max(bounds.max_z - bounds.min_z, 1.0)
+    usable = max(height - 2.0 * inset, 0.0)
+    return min(max(float(radius_m), 0.0) * usable / span, height / 2.0)
+
+
+def clamp_scenario_rail_x(width: float, preferred_x: float) -> float:
+    """Keep the synthetic altitude rail coordinate inside a canvas."""
+
+    width = max(float(width), 0.0)
+    return min(max(float(preferred_x), 0.0), width)
+
+
+def scenario_rail_endpoints(height: float, top_inset: float = 30.0, bottom_inset: float = 18.0) -> tuple[float, float]:
+    """Return clamped altitude rail endpoints, with a midpoint fallback."""
+
+    height = max(float(height), 0.0)
+    top = min(max(float(top_inset), 0.0), height)
+    bottom = min(max(height - float(bottom_inset), 0.0), height)
+    if bottom < top:
+        midpoint = height / 2.0
+        return midpoint, midpoint
+    return top, bottom
 
 
 @dataclass(frozen=True)
@@ -184,7 +247,7 @@ def selected_frame_summary(run: ScenarioRun, cursor: ScenarioRunCursor) -> str:
     return (
         f"Frame {cursor.index + 1} of {len(run.frames)} · t={frame.time_s:.3f} s · "
         f"target=[{target}] m · {frame.active_count}/{frame.agent_count} active · "
-        f"keep-out {len(frame.keep_out_spheres)}"
+        f"keep-out {len(frame.keep_out_spheres)} · synthetic altitude {frame.target_position_m[2]:.3f} m · altitude profile"
     )
 
 

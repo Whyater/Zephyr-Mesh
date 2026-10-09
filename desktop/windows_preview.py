@@ -23,16 +23,16 @@ from typing import Any
 
 try:
     from .replay import ReplayModel, filter_agents
-    from .scenario_run import ScenarioRunCursor, ScenarioRunFormatError, load_scenario_run, project_scenario_point, project_scenario_radius, scenario_frame_geometry, selected_frame_summary
+    from .scenario_run import ScenarioRunCursor, ScenarioRunFormatError, clamp_scenario_rail_x, load_scenario_run, project_scenario_altitude, project_scenario_altitude_radius, project_scenario_point, project_scenario_radius, scenario_frame_geometry, scenario_rail_endpoints, selected_frame_summary
     from .design_tokens import TOKENS
 except ImportError:  # direct script execution for PyInstaller
     try:
         from desktop.replay import ReplayModel, filter_agents
-        from desktop.scenario_run import ScenarioRunCursor, ScenarioRunFormatError, load_scenario_run, project_scenario_point, project_scenario_radius, scenario_frame_geometry, selected_frame_summary
+        from desktop.scenario_run import ScenarioRunCursor, ScenarioRunFormatError, clamp_scenario_rail_x, load_scenario_run, project_scenario_altitude, project_scenario_altitude_radius, project_scenario_point, project_scenario_radius, scenario_frame_geometry, scenario_rail_endpoints, selected_frame_summary
         from desktop.design_tokens import TOKENS
     except ImportError:
         from replay import ReplayModel, filter_agents
-        from scenario_run import ScenarioRunCursor, ScenarioRunFormatError, load_scenario_run, project_scenario_point, project_scenario_radius, scenario_frame_geometry, selected_frame_summary
+        from scenario_run import ScenarioRunCursor, ScenarioRunFormatError, clamp_scenario_rail_x, load_scenario_run, project_scenario_altitude, project_scenario_altitude_radius, project_scenario_point, project_scenario_radius, scenario_frame_geometry, scenario_rail_endpoints, selected_frame_summary
         from design_tokens import TOKENS
 
 
@@ -773,8 +773,18 @@ class WindowsReplayApp:
         summary_text.insert("1.0", json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=False))
         summary_text.configure(state="disabled")
         summary_text.grid(row=1, column=0, sticky="nsew", pady=(TOKENS.content_pad, TOKENS.spacing_sm))
-        integrity = self.ttk.Label(
-            body,
+        integrity_section = self.ttk.Frame(body, style="Night.TFrame")
+        integrity_section.grid(row=2, column=0, sticky="ew", pady=(0, TOKENS.content_pad))
+        self.ttk.Label(
+            integrity_section,
+            text=f"Evidence boundary  {summary['evidence_boundary']}",
+            style="Muted.TLabel",
+            justify="left",
+            anchor="w",
+            wraplength=620,
+        ).pack(fill="x")
+        integrity_details = self.ttk.Label(
+            integrity_section,
             text=(
                 f"Scenario SHA-256  {summary['scenario_hash']}\n"
                 f"Payload SHA-256   {summary['payload_sha256']}\n"
@@ -783,15 +793,28 @@ class WindowsReplayApp:
                 f"Python             {summary['python']}\n"
                 f"NumPy              {summary['numpy']}\n"
                 f"Base revision      {summary['code_revision']}\n"
-                f"Evidence boundary  {summary['evidence_boundary']}"
+                f"Revision semantics {summary['code_revision_semantics']}"
             ),
             style="Muted.TLabel",
             justify="left",
             anchor="w",
             wraplength=620,
         )
-        integrity.grid(row=2, column=0, sticky="ew", pady=(0, TOKENS.content_pad))
-        plot_canvas = self.tk.Canvas(body, height=190, background=TOKENS.canvas, highlightthickness=0, relief="flat")
+        integrity_visible = False
+
+        def toggle_integrity() -> None:
+            nonlocal integrity_visible
+            integrity_visible = not integrity_visible
+            if integrity_visible:
+                integrity_details.pack(fill="x", pady=(TOKENS.content_pad, 0))
+                integrity_button.configure(text="⌄  Integrity and provenance")
+            else:
+                integrity_details.pack_forget()
+                integrity_button.configure(text="›  Integrity and provenance")
+
+        integrity_button = self.ttk.Button(integrity_section, text="›  Integrity and provenance", command=toggle_integrity, style="Disclosure.TButton")
+        integrity_button.pack(fill="x", pady=(TOKENS.content_pad, 0))
+        plot_canvas = self.tk.Canvas(body, height=210, background=TOKENS.canvas, highlightthickness=0, relief="flat")
         plot_canvas.grid(row=3, column=0, sticky="ew", pady=(0, TOKENS.content_pad))
         cursor = ScenarioRunCursor(len(run.frames))
         selected_text = self.ttk.Label(body, style="Muted.TLabel", wraplength=620)
@@ -806,22 +829,40 @@ class WindowsReplayApp:
             geometry = scenario_frame_geometry(run.frames[cursor.index])
             width = max(1.0, float(plot_canvas.winfo_width()))
             height = max(1.0, float(plot_canvas.winfo_height()))
+            top_width = max(width - 72.0, 1.0)
             plot_canvas.delete("all")
-            plot_canvas.create_text(TOKENS.canvas_label_x, TOKENS.canvas_label_y, text="Synthetic geometry · selected frame", fill=TOKENS.muted, anchor="nw", font=(TOKENS.mono_font, TOKENS.body_size))
+            plot_canvas.create_text(TOKENS.canvas_label_x, TOKENS.canvas_label_y, text="Synthetic geometry · selected frame · altitude", fill=TOKENS.muted, anchor="nw", font=(TOKENS.mono_font, TOKENS.body_size))
             for label, center_x, center_y, radius in geometry.keep_out_spheres:
-                x, y = project_scenario_point((center_x, center_y), geometry.bounds, width, height)
-                radius_px = project_scenario_radius(radius, geometry.bounds, width, height)
+                x, y = project_scenario_point((center_x, center_y), geometry.bounds, top_width, height)
+                radius_px = project_scenario_radius(radius, geometry.bounds, top_width, height)
                 plot_canvas.create_oval(x - radius_px, y - radius_px, x + radius_px, y + radius_px, outline=TOKENS.warning, dash=(5, 4), width=2)
                 plot_canvas.create_text(x + radius_px + 4, y, text=label, fill=TOKENS.warning, anchor="w", font=(TOKENS.ui_font, TOKENS.small_size))
-            target_x, target_y = project_scenario_point(geometry.target, geometry.bounds, width, height)
+            target_x, target_y = project_scenario_point(geometry.target, geometry.bounds, top_width, height)
             target_radius = TOKENS.target_radius
             plot_canvas.create_oval(target_x - target_radius, target_y - target_radius, target_x + target_radius, target_y + target_radius, outline=TOKENS.accent, width=2)
             plot_canvas.create_line(target_x - TOKENS.target_cross, target_y, target_x + TOKENS.target_cross, target_y, fill=TOKENS.accent)
             plot_canvas.create_line(target_x, target_y - TOKENS.target_cross, target_x, target_y + TOKENS.target_cross, fill=TOKENS.accent)
             for _, agent_x, agent_y, active in geometry.agents:
-                x, y = project_scenario_point((agent_x, agent_y), geometry.bounds, width, height)
+                x, y = project_scenario_point((agent_x, agent_y), geometry.bounds, top_width, height)
                 color = TOKENS.accent if active else TOKENS.warning
                 plot_canvas.create_oval(x - 4, y - 4, x + 4, y + 4, fill=color, outline=color)
+
+            # A compact altitude rail makes the selected frame's z state
+            # inspectable without implying a 3D or live vehicle view.
+            rail_x = clamp_scenario_rail_x(width, min(width - 22.0, top_width + 34.0))
+            rail_top, rail_bottom = scenario_rail_endpoints(height)
+            plot_canvas.create_line(rail_x, rail_top, rail_x, rail_bottom, fill=TOKENS.muted)
+            plot_canvas.create_text(rail_x, 17.0, text="altitude m", fill=TOKENS.muted, anchor="center", font=(TOKENS.ui_font, TOKENS.small_size))
+            target_z = project_scenario_altitude(geometry.target_altitude, geometry.altitude_bounds, height, inset=30.0)
+            plot_canvas.create_line(rail_x - 5, target_z, rail_x + 5, target_z, fill=TOKENS.accent, width=2)
+            for altitude, (_, _, _, active) in zip(geometry.agent_altitudes, geometry.agents):
+                y = project_scenario_altitude(altitude, geometry.altitude_bounds, height, inset=30.0)
+                color = TOKENS.accent if active else TOKENS.warning
+                plot_canvas.create_oval(rail_x - 3, y - 3, rail_x + 3, y + 3, fill=color, outline=color)
+            for center_z, (_label, _cx, _cy, radius) in zip(geometry.keep_out_altitudes, geometry.keep_out_spheres):
+                center_y = project_scenario_altitude(center_z, geometry.altitude_bounds, height, inset=30.0)
+                radius_y = project_scenario_altitude_radius(radius, geometry.altitude_bounds, height, inset=30.0)
+                plot_canvas.create_line(rail_x + 9, center_y - radius_y, rail_x + 9, center_y + radius_y, fill=TOKENS.warning, width=3)
 
         plot_canvas.bind("<Configure>", lambda _event: draw_geometry())
 

@@ -275,11 +275,58 @@ final class EvidenceInspectorTests: XCTestCase {
         let second = ScenarioPlotGeometry.make(frame: run.frames[1])
         XCTAssertEqual(first.keepOutSpheres[0].center.x, 2.0, accuracy: 1e-12)
         XCTAssertEqual(second.keepOutSpheres[0].center.x, 2.025, accuracy: 1e-12)
+        XCTAssertEqual(first.targetAltitude, 1.5, accuracy: 1e-12)
+        XCTAssertEqual(first.agentAltitudes, [1.5])
+        XCTAssertEqual(first.keepOutSpheres[0].centerZ, 1.5, accuracy: 1e-12)
         let projected = ScenarioPlotGeometry.project(first.target, bounds: first.bounds, width: 300, height: 180)
         XCTAssertGreaterThanOrEqual(projected.x, 0)
         XCTAssertLessThanOrEqual(projected.x, 300)
         XCTAssertGreaterThanOrEqual(projected.y, 0)
         XCTAssertLessThanOrEqual(projected.y, 180)
+        let altitudeY = ScenarioPlotGeometry.projectAltitude(first.targetAltitude, bounds: first.altitudeBounds, height: 180)
+        XCTAssertGreaterThanOrEqual(altitudeY, 0)
+        XCTAssertLessThanOrEqual(altitudeY, 180)
+    }
+
+    func testScenarioPlotGeometryPreservesVariedAltitudesAndTinyProfileBounds() throws {
+        let fixture = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/zephyr-s7-moving-scenario-run-1.json")
+        let document = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: fixture)) as? [String: Any])
+        var frames = try XCTUnwrap(document["frames"] as? [[String: Any]])
+        frames[0]["target_position_m"] = [0.0, 0.0, 3.0]
+        var agents = try XCTUnwrap(frames[0]["agents"] as? [[String: Any]])
+        agents[0]["position_m"] = [1.0, 2.0, -1.0]
+        frames[0]["agents"] = agents
+        var spheres = try XCTUnwrap(frames[0]["keep_out_spheres"] as? [[String: Any]])
+        spheres[0]["center_m"] = [0.0, 0.0, 2.0]
+        spheres[0]["radius_m"] = 0.75
+        frames[0]["keep_out_spheres"] = spheres
+        let frameData = try JSONSerialization.data(withJSONObject: frames[0], options: [.sortedKeys])
+        let frame = try JSONDecoder().decode(ScenarioRunFrame.self, from: frameData)
+        let geometry = ScenarioPlotGeometry.make(frame: frame)
+        XCTAssertEqual(geometry.targetAltitude, 3.0, accuracy: 1e-12)
+        XCTAssertEqual(geometry.agentAltitudes, [-1.0])
+        XCTAssertEqual(geometry.keepOutSpheres[0].centerZ, 2.0, accuracy: 1e-12)
+        XCTAssertLessThan(geometry.altitudeBounds.minZ, 1.25)
+        XCTAssertGreaterThan(geometry.altitudeBounds.maxZ, 2.75)
+        let low = ScenarioPlotGeometry.projectAltitude(-1.0, bounds: geometry.altitudeBounds, height: 2, inset: 30)
+        let high = ScenarioPlotGeometry.projectAltitude(3.0, bounds: geometry.altitudeBounds, height: 2, inset: 30)
+        XCTAssertGreaterThanOrEqual(low, 0)
+        XCTAssertLessThanOrEqual(low, 2)
+        XCTAssertGreaterThanOrEqual(high, 0)
+        XCTAssertLessThanOrEqual(high, 2)
+        XCTAssertLessThanOrEqual(ScenarioPlotGeometry.projectAltitudeRadius(0.75, bounds: geometry.altitudeBounds, height: 2, inset: 30), 1)
+        XCTAssertEqual(ScenarioPlotGeometry.clampRailX(width: 1, preferred: 12), 1, accuracy: 1e-12)
+        let rail = ScenarioPlotGeometry.railEndpoints(height: 1)
+        XCTAssertEqual(rail.top, 0.5, accuracy: 1e-12)
+        XCTAssertEqual(rail.bottom, 0.5, accuracy: 1e-12)
+        XCTAssertEqual(geometry.altitudeBounds.minZ, -1.25, accuracy: 1e-12)
+        XCTAssertEqual(geometry.altitudeBounds.maxZ, 3.25, accuracy: 1e-12)
+        XCTAssertEqual(ScenarioPlotGeometry.projectAltitude(3.0, bounds: geometry.altitudeBounds, height: 100, inset: 18), 21.555555555555557, accuracy: 1e-12)
+        XCTAssertEqual(ScenarioPlotGeometry.projectAltitude(-1.0, bounds: geometry.altitudeBounds, height: 100, inset: 18), 78.44444444444444, accuracy: 1e-12)
+        XCTAssertEqual(ScenarioPlotGeometry.projectAltitude(2.0, bounds: geometry.altitudeBounds, height: 100, inset: 18), 35.77777777777778, accuracy: 1e-12)
+        XCTAssertEqual(ScenarioPlotGeometry.projectAltitudeRadius(0.75, bounds: geometry.altitudeBounds, height: 100, inset: 18), 10.666666666666666, accuracy: 1e-12)
     }
 
     func testRejectsRehashedFrameTimeSequence() throws {

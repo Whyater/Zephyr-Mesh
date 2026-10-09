@@ -385,6 +385,11 @@ struct ScenarioPlotBounds: Equatable {
     let maxY: Double
 }
 
+struct ScenarioAltitudeBounds: Equatable {
+    let minZ: Double
+    let maxZ: Double
+}
+
 struct ScenarioPlotAgent: Equatable {
     let id: String
     let point: ScenarioPlotPoint
@@ -395,12 +400,16 @@ struct ScenarioPlotSphere: Equatable {
     let label: String
     let center: ScenarioPlotPoint
     let radius: Double
+    let centerZ: Double
 }
 
 struct ScenarioPlotGeometry: Equatable {
     let bounds: ScenarioPlotBounds
+    let altitudeBounds: ScenarioAltitudeBounds
     let target: ScenarioPlotPoint
+    let targetAltitude: Double
     let agents: [ScenarioPlotAgent]
+    let agentAltitudes: [Double]
     let keepOutSpheres: [ScenarioPlotSphere]
 
     static func make(frame: ScenarioRunFrame) -> ScenarioPlotGeometry {
@@ -413,22 +422,33 @@ struct ScenarioPlotGeometry: Equatable {
                 active: agent["active"]?.boolValue ?? false
             )
         }
+        let agentAltitudes: [Double] = frame.agents.compactMap { agent -> Double? in
+            guard let position = agent["position_m"]?.vector, position.count == 3 else { return nil }
+            return position[2]
+        }
         let keepOutSpheres = frame.keepOutSpheres.compactMap { sphere -> ScenarioPlotSphere? in
             guard let center = sphere["center_m"]?.vector, center.count == 3,
                   let radius = sphere["radius_m"]?.numberValue,
                   let label = sphere["label"]?.stringValue else { return nil }
-            return ScenarioPlotSphere(label: label, center: ScenarioPlotPoint(x: center[0], y: center[1]), radius: radius)
+            return ScenarioPlotSphere(label: label, center: ScenarioPlotPoint(x: center[0], y: center[1]), radius: radius, centerZ: center[2])
         }
         var xValues = [target.x] + agents.map { $0.point.x }
         var yValues = [target.y] + agents.map { $0.point.y }
         xValues += keepOutSpheres.flatMap { [$0.center.x - $0.radius, $0.center.x + $0.radius] }
         yValues += keepOutSpheres.flatMap { [$0.center.y - $0.radius, $0.center.y + $0.radius] }
+        var zValues = [frame.target[2]] + agentAltitudes
+        zValues += keepOutSpheres.flatMap { [$0.centerZ - $0.radius, $0.centerZ + $0.radius] }
         let span = max(max(xValues.max()! - xValues.min()!, yValues.max()! - yValues.min()!), 1.0)
         let margin = max(span * 0.05, 0.25)
+        let zSpan = max(zValues.max()! - zValues.min()!, 1.0)
+        let zMargin = max(zSpan * 0.05, 0.25)
         return ScenarioPlotGeometry(
             bounds: ScenarioPlotBounds(minX: xValues.min()! - margin, maxX: xValues.max()! + margin, minY: yValues.min()! - margin, maxY: yValues.max()! + margin),
+            altitudeBounds: ScenarioAltitudeBounds(minZ: zValues.min()! - zMargin, maxZ: zValues.max()! + zMargin),
             target: target,
+            targetAltitude: frame.target[2],
             agents: agents,
+            agentAltitudes: agentAltitudes,
             keepOutSpheres: keepOutSpheres
         )
     }
@@ -454,6 +474,36 @@ struct ScenarioPlotGeometry: Equatable {
         let scale = min(max(width - 2 * inset, 1) / spanX, max(height - 2 * inset, 1) / spanY)
         return max(radius, 0) * scale
     }
+
+    static func projectAltitude(_ altitude: Double, bounds: ScenarioAltitudeBounds, height: Double, inset: Double = 18) -> Double {
+        let height = max(height, 1)
+        let inset = min(max(inset, 0), height / 2)
+        let span = max(bounds.maxZ - bounds.minZ, 1)
+        let usable = max(height - 2 * inset, 0)
+        return min(max(height - inset - (altitude - bounds.minZ) * usable / span, 0), height)
+    }
+
+    static func projectAltitudeRadius(_ radius: Double, bounds: ScenarioAltitudeBounds, height: Double, inset: Double = 18) -> Double {
+        let height = max(height, 1)
+        let inset = min(max(inset, 0), height / 2)
+        let span = max(bounds.maxZ - bounds.minZ, 1)
+        return min(max(radius, 0) * max(height - 2 * inset, 0) / span, height / 2)
+    }
+
+    static func clampRailX(width: Double, preferred: Double) -> Double {
+        min(max(preferred, 0), max(width, 0))
+    }
+
+    static func railEndpoints(height: Double, topInset: Double = 30, bottomInset: Double = 18) -> (top: Double, bottom: Double) {
+        let height = max(height, 0)
+        let top = min(max(topInset, 0), height)
+        let bottom = min(max(height - bottomInset, 0), height)
+        guard bottom >= top else {
+            let midpoint = height / 2
+            return (midpoint, midpoint)
+        }
+        return (top, bottom)
+    }
 }
 
 struct ScenarioRunGeometryView: View {
@@ -462,7 +512,8 @@ struct ScenarioRunGeometryView: View {
 
     var body: some View {
         Canvas { context, size in
-            let target = ScenarioPlotGeometry.project(geometry.target, bounds: geometry.bounds, width: size.width, height: size.height)
+            let topWidth = max(size.width - 72, 1)
+            let target = ScenarioPlotGeometry.project(geometry.target, bounds: geometry.bounds, width: topWidth, height: size.height)
             let targetRadius: CGFloat = 5
             context.stroke(Path(ellipseIn: CGRect(x: target.x - targetRadius, y: target.y - targetRadius, width: targetRadius * 2, height: targetRadius * 2)), with: .color(ZephyrDesign.accent), lineWidth: 2)
             context.stroke(Path { path in
@@ -470,28 +521,52 @@ struct ScenarioRunGeometryView: View {
                 path.move(to: CGPoint(x: target.x, y: target.y - 9)); path.addLine(to: CGPoint(x: target.x, y: target.y + 9))
             }, with: .color(ZephyrDesign.accent), lineWidth: 1)
             for sphere in geometry.keepOutSpheres {
-                let center = ScenarioPlotGeometry.project(sphere.center, bounds: geometry.bounds, width: size.width, height: size.height)
-                let radius = ScenarioPlotGeometry.projectRadius(sphere.radius, bounds: geometry.bounds, width: size.width, height: size.height)
+                let center = ScenarioPlotGeometry.project(sphere.center, bounds: geometry.bounds, width: topWidth, height: size.height)
+                let radius = ScenarioPlotGeometry.projectRadius(sphere.radius, bounds: geometry.bounds, width: topWidth, height: size.height)
                 context.stroke(Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)), with: .color(ZephyrDesign.warning), style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
                 context.draw(Text(sphere.label).font(ZephyrDesign.Typography.caption).foregroundColor(ZephyrDesign.warning), at: CGPoint(x: center.x + radius + 4, y: center.y), anchor: .leading)
             }
             for agent in geometry.agents {
-                let point = ScenarioPlotGeometry.project(agent.point, bounds: geometry.bounds, width: size.width, height: size.height)
+                let point = ScenarioPlotGeometry.project(agent.point, bounds: geometry.bounds, width: topWidth, height: size.height)
                 let color = agent.active ? ZephyrDesign.accent : ZephyrDesign.warning
                 context.fill(Path(ellipseIn: CGRect(x: point.x - 4, y: point.y - 4, width: 8, height: 8)), with: .color(color))
+            }
+            let railX = ScenarioPlotGeometry.clampRailX(width: size.width, preferred: min(size.width - 22, topWidth + 34))
+            let rail = ScenarioPlotGeometry.railEndpoints(height: size.height)
+            let railTop = rail.top
+            let railBottom = rail.bottom
+            context.stroke(Path { path in
+                path.move(to: CGPoint(x: railX, y: railTop)); path.addLine(to: CGPoint(x: railX, y: railBottom))
+            }, with: .color(horizon.mist), lineWidth: 1)
+            context.draw(Text("altitude m").font(ZephyrDesign.Typography.caption).foregroundColor(horizon.mist), at: CGPoint(x: railX, y: 17), anchor: .center)
+            let targetZ = ScenarioPlotGeometry.projectAltitude(geometry.targetAltitude, bounds: geometry.altitudeBounds, height: size.height, inset: 30)
+            context.stroke(Path { path in
+                path.move(to: CGPoint(x: railX - 5, y: targetZ)); path.addLine(to: CGPoint(x: railX + 5, y: targetZ))
+            }, with: .color(ZephyrDesign.accent), lineWidth: 2)
+            for (index, altitude) in geometry.agentAltitudes.enumerated() {
+                let y = ScenarioPlotGeometry.projectAltitude(altitude, bounds: geometry.altitudeBounds, height: size.height, inset: 30)
+                let color = geometry.agents[index].active ? ZephyrDesign.accent : ZephyrDesign.warning
+                context.fill(Path(ellipseIn: CGRect(x: railX - 3, y: y - 3, width: 6, height: 6)), with: .color(color))
+            }
+            for sphere in geometry.keepOutSpheres {
+                let centerY = ScenarioPlotGeometry.projectAltitude(sphere.centerZ, bounds: geometry.altitudeBounds, height: size.height, inset: 30)
+                let radiusY = ScenarioPlotGeometry.projectAltitudeRadius(sphere.radius, bounds: geometry.altitudeBounds, height: size.height, inset: 30)
+                context.stroke(Path { path in
+                    path.move(to: CGPoint(x: railX + 9, y: centerY - radiusY)); path.addLine(to: CGPoint(x: railX + 9, y: centerY + radiusY))
+                }, with: .color(ZephyrDesign.warning), lineWidth: 3)
             }
         }
         .frame(minHeight: 180)
         .background(ZephyrDesign.surface, in: RoundedRectangle(cornerRadius: ZephyrDesign.Radius.surface))
         .overlay(alignment: .topLeading) {
-            Text("Synthetic geometry · selected frame")
+            Text("Synthetic geometry · selected frame · altitude")
                 .font(ZephyrDesign.Typography.caption)
                 .foregroundStyle(horizon.mist)
                 .padding(ZephyrDesign.Spacing.sm)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Synthetic scenario geometry")
-        .accessibilityValue("Target, \(geometry.agents.count) agents, \(geometry.keepOutSpheres.count) keep-out volumes")
+        .accessibilityValue("Selected synthetic frame; altitude profile; target altitude \(String(format: "%.3f", geometry.targetAltitude)) meters; \(geometry.agents.count) agents; \(geometry.keepOutSpheres.count) keep-out volumes")
     }
 }
 
@@ -501,6 +576,7 @@ struct ScenarioRunInspectorView: View {
     @Environment(\.dismiss) private var dismiss
     private let horizon = Horizon()
     @State private var cursor: ScenarioRunCursor
+    @State private var showIntegrity = false
 
     init(run: ScenarioRunDocument, filename: String) {
         self.run = run
@@ -531,19 +607,22 @@ struct ScenarioRunInspectorView: View {
                 DataRow(label: "Filename", value: filename, horizon: horizon)
                 DataRow(label: "Schema", value: run.schema, horizon: horizon)
                 DataRow(label: "Seed", value: run.seedText, horizon: horizon)
-                DataRow(label: "Scenario SHA-256", value: run.scenarioHash, horizon: horizon)
-                DataRow(label: "Payload SHA-256", value: run.payloadSHA256, horizon: horizon)
-                DataRow(label: "Δt", value: "\(run.dtText) s", horizon: horizon)
-                DataRow(label: "Generator", value: run.generatorText, horizon: horizon)
-                DataRow(label: "Python", value: run.pythonText, horizon: horizon)
-                DataRow(label: "NumPy", value: run.numpyText, horizon: horizon)
-                DataRow(label: "Base revision", value: run.codeRevisionText, horizon: horizon)
-                DataRow(label: "Revision semantics", value: "base revision; dirty files are not fingerprinted", horizon: horizon)
                 DataRow(label: "Frames", value: String(run.frames.count), horizon: horizon)
                 DataRow(label: "Link events", value: String(run.linkEventCount), horizon: horizon)
                 DataRow(label: "Profiles", value: String(run.profileCount), horizon: horizon)
                 DataRow(label: "Status", value: run.status, horizon: horizon)
                 DataRow(label: "Evidence boundary", value: run.evidenceBoundary, horizon: horizon)
+                DisclosureGroup("Integrity and provenance", isExpanded: $showIntegrity) {
+                    DataRow(label: "Scenario SHA-256", value: run.scenarioHash, horizon: horizon)
+                    DataRow(label: "Payload SHA-256", value: run.payloadSHA256, horizon: horizon)
+                    DataRow(label: "Δt", value: "\(run.dtText) s", horizon: horizon)
+                    DataRow(label: "Generator", value: run.generatorText, horizon: horizon)
+                    DataRow(label: "Python", value: run.pythonText, horizon: horizon)
+                    DataRow(label: "NumPy", value: run.numpyText, horizon: horizon)
+                    DataRow(label: "Base revision", value: run.codeRevisionText, horizon: horizon)
+                    DataRow(label: "Revision semantics", value: "base revision; dirty files are not fingerprinted", horizon: horizon)
+                }
+                .font(ZephyrDesign.Typography.secondary)
             }
             VStack(alignment: .leading, spacing: ZephyrDesign.Layout.tightSpacing) {
                 Text("Selected frame").font(ZephyrDesign.Typography.secondary).foregroundStyle(horizon.mist)
