@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+import numpy as np
 import pytest
 from jsonschema import Draft202012Validator
 
@@ -25,6 +26,16 @@ def test_propeller_scaling_and_profile_limits_are_explicit():
         0.04 * 1.225 * (6000 / 60) ** 3 * 0.1 ** 5
     )
     assert profile.total_mass_kg > 0
+
+
+def test_propeller_torque_is_power_over_angular_speed():
+    propeller = PropellerProfile("p", diameter_m=0.1, pitch_m=0.05, max_rpm=12000, power_coefficient=0.04)
+    rpm = 6000.0
+    expected = (0.04 * 1.225 * (rpm / 60.0) ** 3 * 0.1 ** 5) / (2.0 * np.pi * (rpm / 60.0))
+    assert propeller.estimated_torque_nm(rpm) == pytest.approx(expected)
+    assert propeller.estimated_torque_nm(0.0) == pytest.approx(0.0)
+    with pytest.raises(ValueError):
+        propeller.estimated_torque_nm(0.0, air_density_kg_m3=0.0)
 
 
 def test_hardware_profile_rejects_non_si_or_nonpositive_inputs():

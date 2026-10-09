@@ -141,6 +141,23 @@ class PropellerProfile:
         revolutions_per_second = rpm / 60.0
         return self.power_coefficient * rho * revolutions_per_second**3 * self.diameter_m**5
 
+    def estimated_torque_nm(self, rpm: float, air_density_kg_m3: float = 1.225) -> float:
+        """Return the declared-coefficient shaft-torque estimate ``P / omega``.
+
+        This is derived from the synthetic propeller power coefficient. It is
+        an actuator-envelope input, not measured motor torque data.
+        """
+        rpm = float(rpm)
+        if not math.isfinite(rpm) or rpm < 0.0:
+            raise ValueError("rpm must be finite and nonnegative")
+        rho = float(air_density_kg_m3)
+        if not math.isfinite(rho) or rho <= 0.0:
+            raise ValueError("air_density_kg_m3 must be finite and positive")
+        if rpm == 0.0:
+            return 0.0
+        revolutions_per_second = rpm / 60.0
+        return self.estimated_power_w(rpm, rho) / (2.0 * math.pi * revolutions_per_second)
+
 
 @dataclass(frozen=True)
 class HardwareProfile:

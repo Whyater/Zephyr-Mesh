@@ -57,3 +57,12 @@ def test_vehicle_drag_changes_trajectory_for_same_initial_motion():
 
     assert with_drag_step.position_m[0] < no_drag_step.position_m[0]
     assert with_drag_step.velocity_mps[0] < no_drag_step.velocity_mps[0]
+
+
+def test_vehicle_horizontal_target_produces_translation_and_tilt():
+    vehicle = ActuatedQuadrotor(default_hardware_profile(5))
+    samples = [vehicle.step((2.0, 0.0, 1.0), 0.01) for _ in range(200)]
+    final = samples[-1]
+    assert final.position_m[0] > 0.5
+    assert abs(final.position_m[1]) < 0.1
+    assert np.linalg.norm(np.asarray(vehicle.drone.quaternion[1:3])) > 1e-3

@@ -74,7 +74,19 @@ class QuadrotorActuator:
 
     @property
     def max_rpm(self) -> float:
-        return min(self.profile.motor.max_rpm, self.profile.propeller.max_rpm)
+        rho = self.config.air_density_kg_m3
+        propeller = self.profile.propeller
+        coefficient = propeller.power_coefficient * rho * propeller.diameter_m**5
+        power_limited_rpm = 60.0 * (self.profile.motor.max_power_w / coefficient) ** (1.0 / 3.0)
+        torque_limited_rpm = 60.0 * (
+            2.0 * math.pi * self.profile.motor.max_torque_nm / coefficient
+        ) ** 0.5
+        return min(
+            self.profile.motor.max_rpm,
+            propeller.max_rpm,
+            power_limited_rpm,
+            torque_limited_rpm,
+        )
 
     @property
     def battery_pct(self) -> float:
@@ -118,6 +130,10 @@ class QuadrotorActuator:
         """Advance motor lag and battery state by ``dt_s`` seconds."""
         command_values = self._commands(command)
         dt_s = _finite_positive("dt_s", dt_s)
+        if self.energy_wh <= 0.0:
+            self.rpm[:] = 0.0
+            self.last_state = self._state()
+            return self.last_state
         voltage_ratio = self.last_state.battery_voltage_v / self.profile.motor.nominal_voltage_v
         voltage_ratio = max(0.0, min(1.0, voltage_ratio))
         desired_rpm = command_values * self.max_rpm * voltage_ratio
@@ -126,6 +142,8 @@ class QuadrotorActuator:
         self.rpm = np.clip(self.rpm, 0.0, self.max_rpm)
         state = self._state()
         self.energy_wh = max(0.0, self.energy_wh - state.power_w * dt_s / 3600.0)
+        if self.energy_wh <= 0.0:
+            self.rpm[:] = 0.0
         self.last_state = self._state()
         return self.last_state
 
