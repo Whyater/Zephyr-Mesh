@@ -51,6 +51,7 @@ The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\Zeph
 - Strict SI-unit hardware-profile documents with custom motor and propeller part IDs, status/source/calibration provenance, JSON Schema validation, round-trip loading, and a normalization CLI.
 - Versioned bench trace schema and summary CLI for RPM, thrust, voltage, current, temperature, test conditions, incomplete readings, and transparent electrical input power summaries without curve fitting.
 - Portable evidence reports for the macOS and Windows inspectors, preserving source hashes, declared status, nested values, and limitations.
+- S6 investigation reports for latency, loss probability, sensing noise, target acceleration, estimator error, and scenario-specific failure labels. These are deterministic research fixtures, not tolerance or flight-performance results.
 - Typed drone adapter, authority arbitration, and replayable link or battery failsafe contracts.
 - Native macOS SwiftUI and SceneKit cockpit plus a Windows Tkinter desktop surface built from the same canonical replay.
 - Local release updater contract with digest verification, path-safe extraction, rollback staging, and architecture-aware asset selection.
@@ -71,6 +72,7 @@ PYTHONPATH=. python tools/analyze_vision_trace.py sim/vision_trace_example.json
 PYTHONPATH=. python tools/validate_hardware_profile.py sim/hardware_profile_example.json
 PYTHONPATH=. python tools/analyze_bench_trace.py sim/bench_trace_example.json
 PYTHONPATH=. python tools/build_evidence_report.py espnow sim/trace_example.json --output /tmp/zephyr-espnow-report.json
+PYTHONPATH=. python tools/build_investigation_report.py sim/investigation_example.json --output /tmp/zephyr-s6-report.json
 python -m demo.demo --host 127.0.0.1 --port 8765
 ```
 

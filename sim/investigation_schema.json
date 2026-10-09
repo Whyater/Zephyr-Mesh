@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zephyr-mesh.dev/schemas/s6-sweep-1.json",
+  "title": "Zephyr Mesh S6 latency, loss, and tracking-noise sweep",
+  "description": "Deterministic point-estimator investigation fixture. It is a scenario study, not flight performance or a safety threshold.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "config", "rows", "independent_check", "criterion_note"],
+  "properties": {
+    "schema": {"const": "zephyr-s6-sweep-1"},
+    "status": {"const": "synthetic investigation fixture; not flight performance"},
+    "config": {
+      "type": "object", "additionalProperties": false,
+      "required": ["duration_s", "truth_dt_s", "observation_period_s", "target_speed_mps", "target_acceleration_mps2", "failure_p95_m", "failure_max_m", "seed"],
+      "properties": {
+        "duration_s": {"type": "number", "exclusiveMinimum": 0},
+        "truth_dt_s": {"type": "number", "exclusiveMinimum": 0},
+        "observation_period_s": {"type": "number", "exclusiveMinimum": 0},
+        "target_speed_mps": {"type": "number", "minimum": 0},
+        "target_acceleration_mps2": {"type": "number"},
+        "failure_p95_m": {"type": "number", "minimum": 0},
+        "failure_max_m": {"type": "number", "minimum": 0},
+        "seed": {"type": "integer", "minimum": 0}
+      }
+    },
+    "rows": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["delay_s", "loss_probability", "noise_std_m", "target_acceleration_mps2", "p95_error_m", "max_error_m", "held_last_p95_error_m", "held_last_max_error_m", "mean_age_s", "sample_count", "criterion", "label"],
+        "properties": {
+          "delay_s": {"type": "number", "minimum": 0},
+          "loss_probability": {"type": "number", "minimum": 0, "maximum": 1},
+          "noise_std_m": {"type": "number", "minimum": 0},
+          "target_acceleration_mps2": {"type": "number"},
+          "p95_error_m": {"type": "number", "minimum": 0},
+          "max_error_m": {"type": "number", "minimum": 0},
+          "held_last_p95_error_m": {"type": "number", "minimum": 0},
+          "held_last_max_error_m": {"type": "number", "minimum": 0},
+          "mean_age_s": {"type": ["number", "null"], "minimum": 0},
+          "sample_count": {"type": "integer", "minimum": 1},
+          "criterion": {"type": "string", "minLength": 1},
+          "label": {"enum": ["failure-boundary", "within-scenario-envelope"]}
+        }
+      }
+    },
+    "independent_check": {"type": "string", "minLength": 1},
+    "criterion_note": {"type": "string", "minLength": 1}
+  }
+}

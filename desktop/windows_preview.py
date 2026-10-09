@@ -677,7 +677,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--smoke-ready", type=Path, help="write a readiness marker after the GUI is constructed")
     parser.add_argument("--smoke-step", action="store_true", help="step one replay frame before writing the readiness marker")
     parser.add_argument("--smoke-health", type=Path, help="write a second marker after the GUI remains healthy in its event loop")
-    parser.add_argument("--smoke-evidence", type=Path, help="open and validate one evidence report during frozen GUI smoke")
+    parser.add_argument("--smoke-evidence", type=Path, action="append", help="open and validate an evidence report during frozen GUI smoke; repeat for parity checks")
     args = parser.parse_args(argv)
     if args.headless:
         print(json.dumps(ReplayModel.from_path(args.run).summary(), indent=2, sort_keys=True))
@@ -698,13 +698,17 @@ def main(argv: list[str] | None = None) -> int:
     if args.smoke_step:
         app._step()
     if args.smoke_evidence:
-        if not app._show_evidence_report(args.smoke_evidence):
-            try:
-                root.destroy()
-            except tk.TclError:
-                pass
-            return 2
-        evidence_kind = app._evidence_report.get("kind") if app._evidence_report else None
+        evidence_kinds = []
+        for evidence_path in args.smoke_evidence:
+            if not app._show_evidence_report(evidence_path):
+                try:
+                    root.destroy()
+                except tk.TclError:
+                    pass
+                return 2
+            if app._evidence_report and app._evidence_report.get("kind"):
+                evidence_kinds.append(str(app._evidence_report["kind"]))
+        evidence_kind = ",".join(sorted(set(evidence_kinds))) or None
     else:
         evidence_kind = None
     if args.smoke_ready:

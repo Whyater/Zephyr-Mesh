@@ -127,6 +127,10 @@ def run_sweep(*, config: SweepConfig | None = None, delays=(0.0, 0.05, 0.10, 0.2
     return {
         "schema": "zephyr-s6-sweep-1", "status": "synthetic investigation fixture; not flight performance",
         "config": asdict(cfg), "rows": rows,
-        "independent_check": "For a held-last-position estimate, v x L = 0.7 m/s x 0.10 s = 0.07 m before noise or dropout.",
+        "independent_check": (
+            "For a held-last-position estimate, v x L = "
+            f"{cfg.target_speed_mps:g} m/s x {cfg.observation_period_s:g} s = "
+            f"{cfg.target_speed_mps * cfg.observation_period_s:g} m before noise or dropout."
+        ),
         "criterion_note": "The failure label is a scenario-specific research criterion, not a safety threshold.",
     }

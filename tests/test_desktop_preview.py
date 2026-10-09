@@ -97,6 +97,16 @@ def test_windows_requirements_pin_evidence_loader_dependencies():
         assert dependency in requirements
 
 
+def test_windows_smoke_packages_and_checks_investigation_report():
+    build_script = (ROOT / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
+    validator = (ROOT / "tools" / "validate_windows_bundle.py").read_text(encoding="utf-8")
+    preview = (ROOT / "desktop" / "windows_preview.py").read_text(encoding="utf-8")
+    assert "investigation_report_example.json;desktop" in build_script
+    assert '"investigation_report_example.json", "investigation", "synthetic"' in validator
+    assert 'action="append"' in preview
+    assert "evidence_kind=espnow,investigation" in validator
+
+
 def test_windows_glyph_rotation_keeps_quad_geometry_bounded():
     from desktop.windows_preview import WindowsReplayApp
 

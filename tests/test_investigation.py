@@ -59,3 +59,17 @@ def test_observation_period_shorter_than_display_grid_keeps_event_timestamps():
     row = run_sweep(config=cfg, delays=(0,), losses=(0,), noises=(0,), accelerations=(0,))["rows"][0]
     assert row["sample_count"] == 11
     assert row["max_error_m"] < 0.004
+
+
+def test_independent_check_uses_custom_speed_and_observation_period():
+    cfg = SweepConfig(target_speed_mps=1.2, observation_period_s=0.25)
+    report = run_sweep(config=cfg, delays=(0,), losses=(0,), noises=(0,), accelerations=(0,))
+    assert "1.2 m/s x 0.25 s = 0.3 m" in report["independent_check"]
+
+
+def test_row_labels_follow_declared_criteria():
+    cfg = SweepConfig(failure_p95_m=0.01, failure_max_m=0.01)
+    report = run_sweep(config=cfg, delays=(0.0,), losses=(0.0,), noises=(0.0,), accelerations=(0.0,))
+    for row in report["rows"]:
+        expected = "failure-boundary" if row["p95_error_m"] > cfg.failure_p95_m or row["max_error_m"] > cfg.failure_max_m else "within-scenario-envelope"
+        assert row["label"] == expected
