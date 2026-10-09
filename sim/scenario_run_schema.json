@@ -99,6 +99,29 @@
       "minItems": 3,
       "maxItems": 3
     },
+    "keep_out_velocity": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number",
+          "minimum": -50,
+          "maximum": 50
+        },
+        {
+          "type": "number",
+          "minimum": -50,
+          "maximum": 50
+        },
+        {
+          "type": "number",
+          "minimum": -50,
+          "maximum": 50
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
     "parameters": {
       "type": "object",
       "additionalProperties": false,
@@ -182,6 +205,9 @@
               "label": {
                 "type": "string",
                 "minLength": 1
+              },
+              "velocity_mps": {
+                "$ref": "#/$defs/keep_out_velocity"
               }
             }
           }
@@ -368,6 +394,13 @@
           "minItems": 1,
           "items": {
             "$ref": "#/$defs/agent"
+          }
+        },
+        "keep_out_spheres": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/keep_out_snapshot"
           }
         }
       }
@@ -764,6 +797,29 @@
         },
         "status": {
           "const": "synthetic deterministic replay; read-only"
+        }
+      }
+    },
+    "keep_out_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "center_m",
+        "radius_m",
+        "label"
+      ],
+      "properties": {
+        "center_m": {
+          "$ref": "#/$defs/vector"
+        },
+        "radius_m": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }

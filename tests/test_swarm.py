@@ -86,6 +86,15 @@ def test_collision_and_keepout_projection_are_reported():
     assert all("wall" in state.constraint_flags for state in step.agents)
 
 
+def test_keep_out_sphere_center_at_linear_velocity_is_deterministic():
+    sphere = KeepOutSphere((1.0, -2.0, 0.5), 0.4, "moving-wall", (0.5, 0.0, -0.25))
+    assert sphere.center_at(0.0) == (1.0, -2.0, 0.5)
+    assert sphere.center_at(2.0) == (2.0, -2.0, 0.0)
+    for velocity in ((50.1, 0.0, 0.0), (-50.1, 0.0, 0.0)):
+        with pytest.raises(ValueError):
+            KeepOutSphere((1.0, -2.0, 0.5), 0.4, "too-fast", velocity)
+
+
 def test_dropout_schedule_removes_one_sender_but_keeps_other_active():
     sim = SwarmSimulator(two_agent_config())
     result = sim.run(5, dropout_schedule={2: ("b",)})

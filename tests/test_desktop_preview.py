@@ -131,6 +131,16 @@ def test_selected_frame_summary_changes_after_cursor_selection(tmp_path):
     assert "Frame 3 of 3" in selected_frame_summary(run, cursor)
 
 
+def test_desktop_decoder_preserves_moving_keep_out_snapshots():
+    fixture = ROOT / "macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
+    run = load_scenario_run(fixture)
+    cursor = ScenarioRunCursor(len(run.frames))
+    assert run.frames[0].keep_out_spheres[0]["center_m"] == [2.0, 0.0, 1.5]
+    cursor.step()
+    assert run.frames[1].keep_out_spheres[0]["center_m"] == [2.025, 0.0, 1.5]
+    assert "keep-out 1" in selected_frame_summary(run, cursor)
+
+
 def test_replay_model_rejects_missing_steps(tmp_path):
     path = tmp_path / "bad.json"
     path.write_text('{"schema":"zephyr-s7-swarm-run-1","scenario_id":"bad","seed":1,"dt_s":0.05,"status":"synthetic","command_authority":"replay only","failsafe":"synthetic","evidence_boundary":"fixture"}', encoding="utf-8")

@@ -110,8 +110,24 @@ struct ScenarioRunDocument: Identifiable, Decodable {
         try validateLink(parameters["target_link"], field: "target_link")
         try validateLink(parameters["neighbor_link"], field: "neighbor_link")
         guard case .array(let spheres) = parameters["keep_out_spheres"], spheres.count <= 64 else { throw ScenarioRunError.invalid("keep_out_spheres is invalid") }
-        for sphere in spheres { guard case .object(let object) = sphere, object.keys.sorted() == ["center_m", "label", "radius_m"].sorted(), object["label"]?.stringValue?.isEmpty == false, object["center_m"]?.vector != nil, object["radius_m"]?.finiteNumber(min: 0) == true else { throw ScenarioRunError.invalid("keep_out_spheres entry is invalid") } }
-        for frame in frames { for agent in frame.agents { try validateAgent(agent) } }
+        for sphere in spheres {
+            guard case .object(let object) = sphere else { throw ScenarioRunError.invalid("keep_out_spheres entry is invalid") }
+            let keys = Set(object.keys)
+            guard keys == Set(["center_m", "label", "radius_m"]) || keys == Set(["center_m", "label", "radius_m", "velocity_mps"]),
+                  object["label"]?.stringValue?.isEmpty == false,
+                  object["center_m"]?.vector != nil,
+                  object["radius_m"]?.finiteNumber(min: 0) == true,
+                  object["radius_m"]?.numberValue ?? 101 <= 100 else { throw ScenarioRunError.invalid("keep_out_spheres entry is invalid") }
+            if let velocity = object["velocity_mps"]?.vector {
+                guard velocity.allSatisfy({ $0.isFinite && $0 >= -50 && $0 <= 50 }) else { throw ScenarioRunError.invalid("keep_out_spheres velocity is invalid") }
+            } else if object["velocity_mps"] != nil {
+                throw ScenarioRunError.invalid("keep_out_spheres velocity is invalid")
+            }
+        }
+        for frame in frames {
+            for agent in frame.agents { try validateAgent(agent) }
+            try validateKeepOutSnapshots(frame.keepOutSpheres)
+        }
         for event in linkEvents { try validateLinkEvent(event) }
         for profile in profiles { try validateProfile(profile) }
         guard provenance["generator"]?.stringValue == "sim.scenario_runner", provenance["python"]?.stringValue?.isEmpty == false, provenance["numpy"]?.stringValue?.isEmpty == false, provenance["seed"]?.intValue == parameters["seed"]?.intValue, provenance["dt_s"]?.finiteNumber(min: 0, strict: true) == true, provenance["code_revision"] == .null || (provenance["code_revision"]?.stringValue?.isEmpty == false && provenance["code_revision"]?.stringValue?.count ?? 201 <= 200) else { throw ScenarioRunError.invalid("provenance does not match parameters") }
@@ -165,6 +181,7 @@ struct ScenarioRunDocument: Identifiable, Decodable {
               contention != "serialized" || packetDuration > 0 else { throw ScenarioRunError.invalid("\(field) contains an invalid packet duration") }
     }
     private static func validateAgent(_ value: [String: JSONValue]) throws { let keys = ["active", "agent_id", "constraint_flags", "fused_target_m", "min_neighbor_distance_m", "neighbor_count", "position_m", "profile_id", "target_age_s", "target_estimate_m", "target_source_time_s", "velocity_mps"].sorted(); guard value.keys.sorted() == keys, value["agent_id"]?.stringValue?.isEmpty == false, value["profile_id"]?.stringValue?.isEmpty == false, value["active"]?.boolValue != nil, value["position_m"]?.vector != nil, value["velocity_mps"]?.vector != nil, value["neighbor_count"]?.intValue ?? -1 >= 0, value["neighbor_count"]?.intValue ?? -1 <= Self.jsonSafeIntegerMaximum, value["constraint_flags"]?.strings != nil else { throw ScenarioRunError.invalid("agent is invalid") }; for key in ["target_estimate_m", "fused_target_m"] { if case .null = value[key] { } else { guard value[key]?.vector != nil else { throw ScenarioRunError.invalid("agent target vector is invalid") } } }; for key in ["target_source_time_s", "target_age_s", "min_neighbor_distance_m"] { if case .null = value[key] { } else { guard value[key]?.finiteNumber(min: 0) == true else { throw ScenarioRunError.invalid("agent metric is invalid") } } } }
+    private static func validateKeepOutSnapshots(_ value: [[String: JSONValue]]) throws { guard value.count <= 64 else { throw ScenarioRunError.invalid("frame keep-out spheres are unbounded") }; for sphere in value { guard sphere.keys.sorted() == ["center_m", "label", "radius_m"].sorted(), sphere["center_m"]?.vector != nil, sphere["radius_m"]?.finiteNumber(min: 0) == true, sphere["radius_m"]?.numberValue ?? 101 <= 100, sphere["label"]?.stringValue?.isEmpty == false else { throw ScenarioRunError.invalid("frame keep-out sphere is invalid") } } }
     private static func validateLinkEvent(_ value: [String: JSONValue]) throws { let keys = ["duplicate", "loss_reason", "out_of_order", "outcome", "packet_age", "receive_time", "receiver", "send_time", "sender", "seq"].sorted(); guard value.keys.sorted() == keys, value["sender"]?.stringValue?.isEmpty == false, value["receiver"]?.stringValue?.isEmpty == false, value["seq"]?.intValue ?? -1 >= 0, value["seq"]?.intValue ?? -1 <= Self.jsonSafeIntegerMaximum, value["send_time"]?.finiteNumber(min: 0) == true, value["duplicate"]?.boolValue != nil, value["out_of_order"]?.boolValue != nil else { throw ScenarioRunError.invalid("link event is invalid") }; let outcome = value["outcome"]?.stringValue; guard outcome == "received" || outcome == "lost" else { throw ScenarioRunError.invalid("link event outcome is invalid") }; if outcome == "received" { guard let receive = value["receive_time"]?.numberValue, let age = value["packet_age"]?.numberValue, value["loss_reason"] == .null, receive >= value["send_time"]!.numberValue!, abs((receive - value["send_time"]!.numberValue!) - age) <= 1e-9 else { throw ScenarioRunError.invalid("received link event is invalid") } } else { guard value["receive_time"] == .null, value["packet_age"] == .null, value["loss_reason"]?.stringValue?.isEmpty == false else { throw ScenarioRunError.invalid("lost link event is invalid") } } }
     private static func validateProfile(_ value: [String: JSONValue]) throws { let keys = ["profile_id", "motor", "propeller", "motor_count", "arm_length_m", "frame_mass_kg", "battery_capacity_wh", "status", "source", "calibration_id", "code_revision", "notes", "total_mass_kg", "estimated_thrust_at_rpm_limit_n", "estimated_max_thrust_n"].sorted(); guard value.keys.allSatisfy({ keys.contains($0) }), ["profile_id", "motor", "propeller", "motor_count", "arm_length_m", "frame_mass_kg", "battery_capacity_wh", "total_mass_kg", "estimated_max_thrust_n"].allSatisfy({ value[$0] != nil }), value["profile_id"]?.stringValue?.isEmpty == false, value["motor_count"]?.intValue ?? 0 >= 1, value["motor_count"]?.intValue ?? 0 <= Self.jsonSafeIntegerMaximum else { throw ScenarioRunError.invalid("profile is invalid") }; guard let motor = value["motor"]?.objectValue, motor.keys.sorted() == ["mass_kg", "max_power_w", "max_rpm", "max_torque_nm", "nominal_voltage_v", "part_id"].sorted(), let prop = value["propeller"]?.objectValue, prop.keys.sorted() == ["diameter_m", "mass_kg", "max_rpm", "part_id", "pitch_m", "power_coefficient", "thrust_coefficient"].sorted() else { throw ScenarioRunError.invalid("profile motor or propeller is invalid") }; guard motor["part_id"]?.stringValue?.isEmpty == false, prop["part_id"]?.stringValue?.isEmpty == false else { throw ScenarioRunError.invalid("profile part IDs are invalid") }; for key in ["mass_kg", "max_power_w", "max_rpm", "max_torque_nm", "nominal_voltage_v"] { guard motor[key]?.finiteNumber(min: 0, strict: true) == true else { throw ScenarioRunError.invalid("profile motor metric is invalid") } }; for key in ["diameter_m", "mass_kg", "max_rpm", "pitch_m", "power_coefficient", "thrust_coefficient"] { guard prop[key]?.finiteNumber(min: 0, strict: true) == true else { throw ScenarioRunError.invalid("profile propeller metric is invalid") } }; for key in ["arm_length_m", "frame_mass_kg", "battery_capacity_wh", "total_mass_kg", "estimated_max_thrust_n"] { guard value[key]?.finiteNumber(min: 0, strict: true) == true else { throw ScenarioRunError.invalid("profile metric is invalid") } }; if let status = value["status"], status.stringValue == nil { throw ScenarioRunError.invalid("profile.status is invalid") }; for key in ["source", "calibration_id", "code_revision", "notes"] { if let optional = value[key], optional != .null && optional.stringValue == nil { throw ScenarioRunError.invalid("profile.\(key) is invalid") } }; if let limit = value["estimated_thrust_at_rpm_limit_n"], limit.finiteNumber(min: 0, strict: true) == false { throw ScenarioRunError.invalid("profile estimated thrust is invalid") } }
 }
@@ -182,14 +199,17 @@ struct ScenarioRunFrame: Identifiable, Decodable {
     let activeCount: Int
     let agentCount: Int
     let agents: [[String: JSONValue]]
+    let keepOutSpheres: [[String: JSONValue]]
     let raw: [String: JSONValue]
 
-    enum CodingKeys: String, CodingKey { case stepIndex = "step_index", time = "time_s", target = "target_position_m", activeCount = "active_count", agents }
+    enum CodingKeys: String, CodingKey { case stepIndex = "step_index", time = "time_s", target = "target_position_m", activeCount = "active_count", agents, keepOutSpheres = "keep_out_spheres" }
 
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: DynamicCodingKey.self)
-        let expected = Set(["step_index", "time_s", "target_position_m", "active_count", "agents"])
-        guard Set(values.allKeys.map(\.stringValue)) == expected else { throw ScenarioRunError.invalid("frame has an invalid field set") }
+        let required = Set(["step_index", "time_s", "target_position_m", "active_count", "agents"])
+        let allowed = required.union(["keep_out_spheres"])
+        let actual = Set(values.allKeys.map(\.stringValue))
+        guard actual.isSuperset(of: required), actual.isSubset(of: allowed) else { throw ScenarioRunError.invalid("frame has an invalid field set") }
         var decodedRaw: [String: JSONValue] = [:]
         for key in values.allKeys { decodedRaw[key.stringValue] = try values.decode(JSONValue.self, forKey: key) }
         raw = decodedRaw
@@ -198,6 +218,7 @@ struct ScenarioRunFrame: Identifiable, Decodable {
         target = try values.decode([Double].self, forKey: DynamicCodingKey("target_position_m"))
         activeCount = try values.decode(Int.self, forKey: DynamicCodingKey("active_count"))
         agents = try values.decode([[String: JSONValue]].self, forKey: DynamicCodingKey("agents"))
+        keepOutSpheres = try values.decodeIfPresent([[String: JSONValue]].self, forKey: DynamicCodingKey("keep_out_spheres")) ?? []
         agentCount = agents.count
         guard stepIndex >= 0, Int64(stepIndex) <= ScenarioRunDocument.jsonSafeIntegerMaximum, time >= 0, target.count == 3, activeCount >= 0, Int64(activeCount) <= ScenarioRunDocument.jsonSafeIntegerMaximum, agentCount > 0 else { throw ScenarioRunError.invalid("frame contains an invalid value") }
         id = "\(stepIndex)-\(time)"
@@ -409,6 +430,7 @@ struct ScenarioRunInspectorView: View {
                 DataRow(label: "Time", value: String(format: "%.3f s", selectedFrame.time), horizon: horizon)
                 DataRow(label: "Target", value: "[\(selectedTarget)] m", horizon: horizon)
                 DataRow(label: "Agents", value: "\(selectedFrame.agentCount) (\(selectedFrame.activeCount) active)", horizon: horizon)
+                DataRow(label: "Keep-out", value: "\(selectedFrame.keepOutSpheres.count) synthetic volume(s)", horizon: horizon)
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: ZephyrDesign.Layout.tightSpacing) {

@@ -22,7 +22,7 @@ from jsonschema import Draft202012Validator
 
 from sim.link import LinkConfig
 from sim.scenarios import make_ring_swarm_config
-from sim.swarm import KeepOutSphere, SwarmConfig, SwarmSimulator
+from sim.swarm import MAX_KEEP_OUT_SPEED_MPS, KeepOutSphere, SwarmConfig, SwarmSimulator
 
 
 SCENARIO_SCHEMA = "zephyr-s7-scenario-run-1"
@@ -44,7 +44,7 @@ JSON_SAFE_INTEGER_MAX = 9_007_199_254_740_991
 MAX_SIMULATION_EVENTS = 250_000
 
 EVIDENCE_BOUNDARY = (
-    "Synthetic deterministic point-mass coordination replay over abstract links; "
+    "Synthetic deterministic point-mass coordination replay with linear moving keep-out spheres over abstract links; "
     "read-only output does not establish measured radio tolerance, tracking "
     "tolerance, flight performance, safety, or live control."
 )
@@ -205,18 +205,20 @@ def _config_from_mapping(raw: Mapping[str, Any]) -> tuple[SwarmConfig, dict[str,
         field = f"keep_out_spheres[{index}]"
         if not isinstance(raw_zone, Mapping):
             raise ScenarioConfigError(f"{field} must be an object")
-        unknown_zone = sorted(set(raw_zone) - {"center", "center_m", "radius", "radius_m", "label"})
+        unknown_zone = sorted(set(raw_zone) - {"center", "center_m", "radius", "radius_m", "label", "velocity_mps"})
         if unknown_zone:
             raise ScenarioConfigError(f"{field} contains unknown field(s): {', '.join(unknown_zone)}")
         center = _vector(_alias(raw_zone, ("center_m", "center"), f"{field}.center_m"),
                          f"{field}.center_m", component_limit=100.0)
         radius_zone = _number(_alias(raw_zone, ("radius_m", "radius"), f"{field}.radius_m"),
                               f"{field}.radius_m", minimum=0.0, maximum=100.0)
+        velocity_zone = _vector(raw_zone.get("velocity_mps", (0.0, 0.0, 0.0)),
+                                f"{field}.velocity_mps", component_limit=MAX_KEEP_OUT_SPEED_MPS)
         label = raw_zone.get("label", f"keep_out_{index + 1}")
         if not isinstance(label, str) or not label.strip() or len(label) > 80:
             raise ScenarioConfigError(f"{field}.label must be a non-empty string of at most 80 characters")
-        zones.append(KeepOutSphere(tuple(center), radius_zone, label.strip()))
-        zone_document.append({"center_m": center, "radius_m": radius_zone, "label": label.strip()})
+        zones.append(KeepOutSphere(tuple(center), radius_zone, label.strip(), tuple(velocity_zone)))
+        zone_document.append({"center_m": center, "radius_m": radius_zone, "label": label.strip(), "velocity_mps": velocity_zone})
     config = make_ring_swarm_config(
         agent_count=agent_count,
         radius_m=radius,
@@ -420,11 +422,16 @@ def to_replay_document(document: Mapping[str, Any]) -> dict[str, Any]:
         {key: event[key] for key in replay_event_keys if key in event}
         for event in document["link_events"]
     ]
+    replay_frame_keys = ("step_index", "time_s", "target_position_m", "active_count", "agents")
+    steps = [
+        {key: frame[key] for key in replay_frame_keys if key in frame}
+        for frame in document["frames"]
+    ]
     replay = {
         "schema": "zephyr-s7-swarm-run-1",
         "seed": document["provenance"]["seed"],
         "dt_s": document["provenance"]["dt_s"],
-        "steps": document["frames"],
+        "steps": steps,
         "link_events": link_events,
         "agent_profiles": profiles,
         "scenario_id": document["parameters"]["scenario_id"],

@@ -102,6 +102,20 @@ def test_keep_out_sphere_invariant_is_reported_in_frames():
             assert "wall" in frame["agents"][0]["constraint_flags"]
 
 
+def test_moving_keep_out_snapshots_and_invariant_are_deterministic():
+    sphere = {"center_m": [2.0, 0.0, 1.5], "radius_m": 0.5, "label": "moving-wall", "velocity_mps": [0.5, 0.0, 0.0]}
+    result = run_scenario(config(agent_count=1, steps=3, keep_out_spheres=[sphere]), code_revision="test")
+    snapshots = [frame["keep_out_spheres"][0]["center_m"] for frame in result["frames"]]
+    assert snapshots == [[2.0, 0.0, 1.5], [2.025, 0.0, 1.5], [2.05, 0.0, 1.5]]
+    dt = result["parameters"]["dt_s"]
+    for index, frame in enumerate(result["frames"]):
+        center = frame["keep_out_spheres"][0]["center_m"]
+        assert center == [2.0 + 0.5 * index * dt, 0.0, 1.5]
+        position = frame["agents"][0]["position_m"]
+        distance = sum((position[index] - center[index]) ** 2 for index in range(3)) ** 0.5
+        assert distance >= 0.5 - 1e-12
+
+
 def test_malformed_config_and_bounds_are_rejected():
     with pytest.raises(ScenarioConfigError):
         validate_scenario_config({"agent_count": 2})
@@ -121,6 +135,8 @@ def test_malformed_config_and_bounds_are_rejected():
         validate_scenario_config(config(target_link={"loss_model": "burst", "loss_probability": 0.1}))
     with pytest.raises(ScenarioConfigError):
         validate_scenario_config(config(target_link={"packet_duration_s": 0.1}))
+    with pytest.raises(ScenarioConfigError):
+        validate_scenario_config(config(keep_out_spheres=[{"center_m": [0.0, 0.0, 1.0], "radius_m": 0.5, "velocity_mps": [50.1, 0.0, 0.0]}]))
 
 
 def test_hash_changes_when_a_scenario_parameter_changes():

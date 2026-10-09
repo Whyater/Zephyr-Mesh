@@ -228,6 +228,42 @@ final class EvidenceInspectorTests: XCTestCase {
         XCTAssertEqual(run.status, "synthetic deterministic replay; read-only")
     }
 
+    func testLoadsMovingKeepOutSnapshotsFromPythonFixture() throws {
+        let fixture = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/zephyr-s7-moving-scenario-run-1.json")
+        let run = try ScenarioRunDocument.load(from: fixture)
+        XCTAssertEqual(run.frames.count, 3)
+        XCTAssertEqual(run.frames[0].keepOutSpheres.count, 1)
+        guard case .array(let center) = run.frames[1].keepOutSpheres[0]["center_m"],
+              case .number(let x) = center[0] else {
+            return XCTFail("Expected a moving center vector")
+        }
+        XCTAssertEqual(x, 2.025, accuracy: 1e-12)
+        guard case .string(let label) = run.frames[2].keepOutSpheres[0]["label"] else {
+            return XCTFail("Expected moving sphere label")
+        }
+        XCTAssertEqual(label, "moving-wall")
+    }
+
+    func testRejectsMovingSphereRadiusAboveBoundAfterCanonicalRehash() throws {
+        let fixture = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/zephyr-s7-moving-scenario-run-1.json")
+        var document = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: fixture)) as? [String: Any])
+        var parameters = try XCTUnwrap(document["parameters"] as? [String: Any])
+        var spheres = try XCTUnwrap(parameters["keep_out_spheres"] as? [[String: Any]])
+        spheres[0]["radius_m"] = 100.1
+        parameters["keep_out_spheres"] = spheres
+        document["parameters"] = parameters
+        var canonical = try XCTUnwrap(document["parameters_canonical"] as? String)
+        canonical = canonical.replacingOccurrences(of: "\"radius_m\":0.5", with: "\"radius_m\":100.1")
+        document["parameters_canonical"] = canonical
+        document["scenario_hash"] = SHA256.hash(data: Data(canonical.utf8)).map { String(format: "%02x", $0) }.joined()
+        let data = try JSONSerialization.data(withJSONObject: document, options: [.sortedKeys])
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: data))
+    }
+
     func testScenarioRunCursorClampsStepsAndResets() {
         var cursor = ScenarioRunCursor(frameCount: 3)
         XCTAssertEqual(cursor.index, 0)

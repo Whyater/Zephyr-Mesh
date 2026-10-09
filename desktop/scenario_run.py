@@ -31,6 +31,7 @@ class ScenarioFrame:
     active_count: int
     agent_count: int
     agents: tuple[Mapping[str, Any], ...]
+    keep_out_spheres: tuple[Mapping[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -98,7 +99,8 @@ def selected_frame_summary(run: ScenarioRun, cursor: ScenarioRunCursor) -> str:
     target = ", ".join(f"{value:.3f}" for value in frame.target_position_m)
     return (
         f"Frame {cursor.index + 1} of {len(run.frames)} · t={frame.time_s:.3f} s · "
-        f"target=[{target}] m · {frame.active_count}/{frame.agent_count} active"
+        f"target=[{target}] m · {frame.active_count}/{frame.agent_count} active · "
+        f"keep-out {len(frame.keep_out_spheres)}"
     )
 
 
@@ -207,10 +209,16 @@ def _validate_parameters(parameters: Mapping[str, Any]) -> None:
     if not isinstance(spheres, list) or len(spheres) > 64:
         raise ScenarioRunFormatError("keep_out_spheres must contain at most 64 entries")
     for sphere in spheres:
-        if not isinstance(sphere, dict) or set(sphere) != {"center_m", "radius_m", "label"} or not isinstance(sphere["label"], str) or not sphere["label"]:
+        if not isinstance(sphere, dict) or not {"center_m", "radius_m", "label"}.issubset(sphere) or not set(sphere).issubset({"center_m", "radius_m", "label", "velocity_mps"}) or not isinstance(sphere["label"], str) or not sphere["label"]:
             raise ScenarioRunFormatError("keep_out_spheres entries are invalid")
         _vector(sphere["center_m"], "keep_out_spheres.center_m")
         _number(sphere["radius_m"], "keep_out_spheres.radius_m", 0, 100)
+        if "velocity_mps" in sphere:
+            velocity = sphere["velocity_mps"]
+            if not isinstance(velocity, list) or len(velocity) != 3:
+                raise ScenarioRunFormatError("keep_out_spheres.velocity_mps is invalid")
+            for component in velocity:
+                _number(component, "keep_out_spheres.velocity_mps", -50, 50)
 
 
 def _validate_link(value: Any, field: str) -> None:
@@ -298,7 +306,7 @@ def _decode_frame(raw: Any) -> ScenarioFrame:
     if not isinstance(raw, dict):
         raise ScenarioRunFormatError("each frame must be an object")
     required = {"step_index", "time_s", "target_position_m", "active_count", "agents"}
-    if set(raw) != required:
+    if not required.issubset(raw) or not set(raw).issubset(required | {"keep_out_spheres"}):
         raise ScenarioRunFormatError("frame has an invalid field set")
     step = raw["step_index"]
     time_s = raw["time_s"]
@@ -315,7 +323,17 @@ def _decode_frame(raw: Any) -> ScenarioFrame:
         raise ScenarioRunFormatError("frame agents must be a non-empty list")
     for agent in agents:
         _validate_agent(agent)
-    return ScenarioFrame(int(step), float(time_s), target, active, len(agents), tuple(agents))
+    keep_out_spheres = raw.get("keep_out_spheres", [])
+    if not isinstance(keep_out_spheres, list) or len(keep_out_spheres) > 64:
+        raise ScenarioRunFormatError("frame keep_out_spheres must be a bounded list")
+    for sphere in keep_out_spheres:
+        if not isinstance(sphere, dict) or set(sphere) != {"center_m", "radius_m", "label"}:
+            raise ScenarioRunFormatError("frame keep-out sphere is invalid")
+        _vector(sphere["center_m"], "frame keep_out_spheres.center_m")
+        _number(sphere["radius_m"], "frame keep_out_spheres.radius_m", 0, 100)
+        if not isinstance(sphere["label"], str) or not sphere["label"]:
+            raise ScenarioRunFormatError("frame keep_out_spheres.label is invalid")
+    return ScenarioFrame(int(step), float(time_s), target, active, len(agents), tuple(agents), tuple(keep_out_spheres))
 
 
 def _vector(value: Any, field: str) -> tuple[float, float, float]:

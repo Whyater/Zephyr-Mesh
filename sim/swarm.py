@@ -17,6 +17,7 @@ from sim.link import LinkConfig, PacketEvent, SimulatedLink
 from sim.hardware import HardwareProfile, default_hardware_profile
 
 _TARGET_ID = "__target__"
+MAX_KEEP_OUT_SPEED_MPS = 50.0
 
 
 def _vector(value: Iterable[float], *, name: str) -> tuple[float, float, float]:
@@ -57,20 +58,32 @@ class AgentSpec:
 
 @dataclass(frozen=True)
 class KeepOutSphere:
-    """A spherical region that an agent center may not enter."""
+    """A spherical region with an optional constant-velocity trajectory."""
 
     center_m: tuple[float, float, float]
     radius_m: float
     label: str = "obstacle"
+    velocity_mps: tuple[float, float, float] = (0.0, 0.0, 0.0)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "center_m", _vector(self.center_m, name="center_m"))
+        velocity = _vector(self.velocity_mps, name="velocity_mps")
+        if any(abs(component) > MAX_KEEP_OUT_SPEED_MPS for component in velocity):
+            raise ValueError(f"velocity_mps components must be within ±{MAX_KEEP_OUT_SPEED_MPS:g}")
+        object.__setattr__(self, "velocity_mps", velocity)
         radius = float(self.radius_m)
         if not np.isfinite(radius) or radius < 0.0:
             raise ValueError("radius_m must be finite and nonnegative")
         if not isinstance(self.label, str) or not self.label:
             raise ValueError("label must be a non-empty string")
         object.__setattr__(self, "radius_m", radius)
+
+    def center_at(self, time_s: float) -> tuple[float, float, float]:
+        """Return the deterministic center at simulation time ``time_s``."""
+        time = float(time_s)
+        if not np.isfinite(time) or time < 0.0:
+            raise ValueError("time_s must be finite and nonnegative")
+        return tuple(float(center + velocity * time) for center, velocity in zip(self.center_m, self.velocity_mps))
 
 
 @dataclass(frozen=True)
@@ -194,6 +207,7 @@ class SwarmStep:
     target_position_m: tuple[float, float, float]
     active_count: int
     agents: tuple[AgentState, ...]
+    keep_out_spheres: tuple[dict[str, Any], ...] = ()
 
     def as_dict(self) -> dict[str, Any]:
         result = asdict(self)
@@ -422,7 +436,12 @@ class SwarmSimulator:
         direction[axis] = 1.0
         return direction
 
-    def _constrain(self, candidates: dict[str, np.ndarray], current: dict[str, np.ndarray]) -> dict[str, set[str]]:
+    def _constrain(
+        self,
+        candidates: dict[str, np.ndarray],
+        current: dict[str, np.ndarray],
+        keep_out_spheres: tuple[KeepOutSphere, ...] | None = None,
+    ) -> dict[str, set[str]]:
         flags = {agent_id: set() for agent_id in self.agent_ids}
         active_ids = [agent_id for agent_id in self.agent_ids if self._agents[agent_id].active]
         for _ in range(self.config.constraint_iterations):
@@ -439,7 +458,7 @@ class SwarmSimulator:
                     candidates[right_id] -= correction
                     flags[left_id].add("separation")
                     flags[right_id].add("separation")
-            zones = list(self.config.keep_out_spheres)
+            zones = list(self.config.keep_out_spheres if keep_out_spheres is None else keep_out_spheres)
             zones.append(KeepOutSphere(
                 tuple(self.target_position.tolist()),
                 self.config.target_keepout_radius_m,
@@ -459,7 +478,11 @@ class SwarmSimulator:
                     flags[agent_id].add("ground")
         return flags
 
-    def _snapshot(self, flags: Mapping[str, set[str]]) -> SwarmStep:
+    def _snapshot(
+        self,
+        flags: Mapping[str, set[str]],
+        keep_out_spheres: tuple[KeepOutSphere, ...] = (),
+    ) -> SwarmStep:
         active_ids = [agent_id for agent_id in self.agent_ids if self._agents[agent_id].active]
         states: list[AgentState] = []
         for agent_id in self.agent_ids:
@@ -491,6 +514,11 @@ class SwarmSimulator:
             target_position_m=tuple(float(v) for v in self.target_position),
             active_count=len(active_ids),
             agents=tuple(states),
+            keep_out_spheres=tuple({
+                "center_m": zone.center_m,
+                "radius_m": zone.radius_m,
+                "label": zone.label,
+            } for zone in keep_out_spheres),
         )
 
     def step(self) -> SwarmStep:
@@ -520,7 +548,11 @@ class SwarmSimulator:
             velocity = self._limited(agent.velocity + acceleration * self.config.dt_s, self.config.max_speed_mps)
             candidates[agent_id] = agent.position + velocity * self.config.dt_s
 
-        flags = self._constrain(candidates, current)
+        moving_keep_out_spheres = tuple(
+            KeepOutSphere(zone.center_at(self.time_s), zone.radius_m, zone.label, zone.velocity_mps)
+            for zone in self.config.keep_out_spheres
+        )
+        flags = self._constrain(candidates, current, moving_keep_out_spheres)
         for agent_id in self.agent_ids:
             agent = self._agents[agent_id]
             if not agent.active:
@@ -531,7 +563,7 @@ class SwarmSimulator:
             )
             agent.position = candidates[agent_id]
 
-        snapshot = self._snapshot(flags)
+        snapshot = self._snapshot(flags, moving_keep_out_spheres)
         self.target_position = self.target_position + self.target_velocity * self.config.dt_s
         self.time_s += self.config.dt_s
         self.step_index += 1
