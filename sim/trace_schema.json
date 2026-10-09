@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Whyater/Zephyr-Mesh/blob/main/sim/trace_schema.json",
+  "title": "Zephyr Mesh ESP-NOW trace",
+  "description": "Raw packet observations for measured or explicitly labelled synthetic ESP-NOW captures. Times are seconds in clock_domain; RSSI is signed dBm when supplied; null receive time means the outcome was not observed.",
+  "type": "object",
+  "required": ["schema", "trace_id", "status", "clock_domain", "capture", "packets"],
+  "properties": {
+    "schema": {"const": "zephyr-espnow-trace-1"},
+    "trace_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["measured", "synthetic", "fixture"]},
+    "clock_domain": {"description": "shared_monotonic permits age and ordering checks; device_and_host and unknown do not invent one-way age.", "enum": ["shared_monotonic", "device_and_host", "unknown"]},
+    "source": {"type": ["string", "null"]},
+    "code_revision": {"type": ["string", "null"]},
+    "clock_uncertainty_s": {"type": ["number", "null"], "minimum": 0},
+    "notes": {"type": ["string", "null"]},
+    "capture": {
+      "description": "Capture provenance required before a trace can be labelled measured.",
+      "type": "object",
+      "required": ["transport", "device_ids", "firmware", "channel", "phy"],
+      "properties": {
+        "transport": {"const": "ESP-NOW"},
+        "device_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "firmware": {"type": "string", "minLength": 1},
+        "channel": {"type": ["integer", "null"], "minimum": 1, "maximum": 14},
+        "phy": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "packets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["packet_id", "sender_id", "receiver_id", "sender_session_id", "seq", "send_time_s", "outcome"],
+        "properties": {
+          "packet_id": {"type": "string", "minLength": 1},
+          "sender_id": {"type": "string", "minLength": 1},
+          "receiver_id": {"type": "string", "minLength": 1},
+          "sender_session_id": {"type": "string", "minLength": 1},
+          "seq": {"type": "integer", "minimum": 0},
+          "send_time_s": {"type": "number", "minimum": 0},
+          "outcome": {"enum": ["received", "lost", "unknown"]},
+          "receive_time_s": {"type": ["number", "null"], "minimum": 0},
+          "callback_time_s": {"type": ["number", "null"], "minimum": 0},
+          "rssi_dbm": {"type": ["number", "null"]},
+          "payload_bytes": {"type": ["integer", "null"], "minimum": 0},
+          "retry_count": {"type": ["integer", "null"], "minimum": 0},
+          "loss_reason": {"type": ["string", "null"]},
+          "unknown_reason": {"type": ["string", "null"]},
+          "duplicate": {"type": ["boolean", "null"]},
+          "out_of_order": {"type": ["boolean", "null"]}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"outcome": {"const": "received"}}, "required": ["outcome"]},
+            "then": {
+              "properties": {"receive_time_s": {"type": "number"}, "loss_reason": {"type": "null"}, "unknown_reason": {"type": "null"}},
+              "required": ["receive_time_s"]
+            }
+          },
+          {
+            "if": {"properties": {"outcome": {"const": "lost"}}, "required": ["outcome"]},
+            "then": {
+              "properties": {"receive_time_s": {"type": "null"}, "loss_reason": {"type": "string", "minLength": 1}, "unknown_reason": {"type": "null"}},
+              "required": ["loss_reason"]
+            }
+          },
+          {
+            "if": {"properties": {"outcome": {"const": "unknown"}}, "required": ["outcome"]},
+            "then": {
+              "properties": {"receive_time_s": {"type": "null"}, "loss_reason": {"type": "null"}, "unknown_reason": {"type": "string", "minLength": 1}},
+              "required": ["unknown_reason"]
+            }
+          }
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "measured"}}, "required": ["status"]},
+      "then": {"required": ["source"], "properties": {"source": {"type": "string", "minLength": 1}}}
+    }
+  ],
+  "additionalProperties": false
+}

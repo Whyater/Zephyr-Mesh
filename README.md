@@ -41,6 +41,7 @@ The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\Zeph
 - Six-degree-of-freedom rigid-body simulation with quaternion attitude, gravity, configurable wind, quadratic relative-air drag, and a tested RK4 integrator.
 - Cascaded position and attitude control with transparent, inspectable inputs.
 - Deterministic communication fixtures for delay, jitter, independent loss, burst loss, serialized contention, packet age, duplicates, and out-of-order delivery.
+- Versioned ESP-NOW trace schema and replay bridge that preserve packet identity, measured outcomes, timestamps, RSSI, retries, and clock boundaries without fitting unmeasured radio behavior.
 - Seeded sensing and tracking fixtures with independent or burst sensor dropouts, bias, covariance, out-of-order rejection, and recovery metrics; S7 adds a separate deterministic agent dropout schedule.
 - Bounded latency, loss, noise, and target-acceleration investigations with reproducible JSON outputs.
 - Stage 7 coordination foundation with a seeded multi-agent event log, stable identities, formation slots, cooperative target fusion, dropout events, separation checks, and keep-out constraints.
@@ -79,6 +80,7 @@ Open `http://127.0.0.1:8765` in a browser on the same computer. The demo is read
 ## Known Bugs/Limitations
 
 - The checked-in event logs and desktop views are synthetic replays. They do not represent a measured radio link, camera, motor, controller, or flight test.
+- No measured ESP-NOW capture is included yet. The trace schema is ready for a documented hardware capture, but no radio tolerance or flight-performance result is claimed.
 - Motor, propeller, battery, drag, and airflow values are scenario inputs or calibration placeholders. Downwash, ground effect, propeller wake interaction, and venue airflow still need measured models.
 - The release workflow builds and smoke-tests the Windows package, but physical Windows install, updater relaunch, accessibility, and frame-time measurements remain open. Linux packaging is later work.
 - The v0.1.5 macOS package is not notarized. Broad distribution still needs a Developer ID signature and notarization.

@@ -59,10 +59,21 @@ class PacketEvent:
     out_of_order: bool = False
     loss_reason: str | None = None
     packet_age_s: float | None = None
+    packet_id: str | None = None
+    sender_session_id: str | None = None
+    outcome: str | None = None
+    callback_time: float | None = None
+    rssi_dbm: float | None = None
+    payload_bytes: int | None = None
+    retry_count: int | None = None
+    unknown_reason: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         data = asdict(self)
         data["packet_age"] = data.pop("packet_age_s")
+        for key in ("packet_id", "sender_session_id", "outcome", "callback_time", "rssi_dbm", "payload_bytes", "retry_count", "unknown_reason"):
+            if data[key] is None:
+                data.pop(key)
         return data
 
 
@@ -131,7 +142,8 @@ class SimulatedLink:
         receive_time = None if reason else actual_send + self._sample_delay()
         event = PacketEvent(sender, receiver, int(seq), actual_send, receive_time,
                             loss_reason=reason,
-                            packet_age_s=None if receive_time is None else receive_time - actual_send)
+                            packet_age_s=None if receive_time is None else receive_time - actual_send,
+                            outcome="lost" if reason else "received")
         self.events.append(event)
         if receive_time is not None:
             self._pending.append(event)
@@ -158,6 +170,87 @@ class SimulatedLink:
         if not self._pending:
             return []
         return self.advance(max(p.receive_time for p in self._pending))
+
+
+def replay_trace(trace: Any) -> list[PacketEvent]:
+    """Replay an :class:`sim.trace.EspNowTrace` without fitting a link model.
+
+    The trace's observed outcome and receive timestamp remain authoritative.
+    This function only derives duplicate and out-of-order flags when the raw
+    capture did not provide them. It intentionally does not estimate missing
+    packets, interpolate clocks, or turn RSSI into distance.
+    """
+
+    from .trace import EspNowTrace
+
+    if not isinstance(trace, EspNowTrace):
+        raise TypeError("trace must be a validated EspNowTrace")
+    packets = trace.packets
+    clock_domain = getattr(trace, "clock_domain", "")
+    events: list[PacketEvent] = []
+    received = [packet for packet in packets if packet.outcome == "received" and packet.receive_time_s is not None]
+    ordered = sorted(received, key=lambda packet: (packet.receive_time_s, packet.packet_id))
+    seen: dict[tuple[str, str, str], set[int]] = {}
+    highest: dict[tuple[str, str, str], int] = {}
+    derived_flags: dict[str, tuple[bool, bool]] = {}
+    for packet in ordered:
+        route = (packet.sender_id, packet.receiver_id, packet.sender_session_id)
+        route_seen = seen.setdefault(route, set())
+        duplicate = packet.seq in route_seen
+        out_of_order = not duplicate and packet.seq < highest.get(route, packet.seq)
+        route_seen.add(packet.seq)
+        highest[route] = max(packet.seq, highest.get(route, packet.seq))
+        derived_flags[packet.packet_id] = (duplicate, out_of_order)
+    for packet in packets:
+        if packet.outcome == "received":
+            receive_time = packet.receive_time_s
+            if receive_time is None:
+                raise ValueError("received trace packet is missing receive_time_s")
+            if packet.packet_id in derived_flags:
+                duplicate, out_of_order = derived_flags[packet.packet_id]
+            else:
+                duplicate, out_of_order = False, False
+            packet_age = None
+            if clock_domain == "shared_monotonic":
+                packet_age = receive_time - packet.send_time_s
+                if packet_age < 0:
+                    raise ValueError("shared_monotonic receive_time_s cannot precede send_time_s")
+            event = PacketEvent(
+                packet.sender_id,
+                packet.receiver_id,
+                packet.seq,
+                packet.send_time_s,
+                receive_time,
+                duplicate=packet.duplicate if packet.duplicate is not None else duplicate,
+                out_of_order=packet.out_of_order if packet.out_of_order is not None else out_of_order,
+                packet_age_s=packet_age,
+                packet_id=packet.packet_id,
+                sender_session_id=packet.sender_session_id,
+                outcome=packet.outcome,
+                callback_time=packet.callback_time_s,
+                rssi_dbm=packet.rssi_dbm,
+                payload_bytes=packet.payload_bytes,
+                retry_count=packet.retry_count,
+            )
+        else:
+            event = PacketEvent(
+                packet.sender_id,
+                packet.receiver_id,
+                packet.seq,
+                packet.send_time_s,
+                None,
+                loss_reason=packet.loss_reason if packet.outcome == "lost" else None,
+                packet_id=packet.packet_id,
+                sender_session_id=packet.sender_session_id,
+                outcome=packet.outcome,
+                callback_time=packet.callback_time_s,
+                rssi_dbm=packet.rssi_dbm,
+                payload_bytes=packet.payload_bytes,
+                retry_count=packet.retry_count,
+                unknown_reason=packet.unknown_reason,
+            )
+        events.append(event)
+    return events
 
 
 def lag_error(distance_rate_mps: float, delay_s: float) -> float:

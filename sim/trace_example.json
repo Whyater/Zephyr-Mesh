@@ -1,0 +1,40 @@
+{
+  "schema": "zephyr-espnow-trace-1",
+  "trace_id": "example-synthetic-001",
+  "status": "fixture",
+  "clock_domain": "shared_monotonic",
+  "source": "checked-in example; not a hardware capture",
+  "capture": {
+    "transport": "ESP-NOW",
+    "device_ids": ["drone-a", "ground-b"],
+    "firmware": "example-only",
+    "channel": 6,
+    "phy": "example-only"
+  },
+  "packets": [
+    {
+      "packet_id": "example-a-0",
+      "sender_id": "drone-a",
+      "receiver_id": "ground-b",
+      "sender_session_id": "example-session-a",
+      "seq": 0,
+      "send_time_s": 0.0,
+      "receive_time_s": 0.012,
+      "callback_time_s": 0.013,
+      "outcome": "received",
+      "rssi_dbm": -55.0,
+      "payload_bytes": 24,
+      "retry_count": 0
+    },
+    {
+      "packet_id": "example-a-1",
+      "sender_id": "drone-a",
+      "receiver_id": "ground-b",
+      "sender_session_id": "example-session-a",
+      "seq": 1,
+      "send_time_s": 0.02,
+      "outcome": "lost",
+      "loss_reason": "example_only"
+    }
+  ]
+}
