@@ -55,7 +55,8 @@ The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\Zeph
 - S7 replay analysis for per-route outcomes, abstract packet age, estimator coverage and age, bracketed reacquisition intervals, constraint flags, and observed separation. These metrics describe the checked-in replay and do not establish radio tolerance or flight safety.
 - Typed drone adapter, authority arbitration, and replayable link or battery failsafe contracts.
 - Native macOS SwiftUI and SceneKit cockpit plus a Windows Tkinter desktop surface built from the same canonical replay, including compact mission-event history and replay-only authority or failsafe context.
-- Portable deterministic S7 scenario runs with parameter hashes, payload digests, strict cross-platform validation, bounded linear moving keep-out spheres, and read-only frame inspectors with matching manual controls on both desktop surfaces. Inspectors expose the canonical digests, runtime provenance, base revision semantics, and evidence boundary; frame order and timestamps are validated across readers.
+- Portable deterministic S7 scenario runs with parameter hashes, payload digests, strict cross-platform validation, bounded linear moving keep-out spheres, and read-only frame inspectors with matching manual controls on both desktop surfaces. Inspectors expose the canonical digests, runtime provenance, base revision semantics, and evidence boundary; frame order and timestamps are validated across readers. The selected-frame view includes a compact synthetic altitude profile beside the top-down geometry, with the long integrity details collapsed to reduce clutter.
+- Model-provenance helpers identify the S7 coordinator as a bounded point-mass fixture and keep declared hardware-profile identity separate from actuator state, energy telemetry, and 6-DOF flight simulation.
 - Local release updater contract with digest verification, path-safe extraction, rollback staging, and architecture-aware asset selection.
 
 ## Run from source
@@ -110,6 +111,7 @@ The published v0.2.2 binaries are the replay baseline. The scenario-run CLI and 
 - The release workflow runs the Python suite, builds, and smoke-tests the Windows package, but physical Windows install, updater relaunch, accessibility, and frame-time measurements remain open. Linux packaging is later work.
 - Scenario runs are deterministic point-mass coordination fixtures over abstract links. They support reproducible replay and contract testing, but do not establish radio tolerance, tracker performance, safety thresholds, or flight performance.
 - Scenario temporal integrity uses an absolute 1e-9 second contract tolerance, and `code_revision` identifies the repository base revision rather than uncommitted working-tree edits. These are integrity and provenance fields, not performance measurements.
+- The altitude profile is a bounded selected-frame projection, not a full 3D scene or a live vehicle view. Swarm profile provenance records declared parts only; it does not synthesize motor power, battery depletion, actuator state, or flight results.
 - The v0.2.2 macOS package is not notarized. Broad distribution still needs a Developer ID signature and notarization.
 
 ## Contributing
