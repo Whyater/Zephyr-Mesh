@@ -10,10 +10,10 @@ The simulator is intentionally transparent. Python owns the dynamics and replay 
 
 ### macOS
 
-The native app requires macOS 14 or newer. Download the architecture that matches your Mac from [Zephyr Mesh v0.1.5](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.1.5):
+The native app requires macOS 14 or newer. Download the architecture that matches your Mac from [Zephyr Mesh v0.2.2](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.2):
 
-- [Apple Silicon](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.1.5/ZephyrMesh-macos-arm64-v0.1.5.zip)
-- [Intel](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.1.5/ZephyrMesh-macos-x86_64-v0.1.5.zip)
+- [Apple Silicon](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.2/ZephyrMesh-macos-arm64-v0.2.2.zip)
+- [Intel](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.2/ZephyrMesh-macos-x86_64-v0.2.2.zip)
 
 Unzip the download and open `ZephyrMesh.app`. SHA-256 sidecars are attached to the release. The package is ad hoc signed and may require a one-time confirmation in macOS Privacy & Security. To build the local bundle instead, install the Xcode Command Line Tools and run:
 
@@ -26,7 +26,7 @@ The app does not require a server or network connection to show the bundled repl
 
 ### Windows
 
-Download the [Windows x86_64 package](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.1.5/ZephyrMesh-windows-x86_64-v0.1.5.zip) from [Zephyr Mesh v0.1.5](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.1.5). Extract the ZIP and open `ZephyrMeshWindows\ZephyrMeshWindows.exe`. The package includes its updater helper and a SHA-256 sidecar.
+Download the [Windows x86_64 package](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.2/ZephyrMesh-windows-x86_64-v0.2.2.zip) from [Zephyr Mesh v0.2.2](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.2). Extract the complete ZIP before opening `ZephyrMeshWindows\ZephyrMeshWindows.exe`; keep the `_internal` folder beside it. The release also provides a separate .zip.sha256 asset for verification.
 
 To build locally, install Python 3.11 or newer, open PowerShell at the repository root, and run:
 
@@ -55,6 +55,7 @@ The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\Zeph
 - S7 replay analysis for per-route outcomes, abstract packet age, estimator coverage and age, bracketed reacquisition intervals, constraint flags, and observed separation. These metrics describe the checked-in replay and do not establish radio tolerance or flight safety.
 - Typed drone adapter, authority arbitration, and replayable link or battery failsafe contracts.
 - Native macOS SwiftUI and SceneKit cockpit plus a Windows Tkinter desktop surface built from the same canonical replay, including compact mission-event history and replay-only authority or failsafe context.
+- Portable deterministic S7 scenario runs with parameter hashes, payload digests, strict cross-platform validation, and read-only frame inspectors on both desktop surfaces.
 - Local release updater contract with digest verification, path-safe extraction, rollback staging, and architecture-aware asset selection.
 
 ## Run from source
@@ -75,6 +76,7 @@ PYTHONPATH=. python tools/analyze_bench_trace.py sim/bench_trace_example.json
 PYTHONPATH=. python tools/build_evidence_report.py espnow sim/trace_example.json --output /tmp/zephyr-espnow-report.json
 PYTHONPATH=. python tools/build_investigation_report.py sim/investigation_example.json --output /tmp/zephyr-s6-report.json
 PYTHONPATH=. python tools/analyze_s7_run.py runs/s7-swarm/run.json
+PYTHONPATH=. python tools/run_scenario.py --config /path/to/scenario.json --output /tmp/zephyr-s7-scenario-run.json --summary
 python -m demo.demo --host 127.0.0.1 --port 8765
 ```
 
@@ -85,6 +87,8 @@ with `tools/build_evidence_report.py`, then choose **Open evidence report…**
 from the File menu. Reports are read-only. Their declared status and
 limitations stay attached to the source summary. A digest identifies the
 input file without establishing flight performance.
+
+The published v0.2.2 binaries are the replay baseline. The scenario-run CLI and strict scenario inspectors documented below are in the current source checkout and will be included in a later desktop release after target-host validation.
 
 ## Planned features
 
@@ -104,7 +108,8 @@ input file without establishing flight performance.
 - Motor, propeller, battery, drag, and airflow values are scenario inputs or calibration placeholders. The profile document loader validates units, provenance fields, and schema structure, but it does not calibrate coefficients. Its thrust field is a declared-coefficient estimate at the lower motor/propeller RPM limit and does not apply torque or electrical power limits. Downwash, ground effect, propeller wake interaction, and venue airflow still need measured models.
 - The bench trace boundary and electrical input power summary are synthetic until a documented run records instruments, part identity, calibration, units, clock conditions, and repeatable test settings. No fitted motor map is included.
 - The release workflow runs the Python suite, builds, and smoke-tests the Windows package, but physical Windows install, updater relaunch, accessibility, and frame-time measurements remain open. Linux packaging is later work.
-- The v0.1.5 macOS package is not notarized. Broad distribution still needs a Developer ID signature and notarization.
+- Scenario runs are deterministic point-mass coordination fixtures over abstract links. They support reproducible replay and contract testing, but do not establish radio tolerance, tracker performance, safety thresholds, or flight performance.
+- The v0.2.2 macOS package is not notarized. Broad distribution still needs a Developer ID signature and notarization.
 
 ## Contributing
 

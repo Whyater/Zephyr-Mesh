@@ -1,0 +1,771 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zephyr-mesh.dev/schemas/s7-scenario-run-1.json",
+  "title": "Zephyr Mesh S7 interactive scenario run",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "version",
+    "scenario_hash",
+    "parameters_canonical",
+    "payload_canonical",
+    "payload_sha256",
+    "parameters",
+    "evidence_boundary",
+    "frames",
+    "link_events",
+    "profiles",
+    "provenance"
+  ],
+  "properties": {
+    "schema": {
+      "const": "zephyr-s7-scenario-run-1"
+    },
+    "version": {
+      "const": 1
+    },
+    "scenario_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "parameters_canonical": {
+      "type": "string",
+      "minLength": 2,
+      "pattern": "\\n$",
+      "not": {
+        "pattern": "\\n\\n$"
+      },
+      "description": "UTF-8 JSON text with sorted keys, compact separators, ASCII escaping, and one trailing LF; SHA-256 input is its UTF-8 bytes."
+    },
+    "payload_canonical": {
+      "type": "string",
+      "minLength": 2,
+      "pattern": "\\n$",
+      "not": {
+        "pattern": "\\n\\n$"
+      },
+      "description": "UTF-8 JSON text for frames, link_events, and profiles with sorted keys, compact separators, ASCII escaping, and one trailing LF; payload_sha256 hashes its UTF-8 bytes."
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "parameters": {
+      "$ref": "#/$defs/parameters"
+    },
+    "evidence_boundary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "frames": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/frame"
+      }
+    },
+    "link_events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/link_event"
+      }
+    },
+    "profiles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/profile"
+      }
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    }
+  },
+  "$defs": {
+    "vector": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "agent_count",
+        "radius_m",
+        "altitude_m",
+        "steps",
+        "seed",
+        "dt_s",
+        "target_velocity_mps",
+        "target_link",
+        "neighbor_link",
+        "keep_out_spheres"
+      ],
+      "properties": {
+        "scenario_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "agent_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "radius_m": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000
+        },
+        "altitude_m": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "steps": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "dt_s": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "target_velocity_mps": {
+          "$ref": "#/$defs/vector"
+        },
+        "target_link": {
+          "$ref": "#/$defs/link"
+        },
+        "neighbor_link": {
+          "$ref": "#/$defs/link"
+        },
+        "keep_out_spheres": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "center_m",
+              "radius_m",
+              "label"
+            ],
+            "properties": {
+              "center_m": {
+                "$ref": "#/$defs/vector"
+              },
+              "radius_m": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "delay_s",
+        "delay_jitter_s",
+        "loss_model",
+        "loss_probability",
+        "burst_start_probability",
+        "burst_end_probability",
+        "contention_mode",
+        "packet_duration_s"
+      ],
+      "properties": {
+        "delay_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "delay_jitter_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "loss_model": {
+          "enum": [
+            "none",
+            "independent",
+            "burst"
+          ]
+        },
+        "loss_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "burst_start_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "burst_end_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "contention_mode": {
+          "enum": [
+            "none",
+            "serialized"
+          ]
+        },
+        "packet_duration_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "loss_model": {
+                "const": "none"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "loss_probability": {
+                "const": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "loss_model": {
+                "const": "burst"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "loss_probability": {
+                "const": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "loss_model": {
+                "enum": [
+                  "none",
+                  "independent"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "burst_start_probability": {
+                "const": 0
+              },
+              "burst_end_probability": {
+                "const": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "contention_mode": {
+                "const": "none"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "packet_duration_s": {
+                "const": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "delay_s": {
+                "const": 0
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "delay_jitter_s": {
+                "const": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step_index",
+        "time_s",
+        "target_position_m",
+        "active_count",
+        "agents"
+      ],
+      "properties": {
+        "step_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "time_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "target_position_m": {
+          "$ref": "#/$defs/vector"
+        },
+        "active_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "agents": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/agent"
+          }
+        }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent_id",
+        "profile_id",
+        "active",
+        "position_m",
+        "velocity_mps",
+        "target_estimate_m",
+        "fused_target_m",
+        "target_source_time_s",
+        "target_age_s",
+        "neighbor_count",
+        "min_neighbor_distance_m",
+        "constraint_flags"
+      ],
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "position_m": {
+          "$ref": "#/$defs/vector"
+        },
+        "velocity_mps": {
+          "$ref": "#/$defs/vector"
+        },
+        "target_estimate_m": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/vector"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fused_target_m": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/vector"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_source_time_s": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "target_age_s": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "neighbor_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "min_neighbor_distance_m": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "constraint_flags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "link_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sender",
+        "receiver",
+        "seq",
+        "send_time",
+        "receive_time",
+        "duplicate",
+        "out_of_order",
+        "loss_reason",
+        "packet_age",
+        "outcome"
+      ],
+      "properties": {
+        "sender": {
+          "type": "string",
+          "minLength": 1
+        },
+        "receiver": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "send_time": {
+          "type": "number",
+          "minimum": 0
+        },
+        "receive_time": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "duplicate": {
+          "type": "boolean"
+        },
+        "out_of_order": {
+          "type": "boolean"
+        },
+        "loss_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "packet_age": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "received",
+            "lost"
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "receive_time": {
+              "type": "number"
+            },
+            "loss_reason": {
+              "type": "null"
+            },
+            "packet_age": {
+              "type": "number"
+            },
+            "outcome": {
+              "const": "received"
+            }
+          }
+        },
+        {
+          "properties": {
+            "receive_time": {
+              "type": "null"
+            },
+            "loss_reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "packet_age": {
+              "type": "null"
+            },
+            "outcome": {
+              "const": "lost"
+            }
+          }
+        }
+      ]
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "motor",
+        "propeller",
+        "motor_count",
+        "arm_length_m",
+        "frame_mass_kg",
+        "battery_capacity_wh",
+        "total_mass_kg",
+        "estimated_max_thrust_n"
+      ],
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "motor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "part_id",
+            "max_torque_nm",
+            "max_power_w",
+            "max_rpm",
+            "mass_kg",
+            "nominal_voltage_v"
+          ],
+          "properties": {
+            "part_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "max_torque_nm": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "max_power_w": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "max_rpm": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "mass_kg": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "nominal_voltage_v": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "propeller": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "part_id",
+            "diameter_m",
+            "pitch_m",
+            "max_rpm",
+            "thrust_coefficient",
+            "power_coefficient",
+            "mass_kg"
+          ],
+          "properties": {
+            "part_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "diameter_m": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "pitch_m": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "max_rpm": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "thrust_coefficient": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "power_coefficient": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "mass_kg": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "motor_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "arm_length_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "frame_mass_kg": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "battery_capacity_wh": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "status": {
+          "type": "string"
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "calibration_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "code_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "total_mass_kg": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "estimated_thrust_at_rpm_limit_n": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "estimated_max_thrust_n": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seed",
+        "dt_s",
+        "code_revision",
+        "generator",
+        "python",
+        "numpy",
+        "status"
+      ],
+      "properties": {
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "dt_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "code_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "generator": {
+          "const": "sim.scenario_runner"
+        },
+        "python": {
+          "type": "string",
+          "minLength": 1
+        },
+        "numpy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": "synthetic deterministic replay; read-only"
+        }
+      }
+    }
+  }
+}

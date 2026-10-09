@@ -13,7 +13,8 @@ This roadmap is written for contributors and reviewers. It separates shipped cod
 - Cross-platform evidence inspector: `tools/build_evidence_report.py` creates a strict, read-only envelope for ESP-NOW, vision, hardware-profile, and bench artifacts. Both desktop apps open the envelope with matching schema, status, source-hash, size, depth, duplicate-key, and limitation checks. The Windows frozen smoke path opens the bundled fixture.
 - S6 investigation reports: the existing latency/loss/noise sweep is now serialized as `zephyr-s6-sweep-1` and opens in both inspectors as an `investigation` report. It keeps the tested grid, independent hand-check, criterion note, and synthetic boundary together.
 - S7 replay analysis: `tools/analyze_s7_run.py` produces descriptive route, abstract-age, estimator-coverage, reacquisition, constraint, and observed-separation metrics. The same result opens as a `swarm` evidence report in both desktop inspectors, with synthetic and censored boundaries retained.
-- Shared release updater contract with digest verification, safe extraction, rollback backup, runtime version discovery, and post-exit replacement for the macOS bundle and Windows directory build. Release `v0.1.5` publishes Apple Silicon, Intel, and Windows x86_64 assets with SHA-256 sidecars and a manifest. The workflow runs a frozen Windows GUI smoke check; physical install and relaunch remain open.
+- Portable S7 scenario runs: tools/run_scenario.py validates bounded JSON configs, produces deterministic parameter and payload digests, and both desktop surfaces inspect the same read-only frames with matching contract checks.
+- Shared release updater contract with digest verification, safe extraction, rollback backup, runtime version discovery, and post-exit replacement for the macOS bundle and Windows directory build. Release `v0.2.2` publishes Apple Silicon, Intel, and Windows x86_64 assets with SHA-256 sidecars and a manifest. The workflow runs a frozen Windows GUI smoke check; physical install and relaunch remain open.
 
 ## Next evidence gates
 
@@ -23,7 +24,7 @@ This roadmap is written for contributors and reviewers. It separates shipped cod
 4. Measure target-device frame time, memory, accessibility behavior, and offline loading before making UX or performance claims.
 5. Capture a first documented ESP-NOW run, validate it against `sim/trace_schema.json`, replay it through `sim.link.replay_trace`, and inspect it with `tools/analyze_trace.py` before fitting any link parameters.
 6. Capture a documented camera/tracker run, validate it against `sim/vision_trace_schema.json`, and inspect it with `tools/analyze_vision_trace.py` before fitting noise, latency, or recovery parameters.
-7. Exercise the v0.1.5 downloads on physical macOS and Windows hosts, including updater staging and relaunch. macOS code signing/notarization and Windows publisher signing remain release gates.
+7. Exercise the v0.2.2 downloads on physical macOS and Windows hosts, including updater staging and relaunch. macOS code signing/notarization and Windows publisher signing remain release gates.
 8. Replace the checked-in fixture report with public measured reports only after issues [#1](https://github.com/Whyater/Zephyr-Mesh/issues/1), [#2](https://github.com/Whyater/Zephyr-Mesh/issues/2), and [#3](https://github.com/Whyater/Zephyr-Mesh/issues/3) produce documented artifacts and review them through the same inspector.
 
 ## Later

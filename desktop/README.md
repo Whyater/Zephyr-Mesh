@@ -33,6 +33,13 @@ Command-O on macOS. The inspector preserves nested values and explicit
 `null` fields, shows the declared source SHA-256 and status, and keeps report
 limitations visible. Reports never enter a vehicle command path.
 
+Generated `zephyr-s7-scenario-run-1` files can also be inspected without
+starting the simulator. Choose **Open scenario run...** in the Windows File
+menu, pass `--scenario-run /path/to/run.json`, or print its validated summary
+with `--headless --scenario-run /path/to/run.json`. The macOS File menu has the
+matching **Open synthetic scenario run...** action. Both inspectors show frame
+counts and timing while retaining the synthetic, read-only evidence boundary.
+
 On Windows, build a self-contained executable from the repository root with:
 
 ```powershell

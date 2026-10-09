@@ -12,6 +12,6 @@ let package = Package(
             name: "ZephyrMeshApp",
             resources: [.process("Resources")]
         ),
-        .testTarget(name: "ZephyrMeshAppTests", dependencies: ["ZephyrMeshApp"])
+        .testTarget(name: "ZephyrMeshAppTests", dependencies: ["ZephyrMeshApp"], resources: [.process("Fixtures")])
     ]
 )

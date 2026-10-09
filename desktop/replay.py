@@ -118,6 +118,20 @@ class ReplayModel:
             raise ReplayFormatError("replay root must be a JSON object")
         return cls(document, source_path=source)
 
+    @classmethod
+    def from_scenario_document(cls, document: Mapping[str, Any]) -> "ReplayModel":
+        """Load a validated interactive scenario through the replay contract.
+
+        The conversion is lazy-imported to keep the replay model usable by
+        existing frozen fixtures without changing the checked-in replay file.
+        """
+        try:
+            from sim.scenario_runner import to_replay_document
+            replay = to_replay_document(document)
+        except (TypeError, ValueError) as exc:
+            raise ReplayFormatError(f"invalid scenario document: {exc}") from exc
+        return cls(replay)
+
     @property
     def index(self) -> int:
         return self._index

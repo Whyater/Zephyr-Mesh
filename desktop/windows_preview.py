@@ -23,13 +23,16 @@ from typing import Any
 
 try:
     from .replay import ReplayModel, filter_agents
+    from .scenario_run import ScenarioRunFormatError, load_scenario_run
     from .design_tokens import TOKENS
 except ImportError:  # direct script execution for PyInstaller
     try:
         from desktop.replay import ReplayModel, filter_agents
+        from desktop.scenario_run import ScenarioRunFormatError, load_scenario_run
         from desktop.design_tokens import TOKENS
     except ImportError:
         from replay import ReplayModel, filter_agents
+        from scenario_run import ScenarioRunFormatError, load_scenario_run
         from design_tokens import TOKENS
 
 
@@ -221,6 +224,7 @@ class WindowsReplayApp:
         self._evidence_report: dict[str, Any] | None = None
         self._evidence_path: Path | None = None
         self._evidence_window: Any | None = None
+        self._scenario_window: Any | None = None
         self._min_x, self._max_x, self._min_y, self._max_y = self._bounds()
         self._view_center = ((self._min_x + self._max_x) / 2, (self._min_y + self._max_y) / 2)
         self._zoom = 1.0
@@ -250,6 +254,7 @@ class WindowsReplayApp:
 
         menu = self.tk.Menu(root)
         file_menu = self.tk.Menu(menu, tearoff=False)
+        file_menu.add_command(label="Open scenario run…", command=self._open_scenario_run)
         file_menu.add_command(label="Open evidence report…", accelerator="Ctrl+O", command=self._open_evidence_report)
         file_menu.add_separator()
         file_menu.add_command(label="Close", command=root.destroy)
@@ -716,6 +721,70 @@ class WindowsReplayApp:
             return False
         return self._show_evidence_report(Path(selected))
 
+    def _open_scenario_run(self) -> bool:
+        """Open one generated scenario run in a read-only frame inspector."""
+
+        from tkinter import filedialog
+
+        selected = filedialog.askopenfilename(
+            parent=self.root,
+            title="Open synthetic scenario run",
+            filetypes=(("JSON scenario runs", "*.json"), ("All files", "*.*")),
+        )
+        if not selected:
+            return False
+        return self._show_scenario_run(Path(selected))
+
+    def _show_scenario_run(self, path: Path) -> bool:
+        """Decode and display scenario summary plus frame rows without mutating replay state."""
+
+        from tkinter import messagebox
+
+        try:
+            run = load_scenario_run(path)
+        except ScenarioRunFormatError as exc:
+            messagebox.showerror("Scenario run", str(exc), parent=self.root)
+            return False
+        except (OSError, TypeError, ValueError) as exc:
+            messagebox.showerror("Scenario run", f"Could not open run: {exc}", parent=self.root)
+            return False
+        if self._scenario_window is not None:
+            try:
+                self._scenario_window.destroy()
+            except self.tk.TclError:
+                pass
+        window = self.tk.Toplevel(self.root)
+        self._scenario_window = window
+        window.title(f"Scenario run · {path.name}")
+        window.minsize(650, 520)
+        window.configure(background=TOKENS.background)
+        window.transient(self.root)
+        header = self.ttk.Frame(window, style="Surface.TFrame", padding=TOKENS.spacing_lg)
+        header.pack(fill="x")
+        self.ttk.Label(header, text="Synthetic scenario run", style="Title.TLabel").pack(anchor="w")
+        self.ttk.Label(header, text=f"{path.name} · read-only replay", style="Muted.TLabel").pack(anchor="w", pady=(TOKENS.content_pad, 0))
+        body = self.ttk.Frame(window, style="Night.TFrame", padding=TOKENS.spacing_lg)
+        body.pack(fill="both", expand=True)
+        body.columnconfigure(0, weight=1)
+        body.rowconfigure(1, weight=1)
+        summary = run.summary()
+        self.ttk.Label(body, text="Summary", style="Muted.TLabel").grid(row=0, column=0, sticky="w")
+        summary_text = self.tk.Text(body, height=9, wrap="word", background=TOKENS.surface, foreground=TOKENS.text, relief="flat", borderwidth=0, padx=TOKENS.content_pad, pady=TOKENS.content_pad, font=(TOKENS.mono_font, TOKENS.body_size))
+        summary_text.insert("1.0", json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=False))
+        summary_text.configure(state="disabled")
+        summary_text.grid(row=1, column=0, sticky="nsew", pady=(TOKENS.content_pad, TOKENS.spacing_sm))
+        self.ttk.Label(body, text="Frames", style="Muted.TLabel").grid(row=2, column=0, sticky="w")
+        frames_text = self.tk.Text(body, wrap="none", background=TOKENS.surface, foreground=TOKENS.text, relief="flat", borderwidth=0, padx=TOKENS.content_pad, pady=TOKENS.content_pad, font=(TOKENS.mono_font, TOKENS.body_size), takefocus=True)
+        frame_lines = [
+            f"frame {frame.step_index:>4}  t={frame.time_s:>8.3f} s  active={frame.active_count:>3}  agents={frame.agent_count:>3}"
+            for frame in run.frames
+        ]
+        frames_text.insert("1.0", "\n".join(frame_lines))
+        frames_text.configure(state="disabled")
+        frames_text.grid(row=3, column=0, sticky="nsew", pady=(TOKENS.content_pad, 0))
+        body.rowconfigure(3, weight=1)
+        return True
+
     def _show_evidence_report(self, path: Path) -> bool:
         """Decode and display an evidence envelope without touching replay state."""
 
@@ -797,6 +866,7 @@ class WindowsReplayApp:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run", type=Path, default=DEFAULT_RUN, help="canonical S7 run.json")
+    parser.add_argument("--scenario-run", type=Path, help="open a generated zephyr-s7-scenario-run-1 JSON in the read-only inspector")
     parser.add_argument("--headless", action="store_true", help="print the replay summary without opening Tk")
     parser.add_argument("--smoke-ready", type=Path, help="write a readiness marker after the GUI is constructed")
     parser.add_argument("--smoke-step", action="store_true", help="step one replay frame before writing the readiness marker")
@@ -804,7 +874,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--smoke-evidence", type=Path, action="append", help="open and validate an evidence report during frozen GUI smoke; repeat for parity checks")
     args = parser.parse_args(argv)
     if args.headless:
-        print(json.dumps(ReplayModel.from_path(args.run).summary(), indent=2, sort_keys=True))
+        if args.scenario_run:
+            print(json.dumps(load_scenario_run(args.scenario_run).summary(), indent=2, sort_keys=True))
+        else:
+            print(json.dumps(ReplayModel.from_path(args.run).summary(), indent=2, sort_keys=True))
         return 0
     try:
         try:
@@ -820,6 +893,9 @@ def main(argv: list[str] | None = None) -> int:
         model = ReplayModel.from_path(args.run)
         root = tk.Tk()
         app = WindowsReplayApp(root, model)
+        if args.scenario_run and not app._show_scenario_run(args.scenario_run):
+            root.destroy()
+            return 2
         if args.smoke_step:
             app._step()
         if args.smoke_evidence:

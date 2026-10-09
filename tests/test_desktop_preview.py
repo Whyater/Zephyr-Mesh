@@ -23,6 +23,75 @@ def test_replay_model_reads_canonical_s7_fixture():
     assert model.failsafe.startswith("synthetic constraints")
 
 
+def test_scenario_run_decoder_reads_summary_and_frames(tmp_path):
+    from sim.scenario_runner import run_scenario, serialize_run
+    from desktop.scenario_run import load_scenario_run
+
+    config = {
+        "agent_count": 2,
+        "radius_m": 2.0,
+        "altitude_m": 1.5,
+        "steps": 3,
+        "seed": 7,
+        "target_link": {"delay_s": 0.0, "delay_jitter_s": 0.0, "loss_probability": 0.0},
+        "neighbor_link": {"delay_s": 0.0, "delay_jitter_s": 0.0, "loss_probability": 0.0},
+    }
+    path = tmp_path / "scenario.json"
+    path.write_bytes(serialize_run(run_scenario(config, code_revision="test")))
+    run = load_scenario_run(path)
+    assert run.summary()["schema"] == "zephyr-s7-scenario-run-1"
+    assert run.summary()["frame_count"] == 3
+    assert run.frames[0].agent_count == 2
+    assert "not establish" in run.summary()["evidence_boundary"]
+
+
+def test_scenario_run_decoder_rejects_duplicate_keys_and_hash_mismatch(tmp_path):
+    import json
+    from sim.scenario_runner import run_scenario
+    from desktop.scenario_run import ScenarioRunFormatError, load_scenario_run
+
+    duplicate = tmp_path / "duplicate.json"
+    duplicate.write_text('{"schema":"zephyr-s7-scenario-run-1","schema":"zephyr-s7-scenario-run-1"}', encoding="utf-8")
+    with pytest.raises(ScenarioRunFormatError, match="duplicate"):
+        load_scenario_run(duplicate)
+    config = {"agent_count": 1, "radius_m": 2.0, "altitude_m": 1.5, "steps": 1, "seed": 7, "target_link": {"delay_s": 0.0, "delay_jitter_s": 0.0, "loss_probability": 0.0}, "neighbor_link": {"delay_s": 0.0, "delay_jitter_s": 0.0, "loss_probability": 0.0}}
+    document = run_scenario(config, code_revision="test")
+    document["scenario_hash"] = "0" * 64
+    tampered = tmp_path / "tampered.json"
+    tampered.write_text(json.dumps(document), encoding="utf-8")
+    with pytest.raises(ScenarioRunFormatError, match="scenario_hash"):
+        load_scenario_run(tampered)
+
+
+def test_windows_cli_exposes_scenario_run_inspection_path():
+    import desktop.windows_preview as preview
+
+    source = (ROOT / "desktop" / "windows_preview.py").read_text(encoding="utf-8")
+    assert "--scenario-run" in source
+    assert "Open scenario run" in source
+    assert "load_scenario_run(args.scenario_run).summary()" in source
+    assert callable(preview.load_scenario_run)
+
+
+def test_desktop_scenario_decoder_rejects_payload_and_link_mutations(tmp_path):
+    import json
+    from desktop.scenario_run import ScenarioRunFormatError, load_scenario_run
+
+    source = ROOT / "macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-scenario-run-1.json"
+    document = json.loads(source.read_text(encoding="utf-8"))
+    document["payload_sha256"] = "0" * 64
+    payload_path = tmp_path / "payload.json"
+    payload_path.write_text(json.dumps(document), encoding="utf-8")
+    with pytest.raises(ScenarioRunFormatError, match="payload_sha256"):
+        load_scenario_run(payload_path)
+    document = json.loads(source.read_text(encoding="utf-8"))
+    document["parameters"]["target_link"]["delay_jitter_s"] = 0.1
+    link_path = tmp_path / "link.json"
+    link_path.write_text(json.dumps(document), encoding="utf-8")
+    with pytest.raises(ScenarioRunFormatError):
+        load_scenario_run(link_path)
+
+
 def test_replay_cursor_clamps_and_reset_is_deterministic():
     model = ReplayModel.from_path(RUN)
     first = model.frame
@@ -130,6 +199,7 @@ def test_windows_build_writes_utf8_version_without_bom():
     assert "UTF8Encoding" in script
     assert "WriteAllText" in script
     assert "hidden-import desktop.evidence" in script
+    assert "hidden-import desktop.scenario_run" in script
     assert "README-Windows.txt" in script
     assert "Extract the complete ZIP" in script
 

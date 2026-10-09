@@ -203,7 +203,7 @@ indirect enum JSONValue: Decodable, Equatable {
 /// A bounded structural pass prevents duplicate JSON object keys and deeply
 /// nested reports from reaching the decoder or SwiftUI tree. JSONDecoder still
 /// performs the authoritative syntax and type validation after this pass.
-private struct JSONStructureScanner {
+struct JSONStructureScanner {
     private let bytes: [UInt8]
     private let maxDepth: Int
     private var index = 0

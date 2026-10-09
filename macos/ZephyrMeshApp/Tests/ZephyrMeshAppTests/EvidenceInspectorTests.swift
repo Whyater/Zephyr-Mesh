@@ -1,4 +1,5 @@
 import XCTest
+import CryptoKit
 @testable import ZephyrMeshApp
 
 final class EvidenceInspectorTests: XCTestCase {
@@ -174,9 +175,147 @@ final class EvidenceInspectorTests: XCTestCase {
         XCTAssertEqual(report.source.name, "example.json")
     }
 
+    func testScenarioRunDecoderShowsSummaryAndFrames() throws {
+        let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/zephyr-s7-scenario-run-1.json")
+        let data = try Data(contentsOf: fixture)
+        let run = try ScenarioRunDocument.load(from: fixture)
+        XCTAssertEqual(run.schema, ScenarioRunDocument.schema)
+        XCTAssertEqual(run.frames.count, 1)
+        XCTAssertEqual(run.frames[0].agentCount, 1)
+        XCTAssertEqual(run.status, "synthetic deterministic replay; read-only")
+        var tampered = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        tampered["scenario_hash"] = String(repeating: "0", count: 64)
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: JSONSerialization.data(withJSONObject: tampered)))
+        var extraFrame = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        var frames = try XCTUnwrap(extraFrame["frames"] as? [[String: Any]])
+        frames[0]["unexpected"] = true
+        extraFrame["frames"] = frames
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: JSONSerialization.data(withJSONObject: extraFrame)))
+        var payloadTampered = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        payloadTampered["payload_sha256"] = String(repeating: "0", count: 64)
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: JSONSerialization.data(withJSONObject: payloadTampered)))
+        var linkTampered = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        var parameters = try XCTUnwrap(linkTampered["parameters"] as? [String: Any])
+        var targetLink = try XCTUnwrap(parameters["target_link"] as? [String: Any])
+        targetLink["delay_jitter_s"] = 0.1
+        parameters["target_link"] = targetLink
+        linkTampered["parameters"] = parameters
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: JSONSerialization.data(withJSONObject: linkTampered)))
+
+    }
+
+    func testScenarioRunDecoderRejectsWrongSchema() throws {
+        let document: [String: Any] = ["schema": "wrong"]
+        let data = try JSONSerialization.data(withJSONObject: document)
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: data))
+    }
+
+    func testScenarioRunFileRejectsDuplicateKeysBeforeDecoding() throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: file) }
+        try Data(#"{"schema":"zephyr-s7-scenario-run-1","schema":"zephyr-s7-scenario-run-1"}"#.utf8).write(to: file)
+        XCTAssertThrowsError(try ScenarioRunDocument.load(from: file))
+    }
+
+    func testLoadsPythonGeneratedScenarioFixture() throws {
+        let fixture = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/zephyr-s7-scenario-run-1.json")
+        let run = try ScenarioRunDocument.load(from: fixture)
+        XCTAssertEqual(run.schema, ScenarioRunDocument.schema)
+        XCTAssertEqual(run.frames.count, 1)
+        XCTAssertEqual(run.parametersCanonical.last, "\n")
+        XCTAssertEqual(run.status, "synthetic deterministic replay; read-only")
+    }
+
+    func testScenarioRunRejectsSemanticallyEquivalentNoncanonicalIntegrityText() throws {
+        let fixture = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/zephyr-s7-scenario-run-1.json")
+        let original = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: fixture)) as? [String: Any])
+
+        var reordered = original
+        let parameters = try XCTUnwrap(reordered["parameters_canonical"] as? String)
+        let reorderedParameters = parameters.replacingOccurrences(
+            of: "{\"agent_count\":1,\"altitude_m\":1.5,",
+            with: "{\"altitude_m\":1.5,\"agent_count\":1,"
+        )
+        XCTAssertNotEqual(reorderedParameters, parameters)
+        reordered["parameters_canonical"] = reorderedParameters
+        reordered["scenario_hash"] = sha256Hex(reorderedParameters)
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: JSONSerialization.data(withJSONObject: reordered)))
+
+        var numericSpelling = original
+        let numeric = try XCTUnwrap(numericSpelling["parameters_canonical"] as? String)
+        let alternateNumber = numeric.replacingOccurrences(of: "\"altitude_m\":1.5", with: "\"altitude_m\":1.50")
+        XCTAssertNotEqual(alternateNumber, numeric)
+        numericSpelling["parameters_canonical"] = alternateNumber
+        numericSpelling["scenario_hash"] = sha256Hex(alternateNumber)
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: JSONSerialization.data(withJSONObject: numericSpelling)))
+
+        var parameterWhitespace = original
+        let parameterText = try XCTUnwrap(parameterWhitespace["parameters_canonical"] as? String)
+        let spacedParameters = parameterText.replacingOccurrences(of: "{\"agent_count\"", with: "{ \"agent_count\"")
+        XCTAssertNotEqual(spacedParameters, parameterText)
+        parameterWhitespace["parameters_canonical"] = spacedParameters
+        parameterWhitespace["scenario_hash"] = sha256Hex(spacedParameters)
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: JSONSerialization.data(withJSONObject: parameterWhitespace)))
+
+        var whitespace = original
+        let payload = try XCTUnwrap(whitespace["payload_canonical"] as? String)
+        let spacedPayload = payload.replacingOccurrences(of: "{\"frames\":", with: "{ \"frames\":")
+        XCTAssertNotEqual(spacedPayload, payload)
+        whitespace["payload_canonical"] = spacedPayload
+        whitespace["payload_sha256"] = sha256Hex(spacedPayload)
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: JSONSerialization.data(withJSONObject: whitespace)))
+    }
+
+    func testScenarioRunUsesJSONSafeIntegerSeedBoundary() throws {
+        let fixture = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/zephyr-s7-scenario-run-1.json")
+        let original = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: fixture)) as? [String: Any])
+        let maximum: Int64 = 9_007_199_254_740_991
+        let canonical = try XCTUnwrap(original["parameters_canonical"] as? String)
+        let safeText = canonical.replacingOccurrences(of: "\"seed\":7", with: "\"seed\":\(maximum)")
+        XCTAssertNotEqual(safeText, canonical)
+
+        var safe = original
+        var safeParameters = try XCTUnwrap(safe["parameters"] as? [String: Any])
+        safeParameters["seed"] = maximum
+        safe["parameters"] = safeParameters
+        var safeProvenance = try XCTUnwrap(safe["provenance"] as? [String: Any])
+        safeProvenance["seed"] = maximum
+        safe["provenance"] = safeProvenance
+        safe["parameters_canonical"] = safeText
+        safe["scenario_hash"] = sha256Hex(safeText)
+        XCTAssertNoThrow(try JSONDecoder().decode(ScenarioRunDocument.self, from: JSONSerialization.data(withJSONObject: safe)))
+
+        var above = safe
+        let aboveMaximum = maximum + 1
+        var aboveParameters = try XCTUnwrap(above["parameters"] as? [String: Any])
+        aboveParameters["seed"] = aboveMaximum
+        above["parameters"] = aboveParameters
+        var aboveProvenance = try XCTUnwrap(above["provenance"] as? [String: Any])
+        aboveProvenance["seed"] = aboveMaximum
+        above["provenance"] = aboveProvenance
+        let aboveText = safeText.replacingOccurrences(of: "\"seed\":\(maximum)", with: "\"seed\":\(aboveMaximum)")
+        above["parameters_canonical"] = aboveText
+        above["scenario_hash"] = sha256Hex(aboveText)
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: JSONSerialization.data(withJSONObject: above)))
+    }
+
     private func writeTemporary(_ text: String) -> URL {
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).json")
         try! Data(text.utf8).write(to: file)
         return file
+    }
+
+    private func sha256Hex(_ data: Data) -> String {
+        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+
+    private func sha256Hex(_ text: String) -> String {
+        SHA256.hash(data: Data(text.utf8)).map { String(format: "%02x", $0) }.joined()
     }
 }

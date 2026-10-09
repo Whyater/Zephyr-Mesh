@@ -6,6 +6,7 @@ import AppKit
 struct ZephyrMeshApp: App {
     @StateObject private var model = CockpitModel()
     @StateObject private var evidenceInspector = EvidenceInspectorController()
+    @StateObject private var scenarioRunInspector = ScenarioRunInspectorController()
 
     var body: some Scene {
         WindowGroup("Zephyr Mesh") {
@@ -16,8 +17,16 @@ struct ZephyrMeshApp: App {
                         EvidenceInspectorView(report: report, filename: evidenceInspector.reportFilename)
                     }
                 }
+                .sheet(isPresented: $scenarioRunInspector.isPresented) {
+                    if let run = scenarioRunInspector.run {
+                        ScenarioRunInspectorView(run: run, filename: scenarioRunInspector.filename)
+                    }
+                }
                 .alert(item: $evidenceInspector.error) { message in
                     Alert(title: Text("Could not open evidence report"), message: Text(message.message), dismissButton: .default(Text("OK")))
+                }
+                .alert(item: $scenarioRunInspector.error) { message in
+                    Alert(title: Text("Could not open scenario run"), message: Text(message.message), dismissButton: .default(Text("OK")))
                 }
         }
         .commands {
@@ -29,6 +38,8 @@ struct ZephyrMeshApp: App {
                 Button("Check for updates") { model.checkForUpdates() }
                 Button("Open evidence report…") { evidenceInspector.openPanel() }
                     .keyboardShortcut("o", modifiers: [.command])
+                Button("Open synthetic scenario run…") { scenarioRunInspector.openPanel() }
+                    .keyboardShortcut("j", modifiers: [.command, .shift])
                 Button("Reset camera") { model.resetCamera() }
             }
         }
