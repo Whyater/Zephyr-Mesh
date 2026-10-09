@@ -49,7 +49,10 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
             while time.monotonic() < deadline and not marker.is_file():
                 time.sleep(0.05)
             if not marker.is_file():
-                raise RuntimeError("frozen GUI did not publish its readiness marker")
+                process.terminate()
+                _, stderr = process.communicate(timeout=5.0)
+                details = (stderr or "").strip()[-4000:]
+                raise RuntimeError(f"frozen GUI did not publish its readiness marker (exit={process.returncode}); stderr={details}")
             marker_text = marker.read_text(encoding="utf-8").strip()
             if marker_text != "ready frame=2/6":
                 raise RuntimeError(f"unexpected frozen GUI readiness marker: {marker_text}")
