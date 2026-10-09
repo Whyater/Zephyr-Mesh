@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -16,7 +17,7 @@ import subprocess
 import sys
 import tempfile
 import threading
-import math
+import time
 from typing import Any
 
 try:
@@ -583,7 +584,20 @@ def main(argv: list[str] | None = None) -> int:
         args.smoke_ready.write_text(f"ready frame={model.index + 1}/{model.frame_count}\n", encoding="utf-8")
     if args.smoke_health:
         root.after(250, lambda: args.smoke_health.write_text(f"healthy frame={model.index + 1}/{model.frame_count}\n", encoding="utf-8"))
-    root.mainloop()
+    if args.smoke_ready or args.smoke_health:
+        # Some hosted Windows runners construct Tk successfully but return
+        # immediately from ``mainloop`` because there is no interactive
+        # desktop session.  A bounded update loop keeps the frozen process
+        # alive while still exercising Tk's event queue and scheduled health
+        # callback.  The validator can therefore observe both markers before
+        # it closes the process, without changing normal interactive behavior.
+        smoke_deadline = time.monotonic() + 3.0
+        while time.monotonic() < smoke_deadline:
+            root.update()
+            time.sleep(0.02)
+        root.destroy()
+    else:
+        root.mainloop()
     return 0
 
 
