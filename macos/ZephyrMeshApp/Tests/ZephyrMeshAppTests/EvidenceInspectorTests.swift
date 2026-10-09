@@ -228,6 +228,35 @@ final class EvidenceInspectorTests: XCTestCase {
         XCTAssertEqual(run.status, "synthetic deterministic replay; read-only")
     }
 
+    func testScenarioRunCursorClampsStepsAndResets() {
+        var cursor = ScenarioRunCursor(frameCount: 3)
+        XCTAssertEqual(cursor.index, 0)
+        cursor.step(-10)
+        XCTAssertEqual(cursor.index, 0)
+        cursor.step(1)
+        XCTAssertEqual(cursor.index, 1)
+        cursor.seek(100)
+        XCTAssertEqual(cursor.index, 2)
+        cursor.step()
+        XCTAssertEqual(cursor.index, 2)
+        cursor.reset()
+        XCTAssertEqual(cursor.index, 0)
+        cursor.seek(2)
+        cursor.replace(frameCount: 1)
+        XCTAssertEqual(cursor.frameCount, 1)
+        XCTAssertEqual(cursor.index, 0)
+    }
+
+    func testScenarioRunIdentityIncludesPayloadDigest() {
+        let first = ScenarioRunIdentity(scenarioHash: "scenario", payloadSHA256: "payload-a")
+        let changedPayload = ScenarioRunIdentity(scenarioHash: "scenario", payloadSHA256: "payload-b")
+        XCTAssertNotEqual(first, changedPayload)
+        var cursor = ScenarioRunCursor(frameCount: 3)
+        cursor.seek(2)
+        cursor.replace(frameCount: 1)
+        XCTAssertEqual(cursor.index, 0)
+    }
+
     func testScenarioRunRejectsSemanticallyEquivalentNoncanonicalIntegrityText() throws {
         let fixture = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

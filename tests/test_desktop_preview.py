@@ -6,6 +6,7 @@ import types
 import pytest
 
 from desktop.replay import ReplayFormatError, ReplayModel, filter_agents
+from desktop.scenario_run import ScenarioRunCursor, load_scenario_run, selected_frame_summary
 
 
 ROOT = Path(__file__).parents[1]
@@ -101,6 +102,33 @@ def test_replay_cursor_clamps_and_reset_is_deterministic():
     assert model.reset() == first
     assert model.index == 0
     assert model.summary()["frame"] == "1/6"
+
+
+def test_scenario_run_cursor_clamps_replaces_and_resets():
+    cursor = ScenarioRunCursor(3)
+    assert cursor.step(-10) == 0
+    assert cursor.step(1) == 1
+    assert cursor.seek(100) == 2
+    assert cursor.step() == 2
+    assert cursor.replace(1) == 0
+    assert cursor.frame_count == 1
+    assert cursor.reset() == 0
+
+
+def test_selected_frame_summary_changes_after_cursor_selection(tmp_path):
+    from sim.scenario_runner import load_json_config, run_scenario, serialize_run
+
+    config = load_json_config(ROOT / "sim" / "scenario_example.json")
+    path = tmp_path / "scenario.json"
+    path.write_bytes(serialize_run(run_scenario(config, code_revision="test")))
+    run = load_scenario_run(path)
+    cursor = ScenarioRunCursor(len(run.frames))
+    first = selected_frame_summary(run, cursor)
+    cursor.step()
+    second = selected_frame_summary(run, cursor)
+    assert first != second
+    cursor.seek(2)
+    assert "Frame 3 of 3" in selected_frame_summary(run, cursor)
 
 
 def test_replay_model_rejects_missing_steps(tmp_path):

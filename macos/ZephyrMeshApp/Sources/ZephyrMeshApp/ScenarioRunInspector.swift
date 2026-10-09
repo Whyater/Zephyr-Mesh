@@ -28,6 +28,7 @@ struct ScenarioRunDocument: Identifiable, Decodable {
     var linkEventCount: Int { linkEvents.count }
     var profileCount: Int { profiles.count }
     var status: String { provenance["status"]?.stringValue ?? "unknown" }
+    var runIdentity: ScenarioRunIdentity { ScenarioRunIdentity(scenarioHash: scenarioHash, payloadSHA256: payloadSHA256) }
 
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: DynamicCodingKey.self)
@@ -166,6 +167,11 @@ struct ScenarioRunDocument: Identifiable, Decodable {
     private static func validateAgent(_ value: [String: JSONValue]) throws { let keys = ["active", "agent_id", "constraint_flags", "fused_target_m", "min_neighbor_distance_m", "neighbor_count", "position_m", "profile_id", "target_age_s", "target_estimate_m", "target_source_time_s", "velocity_mps"].sorted(); guard value.keys.sorted() == keys, value["agent_id"]?.stringValue?.isEmpty == false, value["profile_id"]?.stringValue?.isEmpty == false, value["active"]?.boolValue != nil, value["position_m"]?.vector != nil, value["velocity_mps"]?.vector != nil, value["neighbor_count"]?.intValue ?? -1 >= 0, value["neighbor_count"]?.intValue ?? -1 <= Self.jsonSafeIntegerMaximum, value["constraint_flags"]?.strings != nil else { throw ScenarioRunError.invalid("agent is invalid") }; for key in ["target_estimate_m", "fused_target_m"] { if case .null = value[key] { } else { guard value[key]?.vector != nil else { throw ScenarioRunError.invalid("agent target vector is invalid") } } }; for key in ["target_source_time_s", "target_age_s", "min_neighbor_distance_m"] { if case .null = value[key] { } else { guard value[key]?.finiteNumber(min: 0) == true else { throw ScenarioRunError.invalid("agent metric is invalid") } } } }
     private static func validateLinkEvent(_ value: [String: JSONValue]) throws { let keys = ["duplicate", "loss_reason", "out_of_order", "outcome", "packet_age", "receive_time", "receiver", "send_time", "sender", "seq"].sorted(); guard value.keys.sorted() == keys, value["sender"]?.stringValue?.isEmpty == false, value["receiver"]?.stringValue?.isEmpty == false, value["seq"]?.intValue ?? -1 >= 0, value["seq"]?.intValue ?? -1 <= Self.jsonSafeIntegerMaximum, value["send_time"]?.finiteNumber(min: 0) == true, value["duplicate"]?.boolValue != nil, value["out_of_order"]?.boolValue != nil else { throw ScenarioRunError.invalid("link event is invalid") }; let outcome = value["outcome"]?.stringValue; guard outcome == "received" || outcome == "lost" else { throw ScenarioRunError.invalid("link event outcome is invalid") }; if outcome == "received" { guard let receive = value["receive_time"]?.numberValue, let age = value["packet_age"]?.numberValue, value["loss_reason"] == .null, receive >= value["send_time"]!.numberValue!, abs((receive - value["send_time"]!.numberValue!) - age) <= 1e-9 else { throw ScenarioRunError.invalid("received link event is invalid") } } else { guard value["receive_time"] == .null, value["packet_age"] == .null, value["loss_reason"]?.stringValue?.isEmpty == false else { throw ScenarioRunError.invalid("lost link event is invalid") } } }
     private static func validateProfile(_ value: [String: JSONValue]) throws { let keys = ["profile_id", "motor", "propeller", "motor_count", "arm_length_m", "frame_mass_kg", "battery_capacity_wh", "status", "source", "calibration_id", "code_revision", "notes", "total_mass_kg", "estimated_thrust_at_rpm_limit_n", "estimated_max_thrust_n"].sorted(); guard value.keys.allSatisfy({ keys.contains($0) }), ["profile_id", "motor", "propeller", "motor_count", "arm_length_m", "frame_mass_kg", "battery_capacity_wh", "total_mass_kg", "estimated_max_thrust_n"].allSatisfy({ value[$0] != nil }), value["profile_id"]?.stringValue?.isEmpty == false, value["motor_count"]?.intValue ?? 0 >= 1, value["motor_count"]?.intValue ?? 0 <= Self.jsonSafeIntegerMaximum else { throw ScenarioRunError.invalid("profile is invalid") }; guard let motor = value["motor"]?.objectValue, motor.keys.sorted() == ["mass_kg", "max_power_w", "max_rpm", "max_torque_nm", "nominal_voltage_v", "part_id"].sorted(), let prop = value["propeller"]?.objectValue, prop.keys.sorted() == ["diameter_m", "mass_kg", "max_rpm", "part_id", "pitch_m", "power_coefficient", "thrust_coefficient"].sorted() else { throw ScenarioRunError.invalid("profile motor or propeller is invalid") }; guard motor["part_id"]?.stringValue?.isEmpty == false, prop["part_id"]?.stringValue?.isEmpty == false else { throw ScenarioRunError.invalid("profile part IDs are invalid") }; for key in ["mass_kg", "max_power_w", "max_rpm", "max_torque_nm", "nominal_voltage_v"] { guard motor[key]?.finiteNumber(min: 0, strict: true) == true else { throw ScenarioRunError.invalid("profile motor metric is invalid") } }; for key in ["diameter_m", "mass_kg", "max_rpm", "pitch_m", "power_coefficient", "thrust_coefficient"] { guard prop[key]?.finiteNumber(min: 0, strict: true) == true else { throw ScenarioRunError.invalid("profile propeller metric is invalid") } }; for key in ["arm_length_m", "frame_mass_kg", "battery_capacity_wh", "total_mass_kg", "estimated_max_thrust_n"] { guard value[key]?.finiteNumber(min: 0, strict: true) == true else { throw ScenarioRunError.invalid("profile metric is invalid") } }; if let status = value["status"], status.stringValue == nil { throw ScenarioRunError.invalid("profile.status is invalid") }; for key in ["source", "calibration_id", "code_revision", "notes"] { if let optional = value[key], optional != .null && optional.stringValue == nil { throw ScenarioRunError.invalid("profile.\(key) is invalid") } }; if let limit = value["estimated_thrust_at_rpm_limit_n"], limit.finiteNumber(min: 0, strict: true) == false { throw ScenarioRunError.invalid("profile estimated thrust is invalid") } }
+}
+
+struct ScenarioRunIdentity: Hashable {
+    let scenarioHash: String
+    let payloadSHA256: String
 }
 
 struct ScenarioRunFrame: Identifiable, Decodable {
@@ -309,11 +315,53 @@ final class ScenarioRunInspectorController: ObservableObject {
     }
 }
 
+struct ScenarioRunCursor: Equatable {
+    private(set) var frameCount: Int
+    private(set) var index: Int
+
+    init(frameCount: Int) {
+        self.frameCount = max(1, frameCount)
+        self.index = 0
+    }
+
+    mutating func seek(_ requested: Int) {
+        index = min(max(requested, 0), frameCount - 1)
+    }
+
+    mutating func step(_ delta: Int = 1) {
+        seek(index + delta)
+    }
+
+    mutating func reset() {
+        index = 0
+    }
+
+    mutating func replace(frameCount: Int) {
+        self.frameCount = max(1, frameCount)
+        index = 0
+    }
+}
+
 struct ScenarioRunInspectorView: View {
     let run: ScenarioRunDocument
     let filename: String
     @Environment(\.dismiss) private var dismiss
     private let horizon = Horizon()
+    @State private var cursor: ScenarioRunCursor
+
+    init(run: ScenarioRunDocument, filename: String) {
+        self.run = run
+        self.filename = filename
+        _cursor = State(initialValue: ScenarioRunCursor(frameCount: run.frames.count))
+    }
+
+    private var selectedFrame: ScenarioRunFrame {
+        run.frames[cursor.index]
+    }
+
+    private var selectedTarget: String {
+        selectedFrame.target.map { String(format: "%.3f", $0) }.joined(separator: ", ")
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: ZephyrDesign.Layout.panelSpacing) {
@@ -335,6 +383,33 @@ struct ScenarioRunInspectorView: View {
                 DataRow(label: "Profiles", value: String(run.profileCount), horizon: horizon)
                 DataRow(label: "Status", value: run.status, horizon: horizon)
             }
+            VStack(alignment: .leading, spacing: ZephyrDesign.Layout.tightSpacing) {
+                Text("Selected frame").font(ZephyrDesign.Typography.secondary).foregroundStyle(horizon.mist)
+                Slider(
+                    value: Binding(
+                        get: { Double(cursor.index) },
+                        set: { cursor.seek(Int($0.rounded())) }
+                    ),
+                    in: 0...Double(max(0, run.frames.count - 1)),
+                    step: 1
+                )
+                .accessibilityLabel("Scenario frame")
+                .accessibilityValue("Frame \(cursor.index + 1) of \(run.frames.count)")
+                HStack {
+                    Button("Previous") { cursor.step(-1) }
+                        .disabled(cursor.index == 0)
+                    Button("Reset") { cursor.reset() }
+                        .disabled(cursor.index == 0)
+                    Text("Frame \(cursor.index + 1) of \(run.frames.count)")
+                        .font(ZephyrDesign.Typography.caption)
+                        .foregroundStyle(horizon.mist)
+                    Button("Next") { cursor.step() }
+                        .disabled(cursor.index >= run.frames.count - 1)
+                }
+                DataRow(label: "Time", value: String(format: "%.3f s", selectedFrame.time), horizon: horizon)
+                DataRow(label: "Target", value: "[\(selectedTarget)] m", horizon: horizon)
+                DataRow(label: "Agents", value: "\(selectedFrame.agentCount) (\(selectedFrame.activeCount) active)", horizon: horizon)
+            }
             ScrollView {
                 VStack(alignment: .leading, spacing: ZephyrDesign.Layout.tightSpacing) {
                     Text("Frames").font(ZephyrDesign.Typography.secondary).foregroundStyle(horizon.mist)
@@ -348,5 +423,9 @@ struct ScenarioRunInspectorView: View {
         .padding(ZephyrDesign.Spacing.lg)
         .frame(minWidth: 620, idealWidth: 760, minHeight: 520, idealHeight: 680)
         .background(horizon.night)
+        .id(run.runIdentity)
+        .onChange(of: run.runIdentity) { _, _ in
+            cursor.replace(frameCount: run.frames.count)
+        }
     }
 }

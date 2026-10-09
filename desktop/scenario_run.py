@@ -63,6 +63,45 @@ class ScenarioRun:
         }
 
 
+@dataclass
+class ScenarioRunCursor:
+    """Deterministic, local cursor for the read-only scenario inspector."""
+
+    frame_count: int
+    index: int = 0
+
+    def __post_init__(self) -> None:
+        self.frame_count = max(1, int(self.frame_count))
+        self.index = 0
+
+    def seek(self, requested: int) -> int:
+        self.index = min(max(int(requested), 0), self.frame_count - 1)
+        return self.index
+
+    def step(self, delta: int = 1) -> int:
+        return self.seek(self.index + int(delta))
+
+    def reset(self) -> int:
+        self.index = 0
+        return self.index
+
+    def replace(self, frame_count: int) -> int:
+        self.frame_count = max(1, int(frame_count))
+        self.index = 0
+        return self.index
+
+
+def selected_frame_summary(run: ScenarioRun, cursor: ScenarioRunCursor) -> str:
+    """Format one selected frame for the read-only scenario inspector."""
+
+    frame = run.frames[cursor.index]
+    target = ", ".join(f"{value:.3f}" for value in frame.target_position_m)
+    return (
+        f"Frame {cursor.index + 1} of {len(run.frames)} · t={frame.time_s:.3f} s · "
+        f"target=[{target}] m · {frame.active_count}/{frame.agent_count} active"
+    )
+
+
 def load_scenario_run(path: str | Path) -> ScenarioRun:
     """Load and validate one generated scenario-run JSON file."""
 
