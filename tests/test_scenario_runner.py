@@ -146,6 +146,46 @@ def test_hash_changes_when_a_scenario_parameter_changes():
     assert second["scenario_hash"] != first["scenario_hash"]
 
 
+def test_runner_rejects_rehashed_frame_time_sequence():
+    document = run_scenario(config(agent_count=1), code_revision="test")
+    document["frames"][1]["time_s"] = 0.07
+    payload = {key: document[key] for key in ("frames", "link_events", "profiles")}
+    document["payload_canonical"] = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False) + "\n"
+    document["payload_sha256"] = hashlib.sha256(document["payload_canonical"].encode("utf-8")).hexdigest()
+    with pytest.raises(ScenarioConfigError, match="time_s sequence"):
+        serialize_run(document)
+
+
+def test_runner_rejects_rehashed_step_mutation_and_reorder_and_checks_tolerance():
+    def rehash(document):
+        payload = {key: document[key] for key in ("frames", "link_events", "profiles")}
+        document["payload_canonical"] = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False) + "\n"
+        document["payload_sha256"] = hashlib.sha256(document["payload_canonical"].encode("utf-8")).hexdigest()
+
+    step_mutation = run_scenario(config(agent_count=1), code_revision="test")
+    step_mutation["frames"][1]["step_index"] = 0
+    rehash(step_mutation)
+    with pytest.raises(ScenarioConfigError, match="step_index sequence"):
+        serialize_run(step_mutation)
+
+    reordered = run_scenario(config(agent_count=1), code_revision="test")
+    reordered["frames"] = [reordered["frames"][1], reordered["frames"][0], reordered["frames"][2]]
+    rehash(reordered)
+    with pytest.raises(ScenarioConfigError, match="step_index sequence"):
+        serialize_run(reordered)
+
+    just_inside = run_scenario(config(agent_count=1), code_revision="test")
+    just_inside["frames"][1]["time_s"] += 0.5e-9
+    rehash(just_inside)
+    serialize_run(just_inside)
+
+    just_outside = run_scenario(config(agent_count=1), code_revision="test")
+    just_outside["frames"][1]["time_s"] += 1.5e-9
+    rehash(just_outside)
+    with pytest.raises(ScenarioConfigError, match="time_s sequence"):
+        serialize_run(just_outside)
+
+
 def test_json_safe_seed_boundary_is_accepted_by_runner_and_desktop(tmp_path):
     from desktop.scenario_run import load_scenario_run
 

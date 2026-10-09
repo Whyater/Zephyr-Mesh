@@ -143,6 +143,16 @@ class ActuatedQuadrotor:
         )
         self.controller = controller or GeometricFlightController()
 
+    def model_provenance(self) -> dict[str, object]:
+        """Return the coupled dynamics and actuator provenance envelope."""
+        return {
+            "status": "synthetic",
+            "model": "actuated_quadrotor",
+            "dynamics": self.drone.model_provenance(),
+            "actuator": self.actuator.model_provenance(),
+            "evidence_boundary": "synthetic controller, actuator, and rigid-body fixture; no flight validation",
+        }
+
     def step(self, target_position: Iterable[float], dt_s: float) -> VehicleStep:
         target = np.asarray(tuple(target_position), dtype=float)
         if target.shape != (3,) or not np.all(np.isfinite(target)):

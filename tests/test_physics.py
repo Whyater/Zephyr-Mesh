@@ -1,4 +1,5 @@
 """Independent S2 physics checks against analytic and limiting cases."""
+import json
 import numpy as np
 import pytest
 
@@ -58,6 +59,19 @@ def test_drag_is_zero_at_matching_wind_and_opposes_relative_velocity():
     drag = calculate_drag(relative, drag_coefficient=1.3, cross_sectional_area=0.05)
     assert np.dot(drag, relative) < 0.0
     np.testing.assert_allclose(drag / np.linalg.norm(drag), -relative / np.linalg.norm(relative))
+
+
+def test_physics_model_provenance_is_explicit_and_json_safe():
+    drone = SixDOFInterceptor(mass=0.45, drag_coefficient=0.8, cross_sectional_area=0.03, wind_velocity=(1.0, -2.0, 0.5))
+    metadata = drone.model_provenance()
+    assert metadata["status"] == "synthetic"
+    assert metadata["integrator"] == "classical_rk4"
+    assert metadata["parameters"]["wind_velocity_mps"] == [1.0, -2.0, 0.5]
+    assert "not measured" in metadata["evidence_boundary"]
+    json.dumps(metadata, sort_keys=True)
+    # Metadata is a standalone JSON-safe snapshot, not a live NumPy view.
+    metadata["parameters"]["wind_velocity_mps"][0] = 99.0
+    assert drone.wind_velocity[0] == 1.0
 
 
 def test_hover_force_is_invariant_when_at_rest():

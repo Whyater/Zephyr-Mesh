@@ -41,6 +41,18 @@ def test_scenario_run_decoder_reads_summary_and_frames(tmp_path):
     path.write_bytes(serialize_run(run_scenario(config, code_revision="test")))
     run = load_scenario_run(path)
     assert run.summary()["schema"] == "zephyr-s7-scenario-run-1"
+    assert run.summary()["scenario_hash"] == run.document["scenario_hash"]
+    assert run.summary()["payload_sha256"] == run.document["payload_sha256"]
+    assert run.summary()["dt_s"] == run.document["parameters"]["dt_s"]
+    assert run.summary()["generator"] == run.document["provenance"]["generator"]
+    assert run.summary()["python"] == run.document["provenance"]["python"]
+    assert run.summary()["numpy"] == run.document["provenance"]["numpy"]
+    assert run.summary()["code_revision_semantics"].startswith("base revision")
+    assert run.summary()["dt_s"] == run.provenance["dt_s"]
+    assert run.summary()["generator"] == "sim.scenario_runner"
+    assert run.summary()["python"] == run.provenance["python"]
+    assert run.summary()["numpy"] == run.provenance["numpy"]
+    assert run.summary()["code_revision"] == run.provenance["code_revision"]
     assert run.summary()["frame_count"] == 3
     assert run.frames[0].agent_count == 2
     assert "not establish" in run.summary()["evidence_boundary"]
@@ -91,6 +103,61 @@ def test_desktop_scenario_decoder_rejects_payload_and_link_mutations(tmp_path):
     link_path.write_text(json.dumps(document), encoding="utf-8")
     with pytest.raises(ScenarioRunFormatError):
         load_scenario_run(link_path)
+
+
+def test_desktop_decoder_rejects_rehashed_frame_time_sequence(tmp_path):
+    import hashlib
+    import json
+    from desktop.scenario_run import ScenarioRunFormatError
+
+    source = ROOT / "macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
+    document = json.loads(source.read_text(encoding="utf-8"))
+    document["frames"][1]["time_s"] = 0.07
+    payload = {key: document[key] for key in ("frames", "link_events", "profiles")}
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False) + "\n"
+    document["payload_canonical"] = canonical
+    document["payload_sha256"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    path = tmp_path / "bad-time.json"
+    path.write_text(json.dumps(document), encoding="utf-8")
+    with pytest.raises(ScenarioRunFormatError, match="time_s sequence"):
+        load_scenario_run(path)
+
+
+def test_desktop_decoder_rejects_rehashed_step_reorder_and_epsilon_boundary(tmp_path):
+    import hashlib
+    import json
+    from desktop.scenario_run import ScenarioRunFormatError
+
+    source = ROOT / "macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
+    base = json.loads(source.read_text(encoding="utf-8"))
+
+    def write_rehashed(document, name):
+        payload = {key: document[key] for key in ("frames", "link_events", "profiles")}
+        canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False) + "\n"
+        document["payload_canonical"] = canonical
+        document["payload_sha256"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        path = tmp_path / name
+        path.write_text(json.dumps(document), encoding="utf-8")
+        return path
+
+    step_mutation = json.loads(json.dumps(base))
+    step_mutation["frames"][1]["step_index"] = 0
+    with pytest.raises(ScenarioRunFormatError, match="step_index sequence"):
+        load_scenario_run(write_rehashed(step_mutation, "bad-step.json"))
+
+    reordered = json.loads(json.dumps(base))
+    reordered["frames"] = [reordered["frames"][1], reordered["frames"][0], reordered["frames"][2]]
+    with pytest.raises(ScenarioRunFormatError, match="step_index sequence"):
+        load_scenario_run(write_rehashed(reordered, "bad-order.json"))
+
+    just_inside = json.loads(json.dumps(base))
+    just_inside["frames"][1]["time_s"] += 0.5e-9
+    load_scenario_run(write_rehashed(just_inside, "inside-epsilon.json"))
+
+    just_outside = json.loads(json.dumps(base))
+    just_outside["frames"][1]["time_s"] += 1.5e-9
+    with pytest.raises(ScenarioRunFormatError, match="time_s sequence"):
+        load_scenario_run(write_rehashed(just_outside, "outside-epsilon.json"))
 
 
 def test_replay_cursor_clamps_and_reset_is_deterministic():

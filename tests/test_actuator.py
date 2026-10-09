@@ -77,6 +77,28 @@ def test_effective_rpm_isolated_power_torque_and_declared_limits():
     assert QuadrotorActuator(declared_profile).max_rpm == pytest.approx(5_000.0)
 
 
+def test_actuator_model_provenance_keeps_profile_and_model_status_separate():
+    profile = HardwareProfile(
+        "bench-profile",
+        MotorProfile("m", 0.004, 20.0, 10_000.0),
+        PropellerProfile("p", 0.1, 0.05, 10_000.0),
+        status="measured",
+        source="bench record pending review",
+        calibration_id="cal-001",
+    )
+    metadata = QuadrotorActuator(profile).model_provenance()
+    assert metadata["status"] == "synthetic"
+    assert metadata["profile"] == {
+        "profile_id": "bench-profile",
+        "status": "measured",
+        "source": "bench record pending review",
+        "calibration_id": "cal-001",
+    }
+    assert metadata["equations"]["torque"] == "P / (2 * pi * n)"
+    assert metadata["limits"]["effective_max_rpm"] <= 10_000.0
+    assert "not measured" in metadata["evidence_boundary"]
+
+
 def test_depleted_battery_cuts_motor_output_to_zero():
     actuator = QuadrotorActuator(default_hardware_profile(2))
     actuator.energy_wh = 0.0

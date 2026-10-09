@@ -92,6 +92,40 @@ class QuadrotorActuator:
     def battery_pct(self) -> float:
         return max(0.0, min(100.0, 100.0 * self.energy_wh / self.profile.battery_capacity_wh))
 
+    def model_provenance(self) -> dict[str, object]:
+        """Return JSON-safe provenance for the synthetic actuator envelope.
+
+        A measured hardware profile can identify the eventual calibration
+        source, but the coefficient equations and operating limits below
+        remain synthetic until those equations are bench-validated.
+        """
+        profile = self.profile
+        return {
+            "status": "synthetic",
+            "model": "quadrotor_actuator_envelope",
+            "units": "SI",
+            "equations": {
+                "thrust": "Ct * rho * n^2 * D^4",
+                "power": "Cp * rho * n^3 * D^5",
+                "torque": "P / (2 * pi * n)",
+            },
+            "air_density_kg_m3": float(self.config.air_density_kg_m3),
+            "profile": {
+                "profile_id": profile.profile_id,
+                "status": profile.status,
+                "source": profile.source,
+                "calibration_id": profile.calibration_id,
+            },
+            "limits": {
+                "motor_max_rpm": float(profile.motor.max_rpm),
+                "propeller_max_rpm": float(profile.propeller.max_rpm),
+                "effective_max_rpm": float(self.max_rpm),
+                "motor_max_power_w": float(profile.motor.max_power_w),
+                "motor_max_torque_nm": float(profile.motor.max_torque_nm),
+            },
+            "evidence_boundary": "synthetic coefficient envelope; not measured motor map or flight performance",
+        }
+
     def _state(self) -> ActuatorState:
         rho = self.config.air_density_kg_m3
         thrust = np.array([self.profile.propeller.estimated_static_thrust_n(r, rho) for r in self.rpm])

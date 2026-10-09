@@ -11,6 +11,7 @@ struct ScenarioRunDocument: Identifiable, Decodable {
     static let version = 1
     static let maxBytes = 64 * 1024 * 1024
     static let jsonSafeIntegerMaximum: Int64 = 9_007_199_254_740_991
+    static let frameTimeTolerance: Double = 1e-9
 
     let id: String
     let schema: String
@@ -83,6 +84,11 @@ struct ScenarioRunDocument: Identifiable, Decodable {
 
     var scenarioID: String { if case .string(let value) = parameters["scenario_id"] { return value }; return "unknown" }
     var seedText: String { jsonText(parameters["seed"]) }
+    var dtText: String { jsonText(provenance["dt_s"]) }
+    var generatorText: String { jsonText(provenance["generator"]) }
+    var pythonText: String { jsonText(provenance["python"]) }
+    var numpyText: String { jsonText(provenance["numpy"]) }
+    var codeRevisionText: String { jsonText(provenance["code_revision"]) }
 
     private func jsonText(_ value: JSONValue?) -> String {
         guard let value else { return "unknown" }
@@ -127,6 +133,10 @@ struct ScenarioRunDocument: Identifiable, Decodable {
         for frame in frames {
             for agent in frame.agents { try validateAgent(agent) }
             try validateKeepOutSnapshots(frame.keepOutSpheres)
+        }
+        let dt = parameters["dt_s"]?.numberValue ?? 0
+        for (index, frame) in frames.enumerated() {
+            guard frame.stepIndex == index, abs(frame.time - Double(index) * dt) <= Self.frameTimeTolerance else { throw ScenarioRunError.invalid("frame temporal sequence is invalid") }
         }
         for event in linkEvents { try validateLinkEvent(event) }
         for profile in profiles { try validateProfile(profile) }
@@ -521,10 +531,19 @@ struct ScenarioRunInspectorView: View {
                 DataRow(label: "Filename", value: filename, horizon: horizon)
                 DataRow(label: "Schema", value: run.schema, horizon: horizon)
                 DataRow(label: "Seed", value: run.seedText, horizon: horizon)
+                DataRow(label: "Scenario SHA-256", value: run.scenarioHash, horizon: horizon)
+                DataRow(label: "Payload SHA-256", value: run.payloadSHA256, horizon: horizon)
+                DataRow(label: "Δt", value: "\(run.dtText) s", horizon: horizon)
+                DataRow(label: "Generator", value: run.generatorText, horizon: horizon)
+                DataRow(label: "Python", value: run.pythonText, horizon: horizon)
+                DataRow(label: "NumPy", value: run.numpyText, horizon: horizon)
+                DataRow(label: "Base revision", value: run.codeRevisionText, horizon: horizon)
+                DataRow(label: "Revision semantics", value: "base revision; dirty files are not fingerprinted", horizon: horizon)
                 DataRow(label: "Frames", value: String(run.frames.count), horizon: horizon)
                 DataRow(label: "Link events", value: String(run.linkEventCount), horizon: horizon)
                 DataRow(label: "Profiles", value: String(run.profileCount), horizon: horizon)
                 DataRow(label: "Status", value: run.status, horizon: horizon)
+                DataRow(label: "Evidence boundary", value: run.evidenceBoundary, horizon: horizon)
             }
             VStack(alignment: .leading, spacing: ZephyrDesign.Layout.tightSpacing) {
                 Text("Selected frame").font(ZephyrDesign.Typography.secondary).foregroundStyle(horizon.mist)
@@ -561,7 +580,6 @@ struct ScenarioRunInspectorView: View {
                     ForEach(run.frames) { frame in
                         DataRow(label: "Frame \(frame.stepIndex)", value: String(format: "t=%.3f s · active=%d · agents=%d", frame.time, frame.activeCount, frame.agentCount), horizon: horizon)
                     }
-                    Text(run.evidenceBoundary).font(ZephyrDesign.Typography.caption).foregroundStyle(horizon.mist).fixedSize(horizontal: false, vertical: true)
                 }
             }
         }

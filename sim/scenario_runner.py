@@ -35,6 +35,7 @@ MAX_OUTPUT_BYTES = 64 * 1024 * 1024
 MAX_AGENT_COUNT = 256
 MAX_STEPS = 10_000
 MAX_KEEP_OUT_SPHERES = 64
+FRAME_TIME_TOLERANCE_S = 1e-9
 # Keep every integer representable by all contract readers, including
 # JavaScript-style JSON implementations and the Swift decoder.
 JSON_SAFE_INTEGER_MAX = 9_007_199_254_740_991
@@ -274,6 +275,7 @@ def scenario_hash(parameters: Mapping[str, Any]) -> str:
 
 
 def _code_revision() -> str | None:
+    """Return the repository base revision, not a fingerprint of dirty files."""
     configured = os.environ.get("ZEPHYR_CODE_REVISION")
     if configured and all(char.isalnum() or char in ".-_" for char in configured):
         return configured
@@ -373,6 +375,12 @@ def _validate_run_document(document: Mapping[str, Any]) -> None:
         raise ScenarioConfigError("payload_sha256 does not match payload")
     if not isinstance(document["frames"], list) or len(document["frames"]) != parameters["steps"]:
         raise ScenarioConfigError("frames must contain one entry per requested step")
+    for index, frame in enumerate(document["frames"]):
+        if not isinstance(frame, Mapping) or frame.get("step_index") != index:
+            raise ScenarioConfigError("frames step_index sequence is invalid")
+        time_s = frame.get("time_s")
+        if isinstance(time_s, bool) or not isinstance(time_s, (int, float)) or not math.isfinite(float(time_s)) or abs(float(time_s) - index * float(parameters["dt_s"])) > FRAME_TIME_TOLERANCE_S:
+            raise ScenarioConfigError("frames time_s sequence is invalid")
     if not isinstance(document["link_events"], list) or not isinstance(document["profiles"], list):
         raise ScenarioConfigError("link_events and profiles must be lists")
     if not isinstance(document["provenance"], Mapping):

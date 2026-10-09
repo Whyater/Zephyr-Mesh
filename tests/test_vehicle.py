@@ -66,3 +66,12 @@ def test_vehicle_horizontal_target_produces_translation_and_tilt():
     assert final.position_m[0] > 0.5
     assert abs(final.position_m[1]) < 0.1
     assert np.linalg.norm(np.asarray(vehicle.drone.quaternion[1:3])) > 1e-3
+
+
+def test_vehicle_model_provenance_exposes_both_synthetic_layers():
+    vehicle = ActuatedQuadrotor(default_hardware_profile(0))
+    metadata = vehicle.model_provenance()
+    assert metadata["status"] == "synthetic"
+    assert metadata["dynamics"]["model"] == "six_dof_rigid_body"
+    assert metadata["actuator"]["model"] == "quadrotor_actuator_envelope"
+    assert metadata["actuator"]["profile"]["status"] == "synthetic"

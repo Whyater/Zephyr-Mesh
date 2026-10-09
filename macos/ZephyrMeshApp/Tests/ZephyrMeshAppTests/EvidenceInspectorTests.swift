@@ -39,6 +39,18 @@ final class EvidenceInspectorTests: XCTestCase {
         document["source"] = source
     }
 
+    private func rehashedScenarioData(fixture: URL, mutateFrames: ([[String: Any]]) -> [[String: Any]]) throws -> Data {
+        var document = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: fixture)) as? [String: Any])
+        let payloadText = try XCTUnwrap(document["payload_canonical"] as? String)
+        var payload = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(payloadText.dropLast().utf8)) as? [String: Any])
+        let frames = try XCTUnwrap(payload["frames"] as? [[String: Any]])
+        payload["frames"] = mutateFrames(frames)
+        let canonical = String(data: try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]), encoding: .utf8)! + "\n"
+        document["payload_canonical"] = canonical
+        document["payload_sha256"] = SHA256.hash(data: Data(canonical.utf8)).map { String(format: "%02x", $0) }.joined()
+        return try JSONSerialization.data(withJSONObject: document, options: [.sortedKeys])
+    }
+
     func testDecodesAllSupportedKindsWithMatchingSourceSchemas() throws {
         for kind in EvidenceReport.Kind.allCases {
             let report = try decode(envelope(kind: kind))
@@ -226,6 +238,14 @@ final class EvidenceInspectorTests: XCTestCase {
         XCTAssertEqual(run.frames.count, 1)
         XCTAssertEqual(run.parametersCanonical.last, "\n")
         XCTAssertEqual(run.status, "synthetic deterministic replay; read-only")
+        XCTAssertEqual(run.scenarioHash.count, 64)
+        XCTAssertEqual(run.payloadSHA256.count, 64)
+        XCTAssertFalse(run.evidenceBoundary.isEmpty)
+        XCTAssertEqual(run.dtText, "0.05")
+        XCTAssertEqual(run.generatorText, "sim.scenario_runner")
+        XCTAssertFalse(run.pythonText.isEmpty)
+        XCTAssertFalse(run.numpyText.isEmpty)
+        XCTAssertFalse(run.codeRevisionText.isEmpty)
     }
 
     func testLoadsMovingKeepOutSnapshotsFromPythonFixture() throws {
@@ -260,6 +280,61 @@ final class EvidenceInspectorTests: XCTestCase {
         XCTAssertLessThanOrEqual(projected.x, 300)
         XCTAssertGreaterThanOrEqual(projected.y, 0)
         XCTAssertLessThanOrEqual(projected.y, 180)
+    }
+
+    func testRejectsRehashedFrameTimeSequence() throws {
+        let fixture = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/zephyr-s7-moving-scenario-run-1.json")
+        var document = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: fixture)) as? [String: Any])
+        var frames = try XCTUnwrap(document["frames"] as? [[String: Any]])
+        frames[1]["time_s"] = 0.07
+        document["frames"] = frames
+        var payloadCanonical = try XCTUnwrap(document["payload_canonical"] as? String)
+        payloadCanonical = payloadCanonical.replacingOccurrences(of: "\"time_s\":0.05", with: "\"time_s\":0.07")
+        document["payload_canonical"] = payloadCanonical
+        document["payload_sha256"] = SHA256.hash(data: Data(payloadCanonical.utf8)).map { String(format: "%02x", $0) }.joined()
+        let data = try JSONSerialization.data(withJSONObject: document, options: [.sortedKeys])
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: data))
+    }
+
+    func testRejectsRehashedStepMutationAndReorderAndChecksTolerance() throws {
+        let fixture = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/zephyr-s7-moving-scenario-run-1.json")
+        let stepMutation = try rehashedScenarioData(fixture: fixture) { original in
+            var frames = original
+            frames[1]["step_index"] = 0
+            return frames
+        }
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: stepMutation))
+
+        let reordered = try rehashedScenarioData(fixture: fixture) { original in
+            [original[1], original[0], original[2]]
+        }
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: reordered))
+
+        var justInsideDocument = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: fixture)) as? [String: Any])
+        var justInsideCanonical = try XCTUnwrap(justInsideDocument["payload_canonical"] as? String)
+        justInsideCanonical = justInsideCanonical.replacingOccurrences(of: "\"time_s\":0.05", with: "\"time_s\":0.0500000005")
+        justInsideDocument["payload_canonical"] = justInsideCanonical
+        justInsideDocument["payload_sha256"] = SHA256.hash(data: Data(justInsideCanonical.utf8)).map { String(format: "%02x", $0) }.joined()
+        var justInsideFrames = try XCTUnwrap(justInsideDocument["frames"] as? [[String: Any]])
+        justInsideFrames[1]["time_s"] = 0.0500000005
+        justInsideDocument["frames"] = justInsideFrames
+        let justInside = try JSONSerialization.data(withJSONObject: justInsideDocument, options: [.sortedKeys])
+        XCTAssertNoThrow(try JSONDecoder().decode(ScenarioRunDocument.self, from: justInside))
+
+        var justOutsideDocument = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: fixture)) as? [String: Any])
+        var justOutsideCanonical = try XCTUnwrap(justOutsideDocument["payload_canonical"] as? String)
+        justOutsideCanonical = justOutsideCanonical.replacingOccurrences(of: "\"time_s\":0.05", with: "\"time_s\":0.0500000015")
+        justOutsideDocument["payload_canonical"] = justOutsideCanonical
+        justOutsideDocument["payload_sha256"] = SHA256.hash(data: Data(justOutsideCanonical.utf8)).map { String(format: "%02x", $0) }.joined()
+        var justOutsideFrames = try XCTUnwrap(justOutsideDocument["frames"] as? [[String: Any]])
+        justOutsideFrames[1]["time_s"] = 0.0500000015
+        justOutsideDocument["frames"] = justOutsideFrames
+        let justOutside = try JSONSerialization.data(withJSONObject: justOutsideDocument, options: [.sortedKeys])
+        XCTAssertThrowsError(try JSONDecoder().decode(ScenarioRunDocument.self, from: justOutside))
     }
 
     func testRejectsMovingSphereRadiusAboveBoundAfterCanonicalRehash() throws {

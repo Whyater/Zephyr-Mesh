@@ -17,6 +17,7 @@ SCENARIO_SCHEMA = "zephyr-s7-scenario-run-1"
 SCENARIO_VERSION = 1
 MAX_SCENARIO_BYTES = 64 * 1024 * 1024
 JSON_SAFE_INTEGER_MAX = 9_007_199_254_740_991
+FRAME_TIME_TOLERANCE_S = 1e-9
 
 
 class ScenarioRunFormatError(ValueError):
@@ -130,11 +131,18 @@ class ScenarioRun:
             "schema": self.document["schema"],
             "version": self.document["version"],
             "scenario_hash": self.document["scenario_hash"],
+            "payload_sha256": self.document["payload_sha256"],
             "scenario_id": parameters["scenario_id"],
             "agent_count": parameters["agent_count"],
+            "dt_s": parameters["dt_s"],
             "frame_count": len(self.frames),
             "link_event_count": len(self.document["link_events"]),
             "profile_count": len(self.document["profiles"]),
+            "generator": self.provenance["generator"],
+            "python": self.provenance["python"],
+            "numpy": self.provenance["numpy"],
+            "code_revision": self.provenance["code_revision"],
+            "code_revision_semantics": "base revision; does not fingerprint uncommitted files",
             "status": self.provenance["status"],
             "evidence_boundary": self.document["evidence_boundary"],
         }
@@ -211,6 +219,7 @@ def load_scenario_run(path: str | Path) -> ScenarioRun:
         raise ScenarioRunFormatError("scenario run root must be a JSON object")
     _validate(document)
     frames = tuple(_decode_frame(frame) for frame in document["frames"])
+    _validate_frame_sequence(frames, float(document["parameters"]["dt_s"]))
     return ScenarioRun(document=document, source_path=source, frames=frames)
 
 
@@ -266,6 +275,14 @@ def _validate(document: Mapping[str, Any]) -> None:
         _validate_link_event(event)
     for profile in document["profiles"]:
         _validate_profile(profile)
+
+
+def _validate_frame_sequence(frames: tuple[ScenarioFrame, ...], dt_s: float) -> None:
+    for index, frame in enumerate(frames):
+        if frame.step_index != index:
+            raise ScenarioRunFormatError("frame step_index sequence is invalid")
+        if abs(frame.time_s - index * dt_s) > FRAME_TIME_TOLERANCE_S:
+            raise ScenarioRunFormatError("frame time_s sequence is invalid")
 
 
 def _validate_parameters(parameters: Mapping[str, Any]) -> None:

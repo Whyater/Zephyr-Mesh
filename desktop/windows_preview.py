@@ -773,13 +773,31 @@ class WindowsReplayApp:
         summary_text.insert("1.0", json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=False))
         summary_text.configure(state="disabled")
         summary_text.grid(row=1, column=0, sticky="nsew", pady=(TOKENS.content_pad, TOKENS.spacing_sm))
+        integrity = self.ttk.Label(
+            body,
+            text=(
+                f"Scenario SHA-256  {summary['scenario_hash']}\n"
+                f"Payload SHA-256   {summary['payload_sha256']}\n"
+                f"Δt                {summary['dt_s']} s\n"
+                f"Generator          {summary['generator']}\n"
+                f"Python             {summary['python']}\n"
+                f"NumPy              {summary['numpy']}\n"
+                f"Base revision      {summary['code_revision']}\n"
+                f"Evidence boundary  {summary['evidence_boundary']}"
+            ),
+            style="Muted.TLabel",
+            justify="left",
+            anchor="w",
+            wraplength=620,
+        )
+        integrity.grid(row=2, column=0, sticky="ew", pady=(0, TOKENS.content_pad))
         plot_canvas = self.tk.Canvas(body, height=190, background=TOKENS.canvas, highlightthickness=0, relief="flat")
-        plot_canvas.grid(row=2, column=0, sticky="ew", pady=(0, TOKENS.content_pad))
+        plot_canvas.grid(row=3, column=0, sticky="ew", pady=(0, TOKENS.content_pad))
         cursor = ScenarioRunCursor(len(run.frames))
         selected_text = self.ttk.Label(body, style="Muted.TLabel", wraplength=620)
-        selected_text.grid(row=3, column=0, sticky="w", pady=(0, TOKENS.content_pad))
+        selected_text.grid(row=4, column=0, sticky="w", pady=(0, TOKENS.content_pad))
         controls = self.ttk.Frame(body, style="Surface.TFrame", padding=TOKENS.tight_padding)
-        controls.grid(row=4, column=0, sticky="ew", pady=(0, TOKENS.spacing_sm))
+        controls.grid(row=5, column=0, sticky="ew", pady=(0, TOKENS.spacing_sm))
         controls.columnconfigure(1, weight=1)
         slider = self.tk.Scale(controls, from_=0, to=max(0, len(run.frames) - 1), orient="horizontal", showvalue=False, command=lambda value: update(int(float(value))), background=TOKENS.control_background, troughcolor=TOKENS.control_track, highlightthickness=0, activebackground=TOKENS.control_active)
         slider.grid(row=0, column=1, sticky="ew", padx=TOKENS.timeline_gap)
@@ -824,7 +842,7 @@ class WindowsReplayApp:
         next_button = self.ttk.Button(controls, text="Next", command=lambda: update(cursor.step()))
         next_button.grid(row=0, column=3, padx=TOKENS.button_gap)
         self.ttk.Label(controls, text="Frame", style="Muted.TLabel").grid(row=0, column=4, padx=(TOKENS.button_gap, 0))
-        self.ttk.Label(body, text="Frames", style="Muted.TLabel").grid(row=5, column=0, sticky="w")
+        self.ttk.Label(body, text="Frames", style="Muted.TLabel").grid(row=6, column=0, sticky="w")
         frames_text = self.tk.Text(body, wrap="none", background=TOKENS.surface, foreground=TOKENS.text, relief="flat", borderwidth=0, padx=TOKENS.content_pad, pady=TOKENS.content_pad, font=(TOKENS.mono_font, TOKENS.body_size), takefocus=True)
         frame_lines = [
             f"frame {frame.step_index:>4}  t={frame.time_s:>8.3f} s  active={frame.active_count:>3}  agents={frame.agent_count:>3}"
@@ -832,8 +850,8 @@ class WindowsReplayApp:
         ]
         frames_text.insert("1.0", "\n".join(frame_lines))
         frames_text.configure(state="disabled")
-        frames_text.grid(row=6, column=0, sticky="nsew", pady=(TOKENS.content_pad, 0))
-        body.rowconfigure(6, weight=1)
+        frames_text.grid(row=7, column=0, sticky="nsew", pady=(TOKENS.content_pad, 0))
+        body.rowconfigure(7, weight=1)
         update(0)
         return True
 

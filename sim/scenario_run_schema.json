@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://zephyr-mesh.dev/schemas/s7-scenario-run-1.json",
   "title": "Zephyr Mesh S7 interactive scenario run",
+  "description": "Semantic contract: frame k has step_index k and time_s equal to k multiplied by parameters.dt_s within an absolute tolerance of 1e-9 seconds. Canonical hashes cover the exact serialized parameters and payload bytes.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -782,7 +783,8 @@
           "type": [
             "string",
             "null"
-          ]
+          ],
+          "description": "Repository base revision reported by git or the configured environment. It does not fingerprint uncommitted working-tree edits."
         },
         "generator": {
           "const": "sim.scenario_runner"

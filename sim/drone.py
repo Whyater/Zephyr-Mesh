@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import numpy as np
-from sim.environment import GRAVITY, calculate_drag, relative_air_velocity
+from sim.environment import AIR_DENSITY, GRAVITY, calculate_drag, relative_air_velocity
 
 
 class SixDOFInterceptor:
@@ -40,6 +40,30 @@ class SixDOFInterceptor:
         self.velocity = np.zeros(3, dtype=float)
         self.quaternion = np.array([1.0, 0.0, 0.0, 0.0], dtype=float)
         self.angular_velocity = np.zeros(3, dtype=float)
+
+    def model_provenance(self) -> dict[str, object]:
+        """Return JSON-safe provenance for this synthetic dynamics model.
+
+        The metadata travels with an inspection result without changing the
+        13-state physics or any public step result.  Coefficients are inputs
+        to a transparent fixture until a measured calibration is supplied.
+        """
+        return {
+            "status": "synthetic",
+            "model": "six_dof_rigid_body",
+            "integrator": "classical_rk4",
+            "units": "SI",
+            "parameters": {
+                "mass_kg": float(self.mass),
+                "gravity_mps2": float(GRAVITY),
+                "air_density_kg_m3": float(AIR_DENSITY),
+                "drag_coefficient": float(self.drag_coefficient),
+                "cross_sectional_area_m2": float(self.cross_sectional_area),
+                "inertia_kg_m2": [float(self.I_x), float(self.I_y), float(self.I_z)],
+                "wind_velocity_mps": [float(value) for value in self.wind_velocity],
+            },
+            "evidence_boundary": "synthetic coefficient fixture; not measured airframe calibration",
+        }
 
     def _state_vector(self):
         return np.concatenate((self.position, self.velocity, self.quaternion, self.angular_velocity))
