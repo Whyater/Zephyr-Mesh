@@ -23,11 +23,18 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
         raise FileNotFoundError(f"missing preview executable: {executable}")
     if not updater.is_file():
         raise FileNotFoundError(f"missing sibling updater: {updater}")
+    readme = bundle_dir / "README-Windows.txt"
+    if not readme.is_file():
+        raise FileNotFoundError(f"missing Windows extraction guidance: {readme}")
+    readme_text = readme.read_text(encoding="utf-8")
+    for required_text in ("Extract the complete ZIP", "startup.log"):
+        if required_text not in readme_text:
+            raise RuntimeError(f"Windows extraction guidance is missing {required_text!r}")
     resource_roots = (bundle_dir / "_internal", bundle_dir)
     run = next((root / "runs" / "s7-swarm" / "run.json" for root in resource_roots if (root / "runs" / "s7-swarm" / "run.json").is_file()), None)
     if run is None:
         raise FileNotFoundError("bundled canonical S7 run.json is missing")
-    result = {"bundle": str(bundle_dir), "preview": str(executable), "updater": str(updater), "run": str(run)}
+    result = {"bundle": str(bundle_dir), "preview": str(executable), "updater": str(updater), "readme": str(readme), "run": str(run)}
     evidence_paths = []
     for filename, kind, status in (("evidence_report_example.json", "espnow", "fixture"), ("investigation_report_example.json", "investigation", "synthetic"), ("s7_report_example.json", "swarm", "synthetic")):
         evidence = next((root / "desktop" / filename for root in resource_roots if (root / "desktop" / filename).is_file()), None)

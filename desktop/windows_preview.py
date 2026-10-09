@@ -18,6 +18,7 @@ import sys
 import tempfile
 import threading
 import time
+import traceback
 from typing import Any
 
 try:
@@ -58,6 +59,82 @@ def _runtime_version() -> str:
 
 
 CURRENT_VERSION = _runtime_version()
+
+
+def startup_log_path() -> Path:
+    """Return the per-user path used for failures before a Tk window exists.
+
+    The release executable is built with PyInstaller's ``--windowed`` bootloader,
+    so an exception during imports or Tk construction otherwise disappears with
+    no console.  Keep the diagnostic outside the extracted application folder
+    because that folder may be read-only or replaced by the updater.
+    """
+
+    app_data = os.environ.get("LOCALAPPDATA")
+    base = Path(app_data) / "ZephyrMesh" if app_data else Path.home() / ".zephyr-mesh"
+    try:
+        base.mkdir(parents=True, exist_ok=True)
+        return base / "startup.log"
+    except OSError:
+        return Path(tempfile.gettempdir()) / "ZephyrMesh-startup.log"
+
+
+def write_startup_diagnostic(exc: BaseException) -> Path:
+    """Persist enough context to diagnose a windowed startup failure."""
+
+    path = startup_log_path()
+    details = (
+        "Zephyr Mesh Windows startup failure\n"
+        f"version: {CURRENT_VERSION}\n"
+        f"executable: {Path(sys.executable).resolve()}\n"
+        f"working directory: {Path.cwd()}\n"
+        f"resource root: {RESOURCE_ROOT}\n"
+        f"default replay: {DEFAULT_RUN}\n"
+        f"default replay exists: {DEFAULT_RUN.is_file()}\n"
+        f"platform: {sys.platform}\n"
+        f"python: {sys.version}\n\n"
+        f"{''.join(traceback.format_exception(type(exc), exc, exc.__traceback__))}"
+    )
+    try:
+        path.write_text(details, encoding="utf-8")
+    except OSError:
+        # The caller still reports the original exception when the diagnostic
+        # directory is unavailable.  Never replace a useful startup error with
+        # a logging failure.
+        pass
+    return path
+
+
+def show_startup_failure(exc: BaseException, log_path: Path) -> None:
+    """Make a windowed startup failure visible instead of silently exiting."""
+
+    message = (
+        "Zephyr Mesh could not start.\n\n"
+        f"{type(exc).__name__}: {exc}\n\n"
+        f"A diagnostic was written to:\n{log_path}\n\n"
+        "If this came from a ZIP download, extract the entire ZIP before "
+        "opening ZephyrMeshWindows.exe and keep its _internal folder beside it."
+    )
+    if sys.platform.startswith("win"):
+        try:
+            import ctypes
+
+            ctypes.windll.user32.MessageBoxW(None, message, "Zephyr Mesh", 0x10)
+            return
+        except Exception:
+            # A frozen windowed process may have no usable GUI or standard
+            # streams. Keep this reporting path best effort and never replace
+            # the original startup failure with a reporting failure.
+            pass
+    # Source runs and unusual Windows environments can still provide a useful
+    # fallback.  PyInstaller's windowed executable has no console, so this is
+    # primarily for local development and test harnesses.
+    try:
+        stream = getattr(sys, "stderr", None)
+        if stream is not None:
+            print(message, file=stream)
+    except Exception:
+        pass
 
 
 def mission_event_lines(model: Any, selected_id: str) -> tuple[str, ...]:
@@ -730,66 +807,71 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(ReplayModel.from_path(args.run).summary(), indent=2, sort_keys=True))
         return 0
     try:
-        import tkinter as tk
-    except ImportError as exc:
-        raise SystemExit("Tkinter is required. Install Python with Tcl/Tk support on Windows.") from exc
-    if sys.platform.startswith("win"):
         try:
-            import ctypes
-            ctypes.windll.shcore.SetProcessDpiAwareness(2)
-        except (AttributeError, OSError):
-            pass
-    model = ReplayModel.from_path(args.run)
-    root = tk.Tk()
-    app = WindowsReplayApp(root, model)
-    if args.smoke_step:
-        app._step()
-    if args.smoke_evidence:
-        evidence_kinds = []
-        for evidence_path in args.smoke_evidence:
-            if not app._show_evidence_report(evidence_path):
-                try:
-                    root.destroy()
-                except tk.TclError:
-                    pass
-                return 2
-            if app._evidence_report and app._evidence_report.get("kind"):
-                evidence_kinds.append(str(app._evidence_report["kind"]))
-        evidence_kind = ",".join(sorted(set(evidence_kinds))) or None
-    else:
-        evidence_kind = None
-    if args.smoke_ready:
-        suffix = f" evidence_kind={evidence_kind}" if evidence_kind else ""
-        args.smoke_ready.write_text(f"ready frame={model.index + 1}/{model.frame_count}{suffix}\n", encoding="utf-8")
-    if args.smoke_ready or args.smoke_health:
-        # Hosted Windows runners can terminate a Tk event loop immediately,
-        # and calling ``update`` in that state can make the frozen process
-        # exit with code 1 without a useful stderr stream.  The smoke path
-        # therefore uses the successful Tk construction above as its GUI
-        # check, then stays alive with a bounded sleep so the validator can
-        # observe both markers.  A guarded idle flush exercises pending Tk
-        # layout work without entering the event loop.
-        try:
-            root.update_idletasks()
-        except tk.TclError:
-            pass
-        smoke_started = time.monotonic()
-        smoke_deadline = smoke_started + 3.0
-        health_written = False
-        while time.monotonic() < smoke_deadline:
-            elapsed = time.monotonic() - smoke_started
-            if args.smoke_health and not health_written and elapsed >= 0.25:
-                suffix = f" evidence_kind={evidence_kind}" if evidence_kind else ""
-                args.smoke_health.write_text(f"healthy frame={model.index + 1}/{model.frame_count}{suffix}\n", encoding="utf-8")
-                health_written = True
-            time.sleep(0.02)
-        try:
-            root.destroy()
-        except tk.TclError:
-            pass
-    else:
-        root.mainloop()
-    return 0
+            import tkinter as tk
+        except ImportError as exc:
+            raise RuntimeError("Tkinter is required. Install Python with Tcl/Tk support on Windows.") from exc
+        if sys.platform.startswith("win"):
+            try:
+                import ctypes
+                ctypes.windll.shcore.SetProcessDpiAwareness(2)
+            except (AttributeError, OSError):
+                pass
+        model = ReplayModel.from_path(args.run)
+        root = tk.Tk()
+        app = WindowsReplayApp(root, model)
+        if args.smoke_step:
+            app._step()
+        if args.smoke_evidence:
+            evidence_kinds = []
+            for evidence_path in args.smoke_evidence:
+                if not app._show_evidence_report(evidence_path):
+                    try:
+                        root.destroy()
+                    except tk.TclError:
+                        pass
+                    return 2
+                if app._evidence_report and app._evidence_report.get("kind"):
+                    evidence_kinds.append(str(app._evidence_report["kind"]))
+            evidence_kind = ",".join(sorted(set(evidence_kinds))) or None
+        else:
+            evidence_kind = None
+        if args.smoke_ready:
+            suffix = f" evidence_kind={evidence_kind}" if evidence_kind else ""
+            args.smoke_ready.write_text(f"ready frame={model.index + 1}/{model.frame_count}{suffix}\n", encoding="utf-8")
+        if args.smoke_ready or args.smoke_health:
+            # Hosted Windows runners can terminate a Tk event loop immediately,
+            # and calling ``update`` in that state can make the frozen process
+            # exit with code 1 without a useful stderr stream.  The smoke path
+            # therefore uses the successful Tk construction above as its GUI
+            # check, then stays alive with a bounded sleep so the validator can
+            # observe both markers.  A guarded idle flush exercises pending Tk
+            # layout work without entering the event loop.
+            try:
+                root.update_idletasks()
+            except tk.TclError:
+                pass
+            smoke_started = time.monotonic()
+            smoke_deadline = smoke_started + 3.0
+            health_written = False
+            while time.monotonic() < smoke_deadline:
+                elapsed = time.monotonic() - smoke_started
+                if args.smoke_health and not health_written and elapsed >= 0.25:
+                    suffix = f" evidence_kind={evidence_kind}" if evidence_kind else ""
+                    args.smoke_health.write_text(f"healthy frame={model.index + 1}/{model.frame_count}{suffix}\n", encoding="utf-8")
+                    health_written = True
+                time.sleep(0.02)
+            try:
+                root.destroy()
+            except tk.TclError:
+                pass
+        else:
+            root.mainloop()
+        return 0
+    except Exception as exc:
+        log_path = write_startup_diagnostic(exc)
+        show_startup_failure(exc, log_path)
+        return 1
 
 
 if __name__ == "__main__":

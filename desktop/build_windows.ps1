@@ -17,6 +17,17 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 $versionPath = Join-Path $Output "ZephyrMeshWindows\VERSION.txt"
 [System.IO.File]::WriteAllText($versionPath, $Version.TrimStart('v'), [System.Text.UTF8Encoding]::new($false))
+$readmePath = Join-Path $Output "ZephyrMeshWindows\README-Windows.txt"
+$readme = @(
+    "Zephyr Mesh Windows desktop preview"
+    ""
+    "Extract the complete ZIP before opening ZephyrMeshWindows.exe. Keep the _internal folder beside the executable."
+    "If startup fails after opening from File Explorer's ZIP view, extract the complete ZIP first; some setups may omit required support files."
+    ""
+    "If startup still fails, check %LOCALAPPDATA%\ZephyrMesh\startup.log for a diagnostic report."
+    "This build is a read-only synthetic replay. It does not connect to a radio, camera, motor, flight controller, or swarm."
+) -join [Environment]::NewLine
+[System.IO.File]::WriteAllText($readmePath, $readme + [Environment]::NewLine, [System.Text.UTF8Encoding]::new($false))
 Write-Host "Built $Output\ZephyrMeshWindows\ZephyrMeshWindows.exe"
 Write-Host "Built $Output\ZephyrMeshUpdater.exe (keep beside ZephyrMeshWindows directory)"
 Write-Host "The app is replay-only until a digest-verified GitHub release asset is published."

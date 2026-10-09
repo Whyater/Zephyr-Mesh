@@ -1,5 +1,7 @@
 """Pure-model checks for the cross-platform desktop replay preview."""
 from pathlib import Path
+import sys
+import types
 
 import pytest
 
@@ -128,6 +130,48 @@ def test_windows_build_writes_utf8_version_without_bom():
     assert "UTF8Encoding" in script
     assert "WriteAllText" in script
     assert "hidden-import desktop.evidence" in script
+    assert "README-Windows.txt" in script
+    assert "Extract the complete ZIP" in script
+
+
+def test_windows_startup_diagnostic_is_written_outside_install_dir(tmp_path, monkeypatch):
+    import desktop.windows_preview as preview
+
+    app_data = tmp_path / "LocalAppData"
+    monkeypatch.setenv("LOCALAPPDATA", str(app_data))
+    monkeypatch.setattr(preview, "CURRENT_VERSION", "0.2.test")
+    error = RuntimeError("missing bundled replay")
+    path = preview.write_startup_diagnostic(error)
+
+    assert path == app_data / "ZephyrMesh" / "startup.log"
+    text = path.read_text(encoding="utf-8")
+    assert "version: 0.2.test" in text
+    assert "missing bundled replay" in text
+    assert "default replay exists:" in text
+
+
+def test_windows_startup_failure_message_explains_zip_extraction(capsys, monkeypatch, tmp_path):
+    import desktop.windows_preview as preview
+
+    monkeypatch.setattr(preview.sys, "platform", "linux")
+    preview.show_startup_failure(RuntimeError("Tk failed"), tmp_path / "startup.log")
+
+    assert "extract the entire ZIP" in capsys.readouterr().err
+
+
+def test_windows_startup_failure_is_non_throwing_without_stderr(monkeypatch, tmp_path):
+    import desktop.windows_preview as preview
+
+    class BrokenMessageBox:
+        def MessageBoxW(self, *_args):
+            raise OSError("message box unavailable")
+
+    fake_ctypes = types.SimpleNamespace(windll=types.SimpleNamespace(user32=BrokenMessageBox()))
+    monkeypatch.setitem(sys.modules, "ctypes", fake_ctypes)
+    monkeypatch.setattr(preview.sys, "platform", "win32")
+    monkeypatch.setattr(preview.sys, "stderr", None)
+
+    preview.show_startup_failure(RuntimeError("Tk failed"), tmp_path / "startup.log")
 
 
 def test_windows_requirements_pin_evidence_loader_dependencies():
@@ -145,6 +189,8 @@ def test_windows_smoke_packages_and_checks_investigation_report():
     assert 'action="append"' in preview
     assert '("s7_report_example.json", "swarm", "synthetic")' in validator
     assert "evidence_kind=espnow,investigation,swarm" in validator
+    assert 'README-Windows.txt' in validator
+    assert 'startup.log' in validator
 
 
 def test_windows_release_job_runs_python_suite_before_packaging():
