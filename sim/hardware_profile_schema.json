@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zephyr-mesh.dev/schemas/hardware-profile-1.json",
+  "title": "Zephyr Mesh hardware profile",
+  "description": "SI-unit motor, propeller, airframe, and battery inputs. Coefficients are calibration inputs, not flight evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "profile_id", "motor", "propeller", "motor_count", "arm_length_m", "frame_mass_kg", "battery_capacity_wh", "status"],
+  "properties": {
+    "schema": {"const": "zephyr-hardware-profile-1"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "motor_count": {"type": "integer", "minimum": 1},
+    "arm_length_m": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+    "frame_mass_kg": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+    "battery_capacity_wh": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+    "status": {"enum": ["measured", "synthetic", "fixture"]},
+    "source": {"type": "string", "minLength": 1},
+    "calibration_id": {"type": "string", "minLength": 1},
+    "code_revision": {"type": "string", "minLength": 1},
+    "notes": {"type": "string", "minLength": 1},
+    "motor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["part_id", "max_torque_nm", "max_power_w", "max_rpm", "mass_kg", "nominal_voltage_v"],
+      "properties": {
+        "part_id": {"type": "string", "minLength": 1},
+        "max_torque_nm": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+        "max_power_w": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+        "max_rpm": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+        "mass_kg": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+        "nominal_voltage_v": {"type": ["number", "integer"], "exclusiveMinimum": 0}
+      }
+    },
+    "propeller": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["part_id", "diameter_m", "pitch_m", "max_rpm", "thrust_coefficient", "power_coefficient", "mass_kg"],
+      "properties": {
+        "part_id": {"type": "string", "minLength": 1},
+        "diameter_m": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+        "pitch_m": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+        "max_rpm": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+        "thrust_coefficient": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+        "power_coefficient": {"type": ["number", "integer"], "exclusiveMinimum": 0},
+        "mass_kg": {"type": ["number", "integer"], "exclusiveMinimum": 0}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "measured"}}, "required": ["status"]},
+      "then": {"required": ["source", "calibration_id"]}
+    }
+  ]
+}

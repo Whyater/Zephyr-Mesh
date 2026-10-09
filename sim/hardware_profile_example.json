@@ -1,0 +1,28 @@
+{
+  "schema": "zephyr-hardware-profile-1",
+  "profile_id": "bench-quadcopter-fixture",
+  "motor_count": 4,
+  "arm_length_m": 0.1,
+  "frame_mass_kg": 0.03,
+  "battery_capacity_wh": 5.0,
+  "status": "fixture",
+  "calibration_id": "fixture-coefficients-1",
+  "notes": "Synthetic coefficient fixture only; replace with bench measurements before using for a real vehicle.",
+  "motor": {
+    "part_id": "fixture-motor-2204",
+    "max_torque_nm": 0.0018,
+    "max_power_w": 18.0,
+    "max_rpm": 38000.0,
+    "mass_kg": 0.01,
+    "nominal_voltage_v": 3.7
+  },
+  "propeller": {
+    "part_id": "fixture-prop-3in",
+    "diameter_m": 0.0762,
+    "pitch_m": 0.038,
+    "max_rpm": 36000.0,
+    "thrust_coefficient": 0.1,
+    "power_coefficient": 0.04,
+    "mass_kg": 0.002
+  }
+}
