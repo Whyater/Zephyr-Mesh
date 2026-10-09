@@ -42,6 +42,7 @@ The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\Zeph
 - Cascaded position and attitude control with transparent, inspectable inputs.
 - Deterministic communication fixtures for delay, jitter, independent loss, burst loss, serialized contention, packet age, duplicates, and out-of-order delivery.
 - Versioned ESP-NOW trace schema and replay bridge that preserve packet identity, measured outcomes, timestamps, RSSI, retries, and clock boundaries without fitting unmeasured radio behavior.
+- Trace summary CLI with unresolved-outcome counts, shared-clock delay summaries, observed-record loss bounds, RSSI summaries, and provenance.
 - Seeded sensing and tracking fixtures with independent or burst sensor dropouts, bias, covariance, out-of-order rejection, and recovery metrics; S7 adds a separate deterministic agent dropout schedule.
 - Bounded latency, loss, noise, and target-acceleration investigations with reproducible JSON outputs.
 - Stage 7 coordination foundation with a seeded multi-agent event log, stable identities, formation slots, cooperative target fusion, dropout events, separation checks, and keep-out constraints.
@@ -61,6 +62,7 @@ pip install -r requirements.txt
 python -m pytest -q
 TMP_DIR=$(mktemp -d)
 PYTHONPATH=. python tools/generate_s7_fixture.py --output "$TMP_DIR/s7-swarm"
+PYTHONPATH=. python tools/analyze_trace.py sim/trace_example.json
 python -m demo.demo --host 127.0.0.1 --port 8765
 ```
 
