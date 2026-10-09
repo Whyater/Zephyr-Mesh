@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zephyr-mesh.dev/schemas/evidence-report-1.json",
+  "title": "Zephyr Mesh portable evidence report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "kind", "source", "status", "summary", "limitations"],
+  "properties": {
+    "schema": {"const": "zephyr-evidence-report-1"},
+    "kind": {"enum": ["espnow", "vision", "hardware", "bench"]},
+    "status": {"enum": ["measured", "synthetic", "fixture"]},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "sha256", "schema"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "schema": {"enum": ["zephyr-espnow-trace-1", "zephyr-vision-trace-1", "zephyr-hardware-profile-1", "zephyr-bench-trace-1"]}
+      }
+    },
+    "summary": {"type": "object"},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  }
+}

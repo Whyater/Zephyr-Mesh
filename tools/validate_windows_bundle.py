@@ -12,6 +12,7 @@ import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from desktop.replay import ReplayModel
+from desktop.evidence import load_evidence_report
 
 
 def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
@@ -27,6 +28,13 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
     if run is None:
         raise FileNotFoundError("bundled canonical S7 run.json is missing")
     result = {"bundle": str(bundle_dir), "preview": str(executable), "updater": str(updater), "run": str(run)}
+    evidence = next((root / "desktop" / "evidence_report_example.json" for root in resource_roots if (root / "desktop" / "evidence_report_example.json").is_file()), None)
+    if evidence is None:
+        raise FileNotFoundError("bundled evidence_report_example.json is missing")
+    evidence_report = load_evidence_report(evidence)
+    if evidence_report["kind"] != "espnow" or evidence_report["status"] != "fixture":
+        raise RuntimeError("bundled evidence report is not the expected ESP-NOW fixture")
+    result["evidence"] = str(evidence)
     # A PyInstaller windowed executable has no reliable stdout contract. Parse
     # the bundled canonical replay directly so this validator remains useful
     # on CI and on Windows without launching a GUI process.
@@ -43,7 +51,7 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
         health = Path(tempfile.gettempdir()) / f"zephyr-mesh-smoke-{os.getpid()}.healthy"
         marker.unlink(missing_ok=True)
         health.unlink(missing_ok=True)
-        process = subprocess.Popen([str(executable), "--smoke-ready", str(marker), "--smoke-step", "--smoke-health", str(health)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+        process = subprocess.Popen([str(executable), "--smoke-ready", str(marker), "--smoke-step", "--smoke-health", str(health), "--smoke-evidence", str(evidence)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
         try:
             deadline = time.monotonic() + 5.0
             while time.monotonic() < deadline and not marker.is_file():
@@ -54,14 +62,14 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
                 details = (stderr or "").strip()[-4000:]
                 raise RuntimeError(f"frozen GUI did not publish its readiness marker (exit={process.returncode}); stderr={details}")
             marker_text = marker.read_text(encoding="utf-8").strip()
-            if marker_text != "ready frame=2/6":
+            if marker_text != "ready frame=2/6 evidence_kind=espnow":
                 raise RuntimeError(f"unexpected frozen GUI readiness marker: {marker_text}")
             if process.poll() is not None:
                 raise RuntimeError("frozen GUI exited after publishing readiness")
             deadline = time.monotonic() + 2.0
             while time.monotonic() < deadline and not health.is_file():
                 time.sleep(0.05)
-            if not health.is_file() or health.read_text(encoding="utf-8").strip() != "healthy frame=2/6":
+            if not health.is_file() or health.read_text(encoding="utf-8").strip() != "healthy frame=2/6 evidence_kind=espnow":
                 process.terminate()
                 _, stderr = process.communicate(timeout=5.0)
                 details = (stderr or "").strip()[-4000:]

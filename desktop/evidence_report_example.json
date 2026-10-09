@@ -1,0 +1,88 @@
+{
+  "kind": "espnow",
+  "limitations": [
+    "Observed records only. This report does not establish radio tolerance, coverage, or flight performance."
+  ],
+  "schema": "zephyr-evidence-report-1",
+  "source": {
+    "name": "trace_example.json",
+    "schema": "zephyr-espnow-trace-1",
+    "sha256": "8c574f9158e70d493fd72e331da9f972c223a0dea3062a298bdbcc8c8e579ef3"
+  },
+  "status": "fixture",
+  "summary": {
+    "aggregation": {
+      "delay_population": "one sample per received record with shared-clock age, including repeated logical identities",
+      "quantile_method": "sorted empirical samples with linear interpolation at (n-1)*p; descriptive, not population-tail estimates",
+      "rssi_population": "one sample per record with supplied RSSI, including repeated logical identities",
+      "weighting": "equal weight per observed record; routes and capture conditions are pooled"
+    },
+    "delay": {
+      "available": true,
+      "count": 1,
+      "max": 0.012,
+      "mean": 0.012,
+      "min": 0.012,
+      "p50": 0.012,
+      "p95": 0.012,
+      "unit": "s"
+    },
+    "evidence_boundary": "observed trace summary; not radio tolerance or flight performance",
+    "packets": {
+      "censoring": "not inferred; unknown reasons alone do not establish censoring time or mechanism",
+      "complete_outcome_denominator": true,
+      "denominator_contract": "one record per observed transmission attempt; repeated logical identities remain separate records; unlogged attempts are not inferred",
+      "duplicates": 0,
+      "identity_fields": [
+        "sender_id",
+        "receiver_id",
+        "sender_session_id",
+        "seq"
+      ],
+      "logical_identity_count": 2,
+      "loss_rate": 0.5,
+      "loss_rate_bounds": {
+        "interpretation": "identification bounds over observed records; not confidence intervals",
+        "lower": 0.5,
+        "upper": 0.5
+      },
+      "lost": 1,
+      "observed_transmission_records": 2,
+      "out_of_order": 0,
+      "received": 1,
+      "unknown_reason_counts": {},
+      "unknown_unresolved": 0
+    },
+    "provenance": {
+      "capture": {
+        "channel": 6,
+        "device_ids": [
+          "drone-a",
+          "ground-b"
+        ],
+        "firmware": "example-only",
+        "phy": "example-only",
+        "transport": "ESP-NOW"
+      },
+      "clock_domain": "shared_monotonic",
+      "clock_uncertainty_s": null,
+      "code_revision": null,
+      "notes": null,
+      "source": "checked-in example; not a hardware capture",
+      "source_schema": "zephyr-espnow-trace-1",
+      "status": "fixture",
+      "trace_id": "example-synthetic-001"
+    },
+    "rssi": {
+      "available": true,
+      "count": 1,
+      "max": -55.0,
+      "mean": -55.0,
+      "min": -55.0,
+      "p50": -55.0,
+      "p95": -55.0,
+      "unit": "dBm"
+    },
+    "schema": "zephyr-espnow-trace-summary-1"
+  }
+}

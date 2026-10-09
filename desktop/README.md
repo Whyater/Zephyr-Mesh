@@ -14,6 +14,18 @@ keep-out volume, and Control-L moves focus to the fleet filter. The Canvas
 projection is intentionally lightweight and deterministic, while the macOS
 surface provides the native SceneKit 3D renderer.
 
+Both desktop surfaces open the same portable evidence envelope. Create one
+from a raw trace or hardware profile with:
+
+```bash
+PYTHONPATH=. python tools/build_evidence_report.py vision sim/vision_trace_example.json --output /tmp/zephyr-vision-report.json
+```
+
+Choose **Open evidence report…** in the File menu, Control-O on Windows, or
+Command-O on macOS. The inspector preserves nested values and explicit
+`null` fields, shows the declared source SHA-256 and status, and keeps report
+limitations visible. Reports never enter a vehicle command path.
+
 On Windows, build a self-contained executable from the repository root with:
 
 ```powershell

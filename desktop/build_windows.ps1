@@ -10,7 +10,7 @@ param(
 & $Python -m pip install --requirement requirements-windows.txt
 New-Item -ItemType Directory -Force -Path $Output | Out-Null
 & $Python -m PyInstaller --noconfirm --clean --windowed --name ZephyrMeshWindows `
-    --paths "." --hidden-import tools.release_updater --hidden-import desktop.replay --hidden-import desktop.design_tokens --add-data "runs\s7-swarm\run.json;runs\s7-swarm" --distpath "$Output" desktop\windows_preview.py
+    --paths "." --hidden-import tools.release_updater --hidden-import desktop.replay --hidden-import desktop.design_tokens --hidden-import desktop.evidence --add-data "runs\s7-swarm\run.json;runs\s7-swarm" --add-data "desktop\evidence_report_example.json;desktop" --distpath "$Output" desktop\windows_preview.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & $Python -m PyInstaller --noconfirm --clean --console --onefile --name ZephyrMeshUpdater `
     --paths "." --distpath "$Output" --workpath "$Output\build-updater" desktop\windows_updater.py

@@ -10,6 +10,7 @@ This roadmap is written for contributors and reviewers. It separates shipped cod
 - Adapter foundation: typed `DroneAdapter`, deterministic `SimAdapter`, explicit command authority arbitration, and latched link/battery failsafe states.
 - Native macOS cockpit preview in `macos/ZephyrMeshApp` using SwiftUI and SceneKit. It is synthetic and read-only, and it already consumes a compact projection of the canonical Python S7 event log.
 - Windows-first Tkinter preview in `desktop/windows_preview.py`, with a depth-aware quadcopter projection, fleet filtering, focus/reset controls, keep-out volume, cooperative diagnostics, parts profiles, and the same replay controls as the macOS cockpit. It uses the same Python replay model and stays synthetic and read-only.
+- Cross-platform evidence inspector: `tools/build_evidence_report.py` creates a strict, read-only envelope for ESP-NOW, vision, hardware-profile, and bench artifacts. Both desktop apps open the envelope with matching schema, status, source-hash, size, depth, duplicate-key, and limitation checks. The Windows frozen smoke path opens the bundled fixture.
 - Shared release updater contract with digest verification, safe extraction, rollback backup, runtime version discovery, and post-exit replacement for the macOS bundle and Windows directory build. Release `v0.1.5` publishes Apple Silicon, Intel, and Windows x86_64 assets with SHA-256 sidecars and a manifest. The workflow runs a frozen Windows GUI smoke check; physical install and relaunch remain open.
 
 ## Next evidence gates
@@ -21,6 +22,7 @@ This roadmap is written for contributors and reviewers. It separates shipped cod
 5. Capture a first documented ESP-NOW run, validate it against `sim/trace_schema.json`, replay it through `sim.link.replay_trace`, and inspect it with `tools/analyze_trace.py` before fitting any link parameters.
 6. Capture a documented camera/tracker run, validate it against `sim/vision_trace_schema.json`, and inspect it with `tools/analyze_vision_trace.py` before fitting noise, latency, or recovery parameters.
 7. Exercise the v0.1.5 downloads on physical macOS and Windows hosts, including updater staging and relaunch. macOS code signing/notarization and Windows publisher signing remain release gates.
+8. Replace the checked-in fixture report with public measured reports only after issues [#1](https://github.com/Whyater/Zephyr-Mesh/issues/1), [#2](https://github.com/Whyater/Zephyr-Mesh/issues/2), and [#3](https://github.com/Whyater/Zephyr-Mesh/issues/3) produce documented artifacts and review them through the same inspector.
 
 ## Later
 

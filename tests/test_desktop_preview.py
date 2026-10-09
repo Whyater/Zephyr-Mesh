@@ -88,6 +88,13 @@ def test_windows_build_writes_utf8_version_without_bom():
     script = (ROOT / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
     assert "UTF8Encoding" in script
     assert "WriteAllText" in script
+    assert "hidden-import desktop.evidence" in script
+
+
+def test_windows_requirements_pin_evidence_loader_dependencies():
+    requirements = (ROOT / "requirements-windows.txt").read_text(encoding="utf-8")
+    for dependency in ("attrs==", "jsonschema==", "jsonschema-specifications==", "referencing==", "rpds-py=="):
+        assert dependency in requirements
 
 
 def test_windows_glyph_rotation_keeps_quad_geometry_bounded():

@@ -50,6 +50,7 @@ The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\Zeph
 - Hardware profile and actuator foundation with SI-unit motor and propeller inputs, first-order motor lag, RPM saturation, torque mixing, power draw, and battery sag.
 - Strict SI-unit hardware-profile documents with custom motor and propeller part IDs, status/source/calibration provenance, JSON Schema validation, round-trip loading, and a normalization CLI.
 - Versioned bench trace schema and summary CLI for RPM, thrust, voltage, current, temperature, test conditions, incomplete readings, and transparent electrical input power summaries without curve fitting.
+- Portable evidence reports for the macOS and Windows inspectors, preserving source hashes, declared status, nested values, and limitations.
 - Typed drone adapter, authority arbitration, and replayable link or battery failsafe contracts.
 - Native macOS SwiftUI and SceneKit cockpit plus a Windows Tkinter desktop surface built from the same canonical replay.
 - Local release updater contract with digest verification, path-safe extraction, rollback staging, and architecture-aware asset selection.
@@ -69,10 +70,17 @@ PYTHONPATH=. python tools/analyze_trace.py sim/trace_example.json
 PYTHONPATH=. python tools/analyze_vision_trace.py sim/vision_trace_example.json
 PYTHONPATH=. python tools/validate_hardware_profile.py sim/hardware_profile_example.json
 PYTHONPATH=. python tools/analyze_bench_trace.py sim/bench_trace_example.json
+PYTHONPATH=. python tools/build_evidence_report.py espnow sim/trace_example.json --output /tmp/zephyr-espnow-report.json
 python -m demo.demo --host 127.0.0.1 --port 8765
 ```
 
 Open `http://127.0.0.1:8765` in a browser on the same computer. The demo is read-only and serves synthetic fixtures. The generation command writes a temporary fixture and leaves the checked-in files unchanged. The canonical artifacts are [`runs/s0-baseline`](runs/s0-baseline), [`runs/s2-physics`](runs/s2-physics), and [`runs/s7-swarm`](runs/s7-swarm). The native and Windows surfaces consume the S7 replay through [`desktop/replay.py`](desktop/replay.py) and the checked-in macOS fixture projection. See [`ROADMAP.md`](ROADMAP.md) for evidence gates.
+
+To inspect a trace or profile in either desktop app, create a portable report
+with `tools/build_evidence_report.py`, then choose **Open evidence report…**
+from the File menu. Reports are read-only. Their declared status and
+limitations stay attached to the source summary. A digest identifies the
+input file without establishing flight performance.
 
 ## Planned features
 

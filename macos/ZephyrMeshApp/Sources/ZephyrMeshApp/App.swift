@@ -5,11 +5,20 @@ import AppKit
 @main
 struct ZephyrMeshApp: App {
     @StateObject private var model = CockpitModel()
+    @StateObject private var evidenceInspector = EvidenceInspectorController()
 
     var body: some Scene {
         WindowGroup("Zephyr Mesh") {
             CockpitView(model: model)
                 .frame(minWidth: 1380, minHeight: 820)
+                .sheet(isPresented: $evidenceInspector.isPresented) {
+                    if let report = evidenceInspector.report {
+                        EvidenceInspectorView(report: report, filename: evidenceInspector.reportFilename)
+                    }
+                }
+                .alert(item: $evidenceInspector.error) { message in
+                    Alert(title: Text("Could not open evidence report"), message: Text(message.message), dismissButton: .default(Text("OK")))
+                }
         }
         .commands {
             CommandGroup(after: .newItem) {
@@ -18,6 +27,8 @@ struct ZephyrMeshApp: App {
                 Button("Step replay") { model.stepFrame() }
                     .keyboardShortcut(.rightArrow, modifiers: [])
                 Button("Check for updates") { model.checkForUpdates() }
+                Button("Open evidence report…") { evidenceInspector.openPanel() }
+                    .keyboardShortcut("o", modifiers: [.command])
                 Button("Reset camera") { model.resetCamera() }
             }
         }

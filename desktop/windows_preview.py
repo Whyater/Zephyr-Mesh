@@ -100,6 +100,9 @@ class WindowsReplayApp:
         self.telemetry = None
         self.status = None
         self._disclosures: dict[str, tuple[Any, Any]] = {}
+        self._evidence_report: dict[str, Any] | None = None
+        self._evidence_path: Path | None = None
+        self._evidence_window: Any | None = None
         self._min_x, self._max_x, self._min_y, self._max_y = self._bounds()
         self._view_center = ((self._min_x + self._max_x) / 2, (self._min_y + self._max_y) / 2)
         self._zoom = 1.0
@@ -126,6 +129,14 @@ class WindowsReplayApp:
         style.configure("Disclosure.TButton", padding=(0, TOKENS.disclosure_pad), anchor="w")
         style.configure("Fleet.Treeview", rowheight=TOKENS.fleet_row_height, font=(TOKENS.ui_font, TOKENS.body_size))
         style.configure("Fleet.Treeview.Heading", font=(TOKENS.ui_font, TOKENS.small_size, "bold"))
+
+        menu = self.tk.Menu(root)
+        file_menu = self.tk.Menu(menu, tearoff=False)
+        file_menu.add_command(label="Open evidence report…", accelerator="Ctrl+O", command=self._open_evidence_report)
+        file_menu.add_separator()
+        file_menu.add_command(label="Close", command=root.destroy)
+        menu.add_cascade(label="File", menu=file_menu)
+        root.configure(menu=menu)
 
         header = self.ttk.Frame(root, style="Surface.TFrame", padding=(TOKENS.spacing_lg, TOKENS.header_vertical))
         header.pack(fill="x")
@@ -161,6 +172,7 @@ class WindowsReplayApp:
         root.bind("<o>", lambda _event: self._toggle_keepout())
         root.bind("<O>", lambda _event: self._toggle_keepout())
         root.bind("<Control-l>", lambda _event: (filter_entry.focus_set(), "break")[1])
+        root.bind("<Control-o>", lambda _event: (self._open_evidence_report(), "break")[1])
 
         center = self.ttk.Frame(body, style="Night.TFrame")
         center.grid(row=0, column=1, sticky="nsew")
@@ -553,6 +565,110 @@ class WindowsReplayApp:
                     self.root.after(700, self.root.destroy)
         threading.Thread(target=worker, daemon=True).start()
 
+    @staticmethod
+    def _evidence_loader() -> tuple[Any, type[ValueError]]:
+        """Load the shared report decoder without making Tk import it early."""
+
+        try:
+            from .evidence import EvidenceError, load_evidence_report
+        except ImportError:  # direct script execution and PyInstaller
+            try:
+                from desktop.evidence import EvidenceError, load_evidence_report
+            except ImportError:
+                from evidence import EvidenceError, load_evidence_report
+        return load_evidence_report, EvidenceError
+
+    def _open_evidence_report(self) -> bool:
+        """Ask for one portable report and show it in a read-only inspector."""
+
+        from tkinter import filedialog
+
+        selected = filedialog.askopenfilename(
+            parent=self.root,
+            title="Open evidence report",
+            filetypes=(("JSON evidence reports", "*.json"), ("All files", "*.*")),
+        )
+        if not selected:
+            return False
+        return self._show_evidence_report(Path(selected))
+
+    def _show_evidence_report(self, path: Path) -> bool:
+        """Decode and display an evidence envelope without touching replay state."""
+
+        from tkinter import messagebox
+
+        loader, evidence_error = self._evidence_loader()
+        try:
+            report = loader(Path(path))
+        except evidence_error as exc:
+            messagebox.showerror("Evidence report", str(exc), parent=self.root)
+            return False
+        except (OSError, TypeError, ValueError) as exc:
+            messagebox.showerror("Evidence report", f"Could not open report: {exc}", parent=self.root)
+            return False
+        if not isinstance(report, dict):
+            messagebox.showerror("Evidence report", "The report decoder returned an invalid object.", parent=self.root)
+            return False
+        self._evidence_report = report
+        self._evidence_path = Path(path)
+        self._render_evidence_report(report, self._evidence_path)
+        return True
+
+    @staticmethod
+    def _report_source(report: dict[str, Any]) -> dict[str, Any]:
+        source = report.get("source")
+        return source if isinstance(source, dict) else {}
+
+    def _render_evidence_report(self, report: dict[str, Any], path: Path) -> None:
+        """Render provenance and JSON values, retaining nulls and nested fields."""
+
+        if self._evidence_window is not None:
+            try:
+                self._evidence_window.destroy()
+            except self.tk.TclError:
+                pass
+        window = self.tk.Toplevel(self.root)
+        self._evidence_window = window
+        window.title(f"Evidence report · {path.name}")
+        window.minsize(560, 460)
+        window.configure(background=TOKENS.background)
+        window.transient(self.root)
+
+        source = self._report_source(report)
+        kind = report.get("kind")
+        status = report.get("status")
+        digest = source.get("sha256")
+        schema = source.get("schema") or report.get("schema")
+        header = self.ttk.Frame(window, style="Surface.TFrame", padding=TOKENS.spacing_lg)
+        header.pack(fill="x")
+        self.ttk.Label(header, text="Evidence report", style="Title.TLabel").pack(anchor="w")
+        self.ttk.Label(header, text=path.name, style="Muted.TLabel").pack(anchor="w", pady=(TOKENS.content_pad, 0))
+        details = self.ttk.Frame(window, style="Surface.TFrame", padding=(TOKENS.spacing_lg, 0, TOKENS.spacing_lg, TOKENS.spacing_sm))
+        details.pack(fill="x")
+        self.ttk.Label(details, text=f"Kind  {kind or '—'}    Declared status  {status or '—'}", style="Value.TLabel").pack(anchor="w")
+        self.ttk.Label(details, text=f"Source SHA-256 (declared)  {digest or '—'}", style="Muted.TLabel").pack(anchor="w", pady=(TOKENS.content_pad, 0))
+        self.ttk.Label(details, text=f"Schema  {schema or '—'}", style="Muted.TLabel").pack(anchor="w")
+
+        body = self.ttk.Frame(window, style="Night.TFrame", padding=(TOKENS.spacing_lg, TOKENS.spacing_sm, TOKENS.spacing_lg, TOKENS.spacing_lg))
+        body.pack(fill="both", expand=True)
+        body.columnconfigure(0, weight=1)
+        body.rowconfigure(1, weight=1)
+        self.ttk.Label(body, text="Summary", style="Muted.TLabel").grid(row=0, column=0, sticky="w")
+        text = self.tk.Text(body, wrap="word", background=TOKENS.surface, foreground=TOKENS.text, relief="flat", borderwidth=0, padx=TOKENS.content_pad, pady=TOKENS.content_pad, font=(TOKENS.mono_font, TOKENS.body_size), takefocus=True)
+        scrollbar = self.ttk.Scrollbar(body, orient="vertical", command=text.yview)
+        text.configure(yscrollcommand=scrollbar.set)
+        text.grid(row=1, column=0, sticky="nsew", pady=(TOKENS.content_pad, TOKENS.spacing_sm))
+        scrollbar.grid(row=1, column=1, sticky="ns", pady=(TOKENS.content_pad, TOKENS.spacing_sm))
+        summary = report.get("summary")
+        text.insert("1.0", json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=False))
+        text.configure(state="disabled")
+
+        limitations = report.get("limitations")
+        limitation_text = limitations if isinstance(limitations, list) else []
+        self.ttk.Label(body, text="Limitations", style="Muted.TLabel").grid(row=2, column=0, sticky="w")
+        limits = self.ttk.Label(body, text="\n".join(f"• {item}" for item in limitation_text) or "None recorded", justify="left", anchor="w", style="Muted.TLabel", wraplength=510)
+        limits.grid(row=3, column=0, sticky="ew", pady=(TOKENS.content_pad, 0))
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -561,6 +677,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--smoke-ready", type=Path, help="write a readiness marker after the GUI is constructed")
     parser.add_argument("--smoke-step", action="store_true", help="step one replay frame before writing the readiness marker")
     parser.add_argument("--smoke-health", type=Path, help="write a second marker after the GUI remains healthy in its event loop")
+    parser.add_argument("--smoke-evidence", type=Path, help="open and validate one evidence report during frozen GUI smoke")
     args = parser.parse_args(argv)
     if args.headless:
         print(json.dumps(ReplayModel.from_path(args.run).summary(), indent=2, sort_keys=True))
@@ -580,8 +697,19 @@ def main(argv: list[str] | None = None) -> int:
     app = WindowsReplayApp(root, model)
     if args.smoke_step:
         app._step()
+    if args.smoke_evidence:
+        if not app._show_evidence_report(args.smoke_evidence):
+            try:
+                root.destroy()
+            except tk.TclError:
+                pass
+            return 2
+        evidence_kind = app._evidence_report.get("kind") if app._evidence_report else None
+    else:
+        evidence_kind = None
     if args.smoke_ready:
-        args.smoke_ready.write_text(f"ready frame={model.index + 1}/{model.frame_count}\n", encoding="utf-8")
+        suffix = f" evidence_kind={evidence_kind}" if evidence_kind else ""
+        args.smoke_ready.write_text(f"ready frame={model.index + 1}/{model.frame_count}{suffix}\n", encoding="utf-8")
     if args.smoke_ready or args.smoke_health:
         # Hosted Windows runners can terminate a Tk event loop immediately,
         # and calling ``update`` in that state can make the frozen process
@@ -600,7 +728,8 @@ def main(argv: list[str] | None = None) -> int:
         while time.monotonic() < smoke_deadline:
             elapsed = time.monotonic() - smoke_started
             if args.smoke_health and not health_written and elapsed >= 0.25:
-                args.smoke_health.write_text(f"healthy frame={model.index + 1}/{model.frame_count}\n", encoding="utf-8")
+                suffix = f" evidence_kind={evidence_kind}" if evidence_kind else ""
+                args.smoke_health.write_text(f"healthy frame={model.index + 1}/{model.frame_count}{suffix}\n", encoding="utf-8")
                 health_written = True
             time.sleep(0.02)
         try:
