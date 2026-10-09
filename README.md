@@ -54,7 +54,7 @@ The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\Zeph
 - S6 investigation reports for latency, loss probability, sensing noise, target acceleration, estimator error, and scenario-specific failure labels. These are deterministic research fixtures, not tolerance or flight-performance results.
 - S7 replay analysis for per-route outcomes, abstract packet age, estimator coverage and age, bracketed reacquisition intervals, constraint flags, and observed separation. These metrics describe the checked-in replay and do not establish radio tolerance or flight safety.
 - Typed drone adapter, authority arbitration, and replayable link or battery failsafe contracts.
-- Native macOS SwiftUI and SceneKit cockpit plus a Windows Tkinter desktop surface built from the same canonical replay.
+- Native macOS SwiftUI and SceneKit cockpit plus a Windows Tkinter desktop surface built from the same canonical replay, including compact mission-event history and replay-only authority or failsafe context.
 - Local release updater contract with digest verification, path-safe extraction, rollback staging, and architecture-aware asset selection.
 
 ## Run from source
