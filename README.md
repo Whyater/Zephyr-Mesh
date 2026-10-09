@@ -10,20 +10,25 @@ The simulator is intentionally transparent. Python owns the dynamics and replay 
 
 ### macOS
 
-When the first desktop release is published, its macOS package will be linked from [Releases](https://github.com/Whyater/Zephyr-Mesh/releases). The native app requires macOS 14 or newer and runs on Apple Silicon or Intel Macs. Until then, install the Xcode Command Line Tools and build the local bundle:
+The native app requires macOS 14 or newer. Download the architecture that matches your Mac from [Zephyr Mesh v0.1.5](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.1.5):
+
+- [Apple Silicon](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.1.5/ZephyrMesh-macos-arm64-v0.1.5.zip)
+- [Intel](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.1.5/ZephyrMesh-macos-x86_64-v0.1.5.zip)
+
+Unzip the download and open `ZephyrMesh.app`. SHA-256 sidecars are attached to the release. The package is ad hoc signed and may require a one-time confirmation in macOS Privacy & Security. To build the local bundle instead, install the Xcode Command Line Tools and run:
 
 ```bash
 python3 macos/build_app.py
 open macos/ZephyrMesh.app
 ```
 
-The local bundle is ad hoc signed and may require a one-time confirmation in macOS Privacy & Security. It does not require a server or network connection to show the bundled replay.
+The app does not require a server or network connection to show the bundled replay.
 
 ### Windows
 
-When the first desktop release is published, its Windows package will be linked from [Releases](https://github.com/Whyater/Zephyr-Mesh/releases). The package contains the desktop preview and its updater helper. Until then, build it locally with the PowerShell command below.
+Download the [Windows x86_64 package](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.1.5/ZephyrMesh-windows-x86_64-v0.1.5.zip) from [Zephyr Mesh v0.1.5](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.1.5). Extract the ZIP and open `ZephyrMeshWindows\ZephyrMeshWindows.exe`. The package includes its updater helper and a SHA-256 sidecar.
 
-Install Python 3.11 or newer, open PowerShell at the repository root, and run:
+To build locally, install Python 3.11 or newer, open PowerShell at the repository root, and run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File desktop/build_windows.ps1
@@ -68,16 +73,15 @@ Open `http://127.0.0.1:8765` in a browser on the same computer. The demo is read
 - Add hardware adapters and a ground-station interface behind the existing `DroneAdapter` contract.
 - Add supervised mission authoring, replay export, explicit controller assignment, team-command arbitration, and link-loss recovery workflows.
 - Measure Windows and macOS target-device parity for frame time, memory, accessibility, reduced motion, and cooperative diagnostics.
-- Publish architecture-matched, digest-published release packages for macOS and Windows. Publisher signing and notarization remain release gates.
+- Add publisher signing and notarization for broad macOS distribution.
 - Validate the model with a small, non-contact indoor demonstration. Payloads, contact interception, targeting people, and covert surveillance are outside the project.
 
-## Known limitations
+## Known Bugs/Limitations
 
 - The checked-in event logs and desktop views are synthetic replays. They do not represent a measured radio link, camera, motor, controller, or flight test.
 - Motor, propeller, battery, drag, and airflow values are scenario inputs or calibration placeholders. Downwash, ground effect, propeller wake interaction, and venue airflow still need measured models.
-- The Windows packaging and update path has not been run end to end on a physical Windows machine. The release workflow includes a Windows CI smoke check, but physical install, updater relaunch, and accessibility or frame-time measurements remain open. Linux packaging is later work.
-- The local macOS bundle is not notarized. A published release will need a Developer ID signature and notarization before broad distribution.
-- No release asset is published yet. The in-app update action reports that the release is unavailable until a release is created.
+- The release workflow builds and smoke-tests the Windows package, but physical Windows install, updater relaunch, accessibility, and frame-time measurements remain open. Linux packaging is later work.
+- The v0.1.5 macOS package is not notarized. Broad distribution still needs a Developer ID signature and notarization.
 
 ## Contributing
 
