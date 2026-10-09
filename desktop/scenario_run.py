@@ -35,6 +35,82 @@ class ScenarioFrame:
 
 
 @dataclass(frozen=True)
+class ScenarioPlotBounds:
+    min_x: float
+    max_x: float
+    min_y: float
+    max_y: float
+
+
+@dataclass(frozen=True)
+class ScenarioPlotGeometry:
+    bounds: ScenarioPlotBounds
+    target: tuple[float, float]
+    agents: tuple[tuple[str, float, float, bool], ...]
+    keep_out_spheres: tuple[tuple[str, float, float, float], ...]
+
+
+def scenario_frame_geometry(frame: ScenarioFrame) -> ScenarioPlotGeometry:
+    """Return bounded top-down geometry for one synthetic frame."""
+    target = (float(frame.target_position_m[0]), float(frame.target_position_m[1]))
+    agents = tuple(
+        (
+            str(agent["agent_id"]),
+            float(agent["position_m"][0]),
+            float(agent["position_m"][1]),
+            bool(agent["active"]),
+        )
+        for agent in frame.agents
+    )
+    keep_out_spheres = tuple(
+        (
+            str(sphere["label"]),
+            float(sphere["center_m"][0]),
+            float(sphere["center_m"][1]),
+            float(sphere["radius_m"]),
+        )
+        for sphere in frame.keep_out_spheres
+    )
+    x_values = [target[0], *(agent[1] for agent in agents)]
+    y_values = [target[1], *(agent[2] for agent in agents)]
+    x_values.extend(center_x + radius for _, center_x, _, radius in keep_out_spheres)
+    x_values.extend(center_x - radius for _, center_x, _, radius in keep_out_spheres)
+    y_values.extend(center_y + radius for _, _, center_y, radius in keep_out_spheres)
+    y_values.extend(center_y - radius for _, _, center_y, radius in keep_out_spheres)
+    span = max(max(x_values) - min(x_values), max(y_values) - min(y_values), 1.0)
+    margin = max(span * 0.05, 0.25)
+    return ScenarioPlotGeometry(
+        bounds=ScenarioPlotBounds(min(x_values) - margin, max(x_values) + margin, min(y_values) - margin, max(y_values) + margin),
+        target=target,
+        agents=agents,
+        keep_out_spheres=keep_out_spheres,
+    )
+
+
+def project_scenario_point(point: tuple[float, float], bounds: ScenarioPlotBounds, width: float, height: float, inset: float = 18.0) -> tuple[float, float]:
+    """Project one top-down metre point into a bounded canvas rectangle."""
+    width = max(float(width), 1.0)
+    height = max(float(height), 1.0)
+    inset = max(float(inset), 0.0)
+    span_x = max(bounds.max_x - bounds.min_x, 1.0)
+    span_y = max(bounds.max_y - bounds.min_y, 1.0)
+    scale = min(max(width - 2.0 * inset, 1.0) / span_x, max(height - 2.0 * inset, 1.0) / span_y)
+    offset_x = (width - span_x * scale) / 2.0
+    offset_y = (height - span_y * scale) / 2.0
+    return (offset_x + (point[0] - bounds.min_x) * scale, height - offset_y - (point[1] - bounds.min_y) * scale)
+
+
+def project_scenario_radius(radius_m: float, bounds: ScenarioPlotBounds, width: float, height: float, inset: float = 18.0) -> float:
+    width = max(float(width), 1.0)
+    height = max(float(height), 1.0)
+    inset = max(float(inset), 0.0)
+    span_x = max(bounds.max_x - bounds.min_x, 1.0)
+    span_y = max(bounds.max_y - bounds.min_y, 1.0)
+    scale = min(max(width - 2.0 * inset, 1.0) / span_x, max(height - 2.0 * inset, 1.0) / span_y)
+    return max(float(radius_m), 0.0) * scale
+
+
+@dataclass(frozen=True)
 class ScenarioRun:
     document: Mapping[str, Any]
     source_path: Path

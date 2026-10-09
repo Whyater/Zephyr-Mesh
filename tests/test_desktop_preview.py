@@ -6,7 +6,7 @@ import types
 import pytest
 
 from desktop.replay import ReplayFormatError, ReplayModel, filter_agents
-from desktop.scenario_run import ScenarioRunCursor, load_scenario_run, selected_frame_summary
+from desktop.scenario_run import ScenarioRunCursor, load_scenario_run, project_scenario_point, scenario_frame_geometry, selected_frame_summary
 
 
 ROOT = Path(__file__).parents[1]
@@ -139,6 +139,21 @@ def test_desktop_decoder_preserves_moving_keep_out_snapshots():
     cursor.step()
     assert run.frames[1].keep_out_spheres[0]["center_m"] == [2.025, 0.0, 1.5]
     assert "keep-out 1" in selected_frame_summary(run, cursor)
+
+
+def test_scenario_geometry_is_bounded_and_follows_selected_frame():
+    fixture = ROOT / "macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
+    run = load_scenario_run(fixture)
+    first = scenario_frame_geometry(run.frames[0])
+    second = scenario_frame_geometry(run.frames[1])
+    assert len(first.agents) == 1
+    assert first.keep_out_spheres[0][1:3] == (2.0, 0.0)
+    assert second.keep_out_spheres[0][1:3] == (2.025, 0.0)
+    assert first.bounds.min_x < 1.5 < first.bounds.max_x
+    assert first.bounds.min_y < 0.0 < first.bounds.max_y
+    projected = project_scenario_point(first.target, first.bounds, 300, 180)
+    assert 0.0 <= projected[0] <= 300.0
+    assert 0.0 <= projected[1] <= 180.0
 
 
 def test_replay_model_rejects_missing_steps(tmp_path):

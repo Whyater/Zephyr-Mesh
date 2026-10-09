@@ -246,6 +246,22 @@ final class EvidenceInspectorTests: XCTestCase {
         XCTAssertEqual(label, "moving-wall")
     }
 
+    func testScenarioPlotGeometryTracksMovingFrameAndProjectsInsideCanvas() throws {
+        let fixture = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/zephyr-s7-moving-scenario-run-1.json")
+        let run = try ScenarioRunDocument.load(from: fixture)
+        let first = ScenarioPlotGeometry.make(frame: run.frames[0])
+        let second = ScenarioPlotGeometry.make(frame: run.frames[1])
+        XCTAssertEqual(first.keepOutSpheres[0].center.x, 2.0, accuracy: 1e-12)
+        XCTAssertEqual(second.keepOutSpheres[0].center.x, 2.025, accuracy: 1e-12)
+        let projected = ScenarioPlotGeometry.project(first.target, bounds: first.bounds, width: 300, height: 180)
+        XCTAssertGreaterThanOrEqual(projected.x, 0)
+        XCTAssertLessThanOrEqual(projected.x, 300)
+        XCTAssertGreaterThanOrEqual(projected.y, 0)
+        XCTAssertLessThanOrEqual(projected.y, 180)
+    }
+
     func testRejectsMovingSphereRadiusAboveBoundAfterCanonicalRehash() throws {
         let fixture = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

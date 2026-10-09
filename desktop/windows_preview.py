@@ -23,16 +23,16 @@ from typing import Any
 
 try:
     from .replay import ReplayModel, filter_agents
-    from .scenario_run import ScenarioRunCursor, ScenarioRunFormatError, load_scenario_run, selected_frame_summary
+    from .scenario_run import ScenarioRunCursor, ScenarioRunFormatError, load_scenario_run, project_scenario_point, project_scenario_radius, scenario_frame_geometry, selected_frame_summary
     from .design_tokens import TOKENS
 except ImportError:  # direct script execution for PyInstaller
     try:
         from desktop.replay import ReplayModel, filter_agents
-        from desktop.scenario_run import ScenarioRunCursor, ScenarioRunFormatError, load_scenario_run, selected_frame_summary
+        from desktop.scenario_run import ScenarioRunCursor, ScenarioRunFormatError, load_scenario_run, project_scenario_point, project_scenario_radius, scenario_frame_geometry, selected_frame_summary
         from desktop.design_tokens import TOKENS
     except ImportError:
         from replay import ReplayModel, filter_agents
-        from scenario_run import ScenarioRunCursor, ScenarioRunFormatError, load_scenario_run, selected_frame_summary
+        from scenario_run import ScenarioRunCursor, ScenarioRunFormatError, load_scenario_run, project_scenario_point, project_scenario_radius, scenario_frame_geometry, selected_frame_summary
         from design_tokens import TOKENS
 
 
@@ -773,18 +773,44 @@ class WindowsReplayApp:
         summary_text.insert("1.0", json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=False))
         summary_text.configure(state="disabled")
         summary_text.grid(row=1, column=0, sticky="nsew", pady=(TOKENS.content_pad, TOKENS.spacing_sm))
+        plot_canvas = self.tk.Canvas(body, height=190, background=TOKENS.canvas, highlightthickness=0, relief="flat")
+        plot_canvas.grid(row=2, column=0, sticky="ew", pady=(0, TOKENS.content_pad))
         cursor = ScenarioRunCursor(len(run.frames))
         selected_text = self.ttk.Label(body, style="Muted.TLabel", wraplength=620)
-        selected_text.grid(row=2, column=0, sticky="w", pady=(0, TOKENS.content_pad))
+        selected_text.grid(row=3, column=0, sticky="w", pady=(0, TOKENS.content_pad))
         controls = self.ttk.Frame(body, style="Surface.TFrame", padding=TOKENS.tight_padding)
-        controls.grid(row=3, column=0, sticky="ew", pady=(0, TOKENS.spacing_sm))
+        controls.grid(row=4, column=0, sticky="ew", pady=(0, TOKENS.spacing_sm))
         controls.columnconfigure(1, weight=1)
         slider = self.tk.Scale(controls, from_=0, to=max(0, len(run.frames) - 1), orient="horizontal", showvalue=False, command=lambda value: update(int(float(value))), background=TOKENS.control_background, troughcolor=TOKENS.control_track, highlightthickness=0, activebackground=TOKENS.control_active)
         slider.grid(row=0, column=1, sticky="ew", padx=TOKENS.timeline_gap)
 
+        def draw_geometry() -> None:
+            geometry = scenario_frame_geometry(run.frames[cursor.index])
+            width = max(1.0, float(plot_canvas.winfo_width()))
+            height = max(1.0, float(plot_canvas.winfo_height()))
+            plot_canvas.delete("all")
+            plot_canvas.create_text(TOKENS.canvas_label_x, TOKENS.canvas_label_y, text="Synthetic geometry · selected frame", fill=TOKENS.muted, anchor="nw", font=(TOKENS.mono_font, TOKENS.body_size))
+            for label, center_x, center_y, radius in geometry.keep_out_spheres:
+                x, y = project_scenario_point((center_x, center_y), geometry.bounds, width, height)
+                radius_px = project_scenario_radius(radius, geometry.bounds, width, height)
+                plot_canvas.create_oval(x - radius_px, y - radius_px, x + radius_px, y + radius_px, outline=TOKENS.warning, dash=(5, 4), width=2)
+                plot_canvas.create_text(x + radius_px + 4, y, text=label, fill=TOKENS.warning, anchor="w", font=(TOKENS.ui_font, TOKENS.small_size))
+            target_x, target_y = project_scenario_point(geometry.target, geometry.bounds, width, height)
+            target_radius = TOKENS.target_radius
+            plot_canvas.create_oval(target_x - target_radius, target_y - target_radius, target_x + target_radius, target_y + target_radius, outline=TOKENS.accent, width=2)
+            plot_canvas.create_line(target_x - TOKENS.target_cross, target_y, target_x + TOKENS.target_cross, target_y, fill=TOKENS.accent)
+            plot_canvas.create_line(target_x, target_y - TOKENS.target_cross, target_x, target_y + TOKENS.target_cross, fill=TOKENS.accent)
+            for _, agent_x, agent_y, active in geometry.agents:
+                x, y = project_scenario_point((agent_x, agent_y), geometry.bounds, width, height)
+                color = TOKENS.accent if active else TOKENS.warning
+                plot_canvas.create_oval(x - 4, y - 4, x + 4, y + 4, fill=color, outline=color)
+
+        plot_canvas.bind("<Configure>", lambda _event: draw_geometry())
+
         def update(index: int) -> None:
             cursor.seek(index)
             selected_text.configure(text=selected_frame_summary(run, cursor))
+            draw_geometry()
             if int(float(slider.get())) != cursor.index:
                 slider.set(cursor.index)
             previous.configure(state="normal" if cursor.index > 0 else "disabled")
@@ -798,7 +824,7 @@ class WindowsReplayApp:
         next_button = self.ttk.Button(controls, text="Next", command=lambda: update(cursor.step()))
         next_button.grid(row=0, column=3, padx=TOKENS.button_gap)
         self.ttk.Label(controls, text="Frame", style="Muted.TLabel").grid(row=0, column=4, padx=(TOKENS.button_gap, 0))
-        self.ttk.Label(body, text="Frames", style="Muted.TLabel").grid(row=4, column=0, sticky="w")
+        self.ttk.Label(body, text="Frames", style="Muted.TLabel").grid(row=5, column=0, sticky="w")
         frames_text = self.tk.Text(body, wrap="none", background=TOKENS.surface, foreground=TOKENS.text, relief="flat", borderwidth=0, padx=TOKENS.content_pad, pady=TOKENS.content_pad, font=(TOKENS.mono_font, TOKENS.body_size), takefocus=True)
         frame_lines = [
             f"frame {frame.step_index:>4}  t={frame.time_s:>8.3f} s  active={frame.active_count:>3}  agents={frame.agent_count:>3}"
@@ -806,8 +832,8 @@ class WindowsReplayApp:
         ]
         frames_text.insert("1.0", "\n".join(frame_lines))
         frames_text.configure(state="disabled")
-        frames_text.grid(row=5, column=0, sticky="nsew", pady=(TOKENS.content_pad, 0))
-        body.rowconfigure(5, weight=1)
+        frames_text.grid(row=6, column=0, sticky="nsew", pady=(TOKENS.content_pad, 0))
+        body.rowconfigure(6, weight=1)
         update(0)
         return True
 
