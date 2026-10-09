@@ -40,6 +40,14 @@ def test_same_seed_is_byte_deterministic():
     assert first == second
 
 
+def test_checked_in_example_config_generates_a_valid_run():
+    example = Path(__file__).parents[1] / "sim" / "scenario_example.json"
+    result = run_scenario(load_json_config(example), code_revision="test")
+    assert result["parameters"]["scenario_id"] == "s7-example"
+    assert len(result["frames"]) == result["parameters"]["steps"]
+    assert serialize_run(result).endswith(b"\n")
+
+
 def test_canonical_parameter_bytes_define_cross_language_hash_contract():
     result = run_scenario(config(), code_revision="test")
     canonical = result["parameters_canonical"]

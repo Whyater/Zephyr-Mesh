@@ -76,7 +76,7 @@ PYTHONPATH=. python tools/analyze_bench_trace.py sim/bench_trace_example.json
 PYTHONPATH=. python tools/build_evidence_report.py espnow sim/trace_example.json --output /tmp/zephyr-espnow-report.json
 PYTHONPATH=. python tools/build_investigation_report.py sim/investigation_example.json --output /tmp/zephyr-s6-report.json
 PYTHONPATH=. python tools/analyze_s7_run.py runs/s7-swarm/run.json
-PYTHONPATH=. python tools/run_scenario.py --config /path/to/scenario.json --output /tmp/zephyr-s7-scenario-run.json --summary
+PYTHONPATH=. python tools/run_scenario.py --config sim/scenario_example.json --output /tmp/zephyr-s7-scenario-run.json --summary
 python -m demo.demo --host 127.0.0.1 --port 8765
 ```
 

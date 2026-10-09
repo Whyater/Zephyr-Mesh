@@ -1,0 +1,31 @@
+{
+  "scenario_id": "s7-example",
+  "agent_count": 2,
+  "radius_m": 2.0,
+  "altitude_m": 1.5,
+  "steps": 3,
+  "seed": 7,
+  "dt_s": 0.05,
+  "target_velocity_mps": [0.0, 0.0, 0.0],
+  "target_link": {
+    "delay_s": 0.0,
+    "delay_jitter_s": 0.0,
+    "loss_model": "none",
+    "loss_probability": 0.0,
+    "burst_start_probability": 0.0,
+    "burst_end_probability": 1.0,
+    "contention_mode": "none",
+    "packet_duration_s": 0.0
+  },
+  "neighbor_link": {
+    "delay_s": 0.0,
+    "delay_jitter_s": 0.0,
+    "loss_model": "none",
+    "loss_probability": 0.0,
+    "burst_start_probability": 0.0,
+    "burst_end_probability": 1.0,
+    "contention_mode": "none",
+    "packet_duration_s": 0.0
+  },
+  "keep_out_spheres": []
+}
