@@ -23,8 +23,12 @@ try:
     from .replay import ReplayModel, filter_agents
     from .design_tokens import TOKENS
 except ImportError:  # direct script execution for PyInstaller
-    from replay import ReplayModel, filter_agents
-    from design_tokens import TOKENS
+    try:
+        from desktop.replay import ReplayModel, filter_agents
+        from desktop.design_tokens import TOKENS
+    except ImportError:
+        from replay import ReplayModel, filter_agents
+        from design_tokens import TOKENS
 
 
 RESOURCE_ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1]))
