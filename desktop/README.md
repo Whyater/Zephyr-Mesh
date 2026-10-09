@@ -49,7 +49,7 @@ missing digest.
 
 The repository contains a tag-driven workflow at
 `.github/workflows/release.yml`. A tag such as `v0.1.0` builds native macOS
-bundles on Apple Silicon (`macos-14`) and Intel (`macos-13`), builds the
+bundles on Apple Silicon (`macos-14`) and Intel (`macos-15-intel`), builds the
 Windows preview and helper on `windows-2022`, validates the frozen Windows replay, and publishes
 architecture-labeled ZIP assets. Each ZIP contains exactly one app directory,
 a `.sha256` sidecar, and a `release-manifest.json` is attached for mirrors and

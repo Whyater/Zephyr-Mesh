@@ -62,7 +62,10 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
             while time.monotonic() < deadline and not health.is_file():
                 time.sleep(0.05)
             if not health.is_file() or health.read_text(encoding="utf-8").strip() != "healthy frame=2/6":
-                raise RuntimeError("frozen GUI did not remain healthy after readiness")
+                process.terminate()
+                _, stderr = process.communicate(timeout=5.0)
+                details = (stderr or "").strip()[-4000:]
+                raise RuntimeError(f"frozen GUI did not remain healthy after readiness (exit={process.returncode}); stderr={details}")
             if process.poll() is not None:
                 raise RuntimeError("frozen GUI exited after health handshake")
         finally:
