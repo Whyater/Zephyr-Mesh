@@ -103,7 +103,7 @@ input file without establishing flight performance.
 - No measured ESP-NOW or camera trace is included yet. The versioned schemas are ready for documented hardware captures, but no radio tolerance, camera calibration, tracker, or flight-performance result is claimed.
 - Motor, propeller, battery, drag, and airflow values are scenario inputs or calibration placeholders. The profile document loader validates units, provenance fields, and schema structure, but it does not calibrate coefficients. Its thrust field is a declared-coefficient estimate at the lower motor/propeller RPM limit and does not apply torque or electrical power limits. Downwash, ground effect, propeller wake interaction, and venue airflow still need measured models.
 - The bench trace boundary and electrical input power summary are synthetic until a documented run records instruments, part identity, calibration, units, clock conditions, and repeatable test settings. No fitted motor map is included.
-- The release workflow builds and smoke-tests the Windows package, but physical Windows install, updater relaunch, accessibility, and frame-time measurements remain open. Linux packaging is later work.
+- The release workflow runs the Python suite, builds, and smoke-tests the Windows package, but physical Windows install, updater relaunch, accessibility, and frame-time measurements remain open. Linux packaging is later work.
 - The v0.1.5 macOS package is not notarized. Broad distribution still needs a Developer ID signature and notarization.
 
 ## Contributing

@@ -44,7 +44,7 @@ synthetic replay. Keep the sibling `dist/ZephyrMeshUpdater.exe` beside that
 directory so the helper can replace the directory after the preview exits. The
 build embeds the requested version in `VERSION.txt`, so later releases can be
 compared by the updater without changing source code.
-Before publishing a Windows build, run
+The tagged release workflow also runs the Python suite on a Windows runner before packaging. Before publishing a local Windows build, run
 `python tools/validate_windows_bundle.py dist/ZephyrMeshWindows` on Windows;
 it checks the bundled replay, sibling helper, and the expected six-frame,
 50-vehicle contract without relying on stdout from a windowed executable.

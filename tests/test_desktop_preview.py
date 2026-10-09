@@ -147,6 +147,14 @@ def test_windows_smoke_packages_and_checks_investigation_report():
     assert "evidence_kind=espnow,investigation,swarm" in validator
 
 
+def test_windows_release_job_runs_python_suite_before_packaging():
+    workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    windows_job = workflow.split("  windows:\n", 1)[1].split("  publish:\n", 1)[0]
+    assert "pip install --requirement requirements.txt" in windows_job
+    assert "python -m pytest -q" in windows_job
+    assert windows_job.index("python -m pytest -q") < windows_job.index("Build and package the Windows preview")
+
+
 def test_windows_glyph_rotation_keeps_quad_geometry_bounded():
     from desktop.windows_preview import WindowsReplayApp
 
