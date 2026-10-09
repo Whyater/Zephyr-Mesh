@@ -64,6 +64,8 @@ enum ReleaseUpdater {
         (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "0.1.0"
     }()
 
+    static func launchTarget(for bundle: URL) -> URL { bundle }
+
     static func platformKey() -> String {
         #if arch(arm64)
         return "macos-arm64"
@@ -213,7 +215,7 @@ enum ReleaseUpdater {
     private static func writeHelper(root: URL, archive: URL, extract: URL, install: URL) throws -> URL {
         let helper = root.appendingPathComponent("apply-update.sh")
         let backup = install.deletingLastPathComponent().appendingPathComponent(install.lastPathComponent + ".previous")
-        let launch = install.appendingPathComponent("Contents/MacOS/ZephyrMeshApp")
+        let launch = launchTarget(for: install)
         let script = """
         #!/bin/sh
         set -eu

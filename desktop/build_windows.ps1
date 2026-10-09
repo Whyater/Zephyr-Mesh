@@ -15,7 +15,8 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & $Python -m PyInstaller --noconfirm --clean --console --onefile --name ZephyrMeshUpdater `
     --paths "." --distpath "$Output" --workpath "$Output\build-updater" desktop\windows_updater.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-$Version.TrimStart('v') | Set-Content -Path "$Output\ZephyrMeshWindows\VERSION.txt" -NoNewline
+$versionPath = Join-Path $Output "ZephyrMeshWindows\VERSION.txt"
+[System.IO.File]::WriteAllText($versionPath, $Version.TrimStart('v'), [System.Text.UTF8Encoding]::new($false))
 Write-Host "Built $Output\ZephyrMeshWindows\ZephyrMeshWindows.exe"
 Write-Host "Built $Output\ZephyrMeshUpdater.exe (keep beside ZephyrMeshWindows directory)"
 Write-Host "The app is replay-only until a digest-verified GitHub release asset is published."

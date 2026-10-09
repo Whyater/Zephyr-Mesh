@@ -84,6 +84,12 @@ def test_windows_runtime_version_prefers_frozen_internal_resource(tmp_path, monk
     assert preview._runtime_version() == "0.2.0"
 
 
+def test_windows_build_writes_utf8_version_without_bom():
+    script = (ROOT / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
+    assert "UTF8Encoding" in script
+    assert "WriteAllText" in script
+
+
 def test_windows_glyph_rotation_keeps_quad_geometry_bounded():
     from desktop.windows_preview import WindowsReplayApp
 

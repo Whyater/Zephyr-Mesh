@@ -24,4 +24,10 @@ final class ReleaseUpdaterTests: XCTestCase {
     func testRejectsMismatchedArchitecture() {
         XCTAssertThrowsError(try ReleaseUpdater.select(release(["ZephyrMesh-windows-x86_64.zip"]), platform: "windows-arm64"))
     }
+
+    func testRelaunchTargetIsTheApplicationBundle() {
+        let bundle = URL(fileURLWithPath: "/tmp/ZephyrMesh.app")
+        XCTAssertEqual(ReleaseUpdater.launchTarget(for: bundle), bundle)
+        XCTAssertEqual(bundle.pathExtension, "app")
+    }
 }

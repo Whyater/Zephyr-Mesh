@@ -62,14 +62,14 @@ def test_manifest_rejects_duplicate_platforms(tmp_path: Path):
         build_manifest([Path(one["path"]), Path(two["path"])], version="0.1.0", repository="Whyater/Zephyr-Mesh")
 
 
-def test_manifest_rejects_asset_version_mismatch(tmp_path: Path):
+def test_manifest_rejects_macos_asset_version_mismatch(tmp_path: Path):
     app = _app(tmp_path, "ZephyrMesh.app")
     archive = package(app, tmp_path / "release", platform="macos-arm64", version="0.2.0")
     with pytest.raises(ValueError, match="version"):
         build_manifest([Path(archive["path"])], version="0.1.0", repository="Whyater/Zephyr-Mesh")
 
 
-def test_manifest_rejects_asset_version_mismatch(tmp_path: Path):
+def test_manifest_rejects_windows_asset_version_mismatch(tmp_path: Path):
     app = _app(tmp_path)
     archive = package(app, tmp_path / "release", platform="windows-x86_64", version="0.2.0")
     with pytest.raises(ValueError, match="version does not match"):
