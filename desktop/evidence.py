@@ -23,12 +23,13 @@ from sim.trace import TRACE_SCHEMA, EspNowTrace
 from sim.trace_metrics import summarize_trace
 from sim.vision_metrics import summarize_vision_trace
 from sim.vision_trace import VISION_TRACE_SCHEMA, VisionTrace
+from sim.s7_metrics import summarize_s7_run
 
 EVIDENCE_REPORT_SCHEMA = "zephyr-evidence-report-1"
 MAX_REPORT_BYTES = 8 * 1024 * 1024
 MAX_JSON_DEPTH = 64
 SAFE_INTEGER_MAX = 9_007_199_254_740_991
-SUPPORTED_KINDS = frozenset({"espnow", "vision", "hardware", "bench", "investigation"})
+SUPPORTED_KINDS = frozenset({"espnow", "vision", "hardware", "bench", "investigation", "swarm"})
 SUPPORTED_STATUSES = frozenset({"measured", "synthetic", "fixture"})
 RAW_SCHEMAS = {
     "espnow": TRACE_SCHEMA,
@@ -36,6 +37,7 @@ RAW_SCHEMAS = {
     "hardware": HARDWARE_PROFILE_SCHEMA,
     "bench": BENCH_TRACE_SCHEMA,
     "investigation": "zephyr-s6-sweep-1",
+    "swarm": "zephyr-s7-swarm-run-1",
 }
 
 
@@ -143,7 +145,7 @@ def _validate_envelope(value: Mapping[str, Any]) -> dict[str, Any]:
         raise EvidenceError("limitations must contain at least one entry")
     summary = validated["summary"]
     summary_status = summary.get("status")
-    if kind in {"espnow", "vision", "bench", "investigation"}:
+    if kind in {"espnow", "vision", "bench", "investigation", "swarm"}:
         provenance = summary.get("provenance")
         summary_status = provenance.get("status") if isinstance(provenance, dict) else None
     if summary_status != status:
@@ -184,6 +186,11 @@ def _load_raw(kind: str, value: dict[str, Any]) -> tuple[str, str, dict[str, Any
             "evidence_boundary": "scenario investigation report; not flight performance or a safety threshold",
         }
         return "synthetic", RAW_SCHEMAS[kind], summary
+    if kind == "swarm":
+        schema_path = Path(__file__).parents[1] / "sim" / "s7_run_schema.json"
+        Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8"))).validate(value)
+        summary = summarize_s7_run(value)
+        return "synthetic", RAW_SCHEMAS[kind], summary
     raise EvidenceError(f"unsupported kind: {kind}")
 
 
@@ -201,6 +208,7 @@ def build_evidence_report(path: str | Path, kind: str) -> dict[str, Any]:
             "hardware": Path(__file__).parents[1] / "sim" / "hardware_profile_schema.json",
             "bench": Path(__file__).parents[1] / "sim" / "bench_trace_schema.json",
             "investigation": Path(__file__).parents[1] / "sim" / "investigation_schema.json",
+            "swarm": Path(__file__).parents[1] / "sim" / "s7_run_schema.json",
         }[kind]
         Draft202012Validator(json.loads(raw_schema_path.read_text(encoding="utf-8"))).validate(value)
         status, schema, summary = _load_raw(kind, value)
@@ -213,6 +221,7 @@ def build_evidence_report(path: str | Path, kind: str) -> dict[str, Any]:
         "hardware": ["Profile inputs are not bench measurements unless status and provenance say so. Derived estimates are not flight performance."],
         "bench": ["Descriptive bench observations only. No motor map is fitted and electrical input power is not shaft power."],
         "investigation": ["Synthetic point-estimator scenario only. Failure labels are study criteria, not radio tolerance, safety thresholds, or flight performance."],
+        "swarm": ["Synthetic S7 replay only. Abstract packet age, estimator coverage, recovery, and separation metrics do not establish radio tolerance, safety, or flight performance."],
     }[kind]
     report = {
         "schema": EVIDENCE_REPORT_SCHEMA,

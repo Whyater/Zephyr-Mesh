@@ -29,7 +29,7 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
         raise FileNotFoundError("bundled canonical S7 run.json is missing")
     result = {"bundle": str(bundle_dir), "preview": str(executable), "updater": str(updater), "run": str(run)}
     evidence_paths = []
-    for filename, kind, status in (("evidence_report_example.json", "espnow", "fixture"), ("investigation_report_example.json", "investigation", "synthetic")):
+    for filename, kind, status in (("evidence_report_example.json", "espnow", "fixture"), ("investigation_report_example.json", "investigation", "synthetic"), ("s7_report_example.json", "swarm", "synthetic")):
         evidence = next((root / "desktop" / filename for root in resource_roots if (root / "desktop" / filename).is_file()), None)
         if evidence is None:
             raise FileNotFoundError(f"bundled {filename} is missing")
@@ -68,14 +68,14 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
                 details = (stderr or "").strip()[-4000:]
                 raise RuntimeError(f"frozen GUI did not publish its readiness marker (exit={process.returncode}); stderr={details}")
             marker_text = marker.read_text(encoding="utf-8").strip()
-            if marker_text != "ready frame=2/6 evidence_kind=espnow,investigation":
+            if marker_text != "ready frame=2/6 evidence_kind=espnow,investigation,swarm":
                 raise RuntimeError(f"unexpected frozen GUI readiness marker: {marker_text}")
             if process.poll() is not None:
                 raise RuntimeError("frozen GUI exited after publishing readiness")
             deadline = time.monotonic() + 2.0
             while time.monotonic() < deadline and not health.is_file():
                 time.sleep(0.05)
-            if not health.is_file() or health.read_text(encoding="utf-8").strip() != "healthy frame=2/6 evidence_kind=espnow,investigation":
+            if not health.is_file() or health.read_text(encoding="utf-8").strip() != "healthy frame=2/6 evidence_kind=espnow,investigation,swarm":
                 process.terminate()
                 _, stderr = process.communicate(timeout=5.0)
                 details = (stderr or "").strip()[-4000:]

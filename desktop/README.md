@@ -20,6 +20,7 @@ from a raw trace or hardware profile with:
 ```bash
 PYTHONPATH=. python tools/build_evidence_report.py vision sim/vision_trace_example.json --output /tmp/zephyr-vision-report.json
 PYTHONPATH=. python tools/build_investigation_report.py sim/investigation_example.json --output /tmp/zephyr-s6-report.json
+PYTHONPATH=. python tools/build_evidence_report.py swarm runs/s7-swarm/run.json --output /tmp/zephyr-s7-report.json
 ```
 
 Choose **Open evidence report…** in the File menu, Control-O on Windows, or

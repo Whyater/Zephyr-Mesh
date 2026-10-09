@@ -7,7 +7,7 @@
   "required": ["schema", "kind", "source", "status", "summary", "limitations"],
   "properties": {
     "schema": {"const": "zephyr-evidence-report-1"},
-    "kind": {"enum": ["espnow", "vision", "hardware", "bench", "investigation"]},
+    "kind": {"enum": ["espnow", "vision", "hardware", "bench", "investigation", "swarm"]},
     "status": {"enum": ["measured", "synthetic", "fixture"]},
     "source": {
       "type": "object", "additionalProperties": false,
@@ -15,7 +15,7 @@
       "properties": {
         "name": {"type": "string", "minLength": 1},
         "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-        "schema": {"enum": ["zephyr-espnow-trace-1", "zephyr-vision-trace-1", "zephyr-hardware-profile-1", "zephyr-bench-trace-1", "zephyr-s6-sweep-1"]}
+        "schema": {"enum": ["zephyr-espnow-trace-1", "zephyr-vision-trace-1", "zephyr-hardware-profile-1", "zephyr-bench-trace-1", "zephyr-s6-sweep-1", "zephyr-s7-swarm-run-1"]}
       }
     },
     "summary": {"type": "object"},

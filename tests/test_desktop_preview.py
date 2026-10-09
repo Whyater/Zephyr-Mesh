@@ -104,7 +104,8 @@ def test_windows_smoke_packages_and_checks_investigation_report():
     assert "investigation_report_example.json;desktop" in build_script
     assert '"investigation_report_example.json", "investigation", "synthetic"' in validator
     assert 'action="append"' in preview
-    assert "evidence_kind=espnow,investigation" in validator
+    assert '("s7_report_example.json", "swarm", "synthetic")' in validator
+    assert "evidence_kind=espnow,investigation,swarm" in validator
 
 
 def test_windows_glyph_rotation_keeps_quad_geometry_bounded():

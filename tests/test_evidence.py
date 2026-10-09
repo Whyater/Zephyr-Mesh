@@ -21,6 +21,7 @@ ROOT = Path(__file__).parents[1]
         ("hardware", "sim/hardware_profile_example.json"),
         ("bench", "sim/bench_trace_example.json"),
         ("investigation", "sim/investigation_example.json"),
+        ("swarm", "runs/s7-swarm/run.json"),
     ],
 )
 def test_report_round_trip_preserves_fixture_boundary(tmp_path: Path, kind: str, source: str):
@@ -29,7 +30,7 @@ def test_report_round_trip_preserves_fixture_boundary(tmp_path: Path, kind: str,
     write_evidence_report(destination, report)
     loaded = load_evidence_report(destination)
     assert loaded == report
-    assert loaded["status"] == ("synthetic" if kind == "investigation" else "fixture")
+    assert loaded["status"] == ("synthetic" if kind in {"investigation", "swarm"} else "fixture")
     assert loaded["source"]["sha256"] == hashlib.sha256((ROOT / source).read_bytes()).hexdigest()
     assert loaded["limitations"]
 
@@ -111,3 +112,11 @@ def test_report_schema_accepts_emitted_investigation_envelope():
     report = build_evidence_report(ROOT / "sim/investigation_example.json", "investigation")
     schema = json.loads((ROOT / "desktop/evidence_report_schema.json").read_text(encoding="utf-8"))
     Draft202012Validator(schema).validate(report)
+
+
+def test_swarm_report_retains_route_and_recovery_metrics():
+    report = build_evidence_report(ROOT / "runs/s7-swarm/run.json", "swarm")
+    assert report["status"] == "synthetic"
+    assert report["summary"]["link_events"]["attempted"] == 15000
+    assert report["summary"]["estimation"]["fused_target_present"] == 198
+    assert report["summary"]["provenance"]["timestamp_basis"].startswith("abstract")

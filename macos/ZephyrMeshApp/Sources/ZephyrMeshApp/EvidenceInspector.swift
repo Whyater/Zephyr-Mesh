@@ -13,7 +13,7 @@ struct EvidenceReport: Identifiable, Decodable {
     static let maxJSONDepth = 64
 
     enum Kind: String, CaseIterable, Decodable {
-        case espnow, vision, hardware, bench, investigation
+        case espnow, vision, hardware, bench, investigation, swarm
 
         var label: String {
             switch self {
@@ -22,6 +22,7 @@ struct EvidenceReport: Identifiable, Decodable {
             case .hardware: return "Hardware profile"
             case .bench: return "Bench trace"
             case .investigation: return "S6 investigation"
+            case .swarm: return "S7 swarm replay"
             }
         }
     }
@@ -127,6 +128,7 @@ struct EvidenceReport: Identifiable, Decodable {
         case .hardware: return "zephyr-hardware-profile-1"
         case .bench: return "zephyr-bench-trace-1"
         case .investigation: return "zephyr-s6-sweep-1"
+        case .swarm: return "zephyr-s7-swarm-run-1"
         }
     }
 

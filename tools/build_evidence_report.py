@@ -13,7 +13,7 @@ from desktop.evidence import EvidenceError, build_evidence_report, write_evidenc
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=("espnow", "vision", "hardware", "bench", "investigation"))
+    parser.add_argument("kind", choices=("espnow", "vision", "hardware", "bench", "investigation", "swarm"))
     parser.add_argument("source", type=Path, help="raw trace or hardware profile JSON")
     parser.add_argument("--output", type=Path, required=True, help="portable report JSON path")
     args = parser.parse_args(argv)
