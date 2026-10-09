@@ -33,6 +33,20 @@ def test_seeded_run_is_repeatable_and_serializable():
     assert first["link_events"]
 
 
+def test_model_provenance_keeps_point_mass_separate_from_actuator_and_energy():
+    simulator = SwarmSimulator(two_agent_config())
+    metadata = simulator.model_provenance()
+    assert metadata["status"] == "synthetic"
+    assert metadata["model"] == "bounded_point_mass_coordination"
+    assert metadata["actuator_coupled"] is False
+    assert set(metadata["agents"]) == {"a", "b"}
+    for agent in metadata["agents"].values():
+        assert agent["actuator_model"] == "profile declaration only"
+        assert agent["energy_telemetry"] == "not simulated"
+        assert agent["declared_battery_capacity_wh"] > 0.0
+    assert "not simulated" in metadata["evidence_boundary"]
+
+
 def test_target_link_loss_is_explicit_and_holds_without_estimate():
     config = two_agent_config(
         target_link=LinkConfig(loss_model="independent", loss_probability=1.0),

@@ -307,6 +307,40 @@ class SwarmSimulator:
     def agent_ids(self) -> tuple[str, ...]:
         return tuple(self._agents)
 
+    def model_provenance(self) -> dict[str, Any]:
+        """Describe the point-mass boundary and declared per-agent profiles.
+
+        The coordination fixture carries hardware profiles for interchange and
+        manifest identity, but it does not run the actuator, energy, or 6-DOF
+        vehicle models. Returning that distinction prevents profile metadata
+        from being mistaken for flight telemetry.
+        """
+        agents: dict[str, dict[str, Any]] = {}
+        for agent_id in self.agent_ids:
+            profile = self._agents[agent_id].spec.hardware_profile
+            assert profile is not None
+            agents[agent_id] = {
+                "profile_id": profile.profile_id,
+                "profile_status": profile.status,
+                "profile_source": profile.source,
+                "calibration_id": profile.calibration_id,
+                "declared_battery_capacity_wh": float(profile.battery_capacity_wh),
+                "actuator_model": "profile declaration only",
+                "actuator_coupled": False,
+                "energy_telemetry": "not simulated",
+            }
+        return {
+            "status": "synthetic",
+            "model": "bounded_point_mass_coordination",
+            "actuator_coupled": False,
+            "agents": agents,
+            "evidence_boundary": (
+                "Point-mass coordination only; hardware profiles are declared inputs. "
+                "Actuator state, power draw, battery depletion, and 6-DOF flight "
+                "are not simulated by SwarmSimulator."
+            ),
+        }
+
     @property
     def link_events(self) -> tuple[PacketEvent, ...]:
         """All attempted packet events, sorted independently of dict order."""
