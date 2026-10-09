@@ -43,3 +43,17 @@ def test_vehicle_rejects_nonfinite_target():
     vehicle = ActuatedQuadrotor(default_hardware_profile(3))
     with pytest.raises(ValueError):
         vehicle.step((0.0, float("nan"), 1.0), 0.01)
+
+
+def test_vehicle_drag_changes_trajectory_for_same_initial_motion():
+    profile = default_hardware_profile(4)
+    no_drag = ActuatedQuadrotor(profile, drag_coefficient=0.0)
+    with_drag = ActuatedQuadrotor(profile, drag_coefficient=3.0)
+    no_drag.drone.velocity[:] = [8.0, 0.0, 0.0]
+    with_drag.drone.velocity[:] = [8.0, 0.0, 0.0]
+
+    no_drag_step = no_drag.step((0.0, 0.0, 0.0), 0.02)
+    with_drag_step = with_drag.step((0.0, 0.0, 0.0), 0.02)
+
+    assert with_drag_step.position_m[0] < no_drag_step.position_m[0]
+    assert with_drag_step.velocity_mps[0] < no_drag_step.velocity_mps[0]

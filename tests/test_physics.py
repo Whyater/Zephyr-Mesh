@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from sim.drone import SixDOFInterceptor
-from sim.environment import GRAVITY
+from sim.environment import GRAVITY, calculate_drag, relative_air_velocity
 
 
 def run(drone, force, duration, dt):
@@ -47,6 +47,17 @@ def test_quadratic_drag_matches_closed_form_speed_and_changes_trajectory():
     np.testing.assert_allclose(drone.velocity[0], expected_speed, rtol=2e-8)
     np.testing.assert_allclose(drone.position[0], expected_distance, rtol=2e-8)
     assert drone.position[0] < speed0 * duration
+
+
+def test_drag_is_zero_at_matching_wind_and_opposes_relative_velocity():
+    velocity = np.array([3.0, -2.0, 1.0])
+    wind = velocity.copy()
+    np.testing.assert_allclose(calculate_drag(relative_air_velocity(velocity, wind)), 0.0)
+
+    relative = np.array([2.0, -1.0, 0.5])
+    drag = calculate_drag(relative, drag_coefficient=1.3, cross_sectional_area=0.05)
+    assert np.dot(drag, relative) < 0.0
+    np.testing.assert_allclose(drag / np.linalg.norm(drag), -relative / np.linalg.norm(relative))
 
 
 def test_hover_force_is_invariant_when_at_rest():
@@ -150,5 +161,22 @@ def test_quadratic_drag_timestep_error_decreases_at_fourth_order_reference():
         drone.velocity[0] = speed0
         run(drone, np.array([0.0, 0.0, mass * GRAVITY]), duration, dt)
         errors.append(abs(drone.velocity[0] - exact))
+    assert errors[1] < errors[0] / 8.0
+    assert errors[2] < errors[1] / 8.0
+
+
+def test_quadratic_drag_with_wind_preserves_fourth_order_convergence():
+    mass, speed0, wind_speed, duration = 0.45, 8.0, 2.0, 0.8
+    coefficient = 0.5 * 1.225 * 1.3 * 0.05 / mass
+    relative_speed = speed0 - wind_speed
+    expected_speed = wind_speed + relative_speed / (1.0 + coefficient * relative_speed * duration)
+    expected_distance = wind_speed * duration + np.log1p(coefficient * relative_speed * duration) / coefficient
+    errors = []
+    for dt in (0.08, 0.04, 0.02):
+        drone = SixDOFInterceptor(mass=mass, wind_velocity=(wind_speed, 0.0, 0.0))
+        drone.velocity[0] = speed0
+        for _ in range(round(duration / dt)):
+            drone.step_physics(np.array([0.0, 0.0, mass * GRAVITY]), np.zeros(3), dt)
+        errors.append(np.linalg.norm(drone.velocity[[0]] - expected_speed) + abs(drone.position[0] - expected_distance))
     assert errors[1] < errors[0] / 8.0
     assert errors[2] < errors[1] / 8.0
