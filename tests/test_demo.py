@@ -30,7 +30,7 @@ def test_rerun_rejects_arbitrary_input():
 
 def test_ui_declares_read_only_replay():
     from pathlib import Path
-    html = Path("demo/index.html").read_text()
+    html = Path("demo/index.html").read_text(encoding="utf-8")
     assert "replay" in html.lower()
     assert "no live control path" in html
 
@@ -48,7 +48,7 @@ def test_s2_payload_and_malformed_replay_request():
 
 def test_ui_physical_model_and_accessible_state_labels():
     from pathlib import Path
-    html = Path("demo/index.html").read_text()
+    html = Path("demo/index.html").read_text(encoding="utf-8")
     for text in ("Physical replay", "ground frame", "Link health", "Evidence rail",
                  "Stop replay", "Recorded S2 baseline", "no live control path", "skewX", "thrustArrow"):
         assert text in html
@@ -77,7 +77,7 @@ def test_s3_link_fixture_is_deterministic_and_read_only():
 
 def test_ui_contains_s3_link_replay_panel():
     from pathlib import Path
-    html = Path("demo/index.html").read_text()
+    html = Path("demo/index.html").read_text(encoding="utf-8")
     for text in ("Link health", "Open packet event log", "synthetic", "/api/link"):
         assert text in html
 
