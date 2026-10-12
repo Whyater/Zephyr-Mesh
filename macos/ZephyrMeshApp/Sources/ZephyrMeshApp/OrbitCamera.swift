@@ -10,7 +10,10 @@ struct OrbitCamera: Equatable {
     static let maximumPitch: Float = 85
     static let topPitch: Float = 90
     static let homeYaw: Float = 30
-    static let homePitch: Float = 32
+    static let homePitch: Float = 30
+    /// Starting distance factor before the view is measured. The home framing then uses
+    /// `fitDistance`, the closest distance at which every drone fits the actual viewport.
+    static let fitDistanceFactor: Float = 1.8
 
     var yaw: Float
     var pitch: Float
@@ -73,7 +76,7 @@ struct OrbitCamera: Equatable {
         let radius = points.map { simd_distance($0, center) }.max() ?? 1
         target = center
         swarmRadius = max(Self.nearLimit, radius * max(padding, 1))
-        distance = swarmRadius * 2.1
+        distance = swarmRadius * Self.fitDistanceFactor
         clamp()
     }
 
@@ -81,6 +84,35 @@ struct OrbitCamera: Equatable {
         var camera = OrbitCamera(yaw: homeYaw, pitch: homePitch)
         camera.frame(points: points, padding: padding)
         return camera
+    }
+
+    /// The smallest distance (within the clamp) at which every point projects inside the view
+    /// with the given aspect (width / height) and vertical field of view, filling `fill` of the
+    /// frame. Uses this camera's yaw, pitch and target. Bisection on distance: a point's screen
+    /// offset shrinks monotonically as the camera backs away along its view direction.
+    func fitDistance(points: [SIMD3<Float>], aspect: Float, verticalFOV: Float, fill: Float = 0.92) -> Float {
+        guard !points.isEmpty, aspect > 0, verticalFOV > 0 else { return distance }
+        let tanY = tan(verticalFOV / 2 * .pi / 180) * fill
+        let tanX = tanY * aspect
+        let inverse = sceneOrientation.inverse
+        func fits(_ candidate: Float) -> Bool {
+            var probe = self
+            probe.distance = candidate
+            let eye = probe.sceneEye
+            return points.allSatisfy { point in
+                let local = inverse.act(Self.sceneVector(point) - eye)
+                let depth = -local.z
+                return depth > 0 && abs(local.x) <= depth * tanX && abs(local.y) <= depth * tanY
+            }
+        }
+        var low = Self.nearLimit
+        var high = maximumDistance
+        guard fits(high) else { return high }
+        for _ in 0..<40 {
+            let middle = (low + high) / 2
+            if fits(middle) { high = middle } else { low = middle }
+        }
+        return high
     }
 
     mutating func focus(point: SIMD3<Float>) {

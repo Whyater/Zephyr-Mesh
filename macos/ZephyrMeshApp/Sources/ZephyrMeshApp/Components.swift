@@ -66,11 +66,26 @@ struct SectionHeader: View {
     }
 }
 
+/// How a value is set. Plain values and raw numbers use the 13 pt body with tabular digits;
+/// the 12 pt mono role is kept for hashes and IDs only (its token use); commands use a 13 pt
+/// monospaced body so they stay readable and copyable.
+enum ValueStyle {
+    case text, identifier, code
+
+    var font: Font {
+        switch self {
+        case .text: return TypeScale.body.monospacedDigit()
+        case .identifier: return TypeScale.mono
+        case .code: return TypeScale.body.monospaced()
+        }
+    }
+}
+
 /// One label and value line. Missing values read "Not recorded" in the secondary color.
 struct ValueRow: View {
     let label: String
     let value: String
-    var monospaced = false
+    var style: ValueStyle = .text
     @Environment(\.palette) private var palette
 
     var body: some View {
@@ -81,7 +96,7 @@ struct ValueRow: View {
                 .lineLimit(1)
             Spacer(minLength: Space.sm)
             Text(value)
-                .font(monospaced ? TypeScale.mono : TypeScale.body.monospacedDigit())
+                .font(style.font)
                 .foregroundStyle(value == Format.notRecorded ? palette.textSecondary : palette.text)
                 .multilineTextAlignment(.trailing)
                 .textSelection(.enabled)
@@ -95,7 +110,7 @@ struct ValueRow: View {
 struct StackedValue: View {
     let label: String
     let value: String
-    var monospaced = false
+    var style: ValueStyle = .text
     @Environment(\.palette) private var palette
 
     var body: some View {
@@ -104,7 +119,7 @@ struct StackedValue: View {
                 .font(TypeScale.caption)
                 .foregroundStyle(palette.textSecondary)
             Text(value)
-                .font(monospaced ? TypeScale.mono : TypeScale.body)
+                .font(style.font)
                 .foregroundStyle(palette.text)
                 .fixedSize(horizontal: false, vertical: true)
                 .textSelection(.enabled)
@@ -197,5 +212,58 @@ struct RowBackground: View {
     var body: some View {
         RoundedRectangle(cornerRadius: Radius.small)
             .fill(isSelected ? palette.selectionFill : (isHovered ? palette.hoverFill : .clear))
+    }
+}
+
+/// Segmented choice drawn from tokens instead of the system control, whose selected segment
+/// was too faint on the dark surface. Selected: text on selectionFill. Others: textSecondary on
+/// the surface, hoverFill under the pointer. All three pairs pass the 4.5:1 token check.
+struct SegmentedChoice<Value: Hashable>: View {
+    let options: [(value: Value, label: String)]
+    @Binding var selection: Value
+    var accessibilityLabel: String
+    @Environment(\.palette) private var palette
+
+    var body: some View {
+        HStack(spacing: Space.xxs) {
+            ForEach(options, id: \.value) { option in
+                SegmentButton(label: option.label, isSelected: option.value == selection) {
+                    selection = option.value
+                }
+            }
+        }
+        .padding(Space.xxs)
+        .overlay {
+            RoundedRectangle(cornerRadius: Radius.small).strokeBorder(palette.line, lineWidth: 1)
+        }
+        .fixedSize()
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private struct SegmentButton: View {
+        let label: String
+        let isSelected: Bool
+        let action: () -> Void
+        @Environment(\.palette) private var palette
+        @State private var hovering = false
+
+        var body: some View {
+            Button(action: action) {
+                Text(label)
+                    .font(isSelected ? TypeScale.bodyStrong : TypeScale.body)
+                    .foregroundStyle(isSelected ? palette.text : palette.textSecondary)
+                    .padding(.horizontal, Space.sm + Space.xxs)
+                    .frame(minWidth: 36, minHeight: LayoutMetrics.rowHeight - Space.sm)
+                    .background {
+                        RoundedRectangle(cornerRadius: Radius.small - 1)
+                            .fill(isSelected ? palette.selectionFill : (hovering ? palette.hoverFill : .clear))
+                    }
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .onHover { hovering = $0 }
+            .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        }
     }
 }

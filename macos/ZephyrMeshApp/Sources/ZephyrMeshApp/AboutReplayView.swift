@@ -40,7 +40,7 @@ struct AboutReplayView: View {
                 section("Reproduce") {
                     HStack(alignment: .top, spacing: Space.sm) {
                         StackedValue(label: Format.label("generation_command"), value: fixture.about.generationCommand,
-                                     monospaced: true)
+                                     style: .code)
                         Button {
                             NSPasteboard.general.clearContents()
                             NSPasteboard.general.setString(fixture.about.generationCommand, forType: .string)
@@ -66,14 +66,14 @@ struct AboutReplayView: View {
     private var details: some View {
         DisclosureGroup(isExpanded: $showDetails) {
             VStack(alignment: .leading, spacing: Space.sm) {
-                ValueRow(label: Format.label("scenario_id"), value: fixture.about.scenarioID, monospaced: true)
+                ValueRow(label: Format.label("scenario_id"), value: fixture.about.scenarioID, style: .identifier)
                 ValueRow(label: Format.label("seed"), value: "\(fixture.about.seed)")
                 ValueRow(label: Format.label("dt_s"), value: Format.number(fixture.dt, decimals: 2))
                 ValueRow(label: Format.label("frame_count"), value: "\(fixture.frames.count)")
-                ValueRow(label: Format.label("run_schema"), value: fixture.source.runSchema, monospaced: true)
-                ValueRow(label: Format.label("fixture"), value: fixture.schema, monospaced: true)
-                ValueRow(label: Format.label("presentation_schema"), value: fixture.source.presentationSchema, monospaced: true)
-                StackedValue(label: Format.label("run_sha256"), value: fixture.source.runSHA256, monospaced: true)
+                ValueRow(label: Format.label("run_schema"), value: fixture.source.runSchema, style: .identifier)
+                ValueRow(label: Format.label("fixture"), value: fixture.schema, style: .identifier)
+                ValueRow(label: Format.label("presentation_schema"), value: fixture.source.presentationSchema, style: .identifier)
+                StackedValue(label: Format.label("run_sha256"), value: fixture.source.runSHA256, style: .identifier)
                 ValueRow(label: Format.label("app_version"), value: appVersion)
             }
             .padding(.top, Space.sm)

@@ -127,6 +127,7 @@ private struct SceneRepresentable: NSViewRepresentable {
         func attach(_ view: InteractiveSceneView) {
             view.onDrag = { [weak self] dx, dy in self?.controller.orbit(deltaX: dx, deltaY: dy) }
             view.onZoom = { [weak self] factor in self?.controller.zoom(factor: factor) }
+            view.onResize = { [weak self] size in self?.controller.viewDidResize(size) }
             view.onHover = { [weak self] id, point in
                 guard let self else { return }
                 let next = id.map { SceneHover(droneID: $0, location: point) }
@@ -152,6 +153,12 @@ final class InteractiveSceneView: SCNView {
     var onHover: ((String?, CGPoint) -> Void)?
     var onClick: ((String?, Int) -> Void)?
     var menuProvider: ((String) -> NSMenu?)?
+    var onResize: ((CGSize) -> Void)?
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        onResize?(newSize)
+    }
 
     private var dragOrigin: NSPoint?
     private var isDragging = false

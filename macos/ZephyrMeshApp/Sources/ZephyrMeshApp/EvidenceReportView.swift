@@ -66,10 +66,13 @@ struct EvidenceReportView: View {
         DisclosureGroup(isExpanded: $showDetails) {
             VStack(alignment: .leading, spacing: Space.sm) {
                 ValueRow(label: "File", value: filename)
-                ValueRow(label: Format.label("schema"), value: report.schema, monospaced: true)
+                ValueRow(label: Format.label("schema"), value: report.schema, style: .identifier)
                 ValueRow(label: Format.label("source"), value: report.source.name)
-                ValueRow(label: Format.label("source_schema"), value: report.source.schema, monospaced: true)
-                StackedValue(label: "Source SHA-256 (declared)", value: report.source.sha256, monospaced: true)
+                ValueRow(label: Format.label("source_schema"), value: report.source.schema, style: .identifier)
+                StackedValue(label: "Source SHA-256 (declared)", value: report.source.sha256, style: .identifier)
+                if case .object(let summary) = report.summary, case .string(let schema)? = summary["schema"] {
+                    ValueRow(label: "Summary schema", value: schema, style: .identifier)
+                }
                 Text("Raw summary")
                     .font(TypeScale.caption)
                     .foregroundStyle(palette.textSecondary)
@@ -101,7 +104,7 @@ struct SummaryRows: View {
 
     var body: some View {
         if case .object(let object) = value {
-            let keys = object.keys.sorted { order($0) < order($1) }
+            let keys = object.keys.filter { !Self.detailsOnlyKeys.contains($0) }.sorted { order($0) < order($1) }
             VStack(alignment: .leading, spacing: Space.md) {
                 let scalars = keys.filter { !(object[$0]?.isBranch ?? false) }
                 if !scalars.isEmpty {
@@ -111,7 +114,7 @@ struct SummaryRows: View {
                         }
                     }
                 }
-                ForEach(keys.filter { object[$0]?.isBranch ?? false }, id: \.self) { key in
+                ForEach(keys.filter { object[$0]?.hasPlainSummary ?? false }, id: \.self) { key in
                     VStack(alignment: .leading, spacing: Space.xxs) {
                         Text(Format.label(key))
                             .font(TypeScale.bodyStrong)
@@ -128,15 +131,20 @@ struct SummaryRows: View {
     @ViewBuilder private func nested(_ value: JSONValue) -> some View {
         switch value {
         case .object(let object):
-            ForEach(object.keys.sorted(), id: \.self) { key in
+            // Rows that cannot be put in plain words (for example one block per drone) are left out
+            // here; they stay complete in the Details raw tree.
+            ForEach(object.keys.sorted().filter { object[$0]?.summaryText() != nil }, id: \.self) { key in
                 let child = object[key] ?? .null
                 let label = Format.label(key)
-                SummaryLine(label: label, value: child.summaryText(includeUnit: !label.hasSuffix(")")))
+                SummaryLine(label: label, value: child.summaryText(includeUnit: !label.hasSuffix(")")) ?? "")
             }
         default:
             ValueRow(label: "Items", value: value.branchSummary)
         }
     }
+
+    /// Schema ids are identifiers, not findings; they are listed under Details instead.
+    static let detailsOnlyKeys: Set<String> = ["schema"]
 
     /// Provenance reads last; everything else alphabetical.
     private func order(_ key: String) -> String { key == "provenance" ? "~" : key }
@@ -201,7 +209,7 @@ private struct JSONTreeEntry: View {
                 }
             }
         } else {
-            ValueRow(label: label, value: value.plainText, monospaced: true)
+            ValueRow(label: label, value: value.plainText)
         }
     }
 }
@@ -229,11 +237,13 @@ extension JSONValue {
     /// Plain words for a nested value: statistics blocks read "Mean 0.753, p95 0.753, max
     /// 0.753 m (300 samples)" from the values present; empty objects read "None"; other
     /// branches give their size and live under Details.
-    func summaryText(includeUnit: Bool = true) -> String {
-        guard case .object(let object) = self else { return isBranch ? branchSummary : plainText }
+    /// Nil when the value has no plain-words form; the caller then leaves the row out.
+    func summaryText(includeUnit: Bool = true) -> String? {
+        if case .array = self { return branchSummary.contains(" item") ? nil : branchSummary }
+        guard case .object(let object) = self else { return plainText }
         if object.isEmpty { return Format.label("none") }
         let statKeys = ["mean", "p50", "p95", "max", "min", "count"]
-        guard object.keys.contains(where: { statKeys.contains($0) }) else { return "\(branchSummary), see Details" }
+        guard object.keys.contains(where: { statKeys.contains($0) }) else { return nil }
         if case .bool(false)? = object["available"] { return Format.notRecorded }
         let unit = includeUnit ? (object["unit"].map { " \($0.plainText)" } ?? "") : ""
         let parts = [("Mean", "mean"), ("p95", "p95"), ("max", "max")].compactMap { name, key -> String? in
@@ -242,6 +252,16 @@ extension JSONValue {
         }
         let samples = object["count"].map { " (\($0.plainText) samples)" } ?? ""
         return parts.isEmpty ? branchSummary : parts.joined(separator: ", ") + unit + samples
+    }
+
+    /// A branch worth a Summary section: an object with at least one row in plain words, or a
+    /// short list of plain values.
+    var hasPlainSummary: Bool {
+        switch self {
+        case .object(let object): return object.values.contains { $0.summaryText() != nil }
+        case .array: return summaryText() != nil
+        default: return false
+        }
     }
 
     var branchSummary: String {

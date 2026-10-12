@@ -21,13 +21,16 @@ struct ScenarioRunView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Space.xl) {
                 VStack(alignment: .leading, spacing: Space.sm) {
+                    Text("Positions at \(Format.seconds(frame.time)), frame \(cursor.index + 1) of \(run.frames.count)")
+                        .font(TypeScale.headline)
+                        .accessibilityAddTraits(.isHeader)
                     ScenarioPlotView(geometry: ScenarioPlotGeometry.make(frame: frame))
                         .frame(height: 340)
                     PlotLegend()
                     frameControls
                 }
                 section("Selected frame") {
-                    ValueRow(label: Format.label("time_s"), value: Format.number(frame.time, decimals: 3))
+                    ValueRow(label: Format.label("time_s"), value: Format.number(frame.time, decimals: 2))
                     ValueRow(label: Format.label("target_position_m"),
                              value: frame.target.map { Format.number($0, decimals: 2) }.joined(separator: ", "))
                     ValueRow(label: Format.label("active_count"), value: "\(frame.activeCount) of \(frame.agentCount)")
@@ -94,16 +97,16 @@ struct ScenarioRunView: View {
         DisclosureGroup(isExpanded: $showDetails) {
             VStack(alignment: .leading, spacing: Space.sm) {
                 ValueRow(label: "File", value: filename)
-                ValueRow(label: Format.label("schema"), value: "\(run.schema), version \(run.version)", monospaced: true)
-                ValueRow(label: Format.label("scenario_id"), value: run.scenarioID, monospaced: true)
-                StackedValue(label: Format.label("scenario_hash"), value: run.scenarioHash, monospaced: true)
-                StackedValue(label: Format.label("payload_sha256"), value: run.payloadSHA256, monospaced: true)
+                ValueRow(label: Format.label("schema"), value: "\(run.schema), version \(run.version)", style: .identifier)
+                ValueRow(label: Format.label("scenario_id"), value: run.scenarioID, style: .identifier)
+                StackedValue(label: Format.label("scenario_hash"), value: run.scenarioHash, style: .identifier)
+                StackedValue(label: Format.label("payload_sha256"), value: run.payloadSHA256, style: .identifier)
                 ValueRow(label: Format.label("link_event_count"), value: "\(run.linkEventCount)")
                 ValueRow(label: Format.label("profile_count"), value: "\(run.profileCount)")
-                ValueRow(label: Format.label("generator"), value: run.generatorText, monospaced: true)
+                ValueRow(label: Format.label("generator"), value: run.generatorText, style: .code)
                 ValueRow(label: Format.label("python"), value: run.pythonText)
                 ValueRow(label: Format.label("numpy"), value: run.numpyText)
-                ValueRow(label: Format.label("code_revision"), value: run.codeRevisionText, monospaced: true)
+                ValueRow(label: Format.label("code_revision"), value: run.codeRevisionText, style: .identifier)
                 Text("A -dirty suffix on the revision means uncommitted changes; -unchecked means the check could not run.")
                     .font(TypeScale.caption)
                     .foregroundStyle(palette.textSecondary)
@@ -154,7 +157,9 @@ struct ScenarioPlotView: View {
                     context.fill(Path(ellipseIn: CGRect(x: point.x - 3.5, y: point.y - 3.5, width: 7, height: 7)),
                                  with: .color(palette.textSecondary))
                 } else {
-                    context.fill(Path(CGRect(x: point.x - 3.5, y: point.y - 3.5, width: 7, height: 7)), with: .color(palette.alert))
+                    // Inactive is a state, not an alarm in this plot: a hollow neutral marker, named in the legend.
+                    context.stroke(Path(ellipseIn: CGRect(x: point.x - 3.5, y: point.y - 3.5, width: 7, height: 7)),
+                                   with: .color(palette.textSecondary), lineWidth: 1.5)
                 }
             }
             let target = ScenarioPlotGeometry.project(geometry.target, bounds: bounds, width: plotWidth, height: size.height)
@@ -181,8 +186,12 @@ struct ScenarioPlotView: View {
             }
             for (index, altitude) in geometry.agentAltitudes.enumerated() {
                 let y = ScenarioPlotGeometry.projectAltitude(altitude, bounds: geometry.altitudeBounds, height: size.height, inset: 30)
-                let color = geometry.agents[index].active ? palette.textSecondary : palette.alert
-                context.fill(Path(ellipseIn: CGRect(x: railX - 3, y: y - 3, width: 6, height: 6)), with: .color(color))
+                let marker = Path(ellipseIn: CGRect(x: railX - 3, y: y - 3, width: 6, height: 6))
+                if geometry.agents[index].active {
+                    context.fill(marker, with: .color(palette.textSecondary))
+                } else {
+                    context.stroke(marker, with: .color(palette.textSecondary), lineWidth: 1.5)
+                }
             }
             let targetY = ScenarioPlotGeometry.projectAltitude(geometry.targetAltitude, bounds: geometry.altitudeBounds,
                                                                height: size.height, inset: 30)
@@ -207,7 +216,7 @@ private struct PlotLegend: View {
         HStack(spacing: Space.lg) {
             item(Circle().stroke(palette.target, lineWidth: 2), "Target")
             item(Circle().fill(palette.textSecondary), "Drone")
-            item(Rectangle().fill(palette.alert), "Inactive drone")
+            item(Circle().stroke(palette.textSecondary, lineWidth: 1.5), "Inactive")
             item(Circle().stroke(palette.keepOut, lineWidth: 1.5), "Keep-out volume")
             Spacer()
             Text("Seen from above; the rail shows altitude")

@@ -347,3 +347,116 @@ final class SceneControllerTests: XCTestCase {
         XCTAssertTrue(renderer.hitTest(CGPoint(x: target.x, y: target.y), options: options).isEmpty)
     }
 }
+
+final class RepairRoundTests: XCTestCase {
+    func testDroneWithMissingProfileIsRejected() throws {
+        XCTAssertThrowsError(try decodeEdited { object in
+            var profiles = object["profiles"] as! [[String: Any]]
+            profiles.removeFirst()
+            object["profiles"] = profiles
+        }) { error in
+            XCTAssertTrue(error.localizedDescription.contains("references hardware profile drone-001-synthetic-profile"), "\(error)")
+        }
+    }
+
+    func testNonPositivePropellerIsRejected() throws {
+        XCTAssertThrowsError(try decodeEdited { object in
+            var profiles = object["profiles"] as! [[String: Any]]
+            profiles[3]["propeller_diameter_m"] = 0.0
+            object["profiles"] = profiles
+        }) { error in
+            XCTAssertTrue(error.localizedDescription.contains("positive arm length and propeller diameter"), "\(error)")
+        }
+    }
+
+    func testArrowShortcutsGiveWayToAFocusedList() {
+        let router = ShortcutRouter()
+        XCTAssertFalse(router.shouldFire(actionID: "stepForward", textFieldFocused: false, listFocused: true))
+        XCTAssertFalse(router.shouldFire(actionID: "stepBack", textFieldFocused: false, listFocused: true))
+        XCTAssertTrue(router.shouldFire(actionID: "playPause", textFieldFocused: false, listFocused: true))
+        XCTAssertTrue(router.shouldFire(actionID: "stepForward", textFieldFocused: false, listFocused: false))
+        XCTAssertTrue(router.usesArrowKey("stepBack"))
+        XCTAssertFalse(router.usesArrowKey("restart"))
+    }
+
+    func testEvidenceSummaryPutsStatsInWordsAndDropsOpaqueBlocks() {
+        let stats = JSONValue.object([
+            "available": .bool(true), "count": .integer(300), "mean": .number(0.75), "p95": .number(0.8),
+            "max": .number(0.9), "min": .number(0.7), "p50": .number(0.75), "unit": .string("m")
+        ])
+        XCTAssertEqual(stats.summaryText(), "Mean 0.75, p95 0.8, max 0.9 m (300 samples)")
+        XCTAssertEqual(stats.summaryText(includeUnit: false), "Mean 0.75, p95 0.8, max 0.9 (300 samples)")
+        let unavailable = JSONValue.object(["available": .bool(false), "count": .integer(0), "mean": .null])
+        XCTAssertEqual(unavailable.summaryText(), "Not recorded")
+        let perDrone = JSONValue.object(["drone-001": .object(["censored_outages": .integer(1)])])
+        XCTAssertNil(perDrone.summaryText())
+        XCTAssertEqual(JSONValue.object([:]).summaryText(), "None")
+        XCTAssertTrue(SummaryRows.detailsOnlyKeys.contains("schema"))
+    }
+}
+
+@MainActor
+final class SceneGeometryTests: XCTestCase {
+    private func state(_ fixture: Fixture, frame: Int, selected: String?) -> SceneState {
+        let presentation = fixture.frames[frame].presentation
+        return SceneState(
+            frame: fixture.frames[frame],
+            styles: Dictionary(uniqueKeysWithValues: presentation.perDrone.map { ($0.droneID, StatusStyle(drone: $0)) }),
+            headings: [:], selectedID: selected, hoveredID: nil, showKeepOut: true, viewMode: .threeD,
+            palette: Theme.dark, scenePalette: Theme.darkScene3D, isDark: true, reduceMotion: true, cameraCommand: nil)
+    }
+
+    func testEachDroneIsSizedFromItsOwnProfile() throws {
+        // Independent of the Swift formula's inputs: read the raw profile JSON and expect
+        // hit radius = arm length + propeller diameter / 2 + 0.04 m for every drone.
+        let fixture = try loadFixture()
+        let raw = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: fixtureURL)) as? [String: Any])
+        let profiles = Dictionary(uniqueKeysWithValues: (raw["profiles"] as! [[String: Any]]).map { ($0["profile_id"] as! String, $0) })
+        let controller = SceneController(fixture: fixture)
+        var radii = Set<Double>()
+        for drone in fixture.drones {
+            let profile = try XCTUnwrap(profiles[drone.profileID])
+            let expected = (profile["arm_length_m"] as! Double) + (profile["propeller_diameter_m"] as! Double) / 2 + 0.04
+            let node = try XCTUnwrap(controller.scene.rootNode.childNode(withName: drone.id, recursively: false))
+            let hit = try XCTUnwrap(node.childNodes.first { $0.categoryBitMask == SceneController.hitCategory })
+            let radius = Double(try XCTUnwrap(hit.geometry as? SCNSphere).radius)
+            XCTAssertEqual(radius, expected, accuracy: 1e-9, drone.id)
+            radii.insert((radius * 1e6).rounded())
+        }
+        XCTAssertEqual(radii.count, 5, "the fixture has five propeller sizes")
+    }
+
+    func testSelectedLateDroneStaysFaded() throws {
+        let fixture = try loadFixture()
+        let controller = SceneController(fixture: fixture)
+        controller.apply(state(fixture, frame: 3, selected: "drone-009"))
+        let late = try XCTUnwrap(controller.scene.rootNode.childNode(withName: "drone-009", recursively: false))
+        let fresh = try XCTUnwrap(controller.scene.rootNode.childNode(withName: "drone-001", recursively: false))
+        XCTAssertLessThan(late.opacity, 1, "selection must not hide staleness")
+        XCTAssertEqual(fresh.opacity, 1)
+    }
+}
+
+final class CameraFitTests: XCTestCase {
+    func testFitKeepsTheRingInsideAndUsesTheAspect() throws {
+        let points = try loadFixture().drones.map(\.position)
+        let camera = OrbitCamera.framed(points: points)
+        let wide = camera.fitDistance(points: points, aspect: 2.0, verticalFOV: 38)
+        let narrow = camera.fitDistance(points: points, aspect: 1.0, verticalFOV: 38)
+        XCTAssertGreaterThan(narrow, wide, "a narrower view must back the camera away")
+        XCTAssertLessThanOrEqual(wide, camera.maximumDistance)
+        // Every drone at the fitted distance is in front of the camera and inside the frustum.
+        var fitted = camera
+        fitted.distance = wide
+        let inverse = fitted.sceneOrientation.inverse
+        let tanY = tan(Float(19) * .pi / 180)
+        for point in points {
+            let local = inverse.act(OrbitCamera.sceneVector(point) - fitted.sceneEye)
+            XCTAssertGreaterThan(-local.z, 0)
+            XCTAssertLessThanOrEqual(abs(local.y), -local.z * tanY)
+            XCTAssertLessThanOrEqual(abs(local.x), -local.z * tanY * 2)
+        }
+        // A single point at the target needs no distance beyond the near limit.
+        XCTAssertEqual(camera.fitDistance(points: [camera.target], aspect: 1.5, verticalFOV: 38), OrbitCamera.nearLimit, accuracy: 1e-3)
+    }
+}

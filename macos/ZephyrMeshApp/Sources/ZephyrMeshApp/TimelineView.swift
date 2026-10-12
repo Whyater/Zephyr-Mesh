@@ -29,14 +29,8 @@ struct TimelineView: View {
                 .foregroundStyle(palette.text)
                 .fixedSize()
                 .accessibilityLabel("Replay time \(Format.time(model.time)) of \(Format.time(model.duration)) seconds")
-            Picker("Playback speed", selection: $model.playbackSpeed) {
-                ForEach(PlaybackSpeed.allCases) { speed in
-                    Text(speed.label).tag(speed)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .fixedSize()
+            SegmentedChoice(options: PlaybackSpeed.allCases.map { ($0, $0.label) }, selection: $model.playbackSpeed,
+                            accessibilityLabel: "Playback speed")
             .help("Playback speed. The whole run lasts \(Format.time(model.duration)) s, so 0.25x is the default.")
         }
         .padding(.horizontal, Space.md)

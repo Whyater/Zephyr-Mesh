@@ -71,7 +71,7 @@ MOTION_MS = {
     'curve': 'ease-out',
     'reduced': 0,
 }
-LAYOUT = {'windowMinWidth': 1180, 'windowMinHeight': 760, 'sidebarWidth': 260, 'inspectorWidth': 300, 'rowHeight': 28, 'sceneMinWidth': 520, 'windowDefaultWidth': 1440, 'windowDefaultHeight': 900, 'eventListHeight': 128, 'inspectorMaxWidth': 360, 'sidebarIdealWidth': 300}
+LAYOUT = {'windowMinWidth': 1180, 'windowMinHeight': 760, 'sidebarWidth': 260, 'inspectorWidth': 300, 'rowHeight': 28, 'sceneMinWidth': 520, 'windowDefaultWidth': 1440, 'windowDefaultHeight': 900, 'eventListHeight': 128, 'inspectorMaxWidth': 360, 'sidebarIdealWidth': 300, 'eventPaneHeight': 192}
 
 @dataclass(frozen=True)
 class Shortcut:
@@ -376,7 +376,8 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
                  'neighbor_link_delay_ms': 'Neighbor link delay',
                  'neighbor_packet_loss_pct': 'Neighbor packet loss',
                  'target_link_delay_ms': 'Target link delay',
-                 'target_packet_loss_pct': 'Target packet loss'},
+                 'target_packet_loss_pct': 'Target packet loss',
+                 'propeller_diameter_mm': 'Propeller diameter (mm)'},
  'droneNaming': {'compact': 'D{number:02d}', 'heading': 'Drone {number:02d}'},
  'shortcuts': {'playPause': {'label': 'Play/Pause',
                              'key': 'space',

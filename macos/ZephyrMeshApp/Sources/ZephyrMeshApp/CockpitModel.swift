@@ -67,6 +67,8 @@ final class CockpitModel: ObservableObject {
     @Published var hoveredID: String?
     @Published var teamFilter = ""
     @Published var isTextFieldFocused = false
+    /// True while the team list has keyboard focus; its arrow keys move the list selection.
+    @Published var isTeamListFocused = false
     @Published var viewMode: CockpitViewMode = .threeD
     @Published var showKeepOut = true
     @Published var showInspector = true
@@ -201,7 +203,8 @@ final class CockpitModel: ObservableObject {
     /// Runs a generated shortcut action. Single-key actions are refused while a text field is
     /// being edited so typing in the team filter never moves the replay.
     func perform(actionID: String, router: ShortcutRouter = ShortcutRouter()) {
-        guard router.shouldFire(actionID: actionID, textFieldFocused: isTextFieldFocused) else { return }
+        guard router.shouldFire(actionID: actionID, textFieldFocused: isTextFieldFocused,
+                                listFocused: isTeamListFocused) else { return }
         switch actionID {
         case "playPause": togglePlayback()
         case "stepForward": stepFrame()

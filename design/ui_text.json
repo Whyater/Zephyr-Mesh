@@ -314,7 +314,8 @@
     "neighbor_link_delay_ms": "Neighbor link delay",
     "neighbor_packet_loss_pct": "Neighbor packet loss",
     "target_link_delay_ms": "Target link delay",
-    "target_packet_loss_pct": "Target packet loss"
+    "target_packet_loss_pct": "Target packet loss",
+    "propeller_diameter_mm": "Propeller diameter (mm)"
   },
   "droneNaming": {
     "compact": "D{number:02d}",

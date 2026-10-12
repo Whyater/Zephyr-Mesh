@@ -152,6 +152,7 @@ enum LayoutMetrics {
     static let eventListHeight: CGFloat = 128
     static let inspectorMaxWidth: CGFloat = 360
     static let sidebarIdealWidth: CGFloat = 300
+    static let eventPaneHeight: CGFloat = 192
 }
 
 enum UIText {
@@ -351,6 +352,7 @@ enum UIText {
         "profiles": "Profiles",
         "propeller": "Propeller",
         "propeller_diameter_m": "Propeller diameter (m)",
+        "propeller_diameter_mm": "Propeller diameter (mm)",
         "propeller_part_id": "Propeller part",
         "provenance": "Provenance",
         "python": "Python version",

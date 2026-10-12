@@ -7,6 +7,7 @@ struct TeamListView: View {
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var filterFocused: Bool
+    @FocusState private var listFocused: Bool
     @State private var expansionOverrides: [String: Bool] = [:]
 
     private var rows: [TeamPresentation.Row] {
@@ -35,22 +36,32 @@ struct TeamListView: View {
                         ForEach(rows) { row in
                             groupSection(row)
                         }
-                        filterFootnote
                     }
                     .padding(.horizontal, Space.sm)
                     .padding(.vertical, Space.sm)
                 }
-                .onChange(of: model.selectedID) { _, newValue in
-                    guard let newValue, let row = rows.first(where: { $0.group.droneIDs.contains(newValue) }) else { return }
-                    expansionOverrides[expansionKey(row.group)] = true
-                    withAnimation(.easeOut(duration: Motion.duration(Motion.standard, reduceMotion: reduceMotion))) {
-                        proxy.scrollTo(newValue, anchor: .center)
+                .focusable()
+                .focused($listFocused)
+                .focusEffectDisabled()
+                .overlay {
+                    if listFocused {
+                        RoundedRectangle(cornerRadius: Radius.small)
+                            .strokeBorder(palette.accent, lineWidth: 1)
+                            .padding(Space.xxs)
+                            .allowsHitTesting(false)
                     }
                 }
+                .onMoveCommand(perform: move)
+                .accessibilityLabel("Team list")
+                .accessibilityHint("Up and down arrows move the selection; left and right collapse or expand its group")
+                .onChange(of: model.selectedID) { _, newValue in reveal(newValue, proxy: proxy, animated: true) }
+                .onChange(of: model.frameIndex) { _, _ in reveal(model.selectedID, proxy: proxy, animated: false) }
+                .onAppear { reveal(model.selectedID, proxy: proxy, animated: false) }
             }
         }
         .background(palette.surface)
         .onChange(of: filterFocused) { _, focused in model.isTextFieldFocused = focused }
+        .onChange(of: listFocused) { _, focused in model.isTeamListFocused = focused }
         .onChange(of: model.filterFocusRequest) { _, _ in filterFocused = true }
     }
 
@@ -107,14 +118,39 @@ struct TeamListView: View {
         .accessibilityHidden(true)
     }
 
-    @ViewBuilder private var filterFootnote: some View {
-        if !model.teamFilter.trimmingCharacters(in: .whitespaces).isEmpty {
-            Text("Drones that need attention stay listed while filtering.")
-                .font(TypeScale.caption)
-                .foregroundStyle(palette.textSecondary)
-                .padding(.horizontal, Space.sm)
-                .padding(.top, Space.sm)
-                .fixedSize(horizontal: false, vertical: true)
+
+    /// Opens the group holding `droneID` (clearing a collapse the user made earlier) and scrolls
+    /// its row into view. Runs on selection, on frame change (drones move between groups), and
+    /// on appear, so a selection made from the scene or at launch is never hidden.
+    private func reveal(_ droneID: String?, proxy: ScrollViewProxy, animated: Bool) {
+        guard let droneID, let row = rows.first(where: { $0.group.droneIDs.contains(droneID) }) else { return }
+        if expansionOverrides[expansionKey(row.group)] == false { expansionOverrides[expansionKey(row.group)] = nil }
+        DispatchQueue.main.async {
+            withAnimation(animated ? .easeOut(duration: Motion.duration(Motion.standard, reduceMotion: reduceMotion)) : nil) {
+                proxy.scrollTo(droneID, anchor: .center)
+            }
+        }
+    }
+
+    /// Drones in the order they are listed, counting only open groups.
+    private var visibleDroneIDs: [String] {
+        rows.flatMap { isExpanded($0) ? $0.members.map(\.droneID) : [] }
+    }
+
+    private func move(_ direction: MoveCommandDirection) {
+        let ids = visibleDroneIDs
+        switch direction {
+        case .up, .down:
+            guard !ids.isEmpty else { return }
+            let current = model.selectedID.flatMap { ids.firstIndex(of: $0) }
+            let next = current.map { min(max($0 + (direction == .down ? 1 : -1), 0), ids.count - 1) } ?? 0
+            model.select(ids[next])
+        case .left, .right:
+            guard let selected = model.selectedID,
+                  let row = rows.first(where: { $0.group.droneIDs.contains(selected) }) else { return }
+            expansionOverrides[expansionKey(row.group)] = direction == .right
+        @unknown default:
+            break
         }
     }
 
@@ -122,9 +158,13 @@ struct TeamListView: View {
         "\(group.level)-\(group.word)-\(group.targetAgeS.map { Format.number($0, decimals: 2) } ?? "none")"
     }
 
+    /// Filter matches are always open. Otherwise an explicit user toggle wins; with no toggle, the
+    /// group holding the selected drone opens, and so do groups that need attention.
     private func isExpanded(_ row: TeamPresentation.Row) -> Bool {
         if row.isFilteredMatch { return true }
-        return expansionOverrides[expansionKey(row.group)] ?? (row.group.level != "ok")
+        if let override = expansionOverrides[expansionKey(row.group)] { return override }
+        if let selected = model.selectedID, row.group.droneIDs.contains(selected) { return true }
+        return row.group.level != "ok"
     }
 
     @ViewBuilder private func groupSection(_ row: TeamPresentation.Row) -> some View {
@@ -136,7 +176,7 @@ struct TeamListView: View {
         }
         if expanded {
             ForEach(row.members) { drone in
-                DroneRow(drone: drone, model: model)
+                DroneRow(drone: drone, model: model) { listFocused = true }
                     .id(drone.droneID)
             }
         }
@@ -227,6 +267,8 @@ private struct GroupRow: View {
 private struct DroneRow: View {
     let drone: PresentationDrone
     @ObservedObject var model: CockpitModel
+    /// Gives the team list keyboard focus when a row is clicked.
+    let focusList: () -> Void
     @Environment(\.palette) private var palette
     @State private var hovering = false
 
@@ -252,7 +294,10 @@ private struct DroneRow: View {
             model.hoveredID = inside ? drone.droneID : (model.hoveredID == drone.droneID ? nil : model.hoveredID)
         }
         .onTapGesture(count: 2) { model.focus(on: drone.droneID) }
-        .onTapGesture { model.select(drone.droneID) }
+        .onTapGesture {
+            model.select(drone.droneID)
+            focusList()
+        }
         .contextMenu { TeamContextMenu(droneIDs: [drone.droneID], model: model) }
         .accessibilityElement(children: .ignore)
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)

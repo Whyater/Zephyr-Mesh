@@ -1,18 +1,18 @@
 import AppKit
 import SceneKit
 
-/// Procedural X-frame quadcopter at true scale. Dimensions come from the fixture's hardware
-/// profile (arm length and propeller diameter); the rest are proportions of a small 3 inch
-/// class frame. The model faces +x, which is heading 0 in the simulator frame.
-struct DroneDimensions: Equatable {
-    var armLength: CGFloat = 0.10
-    var propellerRadius: CGFloat = 0.039
+/// Procedural X-frame quadcopter at true scale. Arm length and propeller diameter come from
+/// the drone's own hardware profile in the fixture (the decoder rejects a fixture whose drones
+/// reference a missing profile, or whose profile has a non-positive arm or propeller); the
+/// remaining parts are proportions of the arm length for a small 3 inch class frame. The
+/// model faces +x, which is heading 0 in the simulator frame.
+struct DroneDimensions: Hashable {
+    let armLength: CGFloat
+    let propellerRadius: CGFloat
 
-    init(profile: HardwareProfile?) {
-        if let profile, profile.armLengthM > 0, profile.propellerDiameterM > 0 {
-            armLength = CGFloat(profile.armLengthM)
-            propellerRadius = CGFloat(profile.propellerDiameterM / 2)
-        }
+    init(profile: HardwareProfile) {
+        armLength = CGFloat(profile.armLengthM)
+        propellerRadius = CGFloat(profile.propellerDiameterM / 2)
     }
 
     var motorRadius: CGFloat { armLength * 0.11 }

@@ -154,6 +154,9 @@ struct HardwareProfile: Decodable, Equatable, Identifiable {
         try requireFinite(armLengthM, field: "profile arm length", minimum: 0)
         try requireFinite(totalMassKg, field: "profile mass", minimum: 0)
         try requireFinite(propellerDiameterM, field: "profile propeller diameter", minimum: 0)
+        guard armLengthM > 0, propellerDiameterM > 0 else {
+            throw FixtureDecodeError(message: "hardware profile \(profileID) needs a positive arm length and propeller diameter")
+        }
     }
 }
 
@@ -558,7 +561,14 @@ struct Fixture: Decodable, Equatable {
         guard Set(profiles.map(\.profileID)).count == profiles.count else {
             throw FixtureDecodeError(message: "fixture contains duplicate hardware profile IDs")
         }
-        guard frames.allSatisfy({ $0.drones.map(\.id) == drones.map(\.id) }) else {
+        let profileIDs = Set(profiles.map(\.profileID))
+        if let orphan = drones.first(where: { !profileIDs.contains($0.profileID) }) {
+            throw FixtureDecodeError(
+                message: "drone \(orphan.id) references hardware profile \(orphan.profileID), which the fixture does not contain")
+        }
+        let ids = drones.map(\.id)
+        let profileOrder = drones.map(\.profileID)
+        guard frames.allSatisfy({ $0.drones.map(\.id) == ids && $0.drones.map(\.profileID) == profileOrder }) else {
             throw FixtureDecodeError(message: "frame drones do not match the fixture drone list")
         }
         guard frames.map(\.stepIndex) == Array(frames.indices), frames.map(\.time).sorted() == frames.map(\.time) else {

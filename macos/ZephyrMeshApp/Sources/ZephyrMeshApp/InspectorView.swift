@@ -74,19 +74,16 @@ struct InspectorView: View {
         DisclosureGroup(isExpanded: $showDetails) {
             VStack(alignment: .leading, spacing: Space.sm) {
                 if let telemetry = model.selectedTelemetry {
-                    StackedValue(label: Format.label("position_m"), value: Format.vector(telemetry.position),
-                                 monospaced: true)
-                    StackedValue(label: Format.label("velocity_mps"), value: Format.vector(telemetry.velocity),
-                                 monospaced: true)
-                    StackedValue(label: Format.label("fused_target_m"), value: Format.vector(telemetry.fusedTarget),
-                                 monospaced: true)
+                    StackedValue(label: Format.label("position_m"), value: Format.vector(telemetry.position))
+                    StackedValue(label: Format.label("velocity_mps"), value: Format.vector(telemetry.velocity))
+                    StackedValue(label: Format.label("fused_target_m"), value: Format.vector(telemetry.fusedTarget))
                 }
                 StackedValue(label: Format.label("constraint_flags"), value: flags(drone.constraintFlags))
-                StackedValue(label: Format.label("profile_id"), value: drone.profileID, monospaced: true)
+                StackedValue(label: Format.label("profile_id"), value: drone.profileID, style: .identifier)
                 if let profile = model.fixture.profile(id: drone.profileID) {
                     ProfileParts(profile: profile)
                 }
-                StackedValue(label: Format.label("agent_id"), value: drone.droneID, monospaced: true)
+                StackedValue(label: Format.label("agent_id"), value: drone.droneID, style: .identifier)
             }
             .padding(.top, Space.sm)
         } label: {
@@ -120,6 +117,7 @@ struct InspectorView: View {
 /// Hardware profile parts. These are scenario inputs, and the status word says so.
 private struct ProfileParts: View {
     private static let title = Format.label("hardware_profile")
+    private static let diameterLabel = Format.label("propeller_diameter_mm")
     let profile: HardwareProfile
     @Environment(\.palette) private var palette
 
@@ -131,11 +129,12 @@ private struct ProfileParts: View {
             if let status = profile.status {
                 ValueRow(label: Format.label("status"), value: status.capitalized)
             }
-            ValueRow(label: Format.label("motor_part_id"), value: profile.motorPartID, monospaced: true)
-            ValueRow(label: Format.label("propeller_part_id"), value: profile.propellerPartID, monospaced: true)
+            ValueRow(label: Format.label("motor_part_id"), value: profile.motorPartID, style: .identifier)
+            ValueRow(label: Format.label("propeller_part_id"), value: profile.propellerPartID, style: .identifier)
             ValueRow(label: Format.label("motor_count"), value: "\(profile.motorCount)")
-            ValueRow(label: Format.label("arm_length_m"), value: Format.number(profile.armLengthM, decimals: 3))
-            ValueRow(label: Format.label("propeller_diameter_m"), value: Format.number(profile.propellerDiameterM, decimals: 4))
+            ValueRow(label: Format.label("arm_length_m"), value: Format.number(profile.armLengthM, decimals: 2))
+            // Shown in millimetres: at 2 decimals in metres the five profile diameters would all read 0.08.
+            ValueRow(label: Self.diameterLabel, value: Format.number(profile.propellerDiameterM * 1000, decimals: 1))
             ValueRow(label: Format.label("total_mass_kg"), value: Format.number(profile.totalMassKg, decimals: 3))
         }
     }

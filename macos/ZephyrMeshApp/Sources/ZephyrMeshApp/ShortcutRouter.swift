@@ -27,8 +27,22 @@ struct ShortcutRouter {
     }
 
     func shouldFire(actionID: String, textFieldFocused: Bool) -> Bool {
+        shouldFire(actionID: actionID, textFieldFocused: textFieldFocused, listFocused: false)
+    }
+
+    /// Arrow keys belong to a focused list (moving its selection), so the arrow shortcuts are
+    /// refused while the team list has focus, as every single-key shortcut is while typing.
+    func shouldFire(actionID: String, textFieldFocused: Bool, listFocused: Bool) -> Bool {
         guard let action = actions.first(where: { $0.actionID == actionID }) else { return false }
-        return !(textFieldFocused && action.singleKey)
+        if textFieldFocused && action.singleKey { return false }
+        if listFocused && action.modifiers.isEmpty && Self.arrowKeys.contains(action.key) { return false }
+        return true
+    }
+
+    static let arrowKeys: Set<String> = ["left", "right", "up", "down"]
+
+    func usesArrowKey(_ actionID: String) -> Bool {
+        actions.first { $0.actionID == actionID }.map { $0.modifiers.isEmpty && Self.arrowKeys.contains($0.key) } ?? false
     }
 }
 

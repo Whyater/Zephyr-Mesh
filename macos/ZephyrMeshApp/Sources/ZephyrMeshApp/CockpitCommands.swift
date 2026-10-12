@@ -10,6 +10,8 @@ struct CockpitCommands: Commands {
 
     private var model: CockpitModel? { store.cockpit }
     private var typing: Bool { model?.isTextFieldFocused ?? false }
+    /// Arrow-key items also give way to the focused team list, which uses the arrows itself.
+    private var arrowsTaken: Bool { typing || (model?.isTeamListFocused ?? false) }
     private var unavailable: Bool { model == nil }
 
     var body: some Commands {
@@ -55,10 +57,10 @@ struct CockpitCommands: Commands {
                 .disabled(unavailable || typing)
             Button("Step Forward") { model?.stepFrame() }
                 .shortcut("stepForward")
-                .disabled(unavailable || typing || model?.isAtEnd == true)
+                .disabled(unavailable || arrowsTaken || model?.isAtEnd == true)
             Button("Step Back") { model?.stepBackward() }
                 .shortcut("stepBack")
-                .disabled(unavailable || typing || model?.isAtStart == true)
+                .disabled(unavailable || arrowsTaken || model?.isAtStart == true)
             Button("Restart") { model?.restart() }
                 .shortcut("restart")
                 .disabled(unavailable || typing)

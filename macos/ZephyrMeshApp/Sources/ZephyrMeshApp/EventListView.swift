@@ -3,6 +3,8 @@ import SwiftUI
 /// Events from the presentation rules, oldest at the top and newest at the bottom.
 /// Events of the current frame use the text color; earlier ones step back to secondary.
 struct EventListView: View {
+    /// Six full rows fit in the pane; the bottom padding keeps the last one off the window edge.
+    static let visibleRows = 6
     @ObservedObject var model: CockpitModel
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -36,7 +38,8 @@ struct EventListView: View {
                     }
                     .padding(.horizontal, Space.sm)
                 }
-                .frame(height: EventRow.height * 4)
+                .frame(height: EventRow.height * CGFloat(Self.visibleRows))
+                .padding(.bottom, Space.md)
                 .onAppear {
                     DispatchQueue.main.async { proxy.scrollTo(events.last?.id, anchor: .bottom) }
                 }
@@ -48,7 +51,7 @@ struct EventListView: View {
                 }
             }
         }
-        .frame(height: LayoutMetrics.eventListHeight)
+        .frame(height: LayoutMetrics.eventPaneHeight)
         .background(palette.surface)
         .overlay(alignment: .top) { HairlineDivider() }
     }

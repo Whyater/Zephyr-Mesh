@@ -3,9 +3,19 @@
 This directory contains the macOS replay viewer for Zephyr Mesh, a SwiftUI and SceneKit app.
 It replays the bundled fixture built from the canonical Python S7 run (`runs/s7-swarm/run.json`)
 by `tools/build_native_fixture.py`. It is a recorded simulation, not a live connection: there
-is no radio, camera, motor, or command path. Every number on screen comes from the
-presentation records that `desktop/presentation.py` embeds in the fixture; the Swift code only
-formats them. Values the run does not contain read "Not recorded".
+is no radio, camera, motor, or command path. Values the run does not contain read "Not
+recorded". Where the numbers come from:
+
+- Every metric (status, tracking headline, estimate error, link delay, packet loss, target age,
+  altitude, speed, heading, neighbors, groups, and events) comes from the presentation records
+  that `desktop/presentation.py` computes and the fixture embeds. The Swift code only formats
+  them.
+- The raw position, velocity and fused-target vectors and the hardware profile values under
+  Details, and the scene geometry (drone and target positions, keep-out spheres, and each drone's
+  arm length and propeller size), come from fixture fields that `tools/build_native_fixture.py`
+  projects from `run.json` and its `manifest.json`. They are copied, not recomputed.
+- Two small display steps happen in Swift: the team summary line ("50 drones: 44 OK, 6 late")
+  adds up the presentation's group counts, and the propeller diameter is shown in millimetres.
 
 ## What the window shows
 

@@ -79,13 +79,15 @@ private final class DroneNode {
     let root: SCNNode
     let body: SCNNode
     let blades: [SCNNode]
+    let dimensions: DroneDimensions
     var look: DroneLook = .normal
     var spinning = false
 
-    init(root: SCNNode, body: SCNNode, blades: [SCNNode]) {
+    init(root: SCNNode, body: SCNNode, blades: [SCNNode], dimensions: DroneDimensions) {
         self.root = root
         self.body = body
         self.blades = blades
+        self.dimensions = dimensions
     }
 }
 
@@ -103,10 +105,15 @@ final class SceneController {
     let cameraNode = SCNNode()
     let driver: CameraDriver
     private let fixture: Fixture
-    private let factory: DroneModelFactory
+    /// One model factory per distinct (arm length, propeller diameter) in the fixture; drones
+    /// with the same dimensions share geometry.
+    private let factories: [DroneDimensions: DroneModelFactory]
+    private let dimensionsByDrone: [String: DroneDimensions]
     private var drones: [String: DroneNode] = [:]
-    private var bodyGeometry: [DroneLook: SCNGeometry] = [:]
-    private var bladeGeometry: SCNGeometry?
+    private var bodyGeometry: [DroneDimensions: [DroneLook: SCNGeometry]] = [:]
+    private var bladeGeometry: [DroneDimensions: SCNGeometry] = [:]
+    private var hitGeometry: [DroneDimensions: SCNGeometry] = [:]
+    private var ringDimensions: DroneDimensions?
     private let targetNode = SCNNode()
     private let keepOutRoot = SCNNode()
     private let gridNode = SCNNode()
@@ -121,10 +128,17 @@ final class SceneController {
     private var savedOrbit: OrbitCamera?
     private var reduceMotion = false
     private let gridHalfExtent: Int
+    private var didFrameInitially = false
 
     init(fixture: Fixture) {
         self.fixture = fixture
-        factory = DroneModelFactory(dimensions: DroneDimensions(profile: fixture.profiles.first))
+        // The decoder guarantees every drone's profile exists, so no drone falls back to a guess.
+        var byDrone: [String: DroneDimensions] = [:]
+        for drone in fixture.drones {
+            if let profile = fixture.profile(id: drone.profileID) { byDrone[drone.id] = DroneDimensions(profile: profile) }
+        }
+        dimensionsByDrone = byDrone
+        factories = Dictionary(Set(byDrone.values).map { ($0, DroneModelFactory(dimensions: $0)) }, uniquingKeysWith: { first, _ in first })
         let points = fixture.frames.first?.drones.map(\.position) ?? []
         let home = OrbitCamera.framed(points: points)
         gridHalfExtent = max(10, Int((home.swarmRadius * 1.5).rounded(.up)))
@@ -137,8 +151,25 @@ final class SceneController {
         buildStaticScene()
     }
 
+    /// Fits the whole swarm to the current view: centered on the swarm, home yaw and pitch, and
+    /// the closest distance at which every drone projects inside the viewport.
     var homeCamera: OrbitCamera {
-        OrbitCamera.framed(points: currentPositions)
+        var camera = OrbitCamera.framed(points: currentPositions)
+        camera.distance = camera.fitDistance(points: currentPositions, aspect: viewAspect, verticalFOV: Float(Self.verticalFieldOfView))
+        camera.clamp()
+        return camera
+    }
+
+    private var viewAspect: Float = 1.6
+    private var userMovedCamera = false
+
+    /// Keeps the home framing matched to the view until the user orbits, zooms or focuses.
+    func viewDidResize(_ size: CGSize) {
+        guard size.width > 1, size.height > 1 else { return }
+        viewAspect = Float(size.width / size.height)
+        guard !userMovedCamera, lastViewMode == .threeD else { return }
+        let home = homeCamera
+        driver.update { $0 = home }
     }
 
     private var currentPositions: [SIMD3<Float>] = []
@@ -181,7 +212,7 @@ final class SceneController {
         buildTarget()
         scene.rootNode.addChildNode(keepOutRoot)
 
-        let ring = SCNTorus(ringRadius: factory.dimensions.hitRadius * 1.1, pipeRadius: 0.006)
+        let ring = SCNTorus(ringRadius: 0.2, pipeRadius: 0.006)
         ring.ringSegmentCount = 64
         selectionRing.geometry = ring
         selectionRing.castsShadow = false
@@ -216,6 +247,7 @@ final class SceneController {
     private func buildDrones() {
         guard let frame = fixture.frames.first else { return }
         for (index, telemetry) in frame.drones.enumerated() {
+            guard let dimensions = dimensionsByDrone[telemetry.id], let factory = factories[dimensions] else { continue }
             let root = SCNNode()
             root.name = telemetry.id
             root.simdPosition = OrbitCamera.sceneVector(telemetry.position)
@@ -225,35 +257,37 @@ final class SceneController {
             var blades: [SCNNode] = []
             for (motorIndex, tip) in factory.motorPositions().enumerated() {
                 let blade = SCNNode()
-                blade.position = SCNVector3(tip.x, factory.dimensions.propHeight + 0.001, tip.z)
+                blade.position = SCNVector3(tip.x, dimensions.propHeight + 0.001, tip.z)
                 blade.eulerAngles.y = CGFloat(index * 37 + motorIndex * 53) * .pi / 180
                 blade.castsShadow = false
                 root.addChildNode(blade)
                 blades.append(blade)
             }
-            let hit = SCNNode(geometry: hitGeometry)
+            let hit = SCNNode(geometry: hitProxy(for: dimensions))
             hit.name = telemetry.id
             hit.categoryBitMask = Self.hitCategory
             // Not hidden: SceneKit skips hidden nodes in hit tests. Its material writes no color or
             // depth, so it is invisible and never occludes anything.
             hit.castsShadow = false
-            hit.position = SCNVector3(0, factory.dimensions.propHeight / 2, 0)
+            hit.position = SCNVector3(0, dimensions.propHeight / 2, 0)
             root.addChildNode(hit)
             scene.rootNode.addChildNode(root)
-            drones[telemetry.id] = DroneNode(root: root, body: body, blades: blades)
+            drones[telemetry.id] = DroneNode(root: root, body: body, blades: blades, dimensions: dimensions)
         }
     }
 
-    private lazy var hitGeometry: SCNGeometry = {
-        let sphere = SCNSphere(radius: factory.dimensions.hitRadius)
+    private func hitProxy(for dimensions: DroneDimensions) -> SCNGeometry {
+        if let existing = hitGeometry[dimensions] { return existing }
+        let sphere = SCNSphere(radius: dimensions.hitRadius)
         sphere.segmentCount = 12
         let material = SCNMaterial()
         material.colorBufferWriteMask = []
         material.writesToDepthBuffer = false
         material.readsFromDepthBuffer = false
         sphere.materials = [material]
+        hitGeometry[dimensions] = sphere
         return sphere
-    }()
+    }
 
     // MARK: Theme
 
@@ -272,13 +306,18 @@ final class SceneController {
         keyLight.light?.shadowColor = (scenePalette.floorNS.shadow(withLevel: state.isDark ? 0.75 : 0.35) ?? scenePalette.floorNS)
             .withAlphaComponent(state.isDark ? 0.8 : 0.3)
 
-        for look in DroneLook.allCases {
-            bodyGeometry[look] = factory.staticBody(look: look, palette: palette, scene: scenePalette).geometry
+        for (dimensions, factory) in factories {
+            var looks: [DroneLook: SCNGeometry] = [:]
+            for look in DroneLook.allCases {
+                looks[look] = factory.staticBody(look: look, palette: palette, scene: scenePalette).geometry
+            }
+            bodyGeometry[dimensions] = looks
+            bladeGeometry[dimensions] = factory.propellerBlades(scene: scenePalette)
         }
-        bladeGeometry = factory.propellerBlades(scene: scenePalette)
         for drone in drones.values {
-            drone.body.geometry = bodyGeometry[drone.look]
-            drone.blades.forEach { $0.geometry = bladeGeometry }
+            drone.body.geometry = bodyGeometry[drone.dimensions]?[drone.look]
+            let blades = bladeGeometry[drone.dimensions]
+            drone.blades.forEach { $0.geometry = blades }
         }
         gridNode.geometry = nil
         gridNode.childNodes.forEach { $0.removeFromParentNode() }
@@ -340,6 +379,11 @@ final class SceneController {
             driver.setReducedMotion(state.reduceMotion)
         }
         currentPositions = state.frame.drones.map(\.position)
+        if !didFrameInitially {
+            didFrameInitially = true
+            let home = homeCamera
+            driver.update { $0 = home }
+        }
         updateDrones(state)
         updateTarget(state.frame.targetPosition)
         updateKeepOut(state.frame.keepOutVolumes, visible: state.showKeepOut, state: state)
@@ -358,10 +402,11 @@ final class SceneController {
             let look: DroneLook = telemetry.id == state.selectedID ? .selected : (telemetry.id == state.hoveredID ? .hovered : .normal)
             if drone.look != look || drone.body.geometry == nil {
                 drone.look = look
-                drone.body.geometry = bodyGeometry[look]
+                drone.body.geometry = bodyGeometry[drone.dimensions]?[look]
             }
             let faded = state.styles[telemetry.id]?.fadesInScene ?? false
-            drone.root.opacity = faded && look != .selected ? 0.38 : 1
+            // Selection never hides staleness: a selected late or lost drone stays faded.
+            drone.root.opacity = faded ? 0.38 : 1
             let shouldSpin = telemetry.active && !state.reduceMotion
             if shouldSpin != drone.spinning {
                 drone.spinning = shouldSpin
@@ -446,6 +491,10 @@ final class SceneController {
             return
         }
         let position = OrbitCamera.sceneVector(telemetry.position)
+        if let dimensions = dimensionsByDrone[id], dimensions != ringDimensions {
+            ringDimensions = dimensions
+            (selectionRing.geometry as? SCNTorus)?.ringRadius = dimensions.hitRadius * 1.1
+        }
         selectionRing.isHidden = false
         // In top view the ring sits at drone height so it does not drift by parallax.
         let ringHeight: Float = state.viewMode == .top ? position.y + 0.01 : 0.004
@@ -484,6 +533,7 @@ final class SceneController {
         lastCommandSerial = command.serial
         switch command.kind {
         case .reset:
+            userMovedCamera = false
             let home = homeCamera
             driver.update { camera in
                 let wasTop = camera.isTopView
@@ -494,6 +544,7 @@ final class SceneController {
                 }
             }
         case .focus(let droneID):
+            userMovedCamera = true
             guard let telemetry = state.frame.drones.first(where: { $0.id == droneID }) else { return }
             driver.update { camera in
                 camera.focus(point: telemetry.position)
@@ -503,10 +554,12 @@ final class SceneController {
     }
 
     func orbit(deltaX: CGFloat, deltaY: CGFloat) {
+        userMovedCamera = true
         driver.update { $0.applyDrag(deltaX: Float(-deltaX) * 0.3, deltaY: Float(deltaY) * 0.25) }
     }
 
     func zoom(factor: CGFloat) {
+        userMovedCamera = true
         driver.update { $0.applyZoom(factor: Float(factor)) }
     }
 }

@@ -46,6 +46,7 @@ final class AppStore: ObservableObject {
         let signals: [AnyPublisher<Void, Never>] = [
             model.$isPlaying.removeDuplicates().map { _ in () }.eraseToAnyPublisher(),
             model.$isTextFieldFocused.removeDuplicates().map { _ in () }.eraseToAnyPublisher(),
+            model.$isTeamListFocused.removeDuplicates().map { _ in () }.eraseToAnyPublisher(),
             model.$viewMode.removeDuplicates().map { _ in () }.eraseToAnyPublisher(),
             model.$showKeepOut.removeDuplicates().map { _ in () }.eraseToAnyPublisher(),
             model.$showInspector.removeDuplicates().map { _ in () }.eraseToAnyPublisher(),

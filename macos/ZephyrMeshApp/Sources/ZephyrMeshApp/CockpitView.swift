@@ -41,35 +41,17 @@ struct CockpitView: View {
         ToolbarItem(placement: .navigation) {
             HonestyBadge()
         }
-        ToolbarItemGroup(placement: .primaryAction) {
-            Button {
-                model.togglePlayback()
-            } label: {
-                Label(model.isPlaying ? "Pause" : "Play", systemImage: model.isPlaying ? "pause.fill" : "play.fill")
-            }
-            .help(model.isPlaying ? "Pause" : "Play")
-            Button {
-                model.stepFrame()
-            } label: {
-                Label("Step forward", systemImage: "forward.frame.fill")
-            }
-            .disabled(model.isAtEnd)
-            .help("Step forward one frame")
-        }
         ToolbarItem(placement: .primaryAction) {
-            Picker("View", selection: $model.viewMode) {
-                ForEach(CockpitViewMode.allCases) { mode in
-                    Text(mode.label).tag(mode)
-                }
-            }
-            .pickerStyle(.segmented)
-            .help("3D orbit view or straight-down top view")
+            SegmentedChoice(options: CockpitViewMode.allCases.map { ($0, $0.label) }, selection: $model.viewMode,
+                            accessibilityLabel: "View")
+                .help("3D orbit view or straight-down top view (T)")
         }
         ToolbarItem(placement: .primaryAction) {
             Button {
                 openWindow(id: WindowID.about)
             } label: {
                 Label(UIText.aboutButton, systemImage: "info.circle")
+                    .foregroundStyle(palette.text)
             }
             .help(UIText.aboutButton)
         }
@@ -78,6 +60,7 @@ struct CockpitView: View {
                 model.showInspector.toggle()
             } label: {
                 Label("Inspector", systemImage: "sidebar.trailing")
+                    .foregroundStyle(palette.text)
             }
             .help(model.showInspector ? "Hide inspector" : "Show inspector")
         }
