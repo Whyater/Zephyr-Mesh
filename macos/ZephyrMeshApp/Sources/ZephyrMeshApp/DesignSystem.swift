@@ -171,6 +171,7 @@ enum UIText {
         "alert": StatusLevel(word: "Lost", alternateWord: "Inactive", shape: "square", color: "alert"),
         "waiting": StatusLevel(word: "Waiting", alternateWord: nil, shape: "hollow circle", color: "textSecondary"),
         "unavailable": StatusLevel(word: "Not recorded", alternateWord: nil, shape: "dash", color: "textSecondary"),
+        "info": StatusLevel(word: "Info", alternateWord: nil, shape: "info", color: "info"),
     ]
     static let statusShapesMacOS: [String: String] = [
         "circle": "circle.fill",
@@ -178,6 +179,7 @@ enum UIText {
         "square": "square.fill",
         "hollow circle": "circle",
         "dash": "minus",
+        "info": "info.circle",
     ]
     static let statusShapesWindows: [String: String] = [
         "circle": "●",
@@ -185,6 +187,7 @@ enum UIText {
         "square": "■",
         "hollow circle": "○",
         "dash": "–",
+        "info": "ⓘ",
     ]
     static let fieldLabels: [String: String] = [
         "abstract_event_delay_s": "Abstract event delay (s)",

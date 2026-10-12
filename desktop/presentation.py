@@ -357,7 +357,7 @@ def frame_events(
         events.append(
             _event(
                 time_s,
-                "alert",
+                "info",
                 _event_text("packetLost", count=len(lost_ids)),
                 lost_ids,
             )
