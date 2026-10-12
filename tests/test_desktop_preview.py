@@ -87,15 +87,15 @@ def test_windows_cli_exposes_scenario_run_inspection_path():
     import desktop.windows_preview as preview
 
     source = (ROOT / "desktop" / "windows_preview.py").read_text(encoding="utf-8")
+    viewers = (ROOT / "desktop" / "ui_viewers.py").read_text(encoding="utf-8")
     assert "--scenario-run" in source
-    assert "Open scenario run" in source
-    assert "Integrity and provenance" in source
-    assert "project_scenario_altitude" in source
-    assert "altitude m" in source
-    assert "selected_frame_summary(run, cursor)" in source
+    assert "Open Scenario Run..." in source
     assert "load_scenario_run(args.scenario_run).summary()" in source
+    assert "load_scenario_run(path)" in source
+    assert "project_scenario_altitude" in viewers
+    assert '"Details"' in viewers
+    assert "json.dumps(summary" not in source, "raw JSON stays under Details in the viewers"
     assert callable(preview.load_scenario_run)
-
 
 def test_desktop_scenario_decoder_rejects_payload_and_link_mutations(tmp_path):
     import json
@@ -180,35 +180,6 @@ def test_replay_cursor_clamps_and_reset_is_deterministic():
     assert model.reset() == first
     assert model.index == 0
     assert model.summary()["frame"] == f"1/{RAW_FRAMES}"
-
-
-def test_programmatic_fleet_selection_does_not_reenter_render():
-    import desktop.windows_preview as preview
-
-    class FakeFleet:
-        def __init__(self):
-            self.selected = ()
-            self.on_select = None
-
-        def selection_set(self, value):
-            self.selected = (value,)
-            if self.on_select:
-                self.on_select(None)
-
-        def selection(self):
-            return self.selected
-
-    app = preview.WindowsReplayApp.__new__(preview.WindowsReplayApp)
-    app.fleet = FakeFleet()
-    app._selection_update = False
-    render_calls = []
-    app._render = lambda: render_calls.append(True)
-    app._on_select = lambda event: preview.WindowsReplayApp._on_select(app, event)
-    app.fleet.on_select = app._on_select
-    app.selected_id = "D01"
-    app._select_programmatically("D01")
-    assert app.fleet.selection() == ("D01",)
-    assert render_calls == []
 
 
 def test_scenario_run_cursor_clamps_replaces_and_resets():
@@ -329,45 +300,6 @@ def test_replay_exposes_parts_and_observed_link_metrics():
     assert model.summary()["profile_count"] == len(_RAW["agent_profiles"])
 
 
-def test_windows_mission_events_mirror_native_replay_vocabulary():
-    from desktop.windows_preview import mission_event_lines
-
-    model = ReplayModel.from_path(RUN)
-    lines = mission_event_lines(model, "drone-001")
-
-    assert lines[0].startswith("INFO  Replay manifest loaded")
-    assert [
-        line[6:].strip().split(" · ", 1)[0]
-        for line in lines
-    ] == [
-        "Replay manifest loaded",
-        "Command authority locked",
-        "Failsafe boundary recorded",
-        "Frame 0 committed",
-        "Separation margin observed",
-    ]
-
-
-def test_windows_mission_events_cover_warning_branches_and_missing_selection(monkeypatch):
-    from dataclasses import replace
-    from desktop.replay import LinkStats
-    from desktop.windows_preview import mission_event_lines
-
-    model = ReplayModel.from_path(RUN)
-    low_confidence = replace(model.frame.agents[0], confidence=0.9)
-    model.frames = (replace(model.frame, agents=(low_confidence,) + model.frame.agents[1:]),) + model.frames[1:]
-    monkeypatch.setattr(
-        model,
-        "link_stats_for",
-        lambda _agent_id: LinkStats("receiver", 10, 9, 0.08, 0.08),
-    )
-
-    lines = mission_event_lines(model, "missing-agent")
-    assert any("Estimator confidence changed" in line for line in lines)
-    assert any("Link envelope visible" in line for line in lines)
-    assert not any("Separation margin observed" in line for line in lines)
-
-
 def test_fleet_filter_matches_ids_and_profile_ids_without_reordering():
     model = ReplayModel.from_path(RUN)
     agents = model.frame.agents[:3]
@@ -474,17 +406,6 @@ def test_windows_release_job_runs_python_suite_before_packaging():
     assert windows_job.index("python -m pytest -q") < windows_job.index("Build and package the Windows preview")
 
 
-def test_windows_glyph_rotation_keeps_quad_geometry_bounded():
-    from desktop.windows_preview import WindowsReplayApp
-
-    points = WindowsReplayApp._rotated_points(0.0, 0.20, 0.11)
-    assert points[0] == (0.20, 0.0)
-    assert points[2] == (-0.20, 0.0)
-    rotated = WindowsReplayApp._rotated_points(1.5707963267948966, 0.20, 0.11)
-    assert abs(rotated[0][0]) < 1e-9
-    assert abs(rotated[0][1] - 0.20) < 1e-9
-
-
 def test_windows_preview_constructs_when_tk_display_is_available():
     tk = pytest.importorskip("tkinter")
     try:
@@ -493,18 +414,172 @@ def test_windows_preview_constructs_when_tk_display_is_available():
         pytest.skip("no desktop display in this test environment")
     root.withdraw()
     from desktop.windows_preview import WindowsReplayApp
-    app = WindowsReplayApp(root, ReplayModel.from_path(RUN))
+    app = WindowsReplayApp(root, ReplayModel.from_path(RUN), appearance="dark", persist_appearance=False)
     assert app.selected_id == "drone-001"
+    root.update()
+    renders = app.render_count
+    for _ in range(20):
+        root.update()
+    assert app.render_count == renders, "an idle window must not keep rendering"
     root.destroy()
 
 
-# ---- Windows playback and shortcut behavior (logic only, no Tk display needed) ----
-class _FakeButton:
-    def __init__(self):
-        self.text = "Play"
 
-    def configure(self, **options):
-        self.text = options.get("text", self.text)
+
+# ---- Windows UI logic (no Tk display needed) --------------------------------
+from desktop.replay_session import ReplaySession  # noqa: E402
+
+
+class _QueuedTree:
+    """Models ttk.Treeview selection: selection_set queues <<TreeviewSelect>> for later.
+
+    Real Tk delivers the virtual event from the event loop after the caller
+    returns, so a boolean "updating" guard is already reset when it fires.
+    This fake always queues, even when the selection did not change, which is
+    the worst case across Tk versions.
+    """
+
+    def __init__(self, queue):
+        self.queue = queue
+        self.selected = ()
+        self.open = {}
+        self.focused = ""
+        self.set_calls = 0
+
+    def selection(self):
+        return self.selected
+
+    def selection_set(self, value):
+        self.set_calls += 1
+        self.selected = tuple(value) if isinstance(value, (tuple, list)) else (value,)
+        self.queue.append("<<TreeviewSelect>>")
+
+    def focus(self, value=None):
+        if value is None:
+            return self.focused
+        self.focused = value
+
+    def exists(self, iid):
+        return iid in self.open
+
+    def item(self, iid, option):
+        assert option == "open"
+        return self.open.get(iid, False)
+
+    def see(self, _iid):
+        pass
+
+
+def _selection_app(queue):
+    import desktop.windows_preview as preview
+
+    app = object.__new__(preview.WindowsReplayApp)
+    app.session = ReplaySession(RUN)
+    app.session.seek_frame(3)
+    app.fleet = _QueuedTree(queue)
+    presentation = app.session.presentation
+    app._team_plan = preview.team_rows(presentation["groups"], presentation["per_drone"])
+    for row in app._team_plan:
+        app.fleet.open[row["iid"]] = row["level"] != "ok"
+    app.render_count = 0
+    app.inspector_renders = 0
+    app._render_inspector = lambda: setattr(app, "inspector_renders", app.inspector_renders + 1)
+    app.scene = types.SimpleNamespace(set_selected=lambda _drone: None)
+    return app
+
+
+def _drain(app, queue, limit=50):
+    """Run queued virtual events like the Tk event loop; return how many ran."""
+    ran = 0
+    while queue and ran < limit:
+        queue.pop(0)
+        app._on_select(None)
+        ran += 1
+    return ran
+
+
+def test_queued_treeview_select_events_settle_without_rendering():
+    queue = []
+    app = _selection_app(queue)
+    app._sync_team_selection()  # what _render_fleet does on startup
+    assert queue == ["<<TreeviewSelect>>"]
+    assert _drain(app, queue) == 1
+    assert queue == [] and app.inspector_renders == 0
+    app._sync_team_selection()  # a later render with nothing changed
+    assert app.fleet.set_calls == 1, "selection_set must not be called when the selection already matches"
+
+
+def test_user_selection_renders_once_and_never_loops():
+    queue = []
+    app = _selection_app(queue)
+    app._sync_team_selection()
+    _drain(app, queue)
+    late = next(row for row in app._team_plan if row["level"] == "caution")
+    other = next(drone for drone in late["members"] if drone != app.session.selected_drone_id)
+    app.fleet.selected = (other,)  # the user clicks a row: Tk queues one event
+    queue.append("<<TreeviewSelect>>")
+    assert _drain(app, queue) == 1
+    assert queue == []
+    assert app.session.selected_drone_id == other
+    assert app.inspector_renders == 1
+
+
+def test_selecting_a_collapsed_group_keeps_the_group_row_and_settles():
+    queue = []
+    app = _selection_app(queue)
+    ok_group = next(row for row in app._team_plan if row["level"] == "ok")
+    app.fleet.selected = (ok_group["iid"],)
+    queue.append("<<TreeviewSelect>>")
+    _drain(app, queue)
+    assert app.session.selected_drone_id == ok_group["members"][0]
+    assert app.fleet.selection() == (ok_group["iid"],)
+    assert queue == []
+    app.fleet.open[ok_group["iid"]] = True  # the user expands it; selection moves to the drone row
+    app._sync_team_selection()
+    assert app.fleet.selection() == (ok_group["members"][0],)
+    renders = app.inspector_renders
+    assert _drain(app, queue) == 1 and queue == []
+    assert app.inspector_renders == renders
+
+
+def test_queued_event_model_catches_the_old_feedback_loop():
+    """The fake is strict enough: an unconditional render-on-select handler never settles."""
+    queue = []
+    app = _selection_app(queue)
+
+    def naive_on_select(_event):
+        selection = app.fleet.selection()
+        if selection:
+            app.fleet.selection_set(selection[0])  # render -> _render_fleet -> selection_set
+
+    app._on_select = naive_on_select
+    app.fleet.selection_set(app.session.selected_drone_id)
+    assert _drain(app, queue, limit=50) == 50
+    assert queue, "the old handler keeps queueing events forever"
+
+
+def test_team_rows_group_drones_and_filter_never_hides_non_ok():
+    from desktop.windows_preview import desired_team_selection, drone_for_team_row, team_rows
+
+    session = ReplaySession(RUN)
+    session.seek_frame(5)
+    presentation = session.presentation
+    rows = team_rows(presentation["groups"], presentation["per_drone"])
+    assert sum(len(row["members"]) for row in rows) == RAW_AGENTS
+    assert rows[0]["level"] != "ok", "non-OK groups sort first"
+    assert rows[-1]["label"].endswith("drones")
+    filtered = team_rows(presentation["groups"], presentation["per_drone"], "D01")
+    assert {row["level"] for row in rows if row["level"] != "ok"} <= {row["level"] for row in filtered}
+    ok_row = next(row for row in filtered if row["level"] == "ok")
+    assert [child["label"] for child in ok_row["children"]] == ["D01"]
+    assert ok_row["label"].startswith(f"{len(ok_row['children'])} of ")
+    first = rows[0]
+    assert desired_team_selection(rows, first["members"][0], set()) == first["iid"]
+    assert desired_team_selection(rows, first["members"][0], {first["iid"]}) == first["members"][0]
+    assert drone_for_team_row(rows, first["iid"], "nobody") == first["members"][0]
+    assert drone_for_team_row(rows, first["members"][-1], "nobody") == first["members"][-1]
+    waiting = team_rows(ReplaySession(RUN).presentation["groups"], ReplaySession(RUN).presentation["per_drone"])
+    assert waiting[0]["values"][1:] == ("–", "–", "–"), "missing values are never shown as 0"
 
 
 class _FakeRoot:
@@ -514,66 +589,81 @@ class _FakeRoot:
         self.jobs = {}
         self.counter = 0
 
-    def after(self, _delay_ms, callback):
+    def after(self, _delay_ms, callback, *args):
         self.counter += 1
-        self.jobs[f"job{self.counter}"] = callback
+        self.jobs[f"job{self.counter}"] = (callback, args)
         return f"job{self.counter}"
 
     def after_cancel(self, job):
         self.jobs.pop(job, None)
 
 
-def _headless_app():
+class _FakeWidget:
+    def __init__(self):
+        self.options = {}
+
+    def configure(self, **options):
+        self.options.update(options)
+
+
+def _playback_app():
     from desktop.windows_preview import WindowsReplayApp
 
     app = object.__new__(WindowsReplayApp)  # skip __init__: it needs a Tk display
-    app.model = ReplayModel.from_path(RUN)
-    app.playing = False
     app.root = _FakeRoot()
-    app.play_button = _FakeButton()
-    app._tick_job = None
-    app._render = lambda: None
+    app.model = ReplayModel.from_path(RUN)
+    app.session = ReplaySession(app.model, schedule=app._schedule, cancel=app._cancel)
+    app.renders = 0
+    app._render = lambda: setattr(app, "renders", app.renders + 1)
+    app.play_button = _FakeWidget()
+    app.time_label = _FakeWidget()
+    app.slider = types.SimpleNamespace(set_state=lambda *args: None)
+    app.images = types.SimpleNamespace(icon=lambda name, *args: name)
+    app.speed_var = types.SimpleNamespace(get=lambda: app.session.speed, set=lambda value: None)
     return app
 
 
-def test_play_button_shows_pause_while_playing_and_play_when_stopped():
-    app = _headless_app()
-    assert app.play_button.text == "Play"
+def _run_next_job(app):
+    (job, (callback, args)), = app.root.jobs.items()
+    del app.root.jobs[job]
+    callback(*args)
+
+
+def test_play_button_label_and_icon_follow_playback():
+    app = _playback_app()
+    app._render_timeline()
+    assert app.play_button.options["text"].strip() == "Play" and app.play_button.options["image"] == "play"
     app._toggle()
-    assert app.playing and app.play_button.text == "Pause"
-    app._toggle()
-    assert not app.playing and app.play_button.text == "Play"
-    app._toggle()
-    app._step()  # stepping stops playback, so the label must follow
-    assert not app.playing and app.play_button.text == "Play"
-    app._toggle()
-    app._reset()
-    assert not app.playing and app.play_button.text == "Play"
+    app._render_timeline()
+    assert app.playing and app.play_button.options["text"].strip() == "Pause"
+    assert app.play_button.options["image"] == "pause"
+    app._step()  # stepping pauses
+    app._render_timeline()
+    assert not app.playing and app.play_button.options["text"].strip() == "Play"
+    assert app.time_label.options["text"] == "0.05 / 0.25 s"
 
 
 def test_play_pause_play_keeps_exactly_one_timer_chain():
-    app = _headless_app()
+    app = _playback_app()
     app._toggle()
     app._toggle()
     app._toggle()
     assert len(app.root.jobs) == 1, "a second after() chain means double-speed playback"
-    # run the chain: it must keep exactly one pending job and advance one frame per tick
-    start = app.model.index
-    for _ in range(3):
-        (callback,) = app.root.jobs.values()
-        app.root.jobs.clear()
-        app._tick_job = None
-        callback()
+    for expected in (1, 2, 3):
+        _run_next_job(app)
+        assert app.session.frame_index == expected
         assert len(app.root.jobs) == 1
-    assert app.model.index == start + 3 or app.model.index == app.model.frame_count - 1
 
 
-def test_playback_ends_cleanly_at_the_last_frame_and_relabels_the_button():
-    app = _headless_app()
-    app.model.step(app.model.frame_count - 1)
+def test_playback_stops_at_the_last_frame_and_play_restarts():
+    app = _playback_app()
     app._toggle()
-    assert not app.playing and app.play_button.text == "Play"
-    assert app.root.jobs == {}
+    while app.root.jobs:
+        _run_next_job(app)
+    assert not app.playing
+    assert app.session.frame_index == app.session.frame_count - 1
+    app._toggle()  # Play at the end starts again from the first frame
+    assert app.playing and app.session.frame_index == 0
 
 
 @pytest.mark.parametrize("widget_class,typing", [("Entry", True), ("TEntry", True), ("Text", True), ("Spinbox", True), ("TSpinbox", True), ("TCombobox", True), ("Canvas", False), ("TButton", False), ("Treeview", False), ("Tk", False)])
@@ -583,11 +673,217 @@ def test_text_input_widgets_are_recognised(widget_class, typing):
     assert is_text_input_class(widget_class) is typing
 
 
-def test_single_key_shortcuts_do_not_fire_while_typing_in_a_text_field():
-    app = _headless_app()
+def test_single_key_shortcuts_yield_to_the_focused_widget():
+    from desktop.windows_preview import WindowsReplayApp
+
+    app = object.__new__(WindowsReplayApp)
     fired = []
-    handler = app._shortcut(lambda: fired.append("ran"))
-    handler(types.SimpleNamespace(widget=types.SimpleNamespace(winfo_class=lambda: "TEntry")))
-    assert fired == []
-    handler(types.SimpleNamespace(widget=types.SimpleNamespace(winfo_class=lambda: "Canvas")))
-    assert fired == ["ran"]
+
+    def press(widget_class, key):
+        handler = app._shortcut(lambda: fired.append(key), key)
+        return handler(types.SimpleNamespace(widget=types.SimpleNamespace(winfo_class=lambda: widget_class)))
+
+    assert press("TEntry", "f") is None and fired == []
+    assert press("TButton", "space") is None and fired == [], "a focused button owns Space"
+    assert press("Treeview", "right") is None and fired == [], "a focused list owns the arrow keys"
+    assert press("Canvas", "f") == "break" and fired == ["f"]
+    assert press("TButton", "f") == "break"
+    assert press("Treeview", "space") == "break"
+    assert fired == ["f", "f", "space"]
+
+
+def test_menu_layout_covers_every_shortcut_with_generated_accelerators():
+    from desktop.design_tokens import SHORTCUTS
+    from desktop.windows_preview import MENU_LAYOUT, SHORTCUT_HANDLERS, WindowsReplayApp, menu_accelerators
+
+    assert set(SHORTCUT_HANDLERS) == {shortcut.action_id for shortcut in SHORTCUTS}
+    assert all(callable(getattr(WindowsReplayApp, name)) for name in SHORTCUT_HANDLERS.values())
+    accelerators = menu_accelerators()
+    assert accelerators["openScenarioRun"] == "Ctrl+Shift+O"
+    assert accelerators["playPause"] == "Space"
+    assert accelerators["stepBack"] == "Left"
+    titles = [title for title, _items in MENU_LAYOUT]
+    assert titles == ["File", "View", "Playback", "Help"]
+    labels = {label for _title, items in MENU_LAYOUT for label, _action, _kind in items}
+    for label in ("Open Evidence Report...", "Open Scenario Run...", "Exit", "Show Keep-out Volume", "Show Inspector",
+                  "Focus Selected Drone", "Reset Camera", "Appearance", "Play/Pause", "Step Forward", "Step Back",
+                  "Restart", "Speed", "About This Replay", "Check for Updates"):
+        assert label in labels
+
+
+def test_events_through_is_cumulative_oldest_first():
+    session = ReplaySession(RUN)
+    assert [event["text"] for _frame, event in session.events_through()] == ["Replay loaded: 50 drones"]
+    session.seek_frame(3)
+    events = session.events_through()
+    assert [frame for frame, _event in events] == sorted(frame for frame, _event in events)
+    assert events[-1][0] == 3
+    assert session.event_frames()[0] == 0
+
+
+# ---- formatting ------------------------------------------------------------
+def test_formatting_precision_and_missing_values():
+    from desktop import ui_format as fmt
+
+    assert fmt.format_value(None, "ms") is None
+    assert fmt.display(None, "ms") == "Not recorded"
+    assert fmt.format_value(80.0, "ms") == "80 ms"
+    assert fmt.format_value(25.81, "pct") == "25.8%"
+    assert fmt.format_value(50.0, "pct") == "50%"
+    assert fmt.format_value({"min": 50.0, "max": 66.67}, "pct") == "50–67%"
+    assert fmt.format_value({"min": 80.0, "max": 80.0}, "ms") == "80 ms"
+    assert fmt.format_value(0.15000000000000002, "s") == "0.15 s"
+    assert fmt.format_value(0.0, "m") == "0.00 m", "a recorded zero stays zero"
+    assert fmt.format_age_span(0.1, 0.2) == "0.10–0.20 s"
+    assert fmt.format_age_span(0.1, 0.1) == "0.10 s"
+    assert fmt.format_age_span(None, None) is None
+    assert fmt.time_label(0.1, 0.25) == "0.10 / 0.25 s"
+
+
+def test_team_summary_and_plain_run_name():
+    from desktop import ui_format as fmt
+
+    records = [{"level": "ok", "word": "OK"}] * 45 + [{"level": "caution", "word": "Late"}] * 4 + [{"level": "waiting", "word": "Waiting"}]
+    assert fmt.team_summary(records) == "50 drones: 45 OK, 4 late, 1 waiting"
+    assert fmt.plain_run_name(_RAW) == "50-drone ring, seed 17"
+    assert RAW_SCENARIO not in fmt.plain_run_name(_RAW)
+
+
+def test_labels_never_show_snake_case():
+    from desktop import ui_format as fmt
+
+    assert fmt.field_label("target_age_s") == "Target age (s)"
+    assert fmt.humanize_key("p95_delay_ms") == "P95 delay (ms)"
+    assert fmt.humanize_key("observed_rate_hz") == "Observed rate (Hz)"
+    for key in ("unseen_key_name", "max_power_w", "abc_def_ghi_mps"):
+        assert "_" not in fmt.field_label(key)
+    sections = fmt.summary_sections({"provenance": {"status": "synthetic"}, "frame_count": 6, "nested": {"deep": {"a": 1}}})
+    assert sections[0] == (None, [("Frame count", "6")])
+    assert all("_" not in label for _title, rows in sections for label, _value in rows)
+    assert fmt.format_scalar({"min": 1.0, "max": 2.0}) == "Max 2, Min 1"
+
+
+def test_accelerator_text_matches_generated_shortcuts():
+    from desktop import ui_format as fmt
+
+    assert fmt.accelerator("openEvidenceReport") == "Ctrl+O"
+    assert fmt.accelerator("focusFilter") == "Ctrl+L"
+    assert fmt.accelerator("toggleKeepOut") == "K"
+    assert fmt.accelerator("restart") == "Home"
+
+
+# ---- icons -------------------------------------------------------------------
+def test_status_glyph_png_is_valid_rgba_with_antialiased_edges():
+    import struct
+    import zlib
+    from desktop.ui_icons import STATUS_SHAPES, coverage, status_png
+    from desktop.design_tokens import UI_TEXT
+
+    assert {spec["shape"] for spec in UI_TEXT["statusLevels"].values()} <= set(STATUS_SHAPES)
+    png = status_png("circle", "#5FD39B", 12, 16)
+    assert png[:8] == b"\x89PNG\r\n\x1a\n"
+    width, height, depth, color_type = struct.unpack(">IIBB", png[16:26])
+    assert (width, height, depth, color_type) == (16, 12, 8, 6)
+    raw = zlib.decompress(png[png.index(b"IDAT") + 4:png.index(b"IEND") - 8])
+    assert len(raw) == height * (1 + width * 4)
+    grid = coverage(STATUS_SHAPES["circle"], 12)
+    assert grid[6][6] == 1.0 and grid[0][0] == 0.0
+    assert any(0.0 < value < 1.0 for row in grid for value in row), "edges are antialiased"
+    hollow = coverage(STATUS_SHAPES["hollow circle"], 12)
+    assert hollow[6][6] == 0.0, "the waiting glyph is hollow, so it differs by shape and not only color"
+
+
+# ---- scene projection (renderer math) ----------------------------------------
+def test_projection_is_not_mirrored():
+    from desktop.scene_projection import OrbitCamera, Projector, project_point, top_pose
+
+    looking_north = OrbitCamera(yaw=-90, pitch=35, distance=10, target=(0, 0, 0), swarm_radius=4)
+    assert project_point(looking_north, (1, 0, 0), 800, 600).x > 400, "east is to the right when facing north"
+    assert project_point(looking_north, (0, 1, 0), 800, 600).y < 300, "farther north is higher on screen"
+    top = Projector(top_pose(looking_north), 800, 600)
+    east, north = top.project((1, 0, 0)), top.project((0, 1, 0))
+    assert east.x > 400 and abs(east.y - 300) < 1e-6
+    assert north.y < 300 and abs(north.x - 400) < 1e-6
+
+
+def test_segment_clipping_and_framing():
+    from desktop.scene_projection import NEAR_PLANE, OrbitCamera, Projector, ViewPose, fit_distance, framing_camera
+
+    pose = ViewPose(0.0, 10.0, 5.0, (0.0, 0.0, 0.0))
+    projector = Projector(pose, 800, 600)
+    behind = projector.segment((20.0, 0.0, 0.0), (30.0, 0.0, 0.0))
+    assert behind is None
+    crossing = projector.segment((20.0, 0.0, 0.0), (-5.0, 0.0, 0.0))
+    assert crossing is not None and min(point.depth for point in crossing) >= NEAR_PLANE - 1e-9
+    ring = [agent["position_m"] for agent in _RAW["steps"][0]["agents"]]
+    camera = framing_camera(ring)
+    distance = fit_distance(camera, ring, 800, 500, 30)
+    assert distance <= camera.swarm_radius * 3 + 1e-9
+    fitted = Projector(ViewPose(camera.yaw, camera.pitch, distance, camera.target), 800, 500)
+    assert all(30 - 1e-6 <= fitted.project(point).x <= 770 + 1e-6 for point in ring)
+    assert fit_distance(camera, ring, 800, 500, 30) < fit_distance(camera, ring, 400, 250, 30)
+
+
+def test_xframe_glyph_shape_and_honest_heading():
+    import math
+    from desktop.scene_projection import Projector, ViewPose, xframe_glyph
+
+    projector = Projector(ViewPose(-90.0, 90.0, 10.0, (0.0, 0.0, 0.0)), 800, 600)
+    resting = xframe_glyph(projector, (0.0, 0.0, 0.0), None)
+    assert resting is not None and resting.heading is None, "no heading marker without a heading in the data"
+    assert len(resting.arm_tips) == 4 and len(resting.rotors) == 4
+    dx, dy = resting.arm_tips[0][0] - resting.center.x, resting.arm_tips[0][1] - resting.center.y
+    assert abs(abs(dx) - abs(dy)) < 1e-6, "X frame: arms sit at 45 degrees"
+    assert all(abs(rx - ry) < 1e-6 for _x, _y, rx, ry in resting.rotors), "discs are circles from straight above"
+    moving = xframe_glyph(projector, (0.0, 0.0, 0.0), 0.0)
+    assert moving.heading is not None and moving.heading[0][0] > moving.center.x
+    tilted = xframe_glyph(Projector(ViewPose(-90.0, 30.0, 10.0, (0.0, 0.0, 0.0)), 800, 600), (0.0, 0.0, 0.0), math.pi / 2)
+    assert all(ry < rx for _x, _y, rx, ry in tilted.rotors), "discs flatten into ellipses at a low pitch"
+    assert xframe_glyph(Projector(ViewPose(0.0, 10.0, 2.0, (0.0, 0.0, 0.0)), 800, 600), (50.0, 0.0, 0.0), None) is None
+
+
+def test_camera_animator_eases_and_respects_reduced_motion():
+    from desktop.scene_projection import CameraAnimator, ViewPose
+
+    start = ViewPose(170.0, 30.0, 10.0, (0.0, 0.0, 0.0))
+    goal = ViewPose(-170.0, 60.0, 5.0, (1.0, 0.0, 0.0))
+    animator = CameraAnimator(start)
+    animator.go(goal, 0, 180)
+    half = animator.advance(90)
+    assert 170.0 < half.yaw < 200.0, "yaw takes the short way across 180 degrees"
+    assert 30.0 < half.pitch < 60.0 and animator.active
+    assert animator.advance(180) == goal and not animator.active
+    reduced = CameraAnimator(start)
+    reduced.go(goal, 0, 180, reduced_motion=True)
+    assert reduced.pose == goal and not reduced.active
+
+
+def test_grid_has_one_meter_lines_and_stronger_five_meter_lines():
+    from desktop.scene_projection import grid_lines
+
+    lines = grid_lines((0.0, 0.0), 6.0)
+    xs = sorted({start[0] for start, end, _major in lines if start[0] == end[0]})
+    assert xs == [float(value) for value in range(-6, 7)]
+    majors = sorted({start[0] for start, end, major in lines if major and start[0] == end[0]})
+    assert majors == [-5.0, 0.0, 5.0]
+
+
+def test_appearance_resolution_defaults_to_dark():
+    from desktop.ui_settings import resolve_theme, system_reduced_motion
+
+    assert resolve_theme("system", None) == "dark"
+    assert resolve_theme("system", False) == "light"
+    assert resolve_theme("system", True) == "dark"
+    assert resolve_theme("light") == "light"
+    assert resolve_theme("nonsense") == "dark"
+    assert system_reduced_motion() in (True, False)
+
+
+def test_windows_build_lists_every_ui_module():
+    from tools.validate_windows_bundle import WINDOWS_UI_MODULES
+
+    script = (ROOT / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
+    for module in ("presentation", "replay_session", "scene_projection", "scene_view", "ui_format", "ui_icons",
+                   "ui_settings", "ui_theme", "ui_viewers", "ui_widgets"):
+        assert f"--hidden-import desktop.{module}" in script
+        assert f"desktop.{module}" in WINDOWS_UI_MODULES

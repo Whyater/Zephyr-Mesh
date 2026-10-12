@@ -171,7 +171,8 @@
     "sidebarWidth": 260,
     "inspectorWidth": 300,
     "rowHeight": 28,
-    "sceneMinWidth": 520
+    "sceneMinWidth": 520,
+    "sidebarWidthWindows": 340
   },
   "contrast": {
     "minimumTextRatio": 4.5,

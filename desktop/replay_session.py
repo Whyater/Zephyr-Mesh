@@ -176,6 +176,30 @@ class ReplaySession:
     def frame_time(self) -> float:
         return self._times[self._index]
 
+    @property
+    def times(self) -> tuple[float, ...]:
+        return self._times
+
+    @property
+    def duration(self) -> float:
+        return self._times[-1] if self._times else 0.0
+
+    def presentation_at(self, index: int) -> Mapping[str, Any]:
+        return self._presentations[max(0, min(int(index), self.frame_count - 1))]
+
+    def events_through(self, index: int | None = None) -> list[tuple[int, Mapping[str, Any]]]:
+        """Every timeline event up to and including a frame, oldest first, with its frame index."""
+        last = self._index if index is None else max(0, min(int(index), self.frame_count - 1))
+        return [(frame, event) for frame in range(last + 1) for event in self._presentations[frame]["events"]]
+
+    def event_frames(self) -> list[int]:
+        """Frames that carry at least one event, for timeline tick marks."""
+        return [frame for frame, presentation in enumerate(self._presentations) if presentation["events"]]
+
+    def record_for(self, drone_id: str) -> Mapping[str, Any] | None:
+        """The current frame's presentation record for one drone."""
+        return next((record for record in self.per_drone if record["drone_id"] == drone_id), None)
+
     def step_forward(self) -> Mapping[str, Any]:
         self._index = min(self._index + 1, self.frame_count - 1)
         return self.presentation

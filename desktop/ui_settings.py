@@ -73,13 +73,41 @@ def system_prefers_dark() -> bool | None:
     return None
 
 
+def resolve_theme(appearance: str, system_dark: bool | None = None) -> str:
+    """Map an appearance choice to the theme to draw: System follows Windows, else Dark."""
+    choice = _valid(appearance)
+    if choice == "system":
+        return "light" if system_dark is False else "dark"
+    return choice
+
+
+def system_reduced_motion() -> bool:
+    """True when Windows has client-area animations turned off (Settings > Accessibility)."""
+    try:
+        import ctypes
+
+        user32 = ctypes.windll.user32  # type: ignore[attr-defined]
+    except (ImportError, AttributeError, OSError):
+        return False
+    try:
+        enabled = ctypes.c_int(1)
+        get_client_area_animation = 0x1042
+        if not user32.SystemParametersInfoW(get_client_area_animation, 0, ctypes.byref(enabled), 0):
+            return False
+        return enabled.value == 0
+    except (AttributeError, OSError, TypeError, ValueError):
+        return False
+
+
 __all__ = [
     "APPEARANCES",
     "DEFAULT_APPEARANCE",
     "load_appearance",
     "load_settings",
+    "resolve_theme",
     "save_appearance",
     "save_settings",
     "settings_path",
     "system_prefers_dark",
+    "system_reduced_motion",
 ]

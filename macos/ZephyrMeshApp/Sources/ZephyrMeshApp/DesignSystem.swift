@@ -147,6 +147,7 @@ enum LayoutMetrics {
     static let inspectorWidth: CGFloat = 300
     static let rowHeight: CGFloat = 28
     static let sceneMinWidth: CGFloat = 520
+    static let sidebarWidthWindows: CGFloat = 340
 }
 
 enum UIText {

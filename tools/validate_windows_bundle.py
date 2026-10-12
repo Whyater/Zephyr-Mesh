@@ -15,7 +15,11 @@ from desktop.replay import ReplayModel
 from desktop.evidence import load_evidence_report
 
 
-WINDOWS_UI_MODULES = ("desktop.scene_projection", "desktop.ui_settings", "desktop.replay_session")
+WINDOWS_UI_MODULES = (
+    "desktop.scene_projection", "desktop.ui_settings", "desktop.replay_session", "desktop.presentation",
+    "desktop.ui_format", "desktop.ui_icons", "desktop.ui_theme", "desktop.ui_widgets", "desktop.scene_view",
+    "desktop.ui_viewers",
+)
 
 
 def expected_smoke_marker(word: str, frame_count: int, evidence_kinds: list[str]) -> str:

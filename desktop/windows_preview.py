@@ -1,17 +1,18 @@
-"""Windows-friendly Tkinter replay preview for the Zephyr Mesh S7 fixture.
+"""Windows Tkinter replay window for the Zephyr Mesh S7 fixture.
 
-The app is intentionally offline and read-only. It is a desktop preview of the
-canonical Python event log, not a vehicle controller or a live telemetry client.
-Tkinter is imported only when ``main`` runs so the pure replay model remains
-testable on machines without Tk support.
+The app is offline and read-only. It replays the canonical Python event log;
+it is not a vehicle controller or a live telemetry client. Tkinter is
+imported only when the window is built, so the pure helpers stay testable on
+machines without Tk.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
-import math
 import os
 from pathlib import Path
+import platform
 import shutil
 import subprocess
 import sys
@@ -19,21 +20,25 @@ import tempfile
 import threading
 import time
 import traceback
-from typing import Any
+from typing import Any, Callable, Mapping, Sequence
 
-try:
-    from .replay import ReplayModel, filter_agents
-    from .scenario_run import ScenarioRunCursor, ScenarioRunFormatError, clamp_scenario_rail_x, load_scenario_run, project_scenario_altitude, project_scenario_altitude_radius, project_scenario_point, project_scenario_radius, scenario_frame_geometry, scenario_rail_endpoints, selected_frame_summary
-    from .legacy_tokens import TOKENS
-except ImportError:  # direct script execution for PyInstaller
-    try:
-        from desktop.replay import ReplayModel, filter_agents
-        from desktop.scenario_run import ScenarioRunCursor, ScenarioRunFormatError, clamp_scenario_rail_x, load_scenario_run, project_scenario_altitude, project_scenario_altitude_radius, project_scenario_point, project_scenario_radius, scenario_frame_geometry, scenario_rail_endpoints, selected_frame_summary
-        from desktop.legacy_tokens import TOKENS
-    except ImportError:
-        from replay import ReplayModel, filter_agents
-        from scenario_run import ScenarioRunCursor, ScenarioRunFormatError, clamp_scenario_rail_x, load_scenario_run, project_scenario_altitude, project_scenario_altitude_radius, project_scenario_point, project_scenario_radius, scenario_frame_geometry, scenario_rail_endpoints, selected_frame_summary
-        from legacy_tokens import TOKENS
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from desktop.design_tokens import LAYOUT, SHORTCUTS, SPACE, UI_TEXT
+    from desktop.presentation import filter_group_rows
+    from desktop.replay import ReplayModel
+    from desktop.replay_session import SPEEDS, ReplaySession
+    from desktop.scenario_run import load_scenario_run
+    from desktop import ui_format as fmt
+    from desktop.ui_settings import load_appearance, resolve_theme, save_appearance, system_prefers_dark, system_reduced_motion
+else:
+    from .design_tokens import LAYOUT, SHORTCUTS, SPACE, UI_TEXT
+    from .presentation import filter_group_rows
+    from .replay import ReplayModel
+    from .replay_session import SPEEDS, ReplaySession
+    from .scenario_run import load_scenario_run
+    from . import ui_format as fmt
+    from .ui_settings import load_appearance, resolve_theme, save_appearance, system_prefers_dark, system_reduced_motion
 
 
 RESOURCE_ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1]))
@@ -69,7 +74,7 @@ def startup_log_path() -> Path:
 
     The release executable is built with PyInstaller's ``--windowed`` bootloader,
     so an exception during imports or Tk construction otherwise disappears with
-    no console.  Keep the diagnostic outside the extracted application folder
+    no console. Keep the diagnostic outside the extracted application folder
     because that folder may be read-only or replaced by the updater.
     """
 
@@ -102,7 +107,7 @@ def write_startup_diagnostic(exc: BaseException) -> Path:
         path.write_text(details, encoding="utf-8")
     except OSError:
         # The caller still reports the original exception when the diagnostic
-        # directory is unavailable.  Never replace a useful startup error with
+        # directory is unavailable. Never replace a useful startup error with
         # a logging failure.
         pass
     return path
@@ -126,59 +131,14 @@ def show_startup_failure(exc: BaseException, log_path: Path) -> None:
             return
         except Exception:
             # A frozen windowed process may have no usable GUI or standard
-            # streams. Keep this reporting path best effort and never replace
-            # the original startup failure with a reporting failure.
+            # streams. Keep this reporting path best effort.
             pass
-    # Source runs and unusual Windows environments can still provide a useful
-    # fallback.  PyInstaller's windowed executable has no console, so this is
-    # primarily for local development and test harnesses.
     try:
         stream = getattr(sys, "stderr", None)
         if stream is not None:
             print(message, file=stream)
     except Exception:
         pass
-
-
-def mission_event_lines(model: Any, selected_id: str) -> tuple[str, ...]:
-    """Build the compact event list shown by the macOS mission inspector.
-
-    The Windows surface uses the same replay-only event vocabulary as the
-    native cockpit, while keeping the output plain text for Tkinter.  Every
-    line is derived from the current frame or manifest metadata.  It is an
-    operator explanation of the fixture, not a live alert stream.
-    """
-
-    selected = next((agent for agent in model.frame.agents if agent.agent_id == selected_id), None)
-    events = [
-        f"INFO  Replay manifest loaded · {model.scenario_id} · seed {model.seed}",
-        f"WARN  Command authority locked · {model.command_authority}",
-        f"WARN  Failsafe boundary recorded · {model.failsafe}",
-        (
-            f"OK    Frame {model.frame.step_index} committed · "
-            f"{model.frame.active_count} active vehicles · Δt {model.dt_s:.3f} s"
-        ),
-    ]
-    minimum_confidence = min((agent.confidence for agent in model.frame.agents), default=1.0)
-    if minimum_confidence < 0.98:
-        events.append(f"WARN  Estimator confidence changed · minimum {minimum_confidence:.3f}")
-    if selected is not None and selected.min_neighbor_distance_m > 0:
-        events.append(
-            f"OK    Separation margin observed · {selected.agent_id} nearest neighbor "
-            f"{selected.min_neighbor_distance_m:.3f} m"
-        )
-    # The canonical S7 steps do not attach link events to frame rows.
-    # Match the macOS worst-loss event contract with the replay-wide observed
-    # envelope and label it as modeled replay evidence.
-    link_losses = [
-        link.loss_pct
-        for agent in model.frame.agents
-        if (link := model.link_stats_for(agent.agent_id)) is not None
-    ]
-    worst_loss = max(link_losses, default=0.0)
-    if worst_loss >= 8:
-        events.append(f"WARN  Link envelope visible · modeled loss {worst_loss:.1f}%")
-    return tuple(events)
 
 
 def _take_previous_update_failure() -> str | None:
@@ -199,9 +159,28 @@ def _show_update_failure(root: Any, message: str) -> None:
     messagebox.showwarning("Zephyr Mesh update", message, parent=root)
 
 
+TEXT_INPUT_CLASSES = frozenset({"Entry", "TEntry", "Text", "Spinbox", "TSpinbox", "TCombobox"})
+BUTTON_CLASSES = frozenset({"Button", "TButton", "TRadiobutton", "TCheckbutton", "Radiobutton", "Checkbutton", "TMenubutton"})
+TREE_KEYS = frozenset({"left", "right", "home"})
+
+
 def is_text_input_class(widget_class: str) -> bool:
     """True for Tk widgets where the user types text (so bare-key shortcuts must stand down)."""
-    return widget_class in {"Entry", "TEntry", "Text", "Spinbox", "TSpinbox", "TCombobox"}
+    return widget_class in TEXT_INPUT_CLASSES
+
+
+def shortcut_blocked(widget_class: str, key: str) -> bool:
+    """Whether a single-key shortcut must yield to the focused widget's own key handling.
+
+    Text fields own every key. A focused button owns Space (it presses the
+    button). A focused Treeview owns Left, Right, and Home (collapse, expand,
+    first row), which keeps list navigation native.
+    """
+    if is_text_input_class(widget_class):
+        return True
+    if key == "space" and widget_class in BUTTON_CLASSES:
+        return True
+    return widget_class == "Treeview" and key in TREE_KEYS
 
 
 def updater_launch_path(updater: Path, install_dir: Path, *, pid: int) -> Path:
@@ -222,501 +201,1086 @@ def updater_launch_path(updater: Path, install_dir: Path, *, pid: int) -> Path:
     return temporary
 
 
-class WindowsReplayApp:
-    """Small operator-facing replay surface using only the Python standard library."""
+# ---- menus and shortcuts ----------------------------------------------------
+# Every generated shortcut maps to exactly one app method. The hygiene test
+# asserts this table and the menu accelerators match UI_TEXT.
+SHORTCUT_HANDLERS: dict[str, str] = {
+    "playPause": "_toggle",
+    "stepForward": "_step",
+    "stepBack": "_step_back",
+    "restart": "_restart",
+    "focusSelected": "_focus_selected_drone",
+    "resetCamera": "_reset_camera",
+    "toggleTopView": "_toggle_view_mode",
+    "toggleKeepOut": "_toggle_keepout",
+    "toggleInspector": "_toggle_inspector",
+    "openEvidenceReport": "_open_evidence_report",
+    "openScenarioRun": "_open_scenario_run",
+    "focusFilter": "_focus_filter",
+    "aboutReplay": "_show_about",
+}
 
-    def __init__(self, root: Any, model: ReplayModel) -> None:
+# (menu, label, action id or None, kind). Kinds: command, check, radio, separator, cascade.
+MENU_LAYOUT: tuple[tuple[str, tuple[tuple[str, str | None, str], ...]], ...] = (
+    ("File", (
+        ("Open Evidence Report...", "openEvidenceReport", "command"),
+        ("Open Scenario Run...", "openScenarioRun", "command"),
+        ("", None, "separator"),
+        ("Exit", None, "exit"),
+    )),
+    ("View", (
+        ("3D View", "toggleTopView", "view3d"),
+        ("Top View", "toggleTopView", "viewtop"),
+        ("", None, "separator"),
+        ("Show Keep-out Volume", "toggleKeepOut", "check-keepout"),
+        ("Show Inspector", "toggleInspector", "check-inspector"),
+        ("", None, "separator"),
+        ("Focus Selected Drone", "focusSelected", "command"),
+        ("Reset Camera", "resetCamera", "command"),
+        ("", None, "separator"),
+        ("Appearance", None, "appearance"),
+    )),
+    ("Playback", (
+        ("Play/Pause", "playPause", "command"),
+        ("Step Forward", "stepForward", "command"),
+        ("Step Back", "stepBack", "command"),
+        ("Restart", "restart", "command"),
+        ("", None, "separator"),
+        ("Speed", None, "speed"),
+    )),
+    ("Help", (
+        ("About This Replay", "aboutReplay", "command"),
+        ("Check for Updates", None, "updates"),
+    )),
+)
+
+
+def menu_accelerators() -> dict[str, str]:
+    """Accelerator text shown in the menus, keyed by shortcut action id."""
+    return {action: fmt.accelerator(action) for _menu, items in MENU_LAYOUT for _label, action, _kind in items if action}
+
+
+def speed_label(speed: float) -> str:
+    return f"{speed:g}x"
+
+
+# ---- pure team-list planning (tested without Tk) ------------------------------
+def group_key(row: Mapping[str, Any]) -> str:
+    """Stable Treeview id for a group: same status and age keep the same row."""
+    return f"group:{row['level']}:{row['word']}:{row.get('target_age_s')}"
+
+
+def team_rows(
+    groups: Sequence[Mapping[str, Any]],
+    per_drone: Sequence[Mapping[str, Any]],
+    query: str = "",
+) -> list[dict[str, Any]]:
+    """Plan the team list: one row per group, children per drone, filter applied.
+
+    The presentation filter never removes a non-OK group. Inside an OK group
+    only matching drones stay when a filter is active, and the group counts them.
+    """
+    records = {str(record["drone_id"]): record for record in per_drone}
+    needle = query.strip().lower()
+    rows = []
+    for group in filter_group_rows(groups, query):
+        members = [str(drone) for drone in group.get("drone_ids", [])]
+        if needle and group.get("level") == "ok":
+            members = [
+                drone for drone in members
+                if needle in drone.lower()
+                or needle in str(records.get(drone, {}).get("compact_name", "")).lower()
+                or needle in str(records.get(drone, {}).get("heading_name", "")).lower()
+            ]
+        total = int(group.get("count", len(members)))
+        label = fmt.group_label(total) if len(members) == total else f"{len(members)} of {total}"
+        children = []
+        for drone in members:
+            record = records.get(drone, {})
+            children.append({
+                "iid": drone,
+                "label": str(record.get("compact_name", drone)),
+                "values": (
+                    "",
+                    fmt.format_value(record.get("target_link_delay_ms"), "ms") or fmt.EN_DASH,
+                    fmt.format_value(record.get("target_packet_loss_pct"), "pct") or fmt.EN_DASH,
+                    "",
+                ),
+            })
+        rows.append({
+            "iid": group_key(group),
+            "level": str(group["level"]),
+            "label": label,
+            "members": members,
+            "values": (
+                fmt.status_word(str(group["level"]), group.get("word")),
+                fmt.format_value(group.get("target_link_delay_ms"), "ms") or fmt.EN_DASH,
+                fmt.format_value(group.get("target_packet_loss_pct"), "pct") or fmt.EN_DASH,
+                fmt.format_value(group.get("target_age_s"), "s") or fmt.EN_DASH,
+            ),
+            "children": children,
+        })
+    return rows
+
+
+def desired_team_selection(rows: Sequence[Mapping[str, Any]], selected: str, open_groups: set[str]) -> str | None:
+    """Which row should look selected: the drone if its group is open, else the group."""
+    for row in rows:
+        if selected in row["members"]:
+            return selected if row["iid"] in open_groups else str(row["iid"])
+    return None
+
+
+def drone_for_team_row(rows: Sequence[Mapping[str, Any]], iid: str, selected: str) -> str | None:
+    """Map a selected Treeview row back to a drone id (a group keeps the current drone)."""
+    for row in rows:
+        if iid == row["iid"]:
+            members = row["members"]
+            if selected in members:
+                return selected
+            return members[0] if members else None
+        if iid in row["members"]:
+            return iid
+    return None
+
+
+class WindowsReplayApp:
+    """Replay window: status strip, team list, 3D scene, inspector, timeline, events."""
+
+    def __init__(self, root: Any, model: ReplayModel, *, appearance: str | None = None, persist_appearance: bool = True) -> None:
         import tkinter as tk
         from tkinter import ttk
 
+        if __package__ in (None, ""):
+            from desktop.scene_view import SceneView
+            from desktop.ui_theme import Fonts, ImageBank, Theme, apply_title_bar, configure_styles, ui_scale
+            from desktop import ui_widgets as widgets
+        else:
+            from .scene_view import SceneView
+            from .ui_theme import Fonts, ImageBank, Theme, apply_title_bar, configure_styles, ui_scale
+            from . import ui_widgets as widgets
+
         self.tk = tk
         self.ttk = ttk
+        self.widgets = widgets
+        self._Theme = Theme
+        self._configure_styles = configure_styles
+        self._apply_title_bar = apply_title_bar
         self.root = root
         self.model = model
-        self.playing = False
-        self.play_button = None
-        self._tick_job = None
-        self.selected_id = model.frame.agents[0].agent_id
-        self.filter_var = None
-        self.fleet_summary = None
-        self.show_keepout = None
-        self.canvas = None
-        self.timeline = None
-        self.fleet = None
-        self.telemetry = None
-        self.status = None
-        self._disclosures: dict[str, tuple[Any, Any]] = {}
-        self._selection_update = False
+        self.session = ReplaySession(model, schedule=self._schedule, cancel=self._cancel)
+        self.run: Mapping[str, Any] = self.session.run
+        self.render_count = 0
+        self._persist_appearance = persist_appearance
+        self.appearance = appearance or load_appearance()
+        self.scale = ui_scale(root)
+        self.fonts = Fonts(root, self.scale)
+        self.images = ImageBank(root, self.scale)
+        self.theme = Theme(resolve_theme(self.appearance, system_prefers_dark()))
+        self.style = ttk.Style(root)
+        self._theme_hooks: list[Callable[[Any], None]] = []
+        self._team_plan: list[dict[str, Any]] = []
+        self._open_groups: set[str] = set()
+        self._seen_groups: set[str] = set()
+        self._event_frames: dict[str, int] = {}
+        self._event_count = -1
+        self._event_signature: tuple[Any, ...] = ()
         self._evidence_report: dict[str, Any] | None = None
         self._evidence_path: Path | None = None
         self._evidence_window: Any | None = None
         self._scenario_window: Any | None = None
-        self._min_x, self._max_x, self._min_y, self._max_y = self._bounds()
-        self._view_center = ((self._min_x + self._max_x) / 2, (self._min_y + self._max_y) / 2)
-        self._zoom = 1.0
-        self._focus_selected = False
-        self._build()
+        self._about_window: Any | None = None
+        self.reduced_motion = system_reduced_motion()
+        self._configure_styles(self.style, self.theme, self.fonts, self.scale)
+        self.images.apply(self.theme)
+        self._build(SceneView)
+        self._apply_theme()
         self._render()
 
-    def _build(self) -> None:
-        root = self.root
+    # ---- compatibility -----------------------------------------------------
+    @property
+    def selected_id(self) -> str:
+        return self.session.selected_drone_id
+
+    @property
+    def playing(self) -> bool:
+        return self.session.playing
+
+    def px(self, value: float) -> int:
+        return max(1, int(round(value * self.scale)))
+
+    def _set(self, widget: Any, **options: Any) -> None:
+        """Configure only what changed: Tk relayout and redraw are the expensive part of a frame."""
+        cache = self.__dict__.setdefault("_configured", {})
+        key = str(widget)
+        previous = cache.setdefault(key, {})
+        changed = {name: value for name, value in options.items() if previous.get(name, object()) != value}
+        if changed:
+            widget.configure(**changed)
+            previous.update(changed)
+
+    # ---- construction ------------------------------------------------------
+    def _build(self, scene_class: Any) -> None:
+        tk, ttk, root = self.tk, self.ttk, self.root
         root.title("Zephyr Mesh")
-        root.minsize(TOKENS.window_min_width, TOKENS.window_min_height)
-        root.configure(background=TOKENS.background)
-        style = self.ttk.Style(root)
+        root.minsize(self.px(LAYOUT["windowMinWidth"]), self.px(LAYOUT["windowMinHeight"]))
+        root.columnconfigure(0, weight=1)
+        root.rowconfigure(4, weight=1)
+        self.keepout_var = tk.BooleanVar(value=self.session.show_keepout)
+        self.inspector_var = tk.BooleanVar(value=self.session.show_inspector)
+        self.view_var = tk.StringVar(value=self.session.view_mode)
+        self.speed_var = tk.DoubleVar(value=self.session.speed)
+        self.appearance_var = tk.StringVar(value=self.appearance)
+        self.filter_var = tk.StringVar()
+        self._build_menu()
+        self._build_title(root).grid(row=0, column=0, sticky="ew")
+        ttk.Frame(root, style="Line.TFrame", height=1).grid(row=1, column=0, sticky="ew")
+        self._build_strip(root).grid(row=2, column=0, sticky="ew")
+        ttk.Frame(root, style="Line.TFrame", height=1).grid(row=3, column=0, sticky="ew")
+        self._build_middle(root, scene_class).grid(row=4, column=0, sticky="nsew")
+        ttk.Frame(root, style="Line.TFrame", height=1).grid(row=5, column=0, sticky="ew")
+        self._build_timeline(root).grid(row=6, column=0, sticky="ew")
+        ttk.Frame(root, style="Line.TFrame", height=1).grid(row=7, column=0, sticky="ew")
+        self._build_events(root).grid(row=8, column=0, sticky="ew")
+        self._bind_shortcuts()
+        root.bind_all("<MouseWheel>", self._route_wheel, add="+")
         try:
-            style.theme_use("vista")
-        except self.tk.TclError:
-            style.theme_use("clam")
-        style.configure("Surface.TFrame", background=TOKENS.surface)
-        style.configure("Night.TFrame", background=TOKENS.background)
-        style.configure("Title.TLabel", background=TOKENS.surface, foreground=TOKENS.text, font=(TOKENS.ui_font, TOKENS.title_size, "semibold"))
-        style.configure("Muted.TLabel", background=TOKENS.surface, foreground=TOKENS.muted, font=(TOKENS.ui_font, TOKENS.body_size))
-        style.configure("Value.TLabel", background=TOKENS.surface, foreground=TOKENS.text, font=(TOKENS.mono_font, TOKENS.body_size))
-        style.configure("Action.TButton", padding=(TOKENS.button_pad_x, TOKENS.button_pad_y))
-        style.configure("Disclosure.TButton", padding=(0, TOKENS.disclosure_pad), anchor="w")
-        style.configure("Fleet.Treeview", rowheight=TOKENS.fleet_row_height, font=(TOKENS.ui_font, TOKENS.body_size))
-        style.configure("Fleet.Treeview.Heading", font=(TOKENS.ui_font, TOKENS.small_size, "bold"))
+            root.bind_all("<TouchpadScroll>", self._route_touchpad, add="+")
+        except tk.TclError:
+            pass
 
-        menu = self.tk.Menu(root)
-        file_menu = self.tk.Menu(menu, tearoff=False)
-        file_menu.add_command(label="Open scenario run…", command=self._open_scenario_run)
-        file_menu.add_command(label="Open evidence report…", accelerator="Ctrl+O", command=self._open_evidence_report)
-        file_menu.add_separator()
-        file_menu.add_command(label="Close", command=root.destroy)
-        menu.add_cascade(label="File", menu=file_menu)
-        root.configure(menu=menu)
+    def _build_menu(self) -> None:
+        tk = self.tk
+        menubar = tk.Menu(self.root)
+        accelerators = menu_accelerators()
+        self._menus: dict[str, Any] = {}
+        for title, items in MENU_LAYOUT:
+            menu = tk.Menu(menubar, tearoff=False)
+            for label, action, kind in items:
+                accel = accelerators.get(action, "") if action else ""
+                if kind == "separator":
+                    menu.add_separator()
+                elif kind == "exit":
+                    menu.add_command(label=label, command=self.root.destroy)
+                elif kind == "view3d":
+                    menu.add_radiobutton(label=label, value="3d", variable=self.view_var, accelerator=accel,
+                                         command=lambda: self._set_view_mode("3d"))
+                elif kind == "viewtop":
+                    menu.add_radiobutton(label=label, value="top", variable=self.view_var, accelerator=accel,
+                                         command=lambda: self._set_view_mode("top"))
+                elif kind == "check-keepout":
+                    menu.add_checkbutton(label=label, variable=self.keepout_var, accelerator=accel,
+                                         command=lambda: self._set_keepout(self.keepout_var.get()))
+                elif kind == "check-inspector":
+                    menu.add_checkbutton(label=label, variable=self.inspector_var, accelerator=accel,
+                                         command=lambda: self._set_inspector(self.inspector_var.get()))
+                elif kind == "appearance":
+                    sub = tk.Menu(menu, tearoff=False)
+                    for value, text in (("system", "System"), ("dark", "Dark"), ("light", "Light")):
+                        sub.add_radiobutton(label=text, value=value, variable=self.appearance_var,
+                                            command=lambda value=value: self._set_appearance(value))
+                    menu.add_cascade(label=label, menu=sub)
+                elif kind == "speed":
+                    sub = tk.Menu(menu, tearoff=False)
+                    for speed in SPEEDS:
+                        sub.add_radiobutton(label=speed_label(speed), value=speed, variable=self.speed_var,
+                                            command=lambda speed=speed: self._set_speed(speed))
+                    menu.add_cascade(label=label, menu=sub)
+                elif kind == "updates":
+                    menu.add_command(label=label, command=self._check_update)
+                else:
+                    handler = getattr(self, SHORTCUT_HANDLERS[action])
+                    menu.add_command(label=label, accelerator=accel, command=handler)
+            menubar.add_cascade(label=title, menu=menu)
+            self._menus[title] = menu
+        self.root.configure(menu=menubar)
 
-        header = self.ttk.Frame(root, style="Surface.TFrame", padding=(TOKENS.spacing_lg, TOKENS.header_vertical))
-        header.pack(fill="x")
-        self.ttk.Label(header, text="Zephyr Mesh", style="Title.TLabel").pack(side="left")
-        self.ttk.Label(header, text=f"{self.model.scenario_id} · synthetic replay", style="Muted.TLabel").pack(side="right")
+    def _build_title(self, parent: Any) -> Any:
+        ttk = self.ttk
+        frame = ttk.Frame(parent, style="Surface.TFrame", padding=(self.px(SPACE["lg"]), self.px(SPACE["md"])))
+        ttk.Label(frame, text="Zephyr Mesh", style="Surface.Title.TLabel").pack(side="left")
+        ttk.Label(frame, text=fmt.plain_run_name(self.run), style="Surface.Secondary.TLabel").pack(
+            side="left", padx=(self.px(SPACE["md"]), 0), pady=(self.px(3), 0))
+        ttk.Label(frame, text=UI_TEXT["honesty"]["badge"], style="Badge.TLabel").pack(
+            side="left", padx=(self.px(SPACE["md"]), 0), pady=(self.px(3), 0))
+        about = ttk.Button(frame, text=f" {UI_TEXT['honesty']['aboutButton']}", style="Tool.TButton", compound="left",
+                           image=self.images.icon("info", "textSecondary", 14), command=self._show_about)
+        about.pack(side="right")
+        self.notice = ttk.Label(frame, text="", style="Surface.Caption.TLabel")
+        self.notice.pack(side="right", padx=(0, self.px(SPACE["md"])))
+        return frame
 
-        body = self.ttk.Frame(root, style="Night.TFrame", padding=TOKENS.spacing_sm)
-        body.pack(fill="both", expand=True)
-        body.columnconfigure(1, weight=1)
-        body.rowconfigure(0, weight=1)
+    def _build_strip(self, parent: Any) -> Any:
+        ttk = self.ttk
+        frame = ttk.Frame(parent, style="Base.TFrame", padding=(self.px(SPACE["sm"]), self.px(SPACE["md"])))
+        labels = UI_TEXT["statusStrip"]
+        self.strip_values: dict[str, Any] = {}
+        column = 0
+        for index, label in enumerate(labels):
+            if index:
+                ttk.Frame(frame, style="Line.TFrame", width=1).grid(row=0, column=column, sticky="ns", pady=self.px(2))
+                column += 1
+            cell = ttk.Frame(frame, style="Base.TFrame", padding=(self.px(SPACE["md"]), 0))
+            cell.grid(row=0, column=column, sticky="nsew")
+            frame.columnconfigure(column, weight=2 if index == 0 else 1, uniform="strip")
+            ttk.Label(cell, text=label, style="Base.Caption.TLabel").pack(anchor="w")
+            row = ttk.Frame(cell, style="Base.TFrame", height=self.fonts["metric"].metrics("linespace") + self.px(2))
+            row.pack(anchor="w", fill="x", pady=(self.px(2), 0))
+            row.pack_propagate(False)
+            if index == 0:
+                glyph = ttk.Label(row, style="Base.Glyph.TLabel")
+                glyph.pack(side="left", padx=(0, self.px(SPACE["sm"])))
+                self.strip_glyph = glyph
+            # Fixed character widths keep the layout still while values change frame to frame.
+            value = ttk.Label(row, style="Base.Metric.TLabel", anchor="w")
+            value.pack(side="left", fill="both", expand=True)
+            self.strip_values[label] = value
+            column += 1
+        # A fixed-height strip keeps value changes from re-laying out the whole window.
+        caption, metric = self.fonts["caption"], self.fonts["metric"]
+        height = caption.metrics("linespace") + metric.metrics("linespace") + self.px(2 + 2 * SPACE["md"] + 4)
+        frame.configure(height=height)
+        frame.grid_propagate(False)
+        return frame
 
-        fleet_panel = self.ttk.Frame(body, style="Surface.TFrame", padding=TOKENS.spacing_sm)
-        fleet_panel.grid(row=0, column=0, sticky="nsew", padx=(0, TOKENS.spacing_sm))
-        self.fleet_summary = self.ttk.Label(fleet_panel, style="Muted.TLabel")
-        self.fleet_summary.pack(anchor="w")
-        self.filter_var = self.tk.StringVar()
-        filter_entry = self.ttk.Entry(fleet_panel, textvariable=self.filter_var, takefocus=True)
-        filter_entry.pack(fill="x", pady=(TOKENS.table_top_gap, 0))
-        filter_entry.bind("<KeyRelease>", lambda _event: self._on_filter())
-        self.fleet = self.ttk.Treeview(fleet_panel, columns=("vehicle", "state", "battery", "link"), show="headings", selectmode="browse", style="Fleet.Treeview", takefocus=True)
-        for column, label, width, anchor in (("vehicle", "Vehicle", TOKENS.fleet_column_vehicle, "w"), ("state", "State", TOKENS.fleet_column_state, "w"), ("battery", "Battery", TOKENS.fleet_column_metric, "e"), ("link", "Link", TOKENS.fleet_column_metric, "e")):
-            self.fleet.heading(column, text=label)
-            self.fleet.column(column, width=width, anchor=anchor, stretch=column == "vehicle")
-        self.fleet.pack(fill="both", expand=True, pady=(TOKENS.table_top_gap, 0))
-        self.fleet.bind("<<ListboxSelect>>", self._on_select)
-        self.fleet.bind("<<TreeviewSelect>>", self._on_select)
-        root.bind("<space>", self._shortcut(self._toggle))
-        root.bind("<Right>", self._shortcut(self._step))
-        root.bind("<f>", self._shortcut(self._focus_selected_vehicle))
-        root.bind("<F>", self._shortcut(self._focus_selected_vehicle))
-        root.bind("<r>", self._shortcut(self._reset_view))
-        root.bind("<R>", self._shortcut(self._reset_view))
-        root.bind("<o>", self._shortcut(self._toggle_keepout))
-        root.bind("<O>", self._shortcut(self._toggle_keepout))
-        root.bind("<Control-l>", lambda _event: (filter_entry.focus_set(), "break")[1])
-        root.bind("<Control-o>", lambda _event: (self._open_evidence_report(), "break")[1])
+    def _build_middle(self, parent: Any, scene_class: Any) -> Any:
+        ttk = self.ttk
+        frame = ttk.Frame(parent, style="Base.TFrame")
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(2, weight=1, minsize=self.px(LAYOUT["sceneMinWidth"]))
+        self._build_team(frame).grid(row=0, column=0, sticky="nsw")
+        ttk.Frame(frame, style="Line.TFrame", width=1).grid(row=0, column=1, sticky="ns")
+        self._build_scene(frame, scene_class).grid(row=0, column=2, sticky="nsew")
+        self.inspector_line = ttk.Frame(frame, style="Line.TFrame", width=1)
+        self.inspector_line.grid(row=0, column=3, sticky="ns")
+        self.inspector_panel = self._build_inspector(frame)
+        self.inspector_panel.grid(row=0, column=4, sticky="nse")
+        return frame
 
-        center = self.ttk.Frame(body, style="Night.TFrame")
-        center.grid(row=0, column=1, sticky="nsew")
-        center.columnconfigure(0, weight=1)
-        center.rowconfigure(0, weight=1)
-        self.canvas = self.tk.Canvas(center, background=TOKENS.canvas, highlightthickness=0, relief="flat", takefocus=True)
+    def _build_team(self, parent: Any) -> Any:
+        ttk, tk = self.ttk, self.tk
+        width = self.px(LAYOUT["sidebarWidthWindows"])
+        frame = ttk.Frame(parent, style="Surface.TFrame", width=width, padding=(self.px(SPACE["md"]), self.px(SPACE["md"])))
+        frame.grid_propagate(False)
+        frame.pack_propagate(False)
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(2, weight=1)
+        self.team_summary = ttk.Label(frame, style="Surface.Strong.TLabel", wraplength=width - self.px(2 * SPACE["md"]), width=36)
+        self.team_summary.grid(row=0, column=0, columnspan=2, sticky="w")
+        self.filter_entry = ttk.Entry(frame, textvariable=self.filter_var, style="Filter.TEntry", font=self.fonts["body"])
+        self.filter_entry.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(self.px(SPACE["sm"]), self.px(SPACE["sm"])))
+        self.widgets.Placeholder(self.filter_entry, self.filter_var, f"Filter drones ({fmt.accelerator('focusFilter')})",
+                                 "Field.Placeholder.TLabel")
+        self.filter_var.trace_add("write", lambda *_args: self._on_filter())
+        self.filter_entry.bind("<Escape>", self._clear_filter)
+        columns = ("status", "delay", "loss", "age")
+        tree = ttk.Treeview(frame, columns=columns, show="tree headings", selectmode="browse", style="Zephyr.Treeview", takefocus=True)
+        inner = width - self.px(2 * SPACE["md"]) - self.px(12)
+        fixed = {"status": self.px(56), "delay": self.px(48), "loss": self.px(60), "age": self.px(46)}
+        widths = {"#0": inner - sum(fixed.values()), **fixed}
+        headings = {"#0": "Drones", "status": "Status", "delay": "Delay", "loss": "Loss", "age": "Age"}
+        for column in ("#0",) + columns:
+            tree.heading(column, text=headings[column], anchor="w" if column in ("#0", "status") else "e")
+            tree.column(column, width=widths[column], minwidth=widths[column], stretch=column == "#0",
+                        anchor="w" if column in ("#0", "status") else "e")
+        scroll = ttk.Scrollbar(frame, orient="vertical", style="Thin.Vertical.TScrollbar", command=tree.yview)
+        tree.configure(yscrollcommand=self._auto_scroll(scroll, row=2, column=1))
+        tree.grid(row=2, column=0, sticky="nsew")
+        tree.bind("<<TreeviewSelect>>", self._on_select)
+        tree.bind("<<TreeviewOpen>>", lambda _event: self._on_group_toggle(True))
+        tree.bind("<<TreeviewClose>>", lambda _event: self._on_group_toggle(False))
+        tree.bind("<Double-Button-1>", self._on_team_double)
+        tree.bind("<Return>", lambda _event: self._focus_selected_drone())
+        for sequence in self._context_sequences():
+            tree.bind(sequence, self._on_team_context)
+        self.fleet = tree
+        self.team_hover = self.widgets.TreeHover(tree)
+        return frame
+
+    def _build_scene(self, parent: Any, scene_class: Any) -> Any:
+        ttk = self.ttk
+        frame = ttk.Frame(parent, style="Base.TFrame")
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+        points = []
+        for step in self.run.get("steps", []):
+            points.extend(agent["position_m"] for agent in step.get("agents", []) if agent.get("position_m"))
+            if step.get("target_position_m"):
+                points.append(step["target_position_m"])
+        self.scene = scene_class(
+            frame, scale=self.scale, fonts=self.fonts, all_points=points,
+            on_select=self._select_drone, on_focus=self._focus_drone, on_context=self._show_context_menu,
+            reduced_motion=self.reduced_motion,
+        )
+        self.canvas = self.scene.canvas
         self.canvas.grid(row=0, column=0, sticky="nsew")
-        self.canvas.bind("<Configure>", lambda _event: self._render())
-        controls = self.ttk.Frame(center, style="Surface.TFrame", padding=(TOKENS.spacing_sm, TOKENS.tight_padding))
-        controls.grid(row=1, column=0, sticky="ew", pady=(TOKENS.panel_gap, 0))
-        controls.columnconfigure(1, weight=1)
-        self.status = self.ttk.Label(controls, style="Muted.TLabel")
-        self.status.grid(row=0, column=0, sticky="w")
-        self.timeline = self.tk.Scale(controls, from_=0, to=max(0, self.model.frame_count - 1), orient="horizontal", showvalue=False, command=self._seek, background=TOKENS.control_background, troughcolor=TOKENS.control_track, highlightthickness=0, activebackground=TOKENS.control_active)
-        self.timeline.set(0)
-        self.timeline.grid(row=0, column=1, sticky="ew", padx=TOKENS.timeline_gap)
-        self.play_button = self.ttk.Button(controls, text="Play", command=self._toggle, style="Action.TButton")
-        self.play_button.grid(row=0, column=2, padx=TOKENS.button_gap)
-        self.ttk.Button(controls, text="Step", command=self._step, style="Action.TButton").grid(row=0, column=3, padx=TOKENS.button_gap)
-        self.ttk.Button(controls, text="Reset replay", command=self._reset, style="Action.TButton").grid(row=0, column=4, padx=TOKENS.button_gap)
-        self.ttk.Button(controls, text="Focus selected", command=self._focus_selected_vehicle, style="Action.TButton").grid(row=0, column=5, padx=TOKENS.button_gap)
-        self.ttk.Button(controls, text="Reset view", command=self._reset_view, style="Action.TButton").grid(row=0, column=6, padx=TOKENS.button_gap)
-        self.show_keepout = self.tk.BooleanVar(value=True)
-        self.ttk.Checkbutton(controls, text="Show keep-out volume", variable=self.show_keepout, command=self._render).grid(row=0, column=7, padx=TOKENS.button_gap)
-        self.ttk.Button(controls, text="Check updates", command=self._check_update, style="Action.TButton").grid(row=0, column=8, padx=(TOKENS.update_gap, 0))
+        modes = ttk.Frame(frame, style="Base.TFrame")
+        for value, text in (("3d", "3D"), ("top", "Top")):
+            ttk.Radiobutton(modes, text=text, value=value, variable=self.view_var, style="Segment.Toolbutton",
+                            command=lambda: self._set_view_mode(self.view_var.get()), takefocus=True).pack(side="left")
+        modes.place(in_=self.canvas, x=self.px(SPACE["md"]), y=self.px(SPACE["md"]))
+        return frame
 
-        inspector = self.ttk.Frame(body, style="Surface.TFrame", padding=TOKENS.spacing_sm)
-        inspector.grid(row=0, column=2, sticky="nsew", padx=(TOKENS.spacing_sm, 0))
-        self.ttk.Label(inspector, text="Selected vehicle", style="Muted.TLabel").pack(anchor="w")
-        self.telemetry = self.ttk.Label(inspector, justify="left", anchor="nw", style="Value.TLabel", wraplength=TOKENS.inspector_text_width)
-        self.telemetry.pack(fill="x", pady=(TOKENS.telemetry_top_gap, TOKENS.telemetry_bottom_gap))
-        self._add_disclosure(inspector, "Flight state", self._flight_state_text)
-        self._add_disclosure(inspector, "Cooperative context", self._cooperative_context_text)
-        self._add_disclosure(inspector, "Parts profile", self._parts_profile_text)
-        self._add_disclosure(inspector, "Mission events", self._mission_events_text)
-        self._add_disclosure(inspector, "Replay notes", self._replay_notes_text)
-        self._add_disclosure(inspector, "Provenance", self._provenance_text)
+    def _build_inspector(self, parent: Any) -> Any:
+        ttk = self.ttk
+        width = self.px(LAYOUT["inspectorWidth"])
+        frame = ttk.Frame(parent, style="Surface.TFrame", width=width)
+        frame.grid_propagate(False)
+        frame.pack_propagate(False)
+        scroll = self.widgets.ScrollFrame(frame)
+        scroll.outer.pack(fill="both", expand=True)
+        self.inspector_scroll = scroll
+        self._theme_hooks.append(scroll.apply_theme)
+        pad = self.px(SPACE["lg"])
+        body = ttk.Frame(scroll.inner, style="Surface.TFrame", padding=(pad, self.px(SPACE["md"]), pad, pad))
+        body.pack(fill="both", expand=True)
+        body.columnconfigure(0, weight=1)
+        header = ttk.Frame(body, style="Surface.TFrame")
+        header.grid(row=0, column=0, sticky="ew")
+        self.inspector_title = ttk.Label(header, style="Surface.Headline.TLabel")
+        self.inspector_title.pack(side="left")
+        self.inspector_word = ttk.Label(header, style="Surface.Body.TLabel", compound="left", width=10, anchor="e")
+        self.inspector_word.pack(side="right")
+        tiles = ttk.Frame(body, style="Surface.TFrame")
+        tiles.grid(row=1, column=0, sticky="ew", pady=(self.px(SPACE["md"]), 0))
+        tiles.columnconfigure(0, weight=1, uniform="tiles")
+        tiles.columnconfigure(1, weight=1, uniform="tiles")
+        self.tiles = {}
+        captions = (("target_age", "Target age"), ("estimate", "Estimate error"),
+                    ("delay", fmt.field_label("target_link_delay")), ("loss", fmt.field_label("target_packet_loss")))
+        gap = self.px(SPACE["sm"])
+        for index, (key, caption) in enumerate(captions):
+            tile = self.widgets.MetricTile(tiles, caption, self.scale)
+            tile.frame.grid(row=index // 2, column=index % 2, sticky="nsew",
+                            padx=(0, gap) if index % 2 == 0 else (0, 0), pady=(0, gap))
+            self.tiles[key] = tile
+        label_width = self.px(118)
+        wrap = width - 2 * pad - label_width - self.px(SPACE["md"] + 6)
+        ttk.Label(body, text="Position and motion", style="Surface.Strong.TLabel").grid(row=2, column=0, sticky="w",
+                pady=(self.px(SPACE["md"]), self.px(SPACE["xs"])))
+        self.motion_grid = self.widgets.KeyValueGrid(body, label_width=label_width, wrap=wrap, scale=self.scale, value_width=14)
+        self.motion_grid.frame.grid(row=3, column=0, sticky="ew")
+        ttk.Label(body, text="Neighbors", style="Surface.Strong.TLabel").grid(row=4, column=0, sticky="w",
+                pady=(self.px(SPACE["md"]), self.px(SPACE["xs"])))
+        self.neighbor_grid = self.widgets.KeyValueGrid(body, label_width=label_width, wrap=wrap, scale=self.scale, value_width=14)
+        self.neighbor_grid.frame.grid(row=5, column=0, sticky="ew")
+        ttk.Frame(body, style="Line.TFrame", height=1).grid(row=6, column=0, sticky="ew", pady=(self.px(SPACE["md"]), self.px(SPACE["xs"])))
+        self.details = self.widgets.Disclosure(body, "Details", self.images, pad=self.px(SPACE["xs"]))
+        self.details.frame.grid(row=7, column=0, sticky="ew")
+        self.details_grid = self.widgets.KeyValueGrid(self.details.body, wrap=width - 2 * pad - self.px(8), scale=self.scale, stacked=True)
+        self.details_grid.frame.pack(fill="x", padx=(self.px(4), 0))
+        return frame
 
-    def _add_disclosure(self, parent: Any, title: str, body: Any) -> None:
-        section = self.ttk.Frame(parent, style="Surface.TFrame")
-        section.pack(fill="x", pady=(0, TOKENS.spacing_sm))
-        text = body() if callable(body) else body
-        content = self.ttk.Label(section, text=text, justify="left", anchor="nw", style="Muted.TLabel", wraplength=TOKENS.inspector_text_width)
-        self._disclosures[title] = (content, body)
-        expanded = False
-
-        def toggle() -> None:
-            nonlocal expanded
-            expanded = not expanded
-            if expanded:
-                content.pack(fill="x", pady=(TOKENS.content_pad, TOKENS.content_pad))
-                button.configure(text=f"⌄  {title}")
-            else:
-                content.pack_forget()
-                button.configure(text=f"›  {title}")
-
-        button = self.ttk.Button(section, text=f"›  {title}", command=toggle, style="Disclosure.TButton")
-        button.pack(fill="x")
-
-    def _refresh_disclosures(self) -> None:
-        for content, body in self._disclosures.values():
-            if callable(body):
-                content.configure(text=body())
-
-    def _selected_agent(self) -> Any:
-        return next((agent for agent in self.model.frame.agents if agent.agent_id == self.selected_id), self.model.frame.agents[0])
-
-    def _flight_state_text(self) -> str:
-        agent = self._selected_agent()
-        constraints = ", ".join(agent.constraint_flags) if agent.constraint_flags else "Clear"
-        return (
-            f"Position     [{agent.position_m[0]:.2f}, {agent.position_m[1]:.2f}, {agent.position_m[2]:.2f}] m\n"
-            f"Velocity     [{agent.velocity_mps[0]:.2f}, {agent.velocity_mps[1]:.2f}, {agent.velocity_mps[2]:.2f}] m/s\n"
-            f"Active       {'Yes' if agent.active else 'No'}\n"
-            f"Constraints  {constraints}"
+    def _build_timeline(self, parent: Any) -> Any:
+        ttk = self.ttk
+        frame = ttk.Frame(parent, style="Surface.TFrame", padding=(self.px(SPACE["lg"]), self.px(SPACE["sm"])))
+        frame.columnconfigure(4, weight=1)
+        transport = (
+            ("restart", "Restart", self._restart, fmt.accelerator("restart")),
+            ("step_back", "Step back", self._step_back, fmt.accelerator("stepBack")),
         )
+        column = 0
+        for icon, label, command, accel in transport:
+            button = ttk.Button(frame, style="Icon.TButton", image=self.images.icon(icon, "text", 14), command=command)
+            button.grid(row=0, column=column, padx=(0, self.px(SPACE["xs"])))
+            self.widgets.Tooltip(button, f"{label}  ({accel})", lambda: self.theme, self.fonts["caption"])
+            column += 1
+        self.play_button = ttk.Button(frame, style="Tool.TButton", compound="left", width=7,
+                                      image=self.images.icon("play", "text", 14), text=" Play", command=self._toggle)
+        self.play_button.grid(row=0, column=column, padx=(0, self.px(SPACE["xs"])))
+        column += 1
+        forward = ttk.Button(frame, style="Icon.TButton", image=self.images.icon("step_forward", "text", 14), command=self._step)
+        forward.grid(row=0, column=column)
+        self.widgets.Tooltip(forward, f"Step forward  ({fmt.accelerator('stepForward')})", lambda: self.theme, self.fonts["caption"])
+        column += 1
+        self.slider = self.widgets.TimelineSlider(frame, self._seek_frame, self.scale)
+        self.slider.canvas.grid(row=0, column=column, sticky="ew", padx=(self.px(SPACE["lg"]), self.px(SPACE["lg"])))
+        self._theme_hooks.append(self.slider.apply_theme)
+        column += 1
+        self.time_label = ttk.Label(frame, style="Surface.Body.TLabel", width=12, anchor="e")
+        self.time_label.grid(row=0, column=column, padx=(0, self.px(SPACE["lg"])))
+        column += 1
+        speeds = ttk.Frame(frame, style="Surface.TFrame")
+        speeds.grid(row=0, column=column)
+        ttk.Label(speeds, text="Speed", style="Surface.Caption.TLabel").pack(side="left", padx=(0, self.px(SPACE["sm"])))
+        for speed in SPEEDS:
+            ttk.Radiobutton(speeds, text=speed_label(speed), value=speed, variable=self.speed_var, style="Segment.Toolbutton",
+                            command=lambda: self._set_speed(self.speed_var.get())).pack(side="left")
+        return frame
 
-    def _cooperative_context_text(self) -> str:
-        agent = self._selected_agent()
-        link = self.model.link_stats_for(agent.agent_id)
-        if link is None:
-            link_text = "No packet events"
-        else:
-            delay = f"{link.mean_delay_ms:.1f} ms mean" if link.mean_delay_ms is not None else "delay unavailable"
-            link_text = f"{delay} · {link.loss_pct:.1f}% loss"
-        return (
-            f"Neighbors    {agent.neighbor_count}\n"
-            f"Separation   {agent.min_neighbor_distance_m:.3f} m\n"
-            f"Link         {link_text}\n"
-            f"Confidence   {agent.confidence:.3f}"
-        )
+    def _build_events(self, parent: Any) -> Any:
+        ttk = self.ttk
+        frame = ttk.Frame(parent, style="Surface.TFrame", padding=(self.px(SPACE["lg"]), self.px(SPACE["sm"]),
+                self.px(SPACE["lg"]), self.px(SPACE["sm"])))
+        frame.columnconfigure(0, weight=1)
+        ttk.Label(frame, text="Events", style="Surface.Caption.TLabel").grid(row=0, column=0, sticky="w", pady=(0, self.px(SPACE["xs"])))
+        tree = ttk.Treeview(frame, columns=("word", "time", "text"), show="tree", selectmode="browse", height=4,
+                            style="Events.Treeview", takefocus=True)
+        tree.column("#0", width=self.px(30), minwidth=self.px(30), stretch=False)
+        tree.column("word", width=self.px(76), minwidth=self.px(76), stretch=False, anchor="w")
+        tree.column("time", width=self.px(64), minwidth=self.px(64), stretch=False, anchor="w")
+        tree.column("text", width=self.px(600), stretch=True, anchor="w")
+        scroll = ttk.Scrollbar(frame, orient="vertical", style="Thin.Vertical.TScrollbar", command=tree.yview)
+        tree.configure(yscrollcommand=self._auto_scroll(scroll, row=1, column=1))
+        tree.grid(row=1, column=0, sticky="ew")
+        tree.bind("<<TreeviewSelect>>", self._on_event_select)
+        self.events_tree = tree
+        self.events_hover = self.widgets.TreeHover(tree)
+        return frame
 
-    def _parts_profile_text(self) -> str:
-        agent = self._selected_agent()
-        profile = self.model.profile_for(agent.agent_id)
-        if profile is None:
-            return f"Profile      {agent.profile_id}\nParts data   Unavailable in this manifest"
-        return (
-            f"Profile      {profile.profile_id}\n"
-            f"Motor        {profile.motor_part_id} · {profile.motor_max_power_w:.2f} W\n"
-            f"Propeller    {profile.propeller_part_id} · {profile.propeller_diameter_m * 1000:.1f} mm\n"
-            f"Configuration {profile.motor_count} motors · {profile.total_mass_kg:.3f} kg\n"
-            f"Max thrust   {profile.estimated_max_thrust_n:.2f} N"
-        )
+    def _auto_scroll(self, scrollbar: Any, *, row: int, column: int) -> Callable[[str, str], None]:
+        state = {"shown": False}
 
-    def _replay_notes_text(self) -> str:
-        link = self.model.link_stats_for(self.selected_id)
-        link_line = "Selected link: no packet events"
-        if link is not None:
-            delay = f"{link.mean_delay_ms:.1f} ms mean" if link.mean_delay_ms is not None else "delay unavailable"
-            link_line = f"Selected link: {delay}, {link.loss_pct:.1f}% loss"
-        return (
-            f"Frame {self.model.index + 1} committed\n"
-            f"Authority: {self.model.command_authority}\n"
-            f"Failsafe: {self.model.failsafe}\n"
-            f"{link_line}\n\n"
-            "No live radio, camera, motor, or swarm command path is attached."
-        )
-
-    def _mission_events_text(self) -> str:
-        """Return the same compact replay event vocabulary as the macOS app."""
-
-        return "\n".join(mission_event_lines(self.model, self.selected_id))
-
-    def _provenance_text(self) -> str:
-        return (
-            f"{self.model.schema}\n"
-            f"Scenario {self.model.scenario_id}\n"
-            f"Seed {self.model.seed} · Δt {self.model.dt_s:.3f} s\n"
-            f"Profiles {len(self.model.agent_profiles)} · link events {self.model.summary()['link_event_count']}\n\n"
-            f"{self.model.evidence_boundary}"
-        )
-
-    def _bounds(self) -> tuple[float, float, float, float]:
-        points = [agent.position_m for frame in self.model.frames for agent in frame.agents]
-        xs = [point[0] for point in points]
-        ys = [point[1] for point in points]
-        return min(xs), max(xs), min(ys), max(ys)
-
-    def _project(self, x: float, y: float, z: float = 0.0) -> tuple[float, float]:
-        width = max(100, self.canvas.winfo_width())
-        height = max(100, self.canvas.winfo_height())
-        span_x = max(self._max_x - self._min_x, 1.0) / self._zoom
-        span_y = max(self._max_y - self._min_y, 1.0) / self._zoom
-        scale = min((width - TOKENS.canvas_extent) / span_x, (height - TOKENS.canvas_extent) / span_y)
-        center_x, center_y = self._view_center
-        center_z = 1.5
-        if self._focus_selected:
-            agent = self._selected_agent()
-            center_x, center_y = agent.position_m[0], agent.position_m[1]
-            center_z = agent.position_m[2]
-        # A restrained oblique projection gives the Windows preview depth cues
-        # while keeping the replay surface lightweight and deterministic.
-        depth_x = (x - center_x) - 0.48 * (z - center_z)
-        depth_y = (y - center_y) - 0.32 * (z - center_z)
-        return width / 2 + depth_x * scale, height / 2 - depth_y * scale
-
-    def _render(self) -> None:
-        if self.canvas is None:
-            return
-        canvas = self.canvas
-        canvas.delete("all")
-        width = max(100, canvas.winfo_width())
-        height = max(100, canvas.winfo_height())
-        for fraction in (0.25, 0.5, 0.75):
-            canvas.create_line(width * fraction, TOKENS.canvas_margin, width * fraction, height - TOKENS.canvas_margin, fill=TOKENS.grid)
-            canvas.create_line(TOKENS.canvas_margin, height * fraction, width - TOKENS.canvas_margin, height * fraction, fill=TOKENS.grid)
-        if self.show_keepout is not None and self.show_keepout.get():
-            self._render_keepout(canvas)
-        target_x, target_y = self._project(*self.model.frame.target_position_m)
-        canvas.create_oval(target_x - TOKENS.target_radius, target_y - TOKENS.target_radius, target_x + TOKENS.target_radius, target_y + TOKENS.target_radius, outline=TOKENS.accent, width=2)
-        canvas.create_line(target_x - TOKENS.target_cross, target_y, target_x + TOKENS.target_cross, target_y, fill=TOKENS.accent)
-        canvas.create_line(target_x, target_y - TOKENS.target_cross, target_x, target_y + TOKENS.target_cross, fill=TOKENS.accent)
-        for agent in self.model.frame.agents:
-            self._render_drone(agent)
-        canvas.create_text(TOKENS.canvas_label_x, TOKENS.canvas_label_y, text=f"Frame {self.model.index + 1} of {self.model.frame_count}  ·  T+{self.model.frame.time_s:.2f} s", fill=TOKENS.muted, anchor="nw", font=(TOKENS.mono_font, TOKENS.body_size))
-        if self.status is not None:
-            view = "focused" if self._focus_selected else "overview"
-            keepout = "keep-out on" if self.show_keepout is not None and self.show_keepout.get() else "keep-out off"
-            self.status.configure(text=f"T+{self.model.frame.time_s:.2f} s   |   active {self.model.frame.active_count}/{len(self.model.frame.agents)}   |   {view} · {keepout}   |   {self.model.status}")
-        if self.timeline is not None and int(float(self.timeline.get())) != self.model.index:
-            self.timeline.set(self.model.index)
-        self._render_fleet()
-        self._refresh_disclosures()
-        self._render_telemetry()
-
-    def _render_keepout(self, canvas: Any) -> None:
-        """Draw the same fixed synthetic keep-out volume used by the macOS scene."""
-
-        # Match the macOS SceneKit volume: a 1.3 m by 1.6 m by 1.3 m box.
-        corners = {
-            "near_low": self._project(-0.65, -2.30, 0.0),
-            "near_high": self._project(-0.65, -0.70, 0.0),
-            "far_low": self._project(0.65, -2.30, 0.0),
-            "far_high": self._project(0.65, -0.70, 0.0),
-            "top_near_low": self._project(-0.65, -2.30, 1.6),
-            "top_near_high": self._project(-0.65, -0.70, 1.6),
-            "top_far_low": self._project(0.65, -2.30, 1.6),
-            "top_far_high": self._project(0.65, -0.70, 1.6),
-        }
-        canvas.create_polygon(
-            corners["top_near_low"], corners["top_far_low"], corners["top_far_high"], corners["top_near_high"],
-            outline=TOKENS.warning, fill="", width=2, dash=(5, 4),
-        )
-        for low, high in (("near_low", "top_near_low"), ("far_low", "top_far_low"), ("near_high", "top_near_high"), ("far_high", "top_far_high")):
-            canvas.create_line(*corners[low], *corners[high], fill=TOKENS.warning, dash=(4, 4))
-        canvas.create_line(*corners["near_low"], *corners["far_high"], fill=TOKENS.warning, dash=(4, 4))
-        canvas.create_text(corners["top_near_low"][0] + 5, corners["top_near_low"][1] + 5, text="keep-out", fill=TOKENS.warning, anchor="nw", font=(TOKENS.ui_font, TOKENS.small_size))
-
-    def _render_drone(self, agent: Any) -> None:
-        """Draw a small depth-aware quadcopter glyph instead of a flat dot."""
-
-        canvas = self.canvas
-        if canvas is None:
-            return
-        x, y, z = agent.position_m
-        heading = math.atan2(agent.velocity_mps[1], agent.velocity_mps[0]) if any(agent.velocity_mps[:2]) else 0.0
-        color = TOKENS.warning if (not agent.active or agent.confidence < 0.98) else TOKENS.accent
-        body = [self._project(x + dx, y + dy, z) for dx, dy in self._rotated_points(heading, 0.20, 0.11)]
-        canvas.create_polygon(body, fill=TOKENS.surface, outline=color, width=1)
-        for arm_angle in (heading + math.pi / 4, heading - math.pi / 4):
-            start = self._project(x - 0.34 * math.cos(arm_angle), y - 0.34 * math.sin(arm_angle), z)
-            end = self._project(x + 0.34 * math.cos(arm_angle), y + 0.34 * math.sin(arm_angle), z)
-            canvas.create_line(*start, *end, fill=color, width=2)
-        for rotor_angle in (heading + math.pi / 4, heading - math.pi / 4):
-            for sign in (-1, 1):
-                rotor_x = x + sign * 0.30 * math.cos(rotor_angle)
-                rotor_y = y + sign * 0.30 * math.sin(rotor_angle)
-                screen_x, screen_y = self._project(rotor_x, rotor_y, z + 0.04)
-                canvas.create_oval(screen_x - 4, screen_y - 2, screen_x + 4, screen_y + 2, outline=color)
-        if agent.agent_id == self.selected_id:
-            selected_x, selected_y = self._project(x, y, z)
-            canvas.create_oval(selected_x - 14, selected_y - 14, selected_x + 14, selected_y + 14, outline=TOKENS.selection_outline_color, width=2)
-            canvas.create_text(selected_x + TOKENS.label_offset, selected_y - TOKENS.label_offset, text=agent.agent_id, fill=TOKENS.text, anchor="w", font=(TOKENS.mono_font, TOKENS.small_size, "bold"))
+        def update(first: str, last: str) -> None:
+            scrollbar.set(first, last)
+            needed = float(first) > 0.0 or float(last) < 1.0
+            if needed != state["shown"]:
+                state["shown"] = needed
+                if needed:
+                    scrollbar.grid(row=row, column=column, sticky="ns", padx=(self.px(2), 0))
+                else:
+                    scrollbar.grid_remove()
+        return update
 
     @staticmethod
-    def _rotated_points(heading: float, width: float, height: float) -> tuple[tuple[float, float], ...]:
-        points = ((width, 0), (0, height), (-width, 0), (0, -height))
-        return tuple((px * math.cos(heading) - py * math.sin(heading), px * math.sin(heading) + py * math.cos(heading)) for px, py in points)
+    def _context_sequences() -> tuple[str, ...]:
+        if sys.platform == "darwin":
+            return ("<Button-2>", "<Button-3>", "<Control-Button-1>")
+        return ("<Button-3>",)
 
-    def _render_fleet(self) -> None:
-        if self.fleet is None:
-            return
-        visible = filter_agents(self.model.frame.agents, self.filter_var.get() if self.filter_var is not None else "")
-        for row in self.fleet.get_children():
-            self.fleet.delete(row)
-        for agent in visible:
-            state = "Active" if agent.active else "Inactive"
-            battery = f"{agent.battery_pct:.0f}%" if agent.battery_pct is not None else "—"
-            link = self.model.link_stats_for(agent.agent_id)
-            if agent.link_delay_ms is not None:
-                link_text = f"{agent.link_delay_ms:.0f} ms"
-            elif link is not None and link.mean_delay_ms is not None:
-                link_text = f"{link.mean_delay_ms:.0f} ms"
+    def _bind_shortcuts(self) -> None:
+        for shortcut in SHORTCUTS:
+            handler = getattr(self, SHORTCUT_HANDLERS[shortcut.action_id])
+            if shortcut.single_key:
+                callback = self._shortcut(handler, shortcut.key)
+                self.root.bind(shortcut.tk_binding, callback)
+                if len(shortcut.key) == 1:
+                    self.root.bind(f"<{shortcut.key.upper()}>", callback)
             else:
-                link_text = "—"
-            self.fleet.insert("", "end", iid=agent.agent_id, values=(agent.agent_id, state, battery, link_text))
-        if self.fleet_summary is not None:
-            query = self.filter_var.get().strip() if self.filter_var is not None else ""
-            suffix = f" · filter {query!r}" if query else ""
-            self.fleet_summary.configure(text=f"Fleet · {len(visible)} of {len(self.model.frame.agents)} vehicles{suffix}")
-        visible_ids = {agent.agent_id for agent in visible}
-        if self.selected_id in visible_ids and self.fleet.selection() != (self.selected_id,):
-            self._select_programmatically(self.selected_id)
+                self.root.bind(shortcut.tk_binding, lambda _event, handler=handler: (handler(), "break")[1])
 
-    def _select_programmatically(self, agent_id: str) -> None:
-        """Select a row without allowing Tk's virtual event to re-enter render."""
-        self._selection_update = True
-        try:
-            self.fleet.selection_set(agent_id)
-        finally:
-            self._selection_update = False
-
-    def _on_filter(self) -> None:
-        self._render_fleet()
-        self._render()
-
-    def _focus_selected_vehicle(self) -> None:
-        self._focus_selected = True
-        self._zoom = 1.65
-        self._render()
-
-    def _reset_view(self) -> None:
-        self._focus_selected = False
-        self._zoom = 1.0
-        self._view_center = ((self._min_x + self._max_x) / 2, (self._min_y + self._max_y) / 2)
-        self._render()
-
-    def _toggle_keepout(self) -> None:
-        if self.show_keepout is not None:
-            self.show_keepout.set(not self.show_keepout.get())
-        self._render()
-
-    def _render_telemetry(self) -> None:
-        if self.telemetry is None:
-            return
-        agent = self._selected_agent()
-        link = self.model.link_stats_for(agent.agent_id)
-        if agent.link_delay_ms is not None:
-            link_text = f"{agent.link_delay_ms:.0f} ms"
-        elif link is not None and link.mean_delay_ms is not None:
-            link_text = f"{link.mean_delay_ms:.1f} ms"
-        else:
-            link_text = "—"
-        loss_text = f"{link.loss_pct:.1f}%" if link is not None else "—"
-        battery_text = f"{agent.battery_pct:.0f}%" if agent.battery_pct is not None else "—"
-        text = (
-            f"{agent.agent_id} · {'Active' if agent.active else 'Inactive'}\n\n"
-            f"Battery     {battery_text}\n"
-            f"Confidence   {agent.confidence:.3f}\n"
-            f"Link        {link_text}\n"
-            f"Loss        {loss_text}\n"
-            f"Neighbors    {agent.neighbor_count}\n"
-            f"Separation   {agent.min_neighbor_distance_m:.3f} m\n\n"
-            f"Position     [{agent.position_m[0]:.2f}, {agent.position_m[1]:.2f}, {agent.position_m[2]:.2f}] m\n"
-            f"Velocity     [{agent.velocity_mps[0]:.2f}, {agent.velocity_mps[1]:.2f}, {agent.velocity_mps[2]:.2f}] m/s\n"
-            f"Constraints  {', '.join(agent.constraint_flags) if agent.constraint_flags else 'Clear'}"
-        )
-        self.telemetry.configure(text=text)
-
-    def _on_select(self, _event: Any) -> None:
-        if self._selection_update:
-            return
-        selection = self.fleet.selection()
-        if selection:
-            self.selected_id = selection[0]
-            self._render()
-
-    def _seek(self, value: str) -> None:
-        try:
-            index = int(float(value))
-        except ValueError:
-            return
-        if index != self.model.index:
-            self.model.reset()
-            self.model.step(index)
-        self._render()
-
-    def _shortcut(self, action: Any) -> Any:
-        """Wrap a bare-key shortcut so it is ignored while the user is typing.
-
-        Tk delivers a key press to the focused widget and then to the window it
-        sits in, so typing ``r`` in the fleet filter would also reset the view.
-        """
-        def handler(event: Any) -> None:
+    def _shortcut(self, action: Callable[[], Any], key: str = "") -> Callable[[Any], Any]:
+        """Wrap a single-key shortcut so it stands down while a text field (or owning widget) has focus."""
+        def handler(event: Any) -> Any:
             widget = getattr(event, "widget", None)
             try:
                 widget_class = widget.winfo_class() if widget is not None else ""
             except Exception:
                 widget_class = ""
-            if not is_text_input_class(widget_class):
-                action()
+            if shortcut_blocked(widget_class, key):
+                return None
+            action()
+            return "break"
 
         return handler
 
-    def _set_playing(self, playing: bool) -> None:
-        """Single place that changes playback, so the button label and timer stay in step."""
-        self.playing = playing
-        if self.play_button is not None:
-            self.play_button.configure(text="Pause" if playing else "Play")
-        if not playing and self._tick_job is not None:
-            self.root.after_cancel(self._tick_job)
-            self._tick_job = None
+    # ---- theme -------------------------------------------------------------
+    def _apply_theme(self) -> None:
+        theme = self.theme
+        p = theme.p
+        self._configure_styles(self.style, theme, self.fonts, self.scale)
+        self.style.configure("Field.Placeholder.TLabel", background=p.background, foreground=p.textSecondary, font=self.fonts["body"])
+        self.images.apply(theme)
+        self.root.configure(background=p.background)
+        for tree in (self.fleet, self.events_tree):
+            tree.tag_configure("hover", background=p.hoverFill)
+        self.events_tree.tag_configure("past", foreground=p.textSecondary)
+        self.scene.apply_theme(theme)
+        alive = []
+        for hook in self._theme_hooks:
+            try:
+                hook(theme)
+                alive.append(hook)
+            except self.tk.TclError:
+                continue
+        self._theme_hooks = alive
+        for window in (self.root, self._about_window, self._evidence_window, self._scenario_window):
+            if window is not None:
+                try:
+                    if window is not self.root:
+                        window.configure(background=p.background)
+                    self._apply_title_bar(window, theme.dark)
+                except self.tk.TclError:
+                    pass
+
+    def _set_appearance(self, value: str) -> None:
+        self.appearance = value
+        self.appearance_var.set(value)
+        if self._persist_appearance:
+            try:
+                save_appearance(value)
+            except OSError:
+                pass
+        name = resolve_theme(value, system_prefers_dark())
+        if name != self.theme.name:
+            self.theme = self._Theme(name)
+            self._apply_theme()
+            self._render()
+
+    # ---- rendering ---------------------------------------------------------
+    def _render(self) -> None:
+        """Refresh every region from the session. Never re-enters through Tk selection events."""
+        self.render_count += 1
+        presentation = self.session.presentation
+        self._render_strip(presentation)
+        self._render_fleet()
+        self._render_inspector()
+        self._render_timeline()
+        self._render_events()
+        self.scene.set_frame(self._raw_frame(), presentation["per_drone"], self.session.selected_drone_id)
+
+    def _raw_frame(self) -> Mapping[str, Any]:
+        return self.run.get("steps", self.run.get("frames", []))[self.session.frame_index]
+
+    def _set_metric(self, label: str, text: str | None) -> None:
+        widget = self.strip_values[label]
+        if text is None:
+            self._set(widget, text=fmt.NOT_RECORDED, style="Base.MetricMissing.TLabel")
+        else:
+            self._set(widget, text=text, style="Base.Metric.TLabel")
+
+    def _render_strip(self, presentation: Mapping[str, Any]) -> None:
+        labels = UI_TEXT["statusStrip"]
+        headline = presentation["headline"]
+        self._set(self.strip_glyph, image=self.images.status(headline["level"], 15, 16))
+        self._set(self.strip_values[labels[0]], text=headline["text"], style="Base.Metric.TLabel")
+        strip = presentation["strip"]
+        self._set_metric(labels[1], fmt.format_value(presentation.get("estimate_error_p95_m"), "m"))
+        self._set_metric(labels[2], fmt.format_value(strip.get("target_link_delay_ms"), "ms"))
+        self._set_metric(labels[3], fmt.format_value(strip.get("target_packet_loss_pct"), "pct"))
+        self._set_metric(labels[4], fmt.format_age_span(strip.get("newest_target_age_s"), strip.get("oldest_target_age_s")))
+
+    def _render_fleet(self) -> None:
+        tree = self.fleet
+        presentation = self.session.presentation
+        self._set(self.team_summary, text=fmt.team_summary(presentation["per_drone"]))
+        plan = team_rows(presentation["groups"], presentation["per_drone"], self.filter_var.get())
+        filtering = bool(self.filter_var.get().strip())
+        wanted_groups = [row["iid"] for row in plan]
+        for row in plan:
+            if row["iid"] not in self._seen_groups:
+                self._seen_groups.add(row["iid"])
+                if row["level"] != "ok":
+                    self._open_groups.add(row["iid"])
+        existing_groups = set(tree.get_children(""))
+        wanted_children = {child["iid"] for row in plan for child in row["children"]}
+        for row in plan:
+            image = self.images.status(row["level"], 10, 16)
+            if tree.exists(row["iid"]):
+                self._tree_item(row["iid"], text=row["label"], values=row["values"], image=image)
+            else:
+                tree.insert("", "end", iid=row["iid"], text=row["label"], values=row["values"], image=image)
+        for index, row in enumerate(plan):
+            if tree.parent(row["iid"]) != "" or tree.index(row["iid"]) != index:
+                tree.move(row["iid"], "", index)
+            for child_index, child in enumerate(row["children"]):
+                if tree.exists(child["iid"]):
+                    self._tree_item(child["iid"], text=child["label"], values=child["values"])
+                    if tree.parent(child["iid"]) != row["iid"] or tree.index(child["iid"]) != child_index:
+                        tree.move(child["iid"], row["iid"], child_index)
+                else:
+                    tree.insert(row["iid"], child_index, iid=child["iid"], text=child["label"], values=child["values"])
+            should_open = row["iid"] in self._open_groups or (filtering and row["level"] == "ok")
+            if bool(tree.item(row["iid"], "open")) != should_open:
+                tree.item(row["iid"], open=should_open)
+        for group in existing_groups:
+            for child in tree.get_children(group):
+                if child not in wanted_children:
+                    self.team_hover.forget(child)
+                    tree.delete(child)
+        for group in existing_groups - set(wanted_groups):
+            if tree.exists(group):
+                self.team_hover.forget(group)
+                tree.delete(group)
+        self._team_plan = plan
+        self._sync_team_selection()
+
+    def _tree_item(self, iid: str, **options: Any) -> None:
+        """Update a team row only when its text, values, or image changed."""
+        current = self.fleet.item(iid)
+        changed = {}
+        for name, value in options.items():
+            now = current.get(name)
+            if name == "values":
+                same = tuple(str(item) for item in (now or ())) == tuple(str(item) for item in value)
+            elif name == "image":
+                same = tuple(str(item) for item in (now or ())) == (str(value),)
+            else:
+                same = str(now) == str(value)
+            if not same:
+                changed[name] = value
+        if changed:
+            self.fleet.item(iid, **changed)
+
+    def _open_now(self) -> set[str]:
+        return {row["iid"] for row in self._team_plan if self.fleet.exists(row["iid"]) and self.fleet.item(row["iid"], "open")}
+
+    def _sync_team_selection(self, reveal: bool = False) -> None:
+        """Make the tree selection match the session. Only calls selection_set when it differs."""
+        desired = desired_team_selection(self._team_plan, self.session.selected_drone_id, self._open_now())
+        current = tuple(self.fleet.selection())
+        if desired is None:
+            if current:
+                self.fleet.selection_set(())
+            return
+        if current != (desired,):
+            self.fleet.selection_set(desired)
+            self.fleet.focus(desired)
+        if reveal:
+            self.fleet.see(desired)
+
+    def _on_select(self, _event: Any = None) -> None:
+        """Tree selection changed. Idempotent: a selection that already matches renders nothing.
+
+        ``selection_set`` queues ``<<TreeviewSelect>>`` for later, after any
+        boolean guard would already be reset, so the guard here is the state
+        comparison itself.
+        """
+        selection = self.fleet.selection()
+        if not selection:
+            return
+        drone = drone_for_team_row(self._team_plan, selection[0], self.session.selected_drone_id)
+        if drone is None or drone == self.session.selected_drone_id:
+            return
+        self.session.selected_drone_id = drone
+        self._render_selection(reveal=False)
+
+    def _render_selection(self, reveal: bool) -> None:
+        self.render_count += 1
+        self._sync_team_selection(reveal=reveal)
+        self._render_inspector()
+        self.scene.set_selected(self.session.selected_drone_id)
+
+    def _select_drone(self, drone_id: str, reveal: bool = True) -> None:
+        if drone_id == self.session.selected_drone_id:
+            return
+        self.session.selected_drone_id = drone_id
+        self._render_selection(reveal=reveal)
+
+    def _focus_drone(self, drone_id: str) -> None:
+        self._select_drone(drone_id)
+        self.scene.focus_drone(drone_id)
+
+    def _on_group_toggle(self, opened: bool) -> None:
+        item = self.fleet.focus()
+        if not item or item not in {row["iid"] for row in self._team_plan}:
+            return
+        if opened:
+            self._open_groups.add(item)
+        else:
+            self._open_groups.discard(item)
+        self.root.after_idle(self._sync_team_selection)
+
+    def _on_team_double(self, event: Any) -> str | None:
+        row = self.fleet.identify_row(event.y)
+        if row and row in {child["iid"] for plan in self._team_plan for child in plan["children"]}:
+            self._focus_drone(row)
+            return "break"
+        return None
+
+    def _on_team_context(self, event: Any) -> str:
+        row = self.fleet.identify_row(event.y)
+        drone = drone_for_team_row(self._team_plan, row, self.session.selected_drone_id) if row else None
+        if drone:
+            self._show_context_menu(drone, event.x_root, event.y_root)
+        return "break"
+
+    def _show_context_menu(self, drone_id: str, x: int, y: int) -> None:
+        menu = self.tk.Menu(self.root, tearoff=False)
+        menu.add_command(label="Focus Camera", command=lambda: self._focus_drone(drone_id))
+        menu.add_command(label="Show in Inspector", command=lambda: self._show_in_inspector(drone_id))
+        menu.add_command(label="Copy Drone ID", command=lambda: self._copy_text(drone_id))
+        try:
+            menu.tk_popup(x, y)
+        finally:
+            menu.grab_release()
+
+    def _show_in_inspector(self, drone_id: str) -> None:
+        self._select_drone(drone_id)
+        if not self.session.show_inspector:
+            self._set_inspector(True)
+
+    def _copy_text(self, text: str) -> None:
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
+
+    def _profile(self, profile_id: str | None) -> Mapping[str, Any] | None:
+        return next((item for item in self.run.get("agent_profiles", []) if item.get("profile_id") == profile_id), None)
+
+    def _render_inspector(self) -> None:
+        record = self.session.record_for(self.session.selected_drone_id)
+        if record is None:
+            self.inspector_title.configure(text="No drone selected")
+            self.inspector_word.configure(text="", image="")
+            for tile in self.tiles.values():
+                tile.set(None)
+            self.motion_grid.set_rows(())
+            self.neighbor_grid.set_rows(())
+            self.details_grid.set_rows(())
+            return
+        self._set(self.inspector_title, text=record["heading_name"])
+        self._set(self.inspector_word, text=f" {record['word']}", image=self.images.status(record["level"], 10, 12))
+        self.tiles["target_age"].set(fmt.format_value(record.get("target_age_s"), "s"))
+        self.tiles["estimate"].set(fmt.format_value(record.get("estimate_error_m"), "m"))
+        self.tiles["delay"].set(fmt.format_value(record.get("target_link_delay_ms"), "ms"))
+        self.tiles["loss"].set(fmt.format_value(record.get("target_packet_loss_pct"), "pct"))
+        heading = record.get("heading_deg")
+        self.motion_grid.set_rows((
+            ("Altitude", fmt.format_value(record.get("altitude_m"), "m")),
+            ("Speed", fmt.format_value(record.get("speed_mps"), "mps")),
+            ("Heading", fmt.format_value(heading, "deg") if heading is not None else "At rest"),
+        ))
+        self.neighbor_grid.set_rows((
+            (fmt.field_label("neighbor_count"), str(record.get("neighbor_count", 0))),
+            ("Nearest neighbor", fmt.format_value(record.get("nearest_neighbor_m"), "m")),
+        ))
+        agent = next((item for item in self._raw_frame().get("agents", []) if item.get("agent_id") == record["drone_id"]), {})
+        profile = self._profile(record.get("profile_id")) or {}
+        motor = profile.get("motor") or {}
+        propeller = profile.get("propeller") or {}
+        flags = record.get("constraint_flags") or []
+        rows = [
+            (fmt.field_label("agent_id"), record["drone_id"], "mono"),
+            (fmt.field_label("position_m"), fmt.format_vector(agent.get("position_m"))),
+            (fmt.field_label("velocity_mps"), fmt.format_vector(agent.get("velocity_mps"))),
+            (fmt.field_label("profile_id"), record.get("profile_id"), "mono"),
+        ]
+        if profile:
+            rows += [
+                (fmt.field_label("motor"), f"{motor.get('part_id',
+                        fmt.NOT_RECORDED)}, {fmt.format_scalar(motor.get('max_power_w'))} W max"),
+                (fmt.field_label("propeller"), f"{propeller.get('part_id',
+                        fmt.NOT_RECORDED)}, {fmt.format_scalar((propeller.get('diameter_m') or 0) * 1000)} mm"),
+                (fmt.field_label("motor_count"), fmt.format_scalar(profile.get("motor_count"))),
+                (fmt.field_label("total_mass_kg"), fmt.format_scalar(profile.get("total_mass_kg"))),
+                (fmt.field_label("estimated_max_thrust_n"), fmt.format_scalar(profile.get("estimated_max_thrust_n"))),
+                (fmt.field_label("battery_capacity_wh"), fmt.format_scalar(profile.get("battery_capacity_wh"))),
+                ("Profile source", fmt.format_scalar(profile.get("status"))),
+            ]
+        rows.append((fmt.field_label("constraint_flags"), ", ".join(fmt.humanize_key(flag) for flag in flags) if flags else "None"))
+        self.details_grid.set_rows(rows)
+
+    def _render_timeline(self) -> None:
+        session = self.session
+        self.slider.set_state(session.frame_index, session.frame_count, session.event_frames())
+        self._set(self.time_label, text=fmt.time_label(session.frame_time, session.duration))
+        playing = session.playing
+        self._set(self.play_button, text=" Pause" if playing else " Play",
+                  image=self.images.icon("pause" if playing else "play", "text", 14))
+        if abs(self.speed_var.get() - session.speed) > 1e-9:
+            self.speed_var.set(session.speed)
+
+    def _render_events(self) -> None:
+        tree = self.events_tree
+        events = self.session.events_through()
+        signature = tuple((frame, event["text"]) for frame, event in events)
+        if signature == self._event_signature:
+            return
+        keep = 0
+        while keep < min(len(signature), len(self._event_signature)) and signature[keep] == self._event_signature[keep]:
+            keep += 1
+        for index in range(keep, len(self._event_signature)):
+            iid = f"event{index}"
+            if tree.exists(iid):
+                self.events_hover.forget(iid)
+                tree.delete(iid)
+                self._event_frames.pop(iid, None)
+        for index in range(keep, len(events)):
+            frame, event = events[index]
+            level = str(event.get("level", "info"))
+            word = fmt.status_word(level) if level in fmt.LEVELS else ""
+            iid = f"event{index}"
+            tree.insert("", "end", iid=iid, image=self.images.status(level, 10, 18),
+                        values=(word, f"{float(event['time_s']):.2f} s", event["text"]))
+            self._event_frames[iid] = frame
+        self._event_signature = signature
+        children = tree.get_children("")
+        if children:
+            tree.see(children[-1])
+
+    def _on_event_select(self, _event: Any = None) -> None:
+        selection = self.events_tree.selection()
+        if not selection:
+            return
+        frame = self._event_frames.get(selection[0])
+        if frame is None or frame == self.session.frame_index:
+            return
+        self._seek_frame(frame)
+
+    # ---- actions -----------------------------------------------------------
+    def _schedule(self, callback: Callable[[], None], delay: int) -> Any:
+        return self.root.after(delay, self._run_tick, callback)
+
+    def _cancel(self, job: Any) -> None:
+        if job is not None:
+            try:
+                self.root.after_cancel(job)
+            except Exception:
+                pass
+
+    def _run_tick(self, callback: Callable[[], None]) -> None:
+        callback()
+        self._render()
 
     def _toggle(self) -> None:
-        self._set_playing(not self.playing)
-        if self.playing:
-            self._tick()
-
-    def _tick(self) -> None:
-        self._tick_job = None
-        if not self.playing:
-            return
-        if self.model.index >= self.model.frame_count - 1:
-            self._set_playing(False)
-            return
-        self.model.step()
+        self.session.toggle_play()
         self._render()
-        self._tick_job = self.root.after(max(20, int(self.model.dt_s * 1000)), self._tick)
 
     def _step(self) -> None:
-        self._set_playing(False)
-        self.model.step()
+        self.session.pause()
+        self.session.step_forward()
+        self._render()
+
+    def _step_back(self) -> None:
+        self.session.pause()
+        self.session.step_back()
+        self._render()
+
+    def _restart(self) -> None:
+        self.session.restart()
         self._render()
 
     def _reset(self) -> None:
-        self._set_playing(False)
-        self.model.reset()
+        self._restart()
+
+    def _seek_frame(self, index: int) -> None:
+        if index == self.session.frame_index:
+            return
+        self.session.pause()
+        self.session.seek_frame(int(index))
         self._render()
 
+    def _set_speed(self, speed: float) -> None:
+        self.session.set_speed(float(speed))
+        self.speed_var.set(self.session.speed)
+
+    def _focus_selected_drone(self) -> None:
+        self.scene.focus_drone(self.session.selected_drone_id)
+
+    def _reset_camera(self) -> None:
+        self.scene.reset_camera()
+
+    def _set_view_mode(self, mode: str) -> None:
+        self.session.view_mode = mode
+        self.view_var.set(mode)
+        self.scene.set_view_mode(mode)
+
+    def _toggle_view_mode(self) -> None:
+        self._set_view_mode("3d" if self.session.view_mode == "top" else "top")
+
+    def _set_keepout(self, visible: bool) -> None:
+        self.session.show_keepout = visible
+        self.keepout_var.set(visible)
+        self.scene.set_keepout_visible(visible)
+
+    def _toggle_keepout(self) -> None:
+        self._set_keepout(not self.session.show_keepout)
+
+    def _set_inspector(self, visible: bool) -> None:
+        self.session.show_inspector = visible
+        self.inspector_var.set(visible)
+        if visible:
+            self.inspector_line.grid()
+            self.inspector_panel.grid()
+        else:
+            self.inspector_line.grid_remove()
+            self.inspector_panel.grid_remove()
+
+    def _toggle_inspector(self) -> None:
+        self._set_inspector(not self.session.show_inspector)
+
+    def _focus_filter(self) -> None:
+        self.filter_entry.focus_set()
+        self.filter_entry.select_range(0, "end")
+
+    def _clear_filter(self, _event: Any = None) -> str:
+        self.filter_var.set("")
+        self.fleet.focus_set()
+        return "break"
+
+    def _on_filter(self) -> None:
+        self._render_fleet()
+
+    def _route_wheel(self, event: Any) -> None:
+        widget = self.root.winfo_containing(event.x_root, event.y_root)
+        if widget is not None and self.inspector_scroll.contains(widget):
+            self.inspector_scroll.scroll(event.delta)
+
+    def _route_touchpad(self, event: Any) -> None:
+        widget = self.root.winfo_containing(event.x_root, event.y_root)
+        try:
+            delta = int(event.delta)
+            dy = (delta & 0xFFFF) - (0x10000 if delta & 0x8000 else 0)
+        except (TypeError, ValueError):
+            return
+        if widget is not None and self.inspector_scroll.contains(widget):
+            self.inspector_scroll.scroll(dy * 40)
+        elif widget is self.canvas:
+            self.scene.wheel(dy * 40)
+
+    # ---- windows -------------------------------------------------------------
+    def _viewer_context(self) -> Any:
+        if __package__ in (None, ""):
+            from desktop.ui_viewers import ViewerContext
+        else:
+            from .ui_viewers import ViewerContext
+        return ViewerContext(self.root, lambda: self.theme, self.fonts, self.images, self.scale, self._theme_hooks.append,
+                             self._apply_title_bar)
+
+    def _replace_window(self, attribute: str) -> None:
+        window = getattr(self, attribute)
+        if window is not None:
+            try:
+                window.destroy()
+            except self.tk.TclError:
+                pass
+            setattr(self, attribute, None)
+
+    def _show_about(self) -> None:
+        if __package__ in (None, ""):
+            from desktop.ui_viewers import about_window
+        else:
+            from .ui_viewers import about_window
+        self._replace_window("_about_window")
+        self._about_window = about_window(self._viewer_context(), self.run, self._about_details())
+
+    def _about_details(self) -> list[tuple[str, Any, str]]:
+        source = getattr(self.model, "source_path", None)
+        digest = None
+        if source is not None:
+            try:
+                digest = hashlib.sha256(Path(source).read_bytes()).hexdigest()
+            except OSError:
+                digest = None
+        frames = self.run.get("steps", [])
+        return [
+            (fmt.field_label("scenario_id"), self.run.get("scenario_id"), "mono"),
+            (fmt.field_label("seed"), self.run.get("seed"), "body"),
+            (fmt.field_label("schema"), self.run.get("schema"), "mono"),
+            (fmt.field_label("dt_s"), self.run.get("dt_s"), "body"),
+            (fmt.field_label("frame_count"), len(frames), "body"),
+            (fmt.field_label("agent_count"), len(frames[0].get("agents", [])) if frames else None, "body"),
+            (fmt.field_label("link_event_count"), len(self.run.get("link_events", [])), "body"),
+            ("Replay file SHA-256", digest, "mono"),
+            ("App version", CURRENT_VERSION, "body"),
+            (fmt.field_label("python"), platform.python_version(), "body"),
+            ("Tk version", str(self.tk.TkVersion), "body"),
+        ]
+
     def _check_update(self) -> None:
-        if self.status is not None:
-            self.status.configure(text="Checking GitHub release…")
+        self.notice.configure(text="Checking for updates...")
+
+        def report(message: str, error: bool = False) -> None:
+            from tkinter import messagebox
+
+            self.notice.configure(text="")
+            if error:
+                messagebox.showwarning("Check for Updates", message, parent=self.root)
+            else:
+                messagebox.showinfo("Check for Updates", message, parent=self.root)
 
         def worker() -> None:
+            error = False
             try:
                 try:
                     from tools.release_updater import GitHubReleaseClient
@@ -726,11 +1290,11 @@ class WindowsReplayApp:
                 client = GitHubReleaseClient()
                 release, asset, newer = client.check(CURRENT_VERSION, platform=client.platform_name())
                 if not newer:
-                    message = f"Up to date: {release.tag}"
+                    message = f"Zephyr Mesh is up to date ({release.tag})."
                 elif not getattr(sys, "frozen", False):
-                    message = f"Update available: {release.tag} · packaged app required to install"
+                    message = f"Update available: {release.tag}. Installing needs the packaged app."
                 else:
-                    self.root.after(0, lambda: self.status.configure(text=f"Downloading {release.tag}…"))
+                    self.root.after(0, lambda: self.notice.configure(text=f"Downloading {release.tag}..."))
                     staged = client.download_and_stage(asset)
                     install_dir = Path(sys.executable).resolve().parent
                     updater_candidates = (
@@ -740,45 +1304,45 @@ class WindowsReplayApp:
                     updater = next((candidate for candidate in updater_candidates if candidate.is_file()), updater_candidates[0])
                     launch = install_dir / "ZephyrMeshWindows.exe"
                     if not updater.is_file():
-                        message = "Update staged, but ZephyrMeshUpdater.exe is missing"
+                        message = "The update was downloaded, but ZephyrMeshUpdater.exe is missing."
+                        error = True
                     else:
                         updater = updater_launch_path(updater, install_dir, pid=os.getpid())
                         flags = getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
                         subprocess.Popen(
-                            [str(updater), "--pid", str(os.getpid()), "--staged", str(staged.payload), "--install-dir", str(install_dir), "--launch", str(launch)],
+                            [str(updater), "--pid", str(os.getpid()), "--staged", str(staged.payload), "--install-dir",
+                                    str(install_dir), "--launch", str(launch)],
                             creationflags=flags,
                             close_fds=True,
                         )
-                        message = f"Installing {release.tag}…"
+                        self.root.after(0, lambda: self.notice.configure(text=f"Installing {release.tag}..."))
+                        self.root.after(700, self.root.destroy)
+                        return
             except Exception as exc:
-                message = f"Update check unavailable: {exc}"
-            if self.status is not None:
-                self.root.after(0, lambda: self.status.configure(text=message))
-                if message.startswith("Installing "):
-                    self.root.after(700, self.root.destroy)
+                message = f"The update check could not finish: {exc}"
+                error = True
+            self.root.after(0, lambda: report(message, error))
+
         threading.Thread(target=worker, daemon=True).start()
 
     @staticmethod
     def _evidence_loader() -> tuple[Any, type[ValueError]]:
         """Load the shared report decoder without making Tk import it early."""
 
-        try:
+        if __package__ in (None, ""):
+            from desktop.evidence import EvidenceError, load_evidence_report
+        else:
             from .evidence import EvidenceError, load_evidence_report
-        except ImportError:  # direct script execution and PyInstaller
-            try:
-                from desktop.evidence import EvidenceError, load_evidence_report
-            except ImportError:
-                from evidence import EvidenceError, load_evidence_report
         return load_evidence_report, EvidenceError
 
     def _open_evidence_report(self) -> bool:
-        """Ask for one portable report and show it in a read-only inspector."""
+        """Ask for one portable report and show it in a read-only viewer."""
 
         from tkinter import filedialog
 
         selected = filedialog.askopenfilename(
             parent=self.root,
-            title="Open evidence report",
+            title="Open Evidence Report",
             filetypes=(("JSON evidence reports", "*.json"), ("All files", "*.*")),
         )
         if not selected:
@@ -786,13 +1350,13 @@ class WindowsReplayApp:
         return self._show_evidence_report(Path(selected))
 
     def _open_scenario_run(self) -> bool:
-        """Open one generated scenario run in a read-only frame inspector."""
+        """Open one generated scenario run in a read-only viewer."""
 
         from tkinter import filedialog
 
         selected = filedialog.askopenfilename(
             parent=self.root,
-            title="Open synthetic scenario run",
+            title="Open Scenario Run",
             filetypes=(("JSON scenario runs", "*.json"), ("All files", "*.*")),
         )
         if not selected:
@@ -800,10 +1364,16 @@ class WindowsReplayApp:
         return self._show_scenario_run(Path(selected))
 
     def _show_scenario_run(self, path: Path) -> bool:
-        """Decode and display scenario summary plus frame rows without mutating replay state."""
+        """Decode a scenario run strictly, then show it without touching replay state."""
 
         from tkinter import messagebox
 
+        if __package__ in (None, ""):
+            from desktop.scenario_run import ScenarioRunFormatError
+            from desktop.ui_viewers import scenario_window
+        else:
+            from .scenario_run import ScenarioRunFormatError
+            from .ui_viewers import scenario_window
         try:
             run = load_scenario_run(path)
         except ScenarioRunFormatError as exc:
@@ -812,152 +1382,8 @@ class WindowsReplayApp:
         except (OSError, TypeError, ValueError) as exc:
             messagebox.showerror("Scenario run", f"Could not open run: {exc}", parent=self.root)
             return False
-        if self._scenario_window is not None:
-            try:
-                self._scenario_window.destroy()
-            except self.tk.TclError:
-                pass
-        window = self.tk.Toplevel(self.root)
-        self._scenario_window = window
-        window.title(f"Scenario run · {path.name}")
-        window.minsize(650, 520)
-        window.configure(background=TOKENS.background)
-        window.transient(self.root)
-        header = self.ttk.Frame(window, style="Surface.TFrame", padding=TOKENS.spacing_lg)
-        header.pack(fill="x")
-        self.ttk.Label(header, text="Synthetic scenario run", style="Title.TLabel").pack(anchor="w")
-        self.ttk.Label(header, text=f"{path.name} · read-only replay", style="Muted.TLabel").pack(anchor="w", pady=(TOKENS.content_pad, 0))
-        body = self.ttk.Frame(window, style="Night.TFrame", padding=TOKENS.spacing_lg)
-        body.pack(fill="both", expand=True)
-        body.columnconfigure(0, weight=1)
-        body.rowconfigure(1, weight=1)
-        summary = run.summary()
-        self.ttk.Label(body, text="Summary", style="Muted.TLabel").grid(row=0, column=0, sticky="w")
-        summary_text = self.tk.Text(body, height=9, wrap="word", background=TOKENS.surface, foreground=TOKENS.text, relief="flat", borderwidth=0, padx=TOKENS.content_pad, pady=TOKENS.content_pad, font=(TOKENS.mono_font, TOKENS.body_size))
-        summary_text.insert("1.0", json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=False))
-        summary_text.configure(state="disabled")
-        summary_text.grid(row=1, column=0, sticky="nsew", pady=(TOKENS.content_pad, TOKENS.spacing_sm))
-        integrity_section = self.ttk.Frame(body, style="Night.TFrame")
-        integrity_section.grid(row=2, column=0, sticky="ew", pady=(0, TOKENS.content_pad))
-        self.ttk.Label(
-            integrity_section,
-            text=f"Evidence boundary  {summary['evidence_boundary']}",
-            style="Muted.TLabel",
-            justify="left",
-            anchor="w",
-            wraplength=620,
-        ).pack(fill="x")
-        integrity_details = self.ttk.Label(
-            integrity_section,
-            text=(
-                f"Scenario SHA-256  {summary['scenario_hash']}\n"
-                f"Payload SHA-256   {summary['payload_sha256']}\n"
-                f"Δt                {summary['dt_s']} s\n"
-                f"Generator          {summary['generator']}\n"
-                f"Python             {summary['python']}\n"
-                f"NumPy              {summary['numpy']}\n"
-                f"Base revision      {summary['code_revision']}\n"
-                f"Revision semantics {summary['code_revision_semantics']}"
-            ),
-            style="Muted.TLabel",
-            justify="left",
-            anchor="w",
-            wraplength=620,
-        )
-        integrity_visible = False
-
-        def toggle_integrity() -> None:
-            nonlocal integrity_visible
-            integrity_visible = not integrity_visible
-            if integrity_visible:
-                integrity_details.pack(fill="x", pady=(TOKENS.content_pad, 0))
-                integrity_button.configure(text="⌄  Integrity and provenance")
-            else:
-                integrity_details.pack_forget()
-                integrity_button.configure(text="›  Integrity and provenance")
-
-        integrity_button = self.ttk.Button(integrity_section, text="›  Integrity and provenance", command=toggle_integrity, style="Disclosure.TButton")
-        integrity_button.pack(fill="x", pady=(TOKENS.content_pad, 0))
-        plot_canvas = self.tk.Canvas(body, height=210, background=TOKENS.canvas, highlightthickness=0, relief="flat")
-        plot_canvas.grid(row=3, column=0, sticky="ew", pady=(0, TOKENS.content_pad))
-        cursor = ScenarioRunCursor(len(run.frames))
-        selected_text = self.ttk.Label(body, style="Muted.TLabel", wraplength=620)
-        selected_text.grid(row=4, column=0, sticky="w", pady=(0, TOKENS.content_pad))
-        controls = self.ttk.Frame(body, style="Surface.TFrame", padding=TOKENS.tight_padding)
-        controls.grid(row=5, column=0, sticky="ew", pady=(0, TOKENS.spacing_sm))
-        controls.columnconfigure(1, weight=1)
-        slider = self.tk.Scale(controls, from_=0, to=max(0, len(run.frames) - 1), orient="horizontal", showvalue=False, command=lambda value: update(int(float(value))), background=TOKENS.control_background, troughcolor=TOKENS.control_track, highlightthickness=0, activebackground=TOKENS.control_active)
-        slider.grid(row=0, column=1, sticky="ew", padx=TOKENS.timeline_gap)
-
-        def draw_geometry() -> None:
-            geometry = scenario_frame_geometry(run.frames[cursor.index])
-            width = max(1.0, float(plot_canvas.winfo_width()))
-            height = max(1.0, float(plot_canvas.winfo_height()))
-            top_width = max(width - 72.0, 1.0)
-            plot_canvas.delete("all")
-            plot_canvas.create_text(TOKENS.canvas_label_x, TOKENS.canvas_label_y, text="Synthetic geometry · selected frame · altitude", fill=TOKENS.muted, anchor="nw", font=(TOKENS.mono_font, TOKENS.body_size))
-            for label, center_x, center_y, radius in geometry.keep_out_spheres:
-                x, y = project_scenario_point((center_x, center_y), geometry.bounds, top_width, height)
-                radius_px = project_scenario_radius(radius, geometry.bounds, top_width, height)
-                plot_canvas.create_oval(x - radius_px, y - radius_px, x + radius_px, y + radius_px, outline=TOKENS.warning, dash=(5, 4), width=2)
-                plot_canvas.create_text(x + radius_px + 4, y, text=label, fill=TOKENS.warning, anchor="w", font=(TOKENS.ui_font, TOKENS.small_size))
-            target_x, target_y = project_scenario_point(geometry.target, geometry.bounds, top_width, height)
-            target_radius = TOKENS.target_radius
-            plot_canvas.create_oval(target_x - target_radius, target_y - target_radius, target_x + target_radius, target_y + target_radius, outline=TOKENS.accent, width=2)
-            plot_canvas.create_line(target_x - TOKENS.target_cross, target_y, target_x + TOKENS.target_cross, target_y, fill=TOKENS.accent)
-            plot_canvas.create_line(target_x, target_y - TOKENS.target_cross, target_x, target_y + TOKENS.target_cross, fill=TOKENS.accent)
-            for _, agent_x, agent_y, active in geometry.agents:
-                x, y = project_scenario_point((agent_x, agent_y), geometry.bounds, top_width, height)
-                color = TOKENS.accent if active else TOKENS.warning
-                plot_canvas.create_oval(x - 4, y - 4, x + 4, y + 4, fill=color, outline=color)
-
-            # A compact altitude rail makes the selected frame's z state
-            # inspectable without implying a 3D or live vehicle view.
-            rail_x = clamp_scenario_rail_x(width, min(width - 22.0, top_width + 34.0))
-            rail_top, rail_bottom = scenario_rail_endpoints(height)
-            plot_canvas.create_line(rail_x, rail_top, rail_x, rail_bottom, fill=TOKENS.muted)
-            plot_canvas.create_text(rail_x, 17.0, text="altitude m", fill=TOKENS.muted, anchor="center", font=(TOKENS.ui_font, TOKENS.small_size))
-            target_z = project_scenario_altitude(geometry.target_altitude, geometry.altitude_bounds, height, inset=30.0)
-            plot_canvas.create_line(rail_x - 5, target_z, rail_x + 5, target_z, fill=TOKENS.accent, width=2)
-            for altitude, (_, _, _, active) in zip(geometry.agent_altitudes, geometry.agents):
-                y = project_scenario_altitude(altitude, geometry.altitude_bounds, height, inset=30.0)
-                color = TOKENS.accent if active else TOKENS.warning
-                plot_canvas.create_oval(rail_x - 3, y - 3, rail_x + 3, y + 3, fill=color, outline=color)
-            for center_z, (_label, _cx, _cy, radius) in zip(geometry.keep_out_altitudes, geometry.keep_out_spheres):
-                center_y = project_scenario_altitude(center_z, geometry.altitude_bounds, height, inset=30.0)
-                radius_y = project_scenario_altitude_radius(radius, geometry.altitude_bounds, height, inset=30.0)
-                plot_canvas.create_line(rail_x + 9, center_y - radius_y, rail_x + 9, center_y + radius_y, fill=TOKENS.warning, width=3)
-
-        plot_canvas.bind("<Configure>", lambda _event: draw_geometry())
-
-        def update(index: int) -> None:
-            cursor.seek(index)
-            selected_text.configure(text=selected_frame_summary(run, cursor))
-            draw_geometry()
-            if int(float(slider.get())) != cursor.index:
-                slider.set(cursor.index)
-            previous.configure(state="normal" if cursor.index > 0 else "disabled")
-            reset.configure(state="normal" if cursor.index > 0 else "disabled")
-            next_button.configure(state="normal" if cursor.index < cursor.frame_count - 1 else "disabled")
-
-        previous = self.ttk.Button(controls, text="Previous", command=lambda: update(cursor.step(-1)))
-        previous.grid(row=0, column=0, padx=TOKENS.button_gap)
-        reset = self.ttk.Button(controls, text="Reset", command=lambda: update(cursor.reset()))
-        reset.grid(row=0, column=2, padx=TOKENS.button_gap)
-        next_button = self.ttk.Button(controls, text="Next", command=lambda: update(cursor.step()))
-        next_button.grid(row=0, column=3, padx=TOKENS.button_gap)
-        self.ttk.Label(controls, text="Frame", style="Muted.TLabel").grid(row=0, column=4, padx=(TOKENS.button_gap, 0))
-        self.ttk.Label(body, text="Frames", style="Muted.TLabel").grid(row=6, column=0, sticky="w")
-        frames_text = self.tk.Text(body, wrap="none", background=TOKENS.surface, foreground=TOKENS.text, relief="flat", borderwidth=0, padx=TOKENS.content_pad, pady=TOKENS.content_pad, font=(TOKENS.mono_font, TOKENS.body_size), takefocus=True)
-        frame_lines = [
-            f"frame {frame.step_index:>4}  t={frame.time_s:>8.3f} s  active={frame.active_count:>3}  agents={frame.agent_count:>3}"
-            for frame in run.frames
-        ]
-        frames_text.insert("1.0", "\n".join(frame_lines))
-        frames_text.configure(state="disabled")
-        frames_text.grid(row=7, column=0, sticky="nsew", pady=(TOKENS.content_pad, 0))
-        body.rowconfigure(7, weight=1)
-        update(0)
+        self._replace_window("_scenario_window")
+        self._scenario_window = scenario_window(self._viewer_context(), run, Path(path))
         return True
 
     def _show_evidence_report(self, path: Path) -> bool:
@@ -982,71 +1408,33 @@ class WindowsReplayApp:
         self._render_evidence_report(report, self._evidence_path)
         return True
 
-    @staticmethod
-    def _report_source(report: dict[str, Any]) -> dict[str, Any]:
-        source = report.get("source")
-        return source if isinstance(source, dict) else {}
-
     def _render_evidence_report(self, report: dict[str, Any], path: Path) -> None:
-        """Render provenance and JSON values, retaining nulls and nested fields."""
+        if __package__ in (None, ""):
+            from desktop.ui_viewers import evidence_window
+        else:
+            from .ui_viewers import evidence_window
+        self._replace_window("_evidence_window")
+        self._evidence_window = evidence_window(self._viewer_context(), report, path)
 
-        if self._evidence_window is not None:
-            try:
-                self._evidence_window.destroy()
-            except self.tk.TclError:
-                pass
-        window = self.tk.Toplevel(self.root)
-        self._evidence_window = window
-        window.title(f"Evidence report · {path.name}")
-        window.minsize(560, 460)
-        window.configure(background=TOKENS.background)
-        window.transient(self.root)
 
-        source = self._report_source(report)
-        kind = report.get("kind")
-        status = report.get("status")
-        digest = source.get("sha256")
-        schema = source.get("schema") or report.get("schema")
-        header = self.ttk.Frame(window, style="Surface.TFrame", padding=TOKENS.spacing_lg)
-        header.pack(fill="x")
-        self.ttk.Label(header, text="Evidence report", style="Title.TLabel").pack(anchor="w")
-        self.ttk.Label(header, text=path.name, style="Muted.TLabel").pack(anchor="w", pady=(TOKENS.content_pad, 0))
-        details = self.ttk.Frame(window, style="Surface.TFrame", padding=(TOKENS.spacing_lg, 0, TOKENS.spacing_lg, TOKENS.spacing_sm))
-        details.pack(fill="x")
-        self.ttk.Label(details, text=f"Kind  {kind or '—'}    Declared status  {status or '—'}", style="Value.TLabel").pack(anchor="w")
-        self.ttk.Label(details, text=f"Source SHA-256 (declared)  {digest or '—'}", style="Muted.TLabel").pack(anchor="w", pady=(TOKENS.content_pad, 0))
-        self.ttk.Label(details, text=f"Schema  {schema or '—'}", style="Muted.TLabel").pack(anchor="w")
-
-        body = self.ttk.Frame(window, style="Night.TFrame", padding=(TOKENS.spacing_lg, TOKENS.spacing_sm, TOKENS.spacing_lg, TOKENS.spacing_lg))
-        body.pack(fill="both", expand=True)
-        body.columnconfigure(0, weight=1)
-        body.rowconfigure(1, weight=1)
-        self.ttk.Label(body, text="Summary", style="Muted.TLabel").grid(row=0, column=0, sticky="w")
-        text = self.tk.Text(body, wrap="word", background=TOKENS.surface, foreground=TOKENS.text, relief="flat", borderwidth=0, padx=TOKENS.content_pad, pady=TOKENS.content_pad, font=(TOKENS.mono_font, TOKENS.body_size), takefocus=True)
-        scrollbar = self.ttk.Scrollbar(body, orient="vertical", command=text.yview)
-        text.configure(yscrollcommand=scrollbar.set)
-        text.grid(row=1, column=0, sticky="nsew", pady=(TOKENS.content_pad, TOKENS.spacing_sm))
-        scrollbar.grid(row=1, column=1, sticky="ns", pady=(TOKENS.content_pad, TOKENS.spacing_sm))
-        summary = report.get("summary")
-        text.insert("1.0", json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=False))
-        text.configure(state="disabled")
-
-        limitations = report.get("limitations")
-        limitation_text = limitations if isinstance(limitations, list) else []
-        self.ttk.Label(body, text="Limitations", style="Muted.TLabel").grid(row=2, column=0, sticky="w")
-        limits = self.ttk.Label(body, text="\n".join(f"• {item}" for item in limitation_text) or "None recorded", justify="left", anchor="w", style="Muted.TLabel", wraplength=510)
-        limits.grid(row=3, column=0, sticky="ew", pady=(TOKENS.content_pad, 0))
+def _initial_geometry(root: Any, scale: float) -> str:
+    width = min(int(1440 * scale), max(root.winfo_screenwidth() - 80, int(LAYOUT["windowMinWidth"] * scale)))
+    height = min(int(900 * scale), max(root.winfo_screenheight() - 120, int(LAYOUT["windowMinHeight"] * scale)))
+    return f"{width}x{height}"
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run", type=Path, default=DEFAULT_RUN, help="canonical S7 run.json")
-    parser.add_argument("--scenario-run", type=Path, help="open a generated zephyr-s7-scenario-run-1 JSON in the read-only inspector")
+    parser.add_argument("--scenario-run", type=Path, help="open a generated zephyr-s7-scenario-run-1 JSON in the read-only viewer")
     parser.add_argument("--headless", action="store_true", help="print the replay summary without opening Tk")
+    parser.add_argument("--appearance", choices=("system", "dark", "light"), help="use this appearance for this session only")
     parser.add_argument("--smoke-ready", type=Path, help="write a readiness marker after the GUI is constructed")
     parser.add_argument("--smoke-step", action="store_true", help="step one replay frame before writing the readiness marker")
     parser.add_argument("--smoke-health", type=Path, help="write a second marker after the GUI remains healthy in its event loop")
-    parser.add_argument("--smoke-evidence", type=Path, action="append", help="open and validate an evidence report during frozen GUI smoke; repeat for parity checks")
+    parser.add_argument("--smoke-evidence", type=Path, action="append",
+            help="open and validate an evidence report during frozen GUI smoke; repeat for parity checks")
+    parser.add_argument("--smoke-idle", type=Path, help="run the real event loop, then write whether the idle window stopped rendering")
     args = parser.parse_args(argv)
     if args.headless:
         if args.scenario_run:
@@ -1067,7 +1455,11 @@ def main(argv: list[str] | None = None) -> int:
                 pass
         model = ReplayModel.from_path(args.run)
         root = tk.Tk()
-        app = WindowsReplayApp(root, model)
+        root.withdraw()
+        app = WindowsReplayApp(root, model, appearance=args.appearance, persist_appearance=args.appearance is None)
+        root.geometry(_initial_geometry(root, app.scale))
+        root.deiconify()
+        app._apply_title_bar(root, app.theme.dark)
         if args.scenario_run and not app._show_scenario_run(args.scenario_run):
             root.destroy()
             return 2
@@ -1087,16 +1479,34 @@ def main(argv: list[str] | None = None) -> int:
             evidence_kind = ",".join(sorted(set(evidence_kinds))) or None
         else:
             evidence_kind = None
+        frame_text = f"frame={app.session.frame_index + 1}/{app.session.frame_count}"
         if args.smoke_ready:
             suffix = f" evidence_kind={evidence_kind}" if evidence_kind else ""
-            args.smoke_ready.write_text(f"ready frame={model.index + 1}/{model.frame_count}{suffix}\n", encoding="utf-8")
+            args.smoke_ready.write_text(f"ready {frame_text}{suffix}\n", encoding="utf-8")
+        if args.smoke_idle:
+            # Real event loop check: after start-up settles, an idle window must
+            # stop rendering. A selection feedback loop would keep counting.
+            def check_idle() -> None:
+                baseline = app.render_count + app.scene.draw_count
+
+                def finish() -> None:
+                    renders = app.render_count + app.scene.draw_count - baseline
+                    word = "idle" if renders == 0 else "busy"
+                    args.smoke_idle.write_text(f"{word} renders={renders} {frame_text}\n", encoding="utf-8")
+                    root.destroy()
+
+                root.after(1000, finish)
+
+            root.after(1500, check_idle)
+            root.mainloop()
+            return 0
         if args.smoke_ready or args.smoke_health:
             # Hosted Windows runners can terminate a Tk event loop immediately,
             # and calling ``update`` in that state can make the frozen process
-            # exit with code 1 without a useful stderr stream.  The smoke path
+            # exit with code 1 without a useful stderr stream. The smoke path
             # therefore uses the successful Tk construction above as its GUI
             # check, then stays alive with a bounded sleep so the validator can
-            # observe both markers.  A guarded idle flush exercises pending Tk
+            # observe both markers. A guarded idle flush exercises pending Tk
             # layout work without entering the event loop.
             try:
                 root.update_idletasks()
@@ -1109,7 +1519,7 @@ def main(argv: list[str] | None = None) -> int:
                 elapsed = time.monotonic() - smoke_started
                 if args.smoke_health and not health_written and elapsed >= 0.25:
                     suffix = f" evidence_kind={evidence_kind}" if evidence_kind else ""
-                    args.smoke_health.write_text(f"healthy frame={model.index + 1}/{model.frame_count}{suffix}\n", encoding="utf-8")
+                    args.smoke_health.write_text(f"healthy {frame_text}{suffix}\n", encoding="utf-8")
                     health_written = True
                 time.sleep(0.02)
             try:
