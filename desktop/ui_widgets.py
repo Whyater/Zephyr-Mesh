@@ -50,7 +50,7 @@ class KeyValueGrid:
     """Label/value rows on a grid: labels in textSecondary, values in text. Reuses widgets."""
 
     def __init__(self, parent: Any, *, bg: str = "Surface", label_width: int = 0, wrap: int = 0, scale: float = 1.0,
-                 stacked: bool = False, value_width: int = 0) -> None:
+                 stacked: bool = False, value_width: int = 0, label_wrap: int = 0) -> None:
         from tkinter import ttk
 
         self.ttk = ttk
@@ -59,10 +59,12 @@ class KeyValueGrid:
         self.frame.columnconfigure(1, weight=1)
         if label_width:
             self.frame.columnconfigure(0, minsize=label_width)
+            self.frame.columnconfigure(1, weight=1)
         self.wrap = wrap
         self.scale = scale
         self.stacked = stacked
         self.value_width = value_width
+        self.label_wrap = label_wrap
         self._rows: list[tuple[Any, Any]] = []
         self._shown: list[tuple[str, str, str]] = []
 
@@ -71,7 +73,8 @@ class KeyValueGrid:
         gap = int(round(SPACE["xs"] * self.scale))
         while len(self._rows) < len(rows):
             index = len(self._rows)
-            label = ttk.Label(self.frame, style=f"{self.bg}.Secondary.TLabel", anchor="nw", justify="left")
+            label = ttk.Label(self.frame, style=f"{self.bg}.Secondary.TLabel", anchor="nw", justify="left",
+                              wraplength=self.label_wrap or 0)
             value = ttk.Label(self.frame, style=f"{self.bg}.Body.TLabel", anchor="nw", justify="left", width=self.value_width or None)
             if self.stacked:
                 label.configure(style=f"{self.bg}.Caption.TLabel")
@@ -161,6 +164,14 @@ class ScrollFrame:
             self.scrollbar.pack_forget()
             self._shown = False
             self.canvas.yview_moveto(0)
+
+    def reveal(self, widget: Any) -> None:
+        """Scroll so ``widget`` starts near the top of the visible area."""
+        self.canvas.update_idletasks()
+        total = max(self.inner.winfo_height(), 1)
+        top = widget.winfo_rooty() - self.inner.winfo_rooty()
+        if total > self.canvas.winfo_height():
+            self.canvas.yview_moveto(max(0.0, (top - 8) / total))
 
     def contains(self, widget: Any) -> bool:
         """True when ``widget`` sits inside this scroll area (used by the app's wheel router)."""

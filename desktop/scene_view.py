@@ -32,6 +32,10 @@ from .ui_theme import Theme, mix
 
 FADED_LEVELS = {"caution", "alert"}
 FOCUS_DISTANCE_M = 4.0
+FIT_MARGIN_PX = 34
+TOP_LIMIT_RADII = 6.0
+ARM_M = 0.2
+ROTOR_M = 0.1
 FRAME_MS = 16
 
 
@@ -146,7 +150,18 @@ class SceneView:
             return ViewPose.of(self.camera)
         pose = top_pose(self.camera)
         ratio = self.camera.distance / max(self._home.distance, 1e-6)
-        return ViewPose(pose.yaw, pose.pitch, self._top_fit * ratio, pose.target)
+        return ViewPose(pose.yaw, pose.pitch, min(self._top_fit * ratio, self._top_limit(self.camera)), pose.target)
+
+    @staticmethod
+    def _top_limit(camera: OrbitCamera) -> float:
+        """Farthest top-view distance: 6x the swarm radius.
+
+        The orbit view's 3x limit works because an oblique view foreshortens
+        the swarm by sin(pitch). Looking straight down, the full swarm diameter
+        lands on the short screen axis, so a wide, short canvas needs up to
+        about twice the distance to show every drone. It stays bounded.
+        """
+        return max(camera.swarm_radius * TOP_LIMIT_RADII, camera.near_limit)
 
     def _animate_to(self, goal: ViewPose, duration_ms: float) -> None:
         now = time.monotonic() * 1000.0
@@ -169,7 +184,7 @@ class SceneView:
         if self._fitted_size == (width, height):
             return
         self._fitted_size = (width, height)
-        distance = fit_distance(self._home, self._points, width, height, 44 * self.scale)
+        distance = fit_distance(self._home, self._points, width, height, FIT_MARGIN_PX * self.scale)
         top = OrbitCamera(-90.0, 85.0, self._home.distance, self._home.target, self._home.near_limit, self._home.swarm_radius)
         self._top_fit = self._fit_top(top, width, height)
         self._home = OrbitCamera(self._home.yaw, self._home.pitch, distance, self._home.target,
@@ -180,8 +195,8 @@ class SceneView:
 
     def _fit_top(self, camera: OrbitCamera, width: int, height: int) -> float:
         """Distance that frames the swarm in the straight-down view."""
-        margin = 44 * self.scale
-        low, high = camera.near_limit, max(camera.swarm_radius * 6.0, camera.near_limit)
+        margin = FIT_MARGIN_PX * self.scale
+        low, high = camera.near_limit, self._top_limit(camera)
         for _ in range(30):
             middle = (low + high) / 2.0
             projector = Projector(ViewPose(-90.0, 90.0, middle, camera.target), width, height)
@@ -350,12 +365,13 @@ class SceneView:
         else:
             body, arms, disc = theme.scene.drone_body.hex, theme.scene.drone_arms.hex, theme.scene.rotor_disc.hex
         if record is not None and record.get("level") in FADED_LEVELS and not selected:
-            body, arms, disc = mix(body, floor, 0.45), mix(arms, floor, 0.45), mix(disc, floor, 0.6)
+            # Faded, but still legible on the dark floor: keep about 60 percent of the color.
+            body, arms, disc = mix(body, floor, 0.6), mix(arms, floor, 0.6), mix(disc, floor, 0.7)
         return (
             body,
             arms,
-            mix(disc, floor, 0.16),
-            mix(disc, floor, 0.55),
+            mix(disc, floor, 0.3),
+            mix(disc, floor, 0.62),
             mix(theme.p.textSecondary, floor, 0.22),
         )
 
@@ -394,6 +410,10 @@ class SceneView:
             canvas.coords(self._static["target_foot"], foot_center.x - foot_r, foot_center.y - foot_r * projector.ellipse_ratio,
                           foot_center.x + foot_r, foot_center.y + foot_r * projector.ellipse_ratio)
             entities.append((projector.project((tx, ty, tz)).depth, "target", None))
+            canvas.itemconfigure("target", state="normal")
+        else:
+            # No target in this frame: hide the previous frame's ring and stem rather than leave them stale.
+            canvas.itemconfigure("target", state="hidden")
 
         self._draw_keepout(projector, entities)
 
@@ -407,7 +427,7 @@ class SceneView:
             glyph = None
             if raw is not None:
                 position = (float(raw[0]), float(raw[1]), float(raw[2]))
-                glyph = xframe_glyph(projector, position, _heading(agent.get("velocity_mps")))
+                glyph = xframe_glyph(projector, position, _heading(agent.get("velocity_mps")), ARM_M, ROTOR_M)
             if glyph is None:
                 screen_points.append(None)
                 canvas.itemconfigure(items["tag"], state="hidden")

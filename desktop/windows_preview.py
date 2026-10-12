@@ -665,7 +665,9 @@ class WindowsReplayApp:
         self.neighbor_grid = self.widgets.KeyValueGrid(body, label_width=label_width, wrap=wrap, scale=self.scale, value_width=14)
         self.neighbor_grid.frame.grid(row=5, column=0, sticky="ew")
         ttk.Frame(body, style="Line.TFrame", height=1).grid(row=6, column=0, sticky="ew", pady=(self.px(SPACE["md"]), self.px(SPACE["xs"])))
-        self.details = self.widgets.Disclosure(body, "Details", self.images, pad=self.px(SPACE["xs"]))
+        self.details = self.widgets.Disclosure(
+            body, "Details", self.images, pad=self.px(SPACE["xs"]),
+            on_toggle=lambda opened: opened and self.root.after_idle(lambda: self.inspector_scroll.reveal(self.details.frame)))
         self.details.frame.grid(row=7, column=0, sticky="ew")
         self.details_grid = self.widgets.KeyValueGrid(self.details.body, wrap=width - 2 * pad - self.px(8), scale=self.scale, stacked=True)
         self.details_grid.frame.pack(fill="x", padx=(self.px(4), 0))
@@ -1031,7 +1033,7 @@ class WindowsReplayApp:
             ("Heading", fmt.format_value(heading, "deg") if heading is not None else "At rest"),
         ))
         self.neighbor_grid.set_rows((
-            (fmt.field_label("neighbor_count"), str(record.get("neighbor_count", 0))),
+            (fmt.field_label("neighbor_count"), fmt.format_scalar(record.get("neighbor_count"))),
             ("Nearest neighbor", fmt.format_value(record.get("nearest_neighbor_m"), "m")),
         ))
         agent = next((item for item in self._raw_frame().get("agents", []) if item.get("agent_id") == record["drone_id"]), {})
@@ -1047,10 +1049,9 @@ class WindowsReplayApp:
         ]
         if profile:
             rows += [
-                (fmt.field_label("motor"), f"{motor.get('part_id',
-                        fmt.NOT_RECORDED)}, {fmt.format_scalar(motor.get('max_power_w'))} W max"),
-                (fmt.field_label("propeller"), f"{propeller.get('part_id',
-                        fmt.NOT_RECORDED)}, {fmt.format_scalar((propeller.get('diameter_m') or 0) * 1000)} mm"),
+                (fmt.field_label("motor"), fmt.part_text(motor.get("part_id"), fmt.quantity(motor.get("max_power_w"), "W max"))),
+                (fmt.field_label("propeller"), fmt.part_text(propeller.get("part_id"),
+                                                             fmt.quantity(propeller.get("diameter_m"), "mm", 1000.0, 1))),
                 (fmt.field_label("motor_count"), fmt.format_scalar(profile.get("motor_count"))),
                 (fmt.field_label("total_mass_kg"), fmt.format_scalar(profile.get("total_mass_kg"))),
                 (fmt.field_label("estimated_max_thrust_n"), fmt.format_scalar(profile.get("estimated_max_thrust_n"))),
@@ -1087,11 +1088,9 @@ class WindowsReplayApp:
                 self._event_frames.pop(iid, None)
         for index in range(keep, len(events)):
             frame, event = events[index]
-            level = str(event.get("level", "info"))
-            word = fmt.status_word(level) if level in fmt.LEVELS else ""
+            level, word, time_text, text = fmt.event_row(event)
             iid = f"event{index}"
-            tree.insert("", "end", iid=iid, image=self.images.status(level, 10, 18),
-                        values=(word, f"{float(event['time_s']):.2f} s", event["text"]))
+            tree.insert("", "end", iid=iid, image=self.images.status(level, 11, 18), values=(word, time_text, text))
             self._event_frames[iid] = frame
         self._event_signature = signature
         children = tree.get_children("")

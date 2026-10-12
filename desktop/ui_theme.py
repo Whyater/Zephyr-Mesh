@@ -60,13 +60,13 @@ class Theme:
         return self.color(str(spec["color"]))
 
     def event_color(self, level: str) -> str:
-        return self.status_color(level) if level in LEVELS else self.p.textSecondary
+        return self.status_color(level)
 
 
 def status_shape(level: str) -> str:
-    """Shape name for a level from UI_TEXT; non-status event kinds use a neutral dot."""
-    spec = LEVELS.get(level)
-    return str(spec["shape"]) if spec else "dot"
+    """Shape name for a level from UI_TEXT; an unknown level falls back to the unavailable shape."""
+    spec = LEVELS.get(level, LEVELS["unavailable"])
+    return str(spec["shape"])
 
 
 class Fonts:
@@ -286,12 +286,12 @@ def configure_styles(style: Any, theme: Theme, fonts: Fonts, scale: float) -> No
     ]})]
     style.layout("Thin.Vertical.TScrollbar", scrollbar_layout)
     style.configure(
-        "Thin.Vertical.TScrollbar", troughcolor=p.surface, background=p.line, bordercolor=p.surface,
-        lightcolor=p.line, darkcolor=p.line, arrowsize=px(8), gripcount=0, relief="flat",
+        "Thin.Vertical.TScrollbar", troughcolor=mix(p.line, p.surface, 0.35), background=p.lineStrong, bordercolor=p.surface,
+        lightcolor=p.lineStrong, darkcolor=p.lineStrong, arrowsize=px(8), gripcount=0, relief="flat",
     )
     style.map(
         "Thin.Vertical.TScrollbar",
-        background=[("active", p.lineStrong)], lightcolor=[("active", p.lineStrong)], darkcolor=[("active", p.lineStrong)],
+        background=[("active", p.textSecondary)], lightcolor=[("active", p.textSecondary)], darkcolor=[("active", p.textSecondary)],
     )
 
 

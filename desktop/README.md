@@ -27,8 +27,12 @@ What the window shows, top to bottom:
   it, R to reset the framing, T for the straight-down Top view. Keep-out
   volumes are drawn only when the replay frame contains them; the canonical S7
   run has none. Drones do not show a heading marker when the data says they
-  are at rest. Projection and camera math live in `scene_projection.py` and are
-  unit tested.
+  are at rest. Each drone has four translucent rotor discs (Tk has no alpha, so
+  the translucency is a blend with the floor color); the rotors do not spin.
+  The orbit camera stays within 3x the swarm radius; the Top view may sit up to
+  6x away, because looking straight down puts the whole ring on the short screen
+  axis. Projection and camera math live in `scene_projection.py` and are unit
+  tested.
 - **Inspector (right, toggle with I).** The selected drone's status, four
   metric tiles (target age, estimate error, target link delay, target packet
   loss), position and motion, neighbors, and a collapsed **Details** section
@@ -48,6 +52,13 @@ every color, font size, and label comes from the generated
 setting when it can be read. On Windows the app uses Segoe UI Variable (or
 Segoe UI) and scales sizes with the display DPI; when Windows animations are
 turned off, the camera moves without easing.
+
+Status so far: this window has only been run on macOS with Tk 9.0. Nothing has
+run on real Windows yet, so the Segoe UI fonts, DPI scaling, the dark title bar,
+the Windows theme and animation settings, and the native menus are untested.
+On macOS Tk, one frame of the 0.25 s replay takes about 42 to 44 ms on average
+to render (worst seen about 89 ms), which is borderline for 1x playback (50 ms
+per frame); 0.25x, the default, has 200 ms per frame.
 
 Menus: **File** (Open Evidence Report..., Open Scenario Run..., Exit),
 **View** (3D View, Top View, Show Keep-out Volume, Show Inspector, Focus

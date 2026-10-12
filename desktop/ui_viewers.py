@@ -280,8 +280,8 @@ def scenario_window(ctx: ViewerContext, run: Any, path: Path) -> Any:
         (fmt.field_label("duration_s"), fmt.format_scalar(summary["dt_s"] * max(summary["frame_count"] - 1, 0))),
         (fmt.field_label("link_event_count"), summary["link_event_count"]),
         (fmt.field_label("profile_count"), summary["profile_count"]),
-        (fmt.field_label("target_link"), _link_text(target_link)),
-        (fmt.field_label("neighbor_link"), _link_text(parameters.get("neighbor_link", {}))),
+        (fmt.field_label("target_link"), fmt.link_text(target_link)),
+        (fmt.field_label("neighbor_link"), fmt.link_text(parameters.get("neighbor_link", {}))),
         (fmt.field_label("status"), _sentence(summary["status"])),
         (fmt.field_label("evidence_boundary"), _sentence(summary["evidence_boundary"])),
     ]
@@ -310,20 +310,68 @@ def scenario_window(ctx: ViewerContext, run: Any, path: Path) -> Any:
     return window
 
 
-def _link_text(link: Mapping[str, Any]) -> str:
-    if not link:
-        return fmt.NOT_RECORDED
-    delay = float(link.get("delay_s", 0.0)) * 1000.0
-    jitter = float(link.get("delay_jitter_s", 0.0)) * 1000.0
-    model = str(link.get("loss_model", "none"))
-    parts = [f"{delay:.0f} ms delay" + (f" (jitter {jitter:.0f} ms)" if jitter else "")]
-    if model == "independent":
-        parts.append(f"{float(link.get('loss_probability', 0.0)) * 100:.0f}% independent loss")
-    elif model == "burst":
-        parts.append("burst loss")
-    else:
-        parts.append("no loss")
-    return ", ".join(parts)
+EVIDENCE_LABEL_WIDTH = 210
+
+
+def _nice_step(span: float) -> float:
+    """A round tick step (1, 2, or 5 times a power of ten) for about four ticks."""
+    import math
+
+    raw = max(span, 1e-9) / 4.0
+    power = 10 ** math.floor(math.log10(raw))
+    return next(step * power for step in (1, 2, 5, 10) if step * power >= raw)
+
+
+def timing_plot(ctx: ViewerContext, parent: Any, timings: Sequence[tuple[str, Mapping[str, Any]]]) -> Any:
+    """Small range plot on one shared millisecond axis: bar min to max, filled dot median, ring p95."""
+    import tkinter as tk
+
+    row_height = ctx.px(30)
+    label_width = ctx.px(EVIDENCE_LABEL_WIDTH)
+    height = row_height * len(timings) + ctx.px(46)
+    canvas = tk.Canvas(parent, height=height, highlightthickness=0, borderwidth=0)
+
+    def draw(_event: Any = None) -> None:
+        theme = ctx.theme()
+        p = theme.p
+        canvas.configure(background=p.surface)
+        canvas.delete("all")
+        width = max(float(canvas.winfo_width()), label_width + 200.0)
+        left, right = label_width, width - ctx.px(110)
+        top_value = max(float(stat.get("max", 0) or 0) for _label, stat in timings) * 1000.0
+        step = _nice_step(top_value)
+        limit = step * max(1, -(-top_value // step))
+        def x_of(ms: float) -> float:
+            return left + (right - left) * (ms / limit if limit else 0.0)
+        caption, body = ctx.fonts["caption"], ctx.fonts["body"]
+        axis_y = row_height * len(timings) + ctx.px(10)
+        canvas.create_line(left, axis_y, right, axis_y, fill=p.line)
+        tick = 0.0
+        while tick <= limit + 1e-9:
+            x = x_of(tick)
+            canvas.create_line(x, ctx.px(4), x, axis_y, fill=mix(p.line, p.surface, 0.55))
+            canvas.create_text(x, axis_y + ctx.px(4), text=f"{tick:.0f} ms", anchor="n", fill=p.textSecondary, font=caption)
+            tick += step
+        dot = ctx.px(4)
+        for index, (label, stat) in enumerate(timings):
+            y = row_height * index + row_height / 2 + ctx.px(2)
+            canvas.create_text(0, y, text=label, anchor="w", fill=p.textSecondary, font=body)
+            low = float(stat.get("min", stat.get("p50", 0)) or 0) * 1000.0
+            high = float(stat.get("max", stat.get("p95", 0)) or 0) * 1000.0
+            canvas.create_line(x_of(low), y, x_of(high), y, fill=p.lineStrong, width=ctx.px(5), capstyle="round")
+            if stat.get("p95") is not None:
+                x = x_of(float(stat["p95"]) * 1000.0)
+                canvas.create_oval(x - dot - 1, y - dot - 1, x + dot + 1, y + dot + 1, outline=p.text, width=max(1, ctx.px(1.5)),
+                                   fill=p.surface)
+            if stat.get("p50") is not None:
+                x = x_of(float(stat["p50"]) * 1000.0)
+                canvas.create_oval(x - dot, y - dot, x + dot, y + dot, outline=p.text, fill=p.text)
+                canvas.create_text(x_of(high) + ctx.px(12), y, anchor="w", fill=p.text, font=caption,
+                                   text=f"median {fmt.stat_value(stat, 'p50')}")
+
+    canvas.bind("<Configure>", draw)
+    ctx.add_theme_hook(lambda _theme: draw())
+    return canvas
 
 
 def evidence_window(ctx: ViewerContext, report: Mapping[str, Any], path: Path) -> Any:
@@ -331,46 +379,64 @@ def evidence_window(ctx: ViewerContext, report: Mapping[str, Any], path: Path) -
 
     kind = str(report.get("kind", ""))
     status = str(report.get("status", ""))
-    window = _window(ctx, f"Evidence report: {path.name}", (700, 760), (560, 480))
-    _header(ctx, window, f"{fmt.field_label(kind)} evidence report", path.name).pack(fill="x")
+    summary = report.get("summary") if isinstance(report.get("summary"), Mapping) else {}
+    view = fmt.report_view(summary)
+    window = _window(ctx, f"{fmt.field_label(kind)} evidence report", (720, 780), (580, 480))
+    _header(ctx, window, f"{fmt.field_label(kind)} evidence report", fmt.humanize_filename(path.name)).pack(fill="x")
     ttk.Frame(window, style="Line.TFrame", height=1).pack(fill="x")
     _scroll, body = _scroll_body(ctx, window)
-    wrap_full = ctx.px(700 - 2 * SPACE["xl"] - 24)
-    wrap = ctx.px(700 - 2 * SPACE["xl"] - 210 - 24)
+    label_width = ctx.px(EVIDENCE_LABEL_WIDTH)
+    wrap_full = ctx.px(720 - 2 * SPACE["xl"] - 24)
+    wrap = ctx.px(720 - 2 * SPACE["xl"] - EVIDENCE_LABEL_WIDTH - 36)
+
     verdict = ttk.Frame(body, style="Surface.TFrame")
     verdict.pack(fill="x", pady=(ctx.px(SPACE["sm"]), 0))
     ttk.Label(verdict, text="Declared status", style="Surface.Caption.TLabel").pack(anchor="w")
     ttk.Label(verdict, text=fmt.field_label(status) if status else fmt.NOT_RECORDED, style="Surface.MetricSmall.TLabel").pack(anchor="w")
+    timings = view["timings"]
+    if timings:
+        ttk.Label(body, text="Timing", style="Surface.Strong.TLabel").pack(anchor="w", pady=(ctx.px(SPACE["md"]), ctx.px(SPACE["xs"])))
+        timing_plot(ctx, body, timings).pack(fill="x")
+        legend = "Bar: minimum to maximum.  Filled dot: median.  Ring: 95th percentile."
+        ttk.Label(body, text=legend, style="Surface.Caption.TLabel").pack(anchor="w", pady=(ctx.px(SPACE["xxs"]), 0))
     limitations = [item for item in report.get("limitations", []) if isinstance(item, str)]
-    ttk.Label(body, text=fmt.field_label("limitations"), style="Surface.Strong.TLabel").pack(anchor="w",
-            pady=(ctx.px(SPACE["md"]), ctx.px(SPACE["xs"])))
+    ttk.Label(body, text=fmt.field_label("limitations"), style="Surface.Strong.TLabel").pack(
+        anchor="w", pady=(ctx.px(SPACE["md"]), ctx.px(SPACE["xs"])))
     for item in limitations or ["None recorded"]:
         row = ttk.Frame(body, style="Surface.TFrame")
         row.pack(fill="x", pady=(0, ctx.px(SPACE["xs"])))
-        ttk.Label(row, text="•", style="Surface.Body.TLabel").pack(side="left", anchor="n", padx=(0, ctx.px(SPACE["sm"])))
-        ttk.Label(row, text=item, style="Surface.Body.TLabel", wraplength=wrap_full - ctx.px(16),
-                justify="left").pack(side="left", anchor="w")
-    summary = report.get("summary")
-    sections = fmt.summary_sections(summary) if isinstance(summary, Mapping) else []
+        ttk.Label(row, text="\u2022", style="Surface.Body.TLabel").pack(side="left", anchor="n", padx=(0, ctx.px(SPACE["sm"])))
+        ttk.Label(row, text=item, style="Surface.Body.TLabel", wraplength=wrap_full - ctx.px(16), justify="left").pack(
+            side="left", anchor="w")
+
     ttk.Label(body, text=fmt.field_label("summary"), style="Surface.Headline.TLabel").pack(anchor="w", pady=(ctx.px(SPACE["lg"]), 0))
-    for title, rows in sections:
-        _section(ctx, body, title, rows, wrap, 190)
+    for title, rows in view["sections"]:
+        if title:
+            ttk.Label(body, text=title, style="Surface.Strong.TLabel").pack(anchor="w", pady=(ctx.px(SPACE["md"]), ctx.px(SPACE["xs"])))
+        grid = KeyValueGrid(body, label_width=label_width, wrap=wrap, scale=ctx.scale, label_wrap=label_width - ctx.px(12))
+        grid.frame.pack(fill="x", pady=(ctx.px(SPACE["xs"]) if not title else 0, 0))
+        grid.set_rows(rows)
+
     source = report.get("source") if isinstance(report.get("source"), Mapping) else {}
     ttk.Frame(body, style="Line.TFrame", height=1).pack(fill="x", pady=(ctx.px(SPACE["lg"]), ctx.px(SPACE["xs"])))
     disclosure = Disclosure(body, "Details", ctx.images, pad=ctx.px(SPACE["xs"]))
     disclosure.frame.pack(fill="x")
-    details = KeyValueGrid(disclosure.body, label_width=ctx.px(190), wrap=wrap, scale=ctx.scale)
+    details = KeyValueGrid(disclosure.body, label_width=label_width - ctx.px(4), wrap=wrap, scale=ctx.scale,
+                           label_wrap=label_width - ctx.px(16))
     details.frame.pack(fill="x", padx=(ctx.px(4), 0))
-    details.set_rows([
-        ("Source file", source.get("name")),
+    rows = [
+        ("Report file", path.name, "mono"),
+        ("Source file", source.get("name"), "mono"),
         ("Source SHA-256 (declared)", source.get("sha256"), "mono"),
         (fmt.field_label("source_schema"), source.get("schema"), "mono"),
         ("Report schema", report.get("schema"), "mono"),
-    ])
-    ttk.Label(disclosure.body, text="Raw summary", style="Surface.Caption.TLabel").pack(anchor="w",
-            pady=(ctx.px(SPACE["sm"]), ctx.px(SPACE["xxs"])))
+    ]
+    rows += [(label, value, "mono") for label, value in view["details"]]
+    details.set_rows(rows)
+    ttk.Label(disclosure.body, text="Raw summary", style="Surface.Caption.TLabel").pack(
+        anchor="w", pady=(ctx.px(SPACE["sm"]), ctx.px(SPACE["xxs"])))
     _raw_text(ctx, disclosure.body, json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=False), height=14).pack(fill="x")
     return window
 
 
-__all__ = ["ViewerContext", "about_window", "evidence_window", "scenario_window", "unavailable_items"]
+__all__ = ["ViewerContext", "about_window", "evidence_window", "scenario_window", "timing_plot", "unavailable_items"]

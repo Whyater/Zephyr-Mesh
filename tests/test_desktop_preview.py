@@ -791,6 +791,32 @@ def test_status_glyph_png_is_valid_rgba_with_antialiased_edges():
     assert any(0.0 < value < 1.0 for row in grid for value in row), "edges are antialiased"
     hollow = coverage(STATUS_SHAPES["hollow circle"], 12)
     assert hollow[6][6] == 0.0, "the waiting glyph is hollow, so it differs by shape and not only color"
+    info = coverage(STATUS_SHAPES["info"], 24)
+    assert info[12][1] > 0.5 and info[12][22] > 0.5, "info has a circle outline"
+    assert info[17][12] > 0.5 and info[7][12] > 0.5, "with an i stem and dot inside"
+    assert info[12][6] == 0.0 and info[11][17] == 0.0, "and open space between"
+
+
+def test_every_golden_event_renders_a_word_and_known_glyph():
+    """Runtime check over the canonical presentation: no bare shapes in the event list."""
+    from desktop import ui_format as fmt
+    from desktop.design_tokens import UI_TEXT
+    from desktop.ui_icons import STATUS_SHAPES, status_png
+    from desktop.ui_theme import Theme, status_shape
+
+    golden = json.loads((ROOT / "design" / "golden" / "s7_presentation.json").read_text(encoding="utf-8"))
+    events = [event for frame in golden["frames"] for event in frame["events"]]
+    assert {event["level"] for event in events} >= {"info", "ok", "caution"}
+    for theme in (Theme("dark"), Theme("light")):
+        for event in events:
+            level, word, time_text, text = fmt.event_row(event)
+            spec = UI_TEXT["statusLevels"][level]
+            assert level == event["level"] and word == spec["word"] and word.strip()
+            assert status_shape(level) == spec["shape"] and spec["shape"] in STATUS_SHAPES
+            assert theme.event_color(level) == getattr(theme.p, spec["color"])
+            assert status_png(status_shape(level), theme.event_color(level), 11, 18)[:4] == b"\x89PNG"
+            assert time_text.endswith(" s") and text
+    assert fmt.event_row({"level": "mystery", "time_s": 0.1, "text": "x"})[:2] == ("unavailable", "Not recorded")
 
 
 # ---- scene projection (renderer math) ----------------------------------------
@@ -887,3 +913,58 @@ def test_windows_build_lists_every_ui_module():
                    "ui_settings", "ui_theme", "ui_viewers", "ui_widgets"):
         assert f"--hidden-import desktop.{module}" in script
         assert f"desktop.{module}" in WINDOWS_UI_MODULES
+
+
+def test_scene_hides_stale_target_and_bounds_top_view():
+    tk = pytest.importorskip("tkinter")
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("no desktop display in this test environment")
+    root.withdraw()
+    from desktop.windows_preview import WindowsReplayApp
+    app = WindowsReplayApp(root, ReplayModel.from_path(RUN), appearance="dark", persist_appearance=False)
+    root.update()
+    scene = app.scene
+    frame = dict(app._raw_frame())
+    scene._draw_now()
+    assert all(scene.canvas.itemcget(item, "state") != "hidden" for item in scene.canvas.find_withtag("target"))
+    frame.pop("target_position_m")
+    scene.set_frame(frame, app.session.per_drone, app.session.selected_drone_id)
+    scene._draw_now()
+    assert all(scene.canvas.itemcget(item, "state") == "hidden" for item in scene.canvas.find_withtag("target"))
+    scene.set_view_mode("top")
+    assert scene.camera.distance <= scene.camera.swarm_radius * 3 + 1e-9, "orbit stays within 3x the swarm radius"
+    assert scene._goal_pose().distance <= scene.camera.swarm_radius * 6 + 1e-9, "top view is bounded too"
+    root.destroy()
+
+
+def test_report_view_puts_ids_in_details_and_units_on_values():
+    from desktop import ui_format as fmt
+    from desktop.evidence import load_evidence_report
+
+    report = load_evidence_report(ROOT / "desktop" / "evidence_report_example.json")
+    view = fmt.report_view(report["summary"])
+    rows = dict(row for _title, section in view["sections"] for row in section)
+    assert rows["Delay"] == "Median 12 ms, p95 12 ms, max 12 ms (1 sample)", "seconds show as ms, no Unit row"
+    assert not any(label in ("Schema", "Unit") or "ID" in label for label in rows)
+    assert "Schema" in dict(view["details"]) and any("Trace ID" in label for label, _value in view["details"])
+    assert [label for label, _stat in view["timings"]] == ["Delay"]
+    assert all("_" not in label for label in rows)
+    swarm = fmt.report_view(load_evidence_report(ROOT / "desktop" / "s7_report_example.json")["summary"])
+    swarm_rows = dict(row for _title, section in swarm["sections"] for row in section)
+    assert swarm_rows["Target age"].startswith("Median 100 ms")
+    assert fmt.stat_line({"available": False, "count": 0, "unit": "s", "p50": None}) == "Not recorded"
+    assert fmt.humanize_filename("evidence_report_example.json") == "Evidence report example"
+
+
+def test_missing_link_and_part_values_never_read_zero():
+    from desktop import ui_format as fmt
+
+    assert fmt.link_text({}) == "Not recorded"
+    assert fmt.link_text({"loss_model": "none"}) == "delay not recorded, no loss"
+    assert fmt.link_text({"delay_s": 0.0, "delay_jitter_s": 0.0, "loss_model": "independent", "loss_probability": 0.1}) \
+        == "0 ms delay, 10% independent loss", "a recorded zero is still shown"
+    assert fmt.quantity(None, "mm", 1000.0, 1) == "Not recorded"
+    assert fmt.part_text("prop-1", fmt.quantity(None, "mm")) == "prop-1"
+    assert fmt.part_text(None, fmt.quantity(0.08, "mm", 1000.0, 1)) == "Not recorded, 80.0 mm"
