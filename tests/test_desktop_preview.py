@@ -182,6 +182,35 @@ def test_replay_cursor_clamps_and_reset_is_deterministic():
     assert model.summary()["frame"] == f"1/{RAW_FRAMES}"
 
 
+def test_programmatic_fleet_selection_does_not_reenter_render():
+    import desktop.windows_preview as preview
+
+    class FakeFleet:
+        def __init__(self):
+            self.selected = ()
+            self.on_select = None
+
+        def selection_set(self, value):
+            self.selected = (value,)
+            if self.on_select:
+                self.on_select(None)
+
+        def selection(self):
+            return self.selected
+
+    app = preview.WindowsReplayApp.__new__(preview.WindowsReplayApp)
+    app.fleet = FakeFleet()
+    app._selection_update = False
+    render_calls = []
+    app._render = lambda: render_calls.append(True)
+    app._on_select = lambda event: preview.WindowsReplayApp._on_select(app, event)
+    app.fleet.on_select = app._on_select
+    app.selected_id = "D01"
+    app._select_programmatically("D01")
+    assert app.fleet.selection() == ("D01",)
+    assert render_calls == []
+
+
 def test_scenario_run_cursor_clamps_replaces_and_resets():
     cursor = ScenarioRunCursor(3)
     assert cursor.step(-10) == 0

@@ -246,6 +246,7 @@ class WindowsReplayApp:
         self.telemetry = None
         self.status = None
         self._disclosures: dict[str, tuple[Any, Any]] = {}
+        self._selection_update = False
         self._evidence_report: dict[str, Any] | None = None
         self._evidence_path: Path | None = None
         self._evidence_window: Any | None = None
@@ -584,7 +585,15 @@ class WindowsReplayApp:
             self.fleet_summary.configure(text=f"Fleet · {len(visible)} of {len(self.model.frame.agents)} vehicles{suffix}")
         visible_ids = {agent.agent_id for agent in visible}
         if self.selected_id in visible_ids and self.fleet.selection() != (self.selected_id,):
-            self.fleet.selection_set(self.selected_id)
+            self._select_programmatically(self.selected_id)
+
+    def _select_programmatically(self, agent_id: str) -> None:
+        """Select a row without allowing Tk's virtual event to re-enter render."""
+        self._selection_update = True
+        try:
+            self.fleet.selection_set(agent_id)
+        finally:
+            self._selection_update = False
 
     def _on_filter(self) -> None:
         self._render_fleet()
@@ -634,6 +643,8 @@ class WindowsReplayApp:
         self.telemetry.configure(text=text)
 
     def _on_select(self, _event: Any) -> None:
+        if self._selection_update:
+            return
         selection = self.fleet.selection()
         if selection:
             self.selected_id = selection[0]
