@@ -49,7 +49,7 @@
     },
     "info": {
       "word": "Info",
-      "shape": "diamond",
+      "shape": "info",
       "color": "info"
     }
   },
@@ -60,7 +60,7 @@
       "square": "square.fill",
       "hollow circle": "circle",
       "dash": "minus",
-      "diamond": "diamond.fill"
+      "info": "info.circle"
     },
     "windows": {
       "circle": "●",
@@ -68,7 +68,7 @@
       "square": "■",
       "hollow circle": "○",
       "dash": "–",
-      "diamond": "◆"
+      "info": "ⓘ"
     }
   },
   "displayThresholds": {

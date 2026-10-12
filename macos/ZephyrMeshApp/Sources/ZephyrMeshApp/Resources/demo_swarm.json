@@ -4604,7 +4604,7 @@
               "drone-039",
               "drone-044"
             ],
-            "level": "alert",
+            "level": "info",
             "text": "Target packet lost for 3 drones",
             "time_s": 0.05
           }
@@ -7347,7 +7347,7 @@
               "drone-033",
               "drone-038"
             ],
-            "level": "alert",
+            "level": "info",
             "text": "Target packet lost for 9 drones",
             "time_s": 0.1
           },
@@ -10141,7 +10141,7 @@
               "drone-040",
               "drone-042"
             ],
-            "level": "alert",
+            "level": "info",
             "text": "Target packet lost for 6 drones",
             "time_s": 0.15
           },
@@ -12946,7 +12946,7 @@
               "drone-034",
               "drone-046"
             ],
-            "level": "alert",
+            "level": "info",
             "text": "Target packet lost for 4 drones",
             "time_s": 0.2
           },
@@ -15762,7 +15762,7 @@
               "drone-027",
               "drone-043"
             ],
-            "level": "alert",
+            "level": "info",
             "text": "Target packet lost for 5 drones",
             "time_s": 0.25
           },

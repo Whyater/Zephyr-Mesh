@@ -123,7 +123,7 @@ final class PresentationFormattingTests: XCTestCase {
     func testStatusStylesComeFromGeneratedText() {
         XCTAssertEqual(StatusStyle(level: "caution").symbol, "triangle.fill")
         XCTAssertEqual(StatusStyle(level: "caution").word, "Late")
-        XCTAssertEqual(StatusStyle(level: "info").symbol, "diamond.fill")
+        XCTAssertEqual(StatusStyle(level: "info").symbol, "info.circle")
         XCTAssertTrue(StatusStyle(level: "alert").fadesInScene)
         XCTAssertFalse(StatusStyle(level: "waiting").fadesInScene)
     }
