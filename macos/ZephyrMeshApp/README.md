@@ -1,15 +1,50 @@
 # Zephyr Mesh native cockpit
 
-This directory contains the native macOS operator cockpit for Zephyr Mesh. It is a SwiftUI + SceneKit executable that renders a local, offline fleet fixture with a 3D scene, compact fleet table, replay controls, provenance text, selected-vehicle telemetry, cooperative-neighbor diagnostics, and a short mission event stream.
+This directory contains the macOS replay viewer for Zephyr Mesh, a SwiftUI and SceneKit app.
+It replays the bundled fixture built from the canonical Python S7 run (`runs/s7-swarm/run.json`)
+by `tools/build_native_fixture.py`. It is a recorded simulation, not a live connection: there
+is no radio, camera, motor, or command path. Every number on screen comes from the
+presentation records that `desktop/presentation.py` embeds in the fixture; the Swift code only
+formats them. Values the run does not contain read "Not recorded".
 
-The app is a **local synthetic cockpit preview**. It loads the compact projection of the canonical Python S7 event log from `runs/s7-swarm/run.json`; the Python simulator remains the source of truth for dynamics and evidence. Each frame now carries the S7 step index, target position, active count, neighbor count, separation margin, constraint flags, target estimate, fused target, packet age, and profile ID when those fields are present in the canonical run. The Swift fixture is intentionally labeled unavailable for live radio, camera input, manual authority, and flight performance.
+## What the window shows
 
-The operator surface keeps the evidence boundary visible while a replay is running:
+- Title bar: the app name, the run named in plain words (for example "50-drone ring, seed 17"),
+  one "Simulation replay" badge, and toolbar buttons for play or pause, step forward, 3D or Top
+  view, About this replay, and the inspector.
+- Status strip at the top of the detail area: tracking state (shape, color and word), estimate
+  error p95, target link delay, target packet loss, and target age. It drops to two rows when
+  the window is narrow.
+- Team list (sidebar): a one-line team summary, a filter field, and one row per group of drones
+  whose displayed values are identical, with groups that need attention first. Groups expand to
+  their drones. The filter never hides a drone that is not OK. Right-click a row to focus the
+  camera on it, show it in the inspector, or copy its ID.
+- 3D view: a procedural quadcopter at true scale from the hardware profile (0.10 m arms, 78 mm
+  propellers), the target ring with a stem to the floor, the target keep-out sphere the simulator
+  enforces (0.75 m radius from the scenario constraints), and a floor grid with 1 m squares and
+  heavier lines every 5 m. Drag to orbit, scroll or pinch to zoom; both ease out and stay within
+  limits (pitch 10 to 85 degrees, distance up to 3 times the swarm radius, no roll or panning).
+  Click a drone to select it, double-click or press F to focus it, press R to reset, and T for a
+  straight-down top view. Hovering a drone shows its name and status. Late or lost drones fade.
+- Inspector (right): the selected drone's status, its four key numbers, position and motion,
+  neighbors, and a collapsed Details section with raw vectors, constraint flags, and hardware
+  profile parts.
+- Timeline and events (bottom): restart, step back, play or pause, step forward, a scrubber with
+  marks at frames that have events, the replay time, and a speed choice (0.1x, 0.25x default,
+  1x). The event list grows as the replay advances; click an event to jump to it.
 
-- The header keeps one plain-language synthetic-replay status and puts secondary actions in a menu.
-- The left fleet rail supports filtering and shows per-vehicle battery, link delay, state, role, and loss in a compact table-like list.
-- The right inspector exposes selected-vehicle flight state, link quality, and cooperative context first; replay notes and provenance are concise disclosure sections.
-- The SceneKit view is an inspectable visual projection with a target marker, keep-out volume, grid, selected-vehicle ring, constrained orbit controls, focus-selected action, and frame HUD. It does not add a control or hardware path.
+Menus follow the usual places: Check for Updates in the app menu; Open Evidence Report and Open
+Scenario Run in File; view and camera commands in View; a Playback menu; and About This Replay
+in Help. Settings has an Appearance choice (System, Dark, Light; Dark by default). Keyboard
+shortcuts come from `design/ui_text.json`. Single-key shortcuts are disabled while the team
+filter is being edited, so typing there never moves the replay.
+
+Evidence reports and scenario runs open in their own windows after the same strict validation
+as before (schema, size, key set, and hash checks). Each shows its verdict or plot first, then a
+plain summary, then a collapsed Details section with hashes and provenance.
+
+Colors, type sizes, spacing and layout sizes come only from the generated
+`Sources/ZephyrMeshApp/DesignSystem.swift`; `tests/test_macos_ui_hygiene.py` checks this.
 
 ## Build and run
 
@@ -38,9 +73,9 @@ For a development loop that rebuilds and opens a fresh bundle when SwiftUI or
 fixture files change, run `python3 macos/watch_app.py` from the repository
 root. Stop the watcher with `Ctrl-C`; the release bundle remains ignored.
 
-Alternatively, open `Package.swift` in Xcode and run the `ZephyrMeshApp` scheme. `swift test` runs the release-selector tests (exact asset name, no cross-platform matches), the version-ordering and download-URL cases shared with the Python updater, the SHA-256 `verify` checks, and the generated install script in temporary folders (good update, bad signature, hostile paths, symlink, two roots, and a failed final move that must restore the old app). The package has no third-party or network dependency. SceneKit is an Apple platform framework selected for the no-SVG, offline desktop surface documented in the private Decision Log.
+Alternatively, open `Package.swift` in Xcode and run the `ZephyrMeshApp` scheme. `swift test` runs the strict fixture decoder tests (unknown or missing keys fail with a named message), the presentation formatting, team grouping and filter rules, playback and shortcut gating, the orbit camera limits and smoothing, a rendered hit test for hover and click, the release-selector tests (exact asset name, no cross-platform matches), the version-ordering and download-URL cases shared with the Python updater, the SHA-256 `verify` checks, and the generated install script in temporary folders (good update, bad signature, hostile paths, symlink, two roots, and a failed final move that must restore the old app). The package has no third-party or network dependency. SceneKit is an Apple platform framework selected for the no-SVG, offline desktop surface documented in the private Decision Log.
 
-The **Update** button and app-menu command query the latest GitHub release.
+The **Check for Updates...** command in the app menu queries the latest GitHub release.
 When a newer architecture-matched macOS ZIP exists (exactly
 `ZephyrMesh-macos-<arch>-v<version>.zip`, downloaded only from
 `https://github.com/Whyater/Zephyr-Mesh/releases/download/`), the app verifies
@@ -61,4 +96,4 @@ published release by a person.
 
 ## Evidence boundary
 
-The app currently proves that the native surface builds and can render a deterministic projection with operator-facing diagnostics. It does not prove frame time on a target Mac, physics fidelity, collision safety, radio behavior, or flight performance. A parity test checks the projection's schema, frames, identities, positions, profile IDs, authority labels, and source contract against the checked-in Python artifact. The UI intentionally presents replay-derived diagnostics as modeled or synthetic rather than measured. Usability, accessibility, contrast, and reduced-motion behavior still need target-device measurement.
+The app currently proves that the native surface builds and can render a deterministic projection with operator-facing diagnostics. It does not prove frame time on a target Mac, physics fidelity, collision safety, radio behavior, or flight performance. A parity test checks the projection's schema, frames, identities, positions, profile IDs, authority labels, and source contract against the checked-in Python artifact. The UI presents replay-derived values as a simulation replay, never as measured. Usability, accessibility, contrast, and reduced-motion behavior still need checks by people on target devices.

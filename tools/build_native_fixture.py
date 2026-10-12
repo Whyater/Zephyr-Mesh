@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -33,7 +34,58 @@ def agent_projection(agent: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def build(run: Mapping[str, Any]) -> dict[str, Any]:
+# Fields a viewer might expect that the S7 run schema does not carry. The native
+# About view lists them so a reader never mistakes a blank for a measured zero.
+UNAVAILABLE = (
+    "Live radio link",
+    "Camera or vision input",
+    "Battery state",
+    "Flight controller commands",
+    "Measured flight performance",
+)
+
+
+def profile_projection(profile: Mapping[str, Any]) -> dict[str, Any]:
+    """Keep the hardware profile parts shown under the inspector Details."""
+    return {
+        "profile_id": profile["profile_id"],
+        "status": profile.get("status"),
+        "motor_count": profile["motor_count"],
+        "arm_length_m": profile["arm_length_m"],
+        "total_mass_kg": profile["total_mass_kg"],
+        "motor_part_id": profile["motor"]["part_id"],
+        "propeller_part_id": profile["propeller"]["part_id"],
+        "propeller_diameter_m": profile["propeller"]["diameter_m"],
+    }
+
+
+def keep_out_volumes(step: Mapping[str, Any], manifest: Mapping[str, Any] | None) -> list[dict[str, Any]]:
+    """Return the keep-out spheres the simulator enforced for one step.
+
+    ``sim.swarm`` appends a target keep-out sphere (center at the target,
+    radius from the scenario constraints) to the configured spheres on every
+    step; the run snapshot only records the configured ones, so the target
+    sphere is restored here from the manifest that produced the run.
+    """
+    volumes = [
+        {"center_m": list(zone["center_m"]), "radius_m": zone["radius_m"], "label": zone["label"]}
+        for zone in step.get("keep_out_spheres", [])
+    ]
+    radius = (manifest or {}).get("constraints", {}).get("target_keepout_radius_m")
+    target = step.get("target_position_m")
+    if radius is not None and target is not None:
+        volumes.append({"center_m": list(target), "radius_m": radius, "label": "target_keepout"})
+    return volumes
+
+
+def run_name(run: Mapping[str, Any], agent_count: int) -> str:
+    """Name the run in plain words, for example ``50-drone ring, seed 17``."""
+    parts = str(run["scenario_id"]).split("-")
+    formation = "ring" if "ring" in parts else "swarm"
+    return f"{agent_count}-drone {formation}, seed {run['seed']}"
+
+
+def build(run: Mapping[str, Any], manifest: Mapping[str, Any] | None = None, run_sha256: str = "") -> dict[str, Any]:
     """Build the native projection and embed the shared presentation."""
     presentation = present_run(run)
     steps = run["steps"]
@@ -41,6 +93,14 @@ def build(run: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "schema": "zephyr-s7-native-fixture-3",
         "run_id": run["scenario_id"],
+        "run_name": run_name(run, len(first["agents"])),
+        "source": {
+            "run_schema": run["schema"],
+            "run_sha256": run_sha256,
+            "presentation_schema": presentation["schema"],
+        },
+        "unavailable": list(UNAVAILABLE),
+        "profiles": [profile_projection(profile) for profile in run.get("agent_profiles", [])],
         "seed": run["seed"],
         "command_authority": run["command_authority"],
         "failsafe": run["failsafe"],
@@ -56,6 +116,7 @@ def build(run: Mapping[str, Any]) -> dict[str, Any]:
                 "time": step["time_s"],
                 "target_position": step.get("target_position_m"),
                 "active_count": step.get("active_count"),
+                "keep_out_volumes": keep_out_volumes(step, manifest),
                 "drones": [agent_projection(agent) for agent in step["agents"]],
                 "presentation": presentation["frames"][index],
             }
@@ -70,8 +131,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args(argv)
-    run = json.loads(args.input.read_text(encoding="utf-8"))
-    fixture = build(run)
+    raw = args.input.read_bytes()
+    run = json.loads(raw.decode("utf-8"))
+    manifest_path = args.input.parent / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else None
+    fixture = build(run, manifest, hashlib.sha256(raw).hexdigest())
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(fixture, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return 0

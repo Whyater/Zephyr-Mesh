@@ -2219,6 +2219,17 @@
           ]
         }
       ],
+      "keep_out_volumes": [
+        {
+          "center_m": [
+            0.0,
+            0.0,
+            1.5
+          ],
+          "label": "target_keepout",
+          "radius_m": 0.75
+        }
+      ],
       "presentation": {
         "estimate_error_p95_m": null,
         "events": [
@@ -4571,6 +4582,17 @@
             0.0,
             0.0
           ]
+        }
+      ],
+      "keep_out_volumes": [
+        {
+          "center_m": [
+            0.0,
+            0.0,
+            1.5
+          ],
+          "label": "target_keepout",
+          "radius_m": 0.75
         }
       ],
       "presentation": {
@@ -7297,6 +7319,17 @@
             0.0,
             0.0
           ]
+        }
+      ],
+      "keep_out_volumes": [
+        {
+          "center_m": [
+            0.0,
+            0.0,
+            1.5
+          ],
+          "label": "target_keepout",
+          "radius_m": 0.75
         }
       ],
       "presentation": {
@@ -10083,6 +10116,17 @@
             0.0,
             0.0
           ]
+        }
+      ],
+      "keep_out_volumes": [
+        {
+          "center_m": [
+            0.0,
+            0.0,
+            1.5
+          ],
+          "label": "target_keepout",
+          "radius_m": 0.75
         }
       ],
       "presentation": {
@@ -12879,6 +12923,17 @@
             0.0,
             0.0
           ]
+        }
+      ],
+      "keep_out_volumes": [
+        {
+          "center_m": [
+            0.0,
+            0.0,
+            1.5
+          ],
+          "label": "target_keepout",
+          "radius_m": 0.75
         }
       ],
       "presentation": {
@@ -15685,6 +15740,17 @@
           ]
         }
       ],
+      "keep_out_volumes": [
+        {
+          "center_m": [
+            0.0,
+            0.0,
+            1.5
+          ],
+          "label": "target_keepout",
+          "radius_m": 0.75
+        }
+      ],
       "presentation": {
         "estimate_error_p95_m": 0.0,
         "events": [
@@ -17003,8 +17069,523 @@
     }
   ],
   "generation_command": "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm",
+  "profiles": [
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-001-motor",
+      "profile_id": "drone-001-synthetic-profile",
+      "propeller_diameter_m": 0.0782,
+      "propeller_part_id": "drone-001-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-002-motor",
+      "profile_id": "drone-002-synthetic-profile",
+      "propeller_diameter_m": 0.0772,
+      "propeller_part_id": "drone-002-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-003-motor",
+      "profile_id": "drone-003-synthetic-profile",
+      "propeller_diameter_m": 0.0762,
+      "propeller_part_id": "drone-003-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-004-motor",
+      "profile_id": "drone-004-synthetic-profile",
+      "propeller_diameter_m": 0.08020000000000001,
+      "propeller_part_id": "drone-004-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-005-motor",
+      "profile_id": "drone-005-synthetic-profile",
+      "propeller_diameter_m": 0.0792,
+      "propeller_part_id": "drone-005-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-006-motor",
+      "profile_id": "drone-006-synthetic-profile",
+      "propeller_diameter_m": 0.0782,
+      "propeller_part_id": "drone-006-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-007-motor",
+      "profile_id": "drone-007-synthetic-profile",
+      "propeller_diameter_m": 0.0772,
+      "propeller_part_id": "drone-007-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-008-motor",
+      "profile_id": "drone-008-synthetic-profile",
+      "propeller_diameter_m": 0.0762,
+      "propeller_part_id": "drone-008-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-009-motor",
+      "profile_id": "drone-009-synthetic-profile",
+      "propeller_diameter_m": 0.08020000000000001,
+      "propeller_part_id": "drone-009-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-010-motor",
+      "profile_id": "drone-010-synthetic-profile",
+      "propeller_diameter_m": 0.0772,
+      "propeller_part_id": "drone-010-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-011-motor",
+      "profile_id": "drone-011-synthetic-profile",
+      "propeller_diameter_m": 0.0762,
+      "propeller_part_id": "drone-011-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-012-motor",
+      "profile_id": "drone-012-synthetic-profile",
+      "propeller_diameter_m": 0.08020000000000001,
+      "propeller_part_id": "drone-012-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-013-motor",
+      "profile_id": "drone-013-synthetic-profile",
+      "propeller_diameter_m": 0.0792,
+      "propeller_part_id": "drone-013-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-014-motor",
+      "profile_id": "drone-014-synthetic-profile",
+      "propeller_diameter_m": 0.0782,
+      "propeller_part_id": "drone-014-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-015-motor",
+      "profile_id": "drone-015-synthetic-profile",
+      "propeller_diameter_m": 0.0772,
+      "propeller_part_id": "drone-015-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-016-motor",
+      "profile_id": "drone-016-synthetic-profile",
+      "propeller_diameter_m": 0.0762,
+      "propeller_part_id": "drone-016-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-017-motor",
+      "profile_id": "drone-017-synthetic-profile",
+      "propeller_diameter_m": 0.08020000000000001,
+      "propeller_part_id": "drone-017-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-018-motor",
+      "profile_id": "drone-018-synthetic-profile",
+      "propeller_diameter_m": 0.0792,
+      "propeller_part_id": "drone-018-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-019-motor",
+      "profile_id": "drone-019-synthetic-profile",
+      "propeller_diameter_m": 0.0782,
+      "propeller_part_id": "drone-019-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-020-motor",
+      "profile_id": "drone-020-synthetic-profile",
+      "propeller_diameter_m": 0.08020000000000001,
+      "propeller_part_id": "drone-020-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-021-motor",
+      "profile_id": "drone-021-synthetic-profile",
+      "propeller_diameter_m": 0.0792,
+      "propeller_part_id": "drone-021-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-022-motor",
+      "profile_id": "drone-022-synthetic-profile",
+      "propeller_diameter_m": 0.0782,
+      "propeller_part_id": "drone-022-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-023-motor",
+      "profile_id": "drone-023-synthetic-profile",
+      "propeller_diameter_m": 0.0772,
+      "propeller_part_id": "drone-023-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-024-motor",
+      "profile_id": "drone-024-synthetic-profile",
+      "propeller_diameter_m": 0.0762,
+      "propeller_part_id": "drone-024-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-025-motor",
+      "profile_id": "drone-025-synthetic-profile",
+      "propeller_diameter_m": 0.08020000000000001,
+      "propeller_part_id": "drone-025-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-026-motor",
+      "profile_id": "drone-026-synthetic-profile",
+      "propeller_diameter_m": 0.0792,
+      "propeller_part_id": "drone-026-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-027-motor",
+      "profile_id": "drone-027-synthetic-profile",
+      "propeller_diameter_m": 0.0782,
+      "propeller_part_id": "drone-027-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-028-motor",
+      "profile_id": "drone-028-synthetic-profile",
+      "propeller_diameter_m": 0.0772,
+      "propeller_part_id": "drone-028-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-029-motor",
+      "profile_id": "drone-029-synthetic-profile",
+      "propeller_diameter_m": 0.0762,
+      "propeller_part_id": "drone-029-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-030-motor",
+      "profile_id": "drone-030-synthetic-profile",
+      "propeller_diameter_m": 0.0782,
+      "propeller_part_id": "drone-030-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-031-motor",
+      "profile_id": "drone-031-synthetic-profile",
+      "propeller_diameter_m": 0.0772,
+      "propeller_part_id": "drone-031-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-032-motor",
+      "profile_id": "drone-032-synthetic-profile",
+      "propeller_diameter_m": 0.0762,
+      "propeller_part_id": "drone-032-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-033-motor",
+      "profile_id": "drone-033-synthetic-profile",
+      "propeller_diameter_m": 0.08020000000000001,
+      "propeller_part_id": "drone-033-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-034-motor",
+      "profile_id": "drone-034-synthetic-profile",
+      "propeller_diameter_m": 0.0792,
+      "propeller_part_id": "drone-034-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-035-motor",
+      "profile_id": "drone-035-synthetic-profile",
+      "propeller_diameter_m": 0.0782,
+      "propeller_part_id": "drone-035-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-036-motor",
+      "profile_id": "drone-036-synthetic-profile",
+      "propeller_diameter_m": 0.0772,
+      "propeller_part_id": "drone-036-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-037-motor",
+      "profile_id": "drone-037-synthetic-profile",
+      "propeller_diameter_m": 0.0762,
+      "propeller_part_id": "drone-037-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-038-motor",
+      "profile_id": "drone-038-synthetic-profile",
+      "propeller_diameter_m": 0.08020000000000001,
+      "propeller_part_id": "drone-038-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-039-motor",
+      "profile_id": "drone-039-synthetic-profile",
+      "propeller_diameter_m": 0.0792,
+      "propeller_part_id": "drone-039-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-040-motor",
+      "profile_id": "drone-040-synthetic-profile",
+      "propeller_diameter_m": 0.0762,
+      "propeller_part_id": "drone-040-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-041-motor",
+      "profile_id": "drone-041-synthetic-profile",
+      "propeller_diameter_m": 0.08020000000000001,
+      "propeller_part_id": "drone-041-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-042-motor",
+      "profile_id": "drone-042-synthetic-profile",
+      "propeller_diameter_m": 0.0792,
+      "propeller_part_id": "drone-042-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-043-motor",
+      "profile_id": "drone-043-synthetic-profile",
+      "propeller_diameter_m": 0.0782,
+      "propeller_part_id": "drone-043-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-044-motor",
+      "profile_id": "drone-044-synthetic-profile",
+      "propeller_diameter_m": 0.0772,
+      "propeller_part_id": "drone-044-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-045-motor",
+      "profile_id": "drone-045-synthetic-profile",
+      "propeller_diameter_m": 0.0762,
+      "propeller_part_id": "drone-045-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-046-motor",
+      "profile_id": "drone-046-synthetic-profile",
+      "propeller_diameter_m": 0.08020000000000001,
+      "propeller_part_id": "drone-046-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-047-motor",
+      "profile_id": "drone-047-synthetic-profile",
+      "propeller_diameter_m": 0.0792,
+      "propeller_part_id": "drone-047-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-048-motor",
+      "profile_id": "drone-048-synthetic-profile",
+      "propeller_diameter_m": 0.0782,
+      "propeller_part_id": "drone-048-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-049-motor",
+      "profile_id": "drone-049-synthetic-profile",
+      "propeller_diameter_m": 0.0772,
+      "propeller_part_id": "drone-049-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    },
+    {
+      "arm_length_m": 0.1,
+      "motor_count": 4,
+      "motor_part_id": "drone-050-motor",
+      "profile_id": "drone-050-synthetic-profile",
+      "propeller_diameter_m": 0.0792,
+      "propeller_part_id": "drone-050-prop",
+      "status": "synthetic",
+      "total_mass_kg": 0.078
+    }
+  ],
   "run_id": "s7-ring-50-seed-17",
+  "run_name": "50-drone ring, seed 17",
   "schema": "zephyr-s7-native-fixture-3",
   "seed": 17,
-  "status": "synthetic deterministic replay; not flight performance"
+  "source": {
+    "presentation_schema": "zephyr-s7-presentation-1",
+    "run_schema": "zephyr-s7-swarm-run-1",
+    "run_sha256": "73039284032d824c943972bd79c2f96f61e28582b79d8335d4d9d3e7d032585b"
+  },
+  "status": "synthetic deterministic replay; not flight performance",
+  "unavailable": [
+    "Live radio link",
+    "Camera or vision input",
+    "Battery state",
+    "Flight controller commands",
+    "Measured flight performance"
+  ]
 }

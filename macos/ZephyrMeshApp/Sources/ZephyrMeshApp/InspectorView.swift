@@ -1,0 +1,142 @@
+import SwiftUI
+
+/// Selected-drone inspector: header, the four numbers that matter, motion, neighbors, Details.
+struct InspectorView: View {
+    private static let estimateErrorLabel = Format.label("estimate_error_m")
+    @ObservedObject var model: CockpitModel
+    @Environment(\.palette) private var palette
+    @AppStorage("zephyr.mesh.inspector.details") private var showDetails = false
+
+    var body: some View {
+        Group {
+            if let drone = model.selectedDrone {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: Space.lg) {
+                        header(drone)
+                        tiles(drone)
+                        motion(drone)
+                        neighbors(drone)
+                        details(drone)
+                    }
+                    .padding(Space.lg)
+                }
+            } else {
+                emptyState
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(palette.surface)
+    }
+
+    private func header(_ drone: PresentationDrone) -> some View {
+        VStack(alignment: .leading, spacing: Space.xs) {
+            Text(drone.headingName)
+                .font(TypeScale.title)
+                .foregroundStyle(palette.text)
+            StatusLabel(style: StatusStyle(drone: drone))
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func tiles(_ drone: PresentationDrone) -> some View {
+        Grid(horizontalSpacing: Space.sm, verticalSpacing: Space.sm) {
+            GridRow {
+                MetricTile(label: UIText.targetAge, value: Format.seconds(drone.targetAgeS))
+                MetricTile(label: Self.estimateErrorLabel, value: Format.meters(drone.estimateErrorM))
+            }
+            GridRow {
+                MetricTile(label: UIText.targetLinkDelay, value: Format.milliseconds(drone.targetLinkDelayMs))
+                MetricTile(label: UIText.targetPacketLoss, value: Format.percent(drone.targetPacketLossPct))
+            }
+        }
+    }
+
+    private func motion(_ drone: PresentationDrone) -> some View {
+        VStack(alignment: .leading, spacing: Space.xxs) {
+            SectionHeader(title: "Position and motion")
+            ValueRow(label: "Altitude", value: Format.meters(drone.altitudeM))
+            ValueRow(label: Format.label("speed_mps"), value: Format.metersPerSecond(drone.speedMps))
+            ValueRow(label: Format.label("heading_deg"), value: Format.degrees(drone.headingDeg))
+        }
+    }
+
+    private func neighbors(_ drone: PresentationDrone) -> some View {
+        VStack(alignment: .leading, spacing: Space.xxs) {
+            SectionHeader(title: "Neighbors")
+            ValueRow(label: Format.label("neighbor_count"), value: "\(drone.neighborCount)")
+            ValueRow(label: Format.label("nearest_neighbor_m"), value: Format.meters(drone.nearestNeighborM))
+            ValueRow(label: Format.label("neighbor_link_delay_ms"), value: Format.milliseconds(drone.neighborLinkDelayMs))
+            ValueRow(label: Format.label("neighbor_packet_loss_pct"), value: Format.percent(drone.neighborPacketLossPct))
+        }
+    }
+
+    private func details(_ drone: PresentationDrone) -> some View {
+        DisclosureGroup(isExpanded: $showDetails) {
+            VStack(alignment: .leading, spacing: Space.sm) {
+                if let telemetry = model.selectedTelemetry {
+                    StackedValue(label: Format.label("position_m"), value: Format.vector(telemetry.position),
+                                 monospaced: true)
+                    StackedValue(label: Format.label("velocity_mps"), value: Format.vector(telemetry.velocity),
+                                 monospaced: true)
+                    StackedValue(label: Format.label("fused_target_m"), value: Format.vector(telemetry.fusedTarget),
+                                 monospaced: true)
+                }
+                StackedValue(label: Format.label("constraint_flags"), value: flags(drone.constraintFlags))
+                StackedValue(label: Format.label("profile_id"), value: drone.profileID, monospaced: true)
+                if let profile = model.fixture.profile(id: drone.profileID) {
+                    ProfileParts(profile: profile)
+                }
+                StackedValue(label: Format.label("agent_id"), value: drone.droneID, monospaced: true)
+            }
+            .padding(.top, Space.sm)
+        } label: {
+            Text("Details")
+                .font(TypeScale.bodyStrong)
+                .foregroundStyle(palette.text)
+        }
+    }
+
+    private func flags(_ flags: [String]) -> String {
+        flags.isEmpty ? Format.label("none") : flags.map(Format.label).joined(separator: ", ")
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: Space.sm) {
+            Image(systemName: "scope")
+                .font(TypeScale.title)
+                .foregroundStyle(palette.textSecondary)
+            Text("No drone selected")
+                .font(TypeScale.bodyStrong)
+            Text("Click a drone in the team list or the scene.")
+                .font(TypeScale.body)
+                .foregroundStyle(palette.textSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(Space.xl)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// Hardware profile parts. These are scenario inputs, and the status word says so.
+private struct ProfileParts: View {
+    private static let title = Format.label("hardware_profile")
+    let profile: HardwareProfile
+    @Environment(\.palette) private var palette
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Space.xxs) {
+            Text(Self.title)
+                .font(TypeScale.caption)
+                .foregroundStyle(palette.textSecondary)
+            if let status = profile.status {
+                ValueRow(label: Format.label("status"), value: status.capitalized)
+            }
+            ValueRow(label: Format.label("motor_part_id"), value: profile.motorPartID, monospaced: true)
+            ValueRow(label: Format.label("propeller_part_id"), value: profile.propellerPartID, monospaced: true)
+            ValueRow(label: Format.label("motor_count"), value: "\(profile.motorCount)")
+            ValueRow(label: Format.label("arm_length_m"), value: Format.number(profile.armLengthM, decimals: 3))
+            ValueRow(label: Format.label("propeller_diameter_m"), value: Format.number(profile.propellerDiameterM, decimals: 4))
+            ValueRow(label: Format.label("total_mass_kg"), value: Format.number(profile.totalMassKg, decimals: 3))
+        }
+    }
+}

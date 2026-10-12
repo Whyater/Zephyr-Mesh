@@ -147,6 +147,11 @@ enum LayoutMetrics {
     static let inspectorWidth: CGFloat = 300
     static let rowHeight: CGFloat = 28
     static let sceneMinWidth: CGFloat = 520
+    static let windowDefaultWidth: CGFloat = 1440
+    static let windowDefaultHeight: CGFloat = 900
+    static let eventListHeight: CGFloat = 128
+    static let inspectorMaxWidth: CGFloat = 360
+    static let sidebarIdealWidth: CGFloat = 300
 }
 
 enum UIText {
@@ -171,6 +176,7 @@ enum UIText {
         "alert": StatusLevel(word: "Lost", alternateWord: "Inactive", shape: "square", color: "alert"),
         "waiting": StatusLevel(word: "Waiting", alternateWord: nil, shape: "hollow circle", color: "textSecondary"),
         "unavailable": StatusLevel(word: "Not recorded", alternateWord: nil, shape: "dash", color: "textSecondary"),
+        "info": StatusLevel(word: "Info", alternateWord: nil, shape: "diamond", color: "info"),
     ]
     static let statusShapesMacOS: [String: String] = [
         "circle": "circle.fill",
@@ -178,6 +184,7 @@ enum UIText {
         "square": "square.fill",
         "hollow circle": "circle",
         "dash": "minus",
+        "diamond": "diamond.fill",
     ]
     static let statusShapesWindows: [String: String] = [
         "circle": "●",
@@ -185,6 +192,7 @@ enum UIText {
         "square": "■",
         "hollow circle": "○",
         "dash": "–",
+        "diamond": "◆",
     ]
     static let fieldLabels: [String: String] = [
         "abstract_event_delay_s": "Abstract event delay (s)",
@@ -197,6 +205,7 @@ enum UIText {
         "agents": "Agents",
         "aggregation": "Aggregation",
         "altitude_m": "Altitude (m)",
+        "app_version": "App version",
         "arm_length_m": "Arm length (m)",
         "attempted": "Attempted",
         "available": "Available",
@@ -242,6 +251,7 @@ enum UIText {
         "duplicates": "Duplicates",
         "duration_s": "Duration (s)",
         "espnow": "ESP-NOW",
+        "estimate_error_m": "Estimate error",
         "estimated_max_thrust_n": "Estimated maximum thrust (N)",
         "estimated_thrust_at_rpm_limit_n": "Estimated thrust at RPM limit (N)",
         "estimation": "Estimation",
@@ -259,8 +269,10 @@ enum UIText {
         "fused_target_present": "Fused target present",
         "generation_command": "Generation command",
         "generator": "Generator",
+        "ground": "Ground",
         "hardware": "Hardware",
         "hardware_profile": "Hardware profile",
+        "heading_deg": "Heading",
         "held_last_max_error_m": "Held last max error (m)",
         "held_last_p95_error_m": "Held last p95 error (m)",
         "identity_fields": "Identity fields",
@@ -269,6 +281,7 @@ enum UIText {
         "interpretation": "Interpretation",
         "investigation": "Investigation",
         "keep_out_spheres": "Keep-out volumes",
+        "keep_out_volumes": "Keep-out volumes",
         "kind": "Kind",
         "label": "Label",
         "limitations": "Limitations",
@@ -298,11 +311,15 @@ enum UIText {
         "model": "Model",
         "motor": "Motor",
         "motor_count": "Motor count",
+        "motor_part_id": "Motor part",
         "name": "Name",
+        "nearest_neighbor_m": "Nearest neighbor",
         "neighbor_count": "Neighbors in range",
         "neighbor_link": "Neighbor link",
         "neighbor_link_delay": "Neighbor link delay",
+        "neighbor_link_delay_ms": "Neighbor link delay",
         "neighbor_packet_loss": "Neighbor packet loss",
+        "neighbor_packet_loss_pct": "Neighbor packet loss",
         "noise_std_m": "Noise std (m)",
         "nominal_voltage_v": "Nominal voltage (V)",
         "none": "None",
@@ -328,10 +345,13 @@ enum UIText {
         "pitch_m": "Pitch (m)",
         "position_m": "Position (m)",
         "power_coefficient": "Power coefficient",
+        "presentation_schema": "Presentation schema",
         "profile_count": "Profile count",
         "profile_id": "Hardware profile",
         "profiles": "Profiles",
         "propeller": "Propeller",
+        "propeller_diameter_m": "Propeller diameter (m)",
+        "propeller_part_id": "Propeller part",
         "provenance": "Provenance",
         "python": "Python version",
         "quantile_method": "Quantile method",
@@ -348,6 +368,9 @@ enum UIText {
         "rssi_population": "RSSI population",
         "run": "Run",
         "run_id": "Run ID",
+        "run_name": "Run",
+        "run_schema": "Run schema",
+        "run_sha256": "Run file SHA-256",
         "sample_count": "Sample count",
         "scenario_hash": "Scenario hash",
         "scenario_id": "Scenario ID",
@@ -355,6 +378,7 @@ enum UIText {
         "seed": "Random seed",
         "send_time": "Send time",
         "sender": "Sender",
+        "separation": "Separation",
         "seq": "Sequence",
         "serialized": "Serialized",
         "sha256": "SHA-256",
@@ -362,6 +386,7 @@ enum UIText {
         "source": "Source",
         "source_schema": "Source schema",
         "source_status": "Source status",
+        "speed_mps": "Speed",
         "state": "State",
         "status": "Status",
         "step_index": "Frame",
@@ -375,9 +400,12 @@ enum UIText {
         "target_age_s": "Target age (s)",
         "target_estimate_m": "Target estimate (m)",
         "target_estimate_present": "Target estimate present",
+        "target_keepout": "Target keep-out",
         "target_link": "Target link",
         "target_link_delay": "Target link delay",
+        "target_link_delay_ms": "Target link delay",
         "target_packet_loss": "Target packet loss",
+        "target_packet_loss_pct": "Target packet loss",
         "target_position_m": "Target position (m)",
         "target_source_time_s": "Target source time (s)",
         "target_speed_mps": "Target speed (m/s)",

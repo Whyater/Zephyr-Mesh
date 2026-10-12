@@ -171,7 +171,12 @@
     "sidebarWidth": 260,
     "inspectorWidth": 300,
     "rowHeight": 28,
-    "sceneMinWidth": 520
+    "sceneMinWidth": 520,
+    "windowDefaultWidth": 1440,
+    "windowDefaultHeight": 900,
+    "eventListHeight": 128,
+    "inspectorMaxWidth": 360,
+    "sidebarIdealWidth": 300
   },
   "contrast": {
     "minimumTextRatio": 4.5,

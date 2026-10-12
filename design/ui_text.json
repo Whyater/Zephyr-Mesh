@@ -46,6 +46,11 @@
       "word": "Not recorded",
       "shape": "dash",
       "color": "textSecondary"
+    },
+    "info": {
+      "word": "Info",
+      "shape": "diamond",
+      "color": "info"
     }
   },
   "statusShapes": {
@@ -54,14 +59,16 @@
       "triangle": "triangle.fill",
       "square": "square.fill",
       "hollow circle": "circle",
-      "dash": "minus"
+      "dash": "minus",
+      "diamond": "diamond.fill"
     },
     "windows": {
       "circle": "●",
       "triangle": "▲",
       "square": "■",
       "hollow circle": "○",
-      "dash": "–"
+      "dash": "–",
+      "diamond": "◆"
     }
   },
   "displayThresholds": {
@@ -287,7 +294,27 @@
     "velocity_mps": "Velocity (m/s)",
     "version": "Version",
     "vision": "Vision",
-    "weighting": "Weighting"
+    "weighting": "Weighting",
+    "separation": "Separation",
+    "target_keepout": "Target keep-out",
+    "ground": "Ground",
+    "heading_deg": "Heading",
+    "speed_mps": "Speed",
+    "nearest_neighbor_m": "Nearest neighbor",
+    "estimate_error_m": "Estimate error",
+    "motor_part_id": "Motor part",
+    "propeller_part_id": "Propeller part",
+    "propeller_diameter_m": "Propeller diameter (m)",
+    "run_name": "Run",
+    "run_sha256": "Run file SHA-256",
+    "run_schema": "Run schema",
+    "presentation_schema": "Presentation schema",
+    "app_version": "App version",
+    "keep_out_volumes": "Keep-out volumes",
+    "neighbor_link_delay_ms": "Neighbor link delay",
+    "neighbor_packet_loss_pct": "Neighbor packet loss",
+    "target_link_delay_ms": "Target link delay",
+    "target_packet_loss_pct": "Target packet loss"
   },
   "droneNaming": {
     "compact": "D{number:02d}",
