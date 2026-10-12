@@ -153,6 +153,7 @@ enum LayoutMetrics {
     static let inspectorMaxWidth: CGFloat = 360
     static let sidebarIdealWidth: CGFloat = 300
     static let eventPaneHeight: CGFloat = 192
+    static let sidebarWidthWindows: CGFloat = 340
 }
 
 enum UIText {

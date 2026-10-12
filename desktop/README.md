@@ -1,23 +1,76 @@
 # Cross-platform desktop preview
 
-`windows_preview.py` is the Windows-first portability surface. It opens a native
-Tkinter window and projects the canonical S7 event log with depth-aware
-quadcopter glyphs, a target marker, and an optional keep-out volume. The
-operator surface mirrors the macOS cockpit's replay controls, fleet filtering,
-vehicle selection, telemetry disclosures, parts profile, link diagnostics,
-provenance, mission-event history, focus/reset view controls, and GitHub release
-check. The mission-event history uses the same replay-only vocabulary as the
-macOS inspector, so authority and failsafe boundaries stay visible on both
-platforms. Because canonical S7 link events are not attached to individual
-frame rows, Windows derives the link-envelope line from the replay-wide
-observed loss envelope and labels it as modeled replay evidence. It shares
-`desktop/replay.py` with tests and uses no SVG or network data for the replay.
+`windows_preview.py` is the Windows replay window. It is a native Tkinter app
+that replays the canonical S7 event log (`runs/s7-swarm/run.json`). It reads a
+file; it is not connected to a radio, camera, motor, or drone, and the one
+badge in the title row ("Simulation replay") says so.
 
-Keyboard access is built in (single-key shortcuts are ignored while you type in the fleet filter): Space plays or pauses (the Play button reads Pause while playing), Right Arrow advances one
-frame, `F` focuses the selected vehicle, `R` resets the view, `O` toggles the
-keep-out volume, and Control-L moves focus to the fleet filter. The Canvas
-projection is intentionally lightweight and deterministic, while the macOS
-surface provides the native SceneKit 3D renderer.
+What the window shows, top to bottom:
+
+- **Title row.** The app name, the run in plain words (for example "50-drone
+  ring, seed 17"), the "Simulation replay" badge, and an **About this replay**
+  button.
+- **Status strip.** Tracking (a shape, a color, and a word, such as a filled
+  circle and "Tracking held"), estimate error p95, target link delay, target
+  packet loss, and target age. A value the replay does not contain reads
+  "Not recorded"; it is never shown as 0.
+- **Team list (left).** Drones with identical displayed values share one row
+  with a count ("47 drones"). Rows that are not OK sort first and open by
+  default; open a row to see its drones (D01, D02...). The filter narrows the
+  OK rows only, so a late or lost drone is never hidden. A summary line sits
+  above the list ("50 drones: 47 OK, 3 late").
+- **Scene (center).** A Canvas drawing of the swarm: X-frame drone glyphs in
+  one neutral color, the selected drone in the accent color, and drones with a
+  late or lost target drawn faded. The target is a ring with a thin stem to the
+  floor, over a 1 m grid with a stronger line every 5 m. Drag to orbit, scroll
+  to zoom (both eased and clamped), double-click a drone or press F to focus
+  it, R to reset the framing, T for the straight-down Top view. Keep-out
+  volumes are drawn only when the replay frame contains them; the canonical S7
+  run has none. Drones do not show a heading marker when the data says they
+  are at rest. Each drone has four translucent rotor discs (Tk has no alpha, so
+  the translucency is a blend with the floor color); the rotors do not spin.
+  The orbit camera stays within 3x the swarm radius; the Top view may sit up to
+  6x away, because looking straight down puts the whole ring on the short screen
+  axis. Projection and camera math live in `scene_projection.py` and are unit
+  tested.
+- **Inspector (right, toggle with I).** The selected drone's status, four
+  metric tiles (target age, estimate error, target link delay, target packet
+  loss), position and motion, neighbors, and a collapsed **Details** section
+  with the raw vectors, the hardware profile parts, and constraint flags.
+- **Timeline and events (bottom).** Play/Pause (one button), step back, step
+  forward, restart, a slider with tick marks at event frames, the time label,
+  and playback speed (0.1x, 0.25x, 1x; 0.25x by default). The event list below
+  it uses the shared presentation rules, newest at the bottom; click an event
+  to jump to it.
+
+Every number comes from `desktop/presentation.py` through `ReplaySession`, and
+every color, font size, and label comes from the generated
+`desktop/design_tokens.py` (built from `design/*.json`). The theme is ttk's
+`clam` restyled for the dark and light palettes; choose **View > Appearance**
+(System, Dark, or Light; Dark is the default). The choice is saved in
+`~/.zephyr-mesh/settings.json`, and System follows the Windows app theme
+setting when it can be read. On Windows the app uses Segoe UI Variable (or
+Segoe UI) and scales sizes with the display DPI; when Windows animations are
+turned off, the camera moves without easing.
+
+Status so far: this window has only been run on macOS with Tk 9.0. Nothing has
+run on real Windows yet, so the Segoe UI fonts, DPI scaling, the dark title bar,
+the Windows theme and animation settings, and the native menus are untested.
+On macOS Tk, one frame of the 0.25 s replay takes about 42 to 44 ms on average
+to render (worst seen about 89 ms), which is borderline for 1x playback (50 ms
+per frame); 0.25x, the default, has 200 ms per frame.
+
+Menus: **File** (Open Evidence Report..., Open Scenario Run..., Exit),
+**View** (3D View, Top View, Show Keep-out Volume, Show Inspector, Focus
+Selected Drone, Reset Camera, Appearance), **Playback** (Play/Pause, Step
+Forward, Step Back, Restart, Speed), and **Help** (About This Replay, Check for
+Updates). Keyboard shortcuts match `design/ui_text.json`: Space play or pause,
+Left and Right step, Home restart, F focus, R reset camera, T 3D or Top, K
+keep-out volume, I inspector, Control-L team filter, Control-O evidence report,
+Control-Shift-O scenario run, Control-I about. Single-key shortcuts stand down
+while you type in a text field, and a focused list or button keeps its own
+arrow and Space keys. Right-click a drone in the list or the scene for Focus
+Camera, Show in Inspector, and Copy Drone ID.
 
 Both desktop surfaces open the same portable evidence envelope. Create one
 from a raw trace or hardware profile with:
@@ -28,17 +81,20 @@ PYTHONPATH=. python tools/build_investigation_report.py sim/investigation_exampl
 PYTHONPATH=. python tools/build_evidence_report.py swarm runs/s7-swarm/run.json --output /tmp/zephyr-s7-report.json
 ```
 
-Choose **Open evidence report…** in the File menu, Control-O on Windows, or
-Command-O on macOS. The inspector preserves nested values and explicit
-`null` fields, shows the declared source SHA-256 and status, and keeps report
-limitations visible. Reports never enter a vehicle command path.
+Choose **Open Evidence Report...** in the File menu, Control-O on Windows, or
+Command-O on macOS. The Windows viewer leads with the declared status and the
+report's limitations, then a labeled summary, then a collapsed **Details**
+section with the source SHA-256, schemas, and the raw summary JSON. Reports
+never enter a vehicle command path.
 
 Generated `zephyr-s7-scenario-run-1` files can also be inspected without
 starting the simulator. Choose **Open scenario run...** in the Windows File
 menu, pass `--scenario-run /path/to/run.json`, or print its validated summary
 with `--headless --scenario-run /path/to/run.json`. The macOS File menu has the
-matching **Open synthetic scenario run...** action. Both inspectors show frame
-counts and timing while retaining the synthetic, read-only evidence boundary.
+matching **Open synthetic scenario run...** action. The Windows viewer shows a
+top-down plot with an altitude rail for the selected frame first, then a
+summary, then a collapsed **Details** section with hashes, versions, and the
+raw parameters. Both viewers keep the read-only evidence boundary visible.
 
 On Windows, build a self-contained executable from the repository root with:
 
@@ -59,7 +115,10 @@ On a Windows desktop, add `--gui-smoke` to launch the frozen Tk executable,
 step one replay frame through its smoke handshake, verify a readiness marker,
 and close it before publishing.
 Use `python -m desktop.windows_preview --headless` for a
-dependency-light smoke check on any platform. The macOS app remains the native
+dependency-light smoke check on any platform. On any desktop with Tk,
+`python -m desktop.windows_preview --smoke-idle idle.txt` opens the window,
+runs the real event loop, and writes `idle renders=0 ...` when the window
+stops redrawing once start-up settles (or `busy` with the count if it does not). The macOS app remains the native
 SwiftUI + SceneKit surface.
 
 Both desktop surfaces use `tools/release_updater.py`. It checks a GitHub

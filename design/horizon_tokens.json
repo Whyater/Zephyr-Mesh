@@ -177,7 +177,8 @@
     "eventListHeight": 128,
     "inspectorMaxWidth": 360,
     "sidebarIdealWidth": 300,
-    "eventPaneHeight": 192
+    "eventPaneHeight": 192,
+    "sidebarWidthWindows": 340
   },
   "contrast": {
     "minimumTextRatio": 4.5,

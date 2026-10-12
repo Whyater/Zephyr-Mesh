@@ -15,6 +15,13 @@ from desktop.replay import ReplayModel
 from desktop.evidence import load_evidence_report
 
 
+WINDOWS_UI_MODULES = (
+    "desktop.scene_projection", "desktop.ui_settings", "desktop.replay_session", "desktop.presentation",
+    "desktop.ui_format", "desktop.ui_icons", "desktop.ui_theme", "desktop.ui_widgets", "desktop.scene_view",
+    "desktop.ui_viewers",
+)
+
+
 def expected_smoke_marker(word: str, frame_count: int, evidence_kinds: list[str]) -> str:
     """The readiness line the frozen GUI prints after stepping one frame.
 
@@ -45,7 +52,7 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
     run = next((root / "runs" / "s7-swarm" / "run.json" for root in resource_roots if (root / "runs" / "s7-swarm" / "run.json").is_file()), None)
     if run is None:
         raise FileNotFoundError("bundled canonical S7 run.json is missing")
-    result = {"bundle": str(bundle_dir), "preview": str(executable), "updater": str(updater), "readme": str(readme), "run": str(run)}
+    result = {"bundle": str(bundle_dir), "preview": str(executable), "updater": str(updater), "readme": str(readme), "run": str(run), "ui_modules": ",".join(WINDOWS_UI_MODULES)}
     evidence_paths = []
     evidence_kinds = []
     for filename, kind, status in (("evidence_report_example.json", "espnow", "fixture"), ("investigation_report_example.json", "investigation", "synthetic"), ("s7_report_example.json", "swarm", "synthetic")):
