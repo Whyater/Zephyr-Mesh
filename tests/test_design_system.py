@@ -150,7 +150,7 @@ def test_passing_needs_approval_is_stale(tmp_path: Path) -> None:
 def test_status_levels_are_complete_and_json_has_no_em_dash() -> None:
     """Status records are complete and source text follows the punctuation rule."""
     ui = json.loads((ROOT / "design/ui_text.json").read_text())
-    for level in ("ok", "caution", "alert", "waiting", "unavailable"):
+    for level in ("ok", "caution", "alert", "waiting", "unavailable", "info"):
         assert {"word", "shape", "color"} <= ui["statusLevels"][level].keys()
     for path in (ROOT / "design/horizon_tokens.json", ROOT / "design/ui_text.json"):
         assert "\u2014" not in path.read_text()

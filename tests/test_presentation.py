@@ -178,3 +178,25 @@ def test_drone_names_use_integer_suffixes():
 def test_golden_is_current():
     expected = json.dumps(present_run(run()), indent=2, sort_keys=True) + "\n"
     assert expected == (ROOT / "design/golden/s7_presentation.json").read_text()
+
+
+def _golden_events():
+    golden = json.loads((ROOT / "design/golden/s7_presentation.json").read_text())
+    return [event for frame in golden["frames"] for event in frame["events"]]
+
+
+def test_routine_packet_loss_is_never_an_alert_event():
+    events = [e for e in _golden_events() if e["text"].startswith("Target packet lost")]
+    assert events
+    assert all(e["level"] == "info" for e in events)
+    assert not any(e["level"] == "alert" for e in events)
+
+
+def test_every_golden_event_level_is_a_complete_status_level():
+    from desktop.design_tokens import UI_TEXT
+
+    levels = {e["level"] for e in _golden_events()}
+    assert "info" in levels
+    for level in levels:
+        spec = UI_TEXT["statusLevels"][level]
+        assert spec["word"] and spec["shape"] and spec["color"]
