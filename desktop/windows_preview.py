@@ -24,16 +24,16 @@ from typing import Any
 try:
     from .replay import ReplayModel, filter_agents
     from .scenario_run import ScenarioRunCursor, ScenarioRunFormatError, clamp_scenario_rail_x, load_scenario_run, project_scenario_altitude, project_scenario_altitude_radius, project_scenario_point, project_scenario_radius, scenario_frame_geometry, scenario_rail_endpoints, selected_frame_summary
-    from .design_tokens import TOKENS
+    from .legacy_tokens import TOKENS
 except ImportError:  # direct script execution for PyInstaller
     try:
         from desktop.replay import ReplayModel, filter_agents
         from desktop.scenario_run import ScenarioRunCursor, ScenarioRunFormatError, clamp_scenario_rail_x, load_scenario_run, project_scenario_altitude, project_scenario_altitude_radius, project_scenario_point, project_scenario_radius, scenario_frame_geometry, scenario_rail_endpoints, selected_frame_summary
-        from desktop.design_tokens import TOKENS
+        from desktop.legacy_tokens import TOKENS
     except ImportError:
         from replay import ReplayModel, filter_agents
         from scenario_run import ScenarioRunCursor, ScenarioRunFormatError, clamp_scenario_rail_x, load_scenario_run, project_scenario_altitude, project_scenario_altitude_radius, project_scenario_point, project_scenario_radius, scenario_frame_geometry, scenario_rail_endpoints, selected_frame_summary
-        from design_tokens import TOKENS
+        from legacy_tokens import TOKENS
 
 
 RESOURCE_ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1]))

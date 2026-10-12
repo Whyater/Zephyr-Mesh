@@ -1,0 +1,212 @@
+{
+  "$schema": "zephyr-horizon-tokens-1",
+  "comment": "No shadows and no gradients anywhere.",
+  "colors": {
+    "dark": {
+      "background": "#0F1522",
+      "surface": "#172033",
+      "line": "#2B3A55",
+      "lineStrong": "#5B6B88",
+      "text": "#EEF2F7",
+      "textSecondary": "#9AA8C0",
+      "accent": "#7CC4FF",
+      "target": "#FFB38A",
+      "keepOut": "#B4A7FF",
+      "ok": "#5FD39B",
+      "caution": "#FFC857",
+      "alert": "#FF5C5C",
+      "info": "#7CC4FF",
+      "onAlert": "#0F1522",
+      "selectionFill": {
+        "base": "accent",
+        "alpha": 0.16,
+        "over": "surface",
+        "hex": "#273A54"
+      },
+      "hoverFill": {
+        "base": "text",
+        "alpha": 0.06,
+        "over": "surface",
+        "hex": "#242D3F"
+      }
+    },
+    "light": {
+      "background": "#F6F8FB",
+      "surface": {
+        "value": "#FFFFFF",
+        "status": "proposed"
+      },
+      "line": {
+        "value": "#D5DCE6",
+        "status": "proposed"
+      },
+      "lineStrong": {
+        "value": "#7D8AA1",
+        "status": "proposed"
+      },
+      "text": "#1B2433",
+      "textSecondary": "#56627A",
+      "accent": "#1F6FD1",
+      "target": {
+        "value": "#A8501C",
+        "status": "proposed"
+      },
+      "keepOut": {
+        "value": "#5E4BC4",
+        "status": "proposed"
+      },
+      "ok": "#1E7F4F",
+      "caution": "#8A5A00",
+      "alert": "#C62828",
+      "info": "#1F6FD1",
+      "onAlert": "#FFFFFF",
+      "selectionFill": {
+        "base": "accent",
+        "alpha": 0.14,
+        "over": "surface",
+        "hex": "#E0EBF9"
+      },
+      "hoverFill": {
+        "base": "text",
+        "alpha": 0.05,
+        "over": "surface",
+        "hex": "#F4F4F5"
+      }
+    }
+  },
+  "scene3D": {
+    "dark": {
+      "droneBody": "textSecondary",
+      "droneArms": "textSecondary",
+      "rotorDisc": "textSecondary",
+      "targetRing": "target",
+      "keepOutVolume": {
+        "base": "keepOut",
+        "alpha": 0.18
+      },
+      "grid": "line",
+      "floor": "background"
+    },
+    "light": {
+      "droneBody": "textSecondary",
+      "droneArms": "textSecondary",
+      "rotorDisc": "textSecondary",
+      "targetRing": "target",
+      "keepOutVolume": {
+        "base": "keepOut",
+        "alpha": 0.18
+      },
+      "grid": "line",
+      "floor": "background"
+    }
+  },
+  "typeScale": {
+    "caption": {
+      "size": 12,
+      "weight": "regular",
+      "use": "secondary labels only"
+    },
+    "body": {
+      "size": 13,
+      "weight": "regular"
+    },
+    "bodyStrong": {
+      "size": 13,
+      "weight": "semibold"
+    },
+    "headline": {
+      "size": 15,
+      "weight": "semibold"
+    },
+    "title": {
+      "size": 20,
+      "weight": "semibold"
+    },
+    "metric": {
+      "size": 22,
+      "weight": "semibold",
+      "tabularDigits": true
+    },
+    "metricSmall": {
+      "size": 15,
+      "weight": "semibold",
+      "tabularDigits": true
+    },
+    "mono": {
+      "size": 12,
+      "use": "hashes and IDs inside Details only",
+      "macOS": "SF Mono/Menlo",
+      "windows": "Cascadia Mono/Consolas"
+    },
+    "families": {
+      "macOS": "SF Pro via Font.system",
+      "windows": "Segoe UI Variable Text, fallback Segoe UI"
+    }
+  },
+  "spacing": {
+    "xxs": 2,
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "xxl": 32
+  },
+  "radii": {
+    "small": 4,
+    "medium": 8,
+    "smallUse": "controls, panels, badge",
+    "mediumUse": "sheets only"
+  },
+  "motion": {
+    "fastMs": 120,
+    "standardMs": 180,
+    "curve": "ease-out",
+    "userTriggeredOnly": true,
+    "reducedMotionMs": 0
+  },
+  "layout": {
+    "windowMinWidth": 1180,
+    "windowMinHeight": 760,
+    "sidebarWidth": 260,
+    "inspectorWidth": 300,
+    "rowHeight": 28,
+    "sceneMinWidth": 520
+  },
+  "contrast": {
+    "minimumTextRatio": 4.5,
+    "minimumLineStrongRatio": 3.0,
+    "needs-approval": [
+      {
+        "theme": "dark",
+        "foreground": "alert",
+        "background": "selectionFill"
+      },
+      {
+        "theme": "light",
+        "foreground": "accent",
+        "background": "selectionFill"
+      },
+      {
+        "theme": "light",
+        "foreground": "ok",
+        "background": "selectionFill"
+      },
+      {
+        "theme": "light",
+        "foreground": "info",
+        "background": "selectionFill"
+      },
+      {
+        "theme": "light",
+        "foreground": "accent",
+        "background": "hoverFill"
+      },
+      {
+        "theme": "light",
+        "foreground": "info",
+        "background": "hoverFill"
+      }
+    ]
+  }
+}

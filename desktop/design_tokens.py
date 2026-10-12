@@ -1,65 +1,405 @@
-"""Cross-platform desktop tokens for the Windows preview.
-
-The preview intentionally uses Windows system typography and a quiet neutral
-surface. State color is reserved for warnings and selection, not decoration.
-"""
+# GENERATED FILE. Do not edit. Regenerate with: python tools/generate_design.py
 from __future__ import annotations
-
 from dataclasses import dataclass
 
+@dataclass(frozen=True)
+class Palette:
+    background: str
+    surface: str
+    line: str
+    lineStrong: str
+    text: str
+    textSecondary: str
+    accent: str
+    target: str
+    keepOut: str
+    ok: str
+    caution: str
+    alert: str
+    info: str
+    onAlert: str
+    selectionFill: str
+    hoverFill: str
 
 @dataclass(frozen=True)
-class DesktopTokens:
-    background: str = "#f3f3f3"
-    surface: str = "#ffffff"
-    canvas: str = "#e8edf2"
-    text: str = "#1f1f1f"
-    muted: str = "#616161"
-    grid: str = "#d5dce3"
-    accent: str = "#276ea5"
-    warning: str = "#c77b30"
-    control_background: str = "#ffffff"
-    control_track: str = "#d5dce3"
-    control_active: str = "#276ea5"
-    window_min_width: int = 1180
-    window_min_height: int = 760
-    fleet_row_height: int = 28
-    inspector_width: int = 270
-    inspector_text_width: int = 246
-    button_pad_x: int = 10
-    button_pad_y: int = 6
-    panel_gap: int = 10
-    timeline_gap: int = 14
-    tight_padding: int = 9
-    button_gap: int = 3
-    update_gap: int = 10
-    disclosure_pad: int = 3
-    header_vertical: int = 13
-    table_top_gap: int = 8
-    telemetry_top_gap: int = 8
-    telemetry_bottom_gap: int = 16
-    content_pad: int = 4
-    canvas_margin: int = 20
-    canvas_extent: int = 80
-    target_radius: int = 8
-    target_cross: int = 13
-    selection_outline: int = 5
-    label_offset: int = 12
-    canvas_label_x: int = 18
-    canvas_label_y: int = 16
-    selection_outline_color: str = "#eef2f7"
-    spacing_xs: int = 8
-    spacing_sm: int = 12
-    spacing_md: int = 16
-    spacing_lg: int = 18
-    ui_font: str = "Segoe UI"
-    mono_font: str = "Consolas"
-    title_size: int = 15
-    body_size: int = 10
-    small_size: int = 9
-    fleet_column_vehicle: int = 112
-    fleet_column_state: int = 74
-    fleet_column_metric: int = 62
+class SceneColor:
+    hex: str
+    alpha: float = 1.0
 
+@dataclass(frozen=True)
+class ScenePalette:
+    drone_body: SceneColor
+    drone_arms: SceneColor
+    rotor_disc: SceneColor
+    target_ring: SceneColor
+    keep_out_volume: SceneColor
+    grid: SceneColor
+    floor: SceneColor
 
-TOKENS = DesktopTokens()
+DARK = Palette('#0F1522', '#172033', '#2B3A55', '#5B6B88', '#EEF2F7', '#9AA8C0', '#7CC4FF', '#FFB38A', '#B4A7FF', '#5FD39B', '#FFC857', '#FF5C5C', '#7CC4FF', '#0F1522', '#273A54', '#242D3F')
+LIGHT = Palette('#F6F8FB', '#FFFFFF', '#D5DCE6', '#7D8AA1', '#1B2433', '#56627A', '#1F6FD1', '#A8501C', '#5E4BC4', '#1E7F4F', '#8A5A00', '#C62828', '#1F6FD1', '#FFFFFF', '#E0EBF9', '#F4F4F5')
+DARK_SCENE3D = ScenePalette(SceneColor('#9AA8C0', 1.0), SceneColor('#9AA8C0', 1.0), SceneColor('#9AA8C0', 1.0), SceneColor('#FFB38A', 1.0), SceneColor('#B4A7FF', 0.18), SceneColor('#2B3A55', 1.0), SceneColor('#0F1522', 1.0))
+LIGHT_SCENE3D = ScenePalette(SceneColor('#56627A', 1.0), SceneColor('#56627A', 1.0), SceneColor('#56627A', 1.0), SceneColor('#A8501C', 1.0), SceneColor('#5E4BC4', 0.18), SceneColor('#D5DCE6', 1.0), SceneColor('#F6F8FB', 1.0))
+
+def palette(theme: str = 'dark') -> Palette:
+    return LIGHT if str(theme).lower() == 'light' else DARK
+
+def scene3d(theme: str = 'dark') -> ScenePalette:
+    return LIGHT_SCENE3D if str(theme).lower() == 'light' else DARK_SCENE3D
+
+FONT_FALLBACKS = {'ui': ('Segoe UI Variable Text', 'Segoe UI'), 'mono': ('Cascadia Mono', 'Consolas')}
+
+TYPE = {
+    'caption': ('Segoe UI Variable Text', -12),
+    'body': ('Segoe UI Variable Text', -13),
+    'bodyStrong': ('Segoe UI Variable Text', -13, 'bold'),
+    'headline': ('Segoe UI Variable Text', -15, 'bold'),
+    'title': ('Segoe UI Variable Text', -20, 'bold'),
+    'metric': ('Segoe UI Variable Text', -22, 'bold'),
+    'metricSmall': ('Segoe UI Variable Text', -15, 'bold'),
+    'mono': ('Cascadia Mono', -12),
+}
+
+def tk_font(role: str):
+    return TYPE[role]
+
+SPACE = {'xxs': 2, 'xs': 4, 'sm': 8, 'md': 12, 'lg': 16, 'xl': 24, 'xxl': 32}
+RADIUS = {'small': 4, 'medium': 8, 'smallUse': 'controls, panels, badge', 'mediumUse': 'sheets only'}
+MOTION_MS = {
+    'fast': 120,
+    'standard': 180,
+    'curve': 'ease-out',
+    'reduced': 0,
+}
+LAYOUT = {'windowMinWidth': 1180, 'windowMinHeight': 760, 'sidebarWidth': 260, 'inspectorWidth': 300, 'rowHeight': 28, 'sceneMinWidth': 520}
+
+@dataclass(frozen=True)
+class Shortcut:
+    action_id: str
+    label: str
+    key: str
+    modifiers: tuple[str, ...]
+    tk_binding: str
+    single_key: bool
+
+SHORTCUTS = (
+    Shortcut('playPause', 'Play/Pause', 'space', (), '<space>', True),
+    Shortcut('stepForward', 'Step forward', 'right', (), '<Right>', True),
+    Shortcut('stepBack', 'Step back', 'left', (), '<Left>', True),
+    Shortcut('restart', 'Restart', 'home', (), '<Home>', True),
+    Shortcut('focusSelected', 'Focus selected drone', 'f', (), '<f>', True),
+    Shortcut('resetCamera', 'Reset camera', 'r', (), '<r>', True),
+    Shortcut('toggleTopView', 'Toggle 3D/top view', 't', (), '<t>', True),
+    Shortcut('toggleKeepOut', 'Show/hide keep-out volume', 'k', (), '<k>', True),
+    Shortcut('toggleInspector', 'Show/hide inspector', 'i', (), '<i>', True),
+    Shortcut('openEvidenceReport', 'Open evidence report...', 'o', ('primary',), '<Control-o>', False),
+    Shortcut('openScenarioRun', 'Open scenario run...', 'o', ('primary', 'shift'), '<Control-Shift-O>', False),
+    Shortcut('focusFilter', 'Focus team filter', 'l', ('primary',), '<Control-l>', False),
+    Shortcut('aboutReplay', 'About this replay', 'i', ('primary',), '<Control-i>', False),
+)
+
+UI_TEXT = {'$schema': 'zephyr-ui-text-1',
+ 'honesty': {'badge': 'Simulation replay',
+             'aboutButton': 'About this replay',
+             'aboutBodyFields': ['status',
+                                 'evidence_boundary',
+                                 'command_authority',
+                                 'failsafe',
+                                 'generation_command',
+                                 'seed',
+                                 'scenario_id']},
+ 'statusStrip': ['Tracking',
+                 'Estimate error p95',
+                 'Target link delay',
+                 'Target packet loss',
+                 'Target age'],
+ 'statusLevels': {'ok': {'word': 'OK', 'shape': 'circle', 'color': 'ok'},
+                  'caution': {'word': 'Late', 'shape': 'triangle', 'color': 'caution'},
+                  'alert': {'word': 'Lost',
+                            'alternateWord': 'Inactive',
+                            'shape': 'square',
+                            'color': 'alert'},
+                  'waiting': {'word': 'Waiting',
+                              'shape': 'hollow circle',
+                              'color': 'textSecondary'},
+                  'unavailable': {'word': 'Not recorded',
+                                  'shape': 'dash',
+                                  'color': 'textSecondary'}},
+ 'statusShapes': {'macOS': {'circle': 'circle.fill',
+                            'triangle': 'triangle.fill',
+                            'square': 'square.fill',
+                            'hollow circle': 'circle',
+                            'dash': 'minus'},
+                  'windows': {'circle': '●',
+                              'triangle': '▲',
+                              'square': '■',
+                              'hollow circle': '○',
+                              'dash': '–'}},
+ 'displayThresholds': {'targetAgeLateS': {'value': 0.15,
+                                          'note': 'display candidates from the vault research '
+                                                  '(R-P5-UX-02), not safety limits'},
+                       'targetAgeLostS': {'value': 0.3,
+                                          'note': 'display candidates from the vault research '
+                                                  '(R-P5-UX-02), not safety limits'}},
+ 'fieldLabels': {'abstract_event_delay_s': 'Abstract event delay (s)',
+                 'active': 'Active',
+                 'active_agent_observations': 'Active agent observations',
+                 'active_count': 'Active drones',
+                 'agent_count': 'Drone count',
+                 'agent_id': 'Drone ID',
+                 'agent_profiles': 'Agent profiles',
+                 'agents': 'Agents',
+                 'aggregation': 'Aggregation',
+                 'altitude_m': 'Altitude (m)',
+                 'arm_length_m': 'Arm length (m)',
+                 'attempted': 'Attempted',
+                 'available': 'Available',
+                 'battery': 'Battery',
+                 'battery_capacity_wh': 'Battery capacity (Wh)',
+                 'bench': 'Bench',
+                 'bracketed_intervals': 'Bracketed intervals',
+                 'burst': 'Burst',
+                 'burst_end_probability': 'Burst end probability',
+                 'burst_start_probability': 'Burst start probability',
+                 'calibration_id': 'Calibration ID',
+                 'capture': 'Capture',
+                 'censored_outages': 'Censored outages',
+                 'censoring': 'Censoring',
+                 'center_m': 'Center (m)',
+                 'channel': 'Channel',
+                 'clock_domain': 'Clock domain',
+                 'clock_uncertainty_s': 'Clock uncertainty (s)',
+                 'code_revision': 'Code revision',
+                 'code_revision_semantics': 'Code revision semantics',
+                 'color': 'Color',
+                 'command_authority': 'Command authority',
+                 'complete_outcome_denominator': 'Complete outcome denominator',
+                 'confidence': 'Confidence',
+                 'config': 'Config',
+                 'constraint_flags': 'Constraint flags',
+                 'constraints': 'Constraints',
+                 'contention_mode': 'Contention mode',
+                 'count': 'Count',
+                 'criterion': 'Criterion',
+                 'criterion_note': 'Criterion note',
+                 'definition': 'Definition',
+                 'delay': 'Delay',
+                 'delay_jitter_s': 'Delay jitter (s)',
+                 'delay_population': 'Delay population',
+                 'delay_s': 'Delay (s)',
+                 'denominator_contract': 'Denominator contract',
+                 'device_ids': 'Device IDs',
+                 'diameter_m': 'Diameter (m)',
+                 'dt': 'Frame interval',
+                 'dt_s': 'Frame interval (s)',
+                 'duplicate': 'Duplicate',
+                 'duplicates': 'Duplicates',
+                 'duration_s': 'Duration (s)',
+                 'espnow': 'ESP-NOW',
+                 'estimated_max_thrust_n': 'Estimated maximum thrust (N)',
+                 'estimated_thrust_at_rpm_limit_n': 'Estimated thrust at RPM limit (N)',
+                 'estimation': 'Estimation',
+                 'evidence_boundary': 'Evidence boundary',
+                 'failsafe': 'Failsafe',
+                 'failure_max_m': 'Failure max (m)',
+                 'failure_p95_m': 'Failure p95 (m)',
+                 'firmware': 'Firmware',
+                 'fixture': 'Fixture',
+                 'flag_counts': 'Flag counts',
+                 'frame_count': 'Frame count',
+                 'frame_mass_kg': 'Frame mass (kg)',
+                 'frames': 'Frames',
+                 'fused_target_m': 'Fused target (m)',
+                 'fused_target_present': 'Fused target present',
+                 'generation_command': 'Generation command',
+                 'generator': 'Generator',
+                 'hardware': 'Hardware',
+                 'hardware_profile': 'Hardware profile',
+                 'held_last_max_error_m': 'Held last max error (m)',
+                 'held_last_p95_error_m': 'Held last p95 error (m)',
+                 'identity_fields': 'Identity fields',
+                 'independent': 'Independent',
+                 'independent_check': 'Independent check',
+                 'interpretation': 'Interpretation',
+                 'investigation': 'Investigation',
+                 'keep_out_spheres': 'Keep-out volumes',
+                 'kind': 'Kind',
+                 'label': 'Label',
+                 'limitations': 'Limitations',
+                 'link_delay_ms': 'Link delay (ms)',
+                 'link_event_count': 'Link event count',
+                 'link_events': 'Link events',
+                 'link_loss_pct': 'Link packet loss (%)',
+                 'logical_identity_count': 'Logical identity count',
+                 'loss_model': 'Loss model',
+                 'loss_probability': 'Loss probability',
+                 'loss_rate': 'Loss rate',
+                 'loss_rate_bounds': 'Loss rate bounds',
+                 'loss_reason': 'Loss reason',
+                 'lost': 'Lost',
+                 'lower': 'Lower',
+                 'mass_kg': 'Mass (kg)',
+                 'max': 'Max',
+                 'max_error_m': 'Max error (m)',
+                 'max_power_w': 'Max power (W)',
+                 'max_rpm': 'Maximum speed (rpm)',
+                 'max_torque_nm': 'Max torque (N·m)',
+                 'mean': 'Mean',
+                 'mean_age_s': 'Mean age (s)',
+                 'measured': 'Measured',
+                 'min': 'Min',
+                 'min_neighbor_distance_m': 'Nearest neighbor (m)',
+                 'model': 'Model',
+                 'motor': 'Motor',
+                 'motor_count': 'Motor count',
+                 'name': 'Name',
+                 'neighbor_count': 'Neighbors in range',
+                 'neighbor_link': 'Neighbor link',
+                 'neighbor_link_delay': 'Neighbor link delay',
+                 'neighbor_packet_loss': 'Neighbor packet loss',
+                 'noise_std_m': 'Noise std (m)',
+                 'nominal_voltage_v': 'Nominal voltage (V)',
+                 'none': 'None',
+                 'notes': 'Notes',
+                 'numpy': 'NumPy version',
+                 'observation_period_s': 'Observation period (s)',
+                 'observed_min_neighbor_distance_m': 'Observed min neighbor distance (m)',
+                 'observed_transmission_records': 'Observed transmission records',
+                 'out_of_order': 'Out of order',
+                 'outcome': 'Outcome',
+                 'p50': 'P50',
+                 'p95': 'P95',
+                 'p95_error_m': 'P95 error (m)',
+                 'packet_age': 'Packet age',
+                 'packet_duration_s': 'Packet duration (s)',
+                 'packets': 'Packets',
+                 'parameters': 'Parameters',
+                 'parameters_canonical': 'Parameters canonical',
+                 'part_id': 'Part ID',
+                 'payload_canonical': 'Payload canonical',
+                 'payload_sha256': 'Payload SHA-256',
+                 'phy': 'PHY',
+                 'pitch_m': 'Pitch (m)',
+                 'position_m': 'Position (m)',
+                 'power_coefficient': 'Power coefficient',
+                 'profile_count': 'Profile count',
+                 'profile_id': 'Hardware profile',
+                 'profiles': 'Profiles',
+                 'propeller': 'Propeller',
+                 'provenance': 'Provenance',
+                 'python': 'Python version',
+                 'quantile_method': 'Quantile method',
+                 'radius_m': 'Radius (m)',
+                 'receive_time': 'Receive time',
+                 'received': 'Received',
+                 'receiver': 'Receiver',
+                 'recovery': 'Recovery',
+                 'report': 'Report',
+                 'role': 'Role',
+                 'routes': 'Routes',
+                 'rows': 'Rows',
+                 'rssi': 'RSSI',
+                 'rssi_population': 'RSSI population',
+                 'run': 'Run',
+                 'run_id': 'Run ID',
+                 'sample_count': 'Sample count',
+                 'scenario_hash': 'Scenario hash',
+                 'scenario_id': 'Scenario ID',
+                 'schema': 'Schema',
+                 'seed': 'Random seed',
+                 'send_time': 'Send time',
+                 'sender': 'Sender',
+                 'seq': 'Sequence',
+                 'serialized': 'Serialized',
+                 'sha256': 'SHA-256',
+                 'sim': 'Sim',
+                 'source': 'Source',
+                 'source_schema': 'Source schema',
+                 'source_status': 'Source status',
+                 'state': 'State',
+                 'status': 'Status',
+                 'step_index': 'Frame',
+                 'steps': 'Frames',
+                 'summary': 'Summary',
+                 'swarm': 'Swarm',
+                 'synthetic': 'Synthetic',
+                 'tag_name': 'Tag name',
+                 'target_acceleration_mps2': 'Target acceleration (m/s²)',
+                 'target_age': 'Target age',
+                 'target_age_s': 'Target age (s)',
+                 'target_estimate_m': 'Target estimate (m)',
+                 'target_estimate_present': 'Target estimate present',
+                 'target_link': 'Target link',
+                 'target_link_delay': 'Target link delay',
+                 'target_packet_loss': 'Target packet loss',
+                 'target_position_m': 'Target position (m)',
+                 'target_source_time_s': 'Target source time (s)',
+                 'target_speed_mps': 'Target speed (m/s)',
+                 'target_velocity_mps': 'Target velocity (m/s)',
+                 'thrust_coefficient': 'Thrust coefficient',
+                 'time_s': 'Time (s)',
+                 'time_span_s': 'Time span (s)',
+                 'timestamp_basis': 'Timestamp basis',
+                 'total_mass_kg': 'Total mass (kg)',
+                 'trace_id': 'Trace ID',
+                 'transport': 'Transport',
+                 'truth_dt_s': 'Truth dt (s)',
+                 'unavailable': 'Unavailable',
+                 'unit': 'Unit',
+                 'unknown': 'Unknown',
+                 'unknown_reason_counts': 'Unknown reason counts',
+                 'unknown_unresolved': 'Unknown unresolved',
+                 'upper': 'Upper',
+                 'velocity_mps': 'Velocity (m/s)',
+                 'version': 'Version',
+                 'vision': 'Vision',
+                 'weighting': 'Weighting'},
+ 'droneNaming': {'compact': 'D{number:02d}', 'heading': 'Drone {number:02d}'},
+ 'shortcuts': {'playPause': {'label': 'Play/Pause',
+                             'key': 'space',
+                             'modifiers': [],
+                             'singleKey': True},
+               'stepForward': {'label': 'Step forward',
+                               'key': 'right',
+                               'modifiers': [],
+                               'singleKey': True},
+               'stepBack': {'label': 'Step back',
+                            'key': 'left',
+                            'modifiers': [],
+                            'singleKey': True},
+               'restart': {'label': 'Restart', 'key': 'home', 'modifiers': [], 'singleKey': True},
+               'focusSelected': {'label': 'Focus selected drone',
+                                 'key': 'f',
+                                 'modifiers': [],
+                                 'singleKey': True},
+               'resetCamera': {'label': 'Reset camera',
+                               'key': 'r',
+                               'modifiers': [],
+                               'singleKey': True},
+               'toggleTopView': {'label': 'Toggle 3D/top view',
+                                 'key': 't',
+                                 'modifiers': [],
+                                 'singleKey': True},
+               'toggleKeepOut': {'label': 'Show/hide keep-out volume',
+                                 'key': 'k',
+                                 'modifiers': [],
+                                 'singleKey': True},
+               'toggleInspector': {'label': 'Show/hide inspector',
+                                   'key': 'i',
+                                   'modifiers': [],
+                                   'singleKey': True},
+               'openEvidenceReport': {'label': 'Open evidence report...',
+                                      'key': 'o',
+                                      'modifiers': ['primary']},
+               'openScenarioRun': {'label': 'Open scenario run...',
+                                   'key': 'o',
+                                   'modifiers': ['primary', 'shift']},
+               'focusFilter': {'label': 'Focus team filter', 'key': 'l', 'modifiers': ['primary']},
+               'aboutReplay': {'label': 'About this replay', 'key': 'i', 'modifiers': ['primary']}},
+ 'shortcutRule': 'Single-key shortcuts never fire while a text field has focus.',
+ 'eventTemplates': {'replayLoaded': 'Replay loaded: {count} drones',
+                    'estimateReached': 'Target estimate reached {estimated} of {total} drones',
+                    'estimateLate': '{count} drones newly late: {drones} ({age:.2f} s)',
+                    'backOnTime': '{count} drones back on time',
+                    'inactive': '{drone} went inactive',
+                    'packetLost': 'Target packet lost for {count} drones'}}

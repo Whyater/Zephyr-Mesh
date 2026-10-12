@@ -55,6 +55,7 @@ struct ZephyrMeshApp: App {
 /// canonical Python S7 run. Optional fields let newer projections add agent
 /// diagnostics without breaking an older checked-in replay.
 struct DroneTelemetry: Identifiable, Codable {
+    // Battery, confidence, state, role, and color are unavailable in the canonical run.
     let id: String
     let name: String
     let role: String
@@ -159,17 +160,18 @@ struct FixtureFrame: Codable {
     let targetPosition: SIMD3<Float>?
     let activeCount: Int
     let drones: [DroneTelemetry]
+    let presentation: FixturePresentation?
 
     enum CodingKeys: String, CodingKey {
         case stepIndex = "step_index", time, targetPosition = "target_position"
-        case activeCount = "active_count", drones
+        case activeCount = "active_count", drones, presentation
     }
 
     init(stepIndex: Int = 0, time: Double, targetPosition: SIMD3<Float>? = nil,
-         activeCount: Int = 0, drones: [DroneTelemetry]) {
+         activeCount: Int = 0, drones: [DroneTelemetry], presentation: FixturePresentation? = nil) {
         self.stepIndex = stepIndex; self.time = time; self.targetPosition = targetPosition
         self.activeCount = activeCount == 0 ? drones.filter(\.active).count : activeCount
-        self.drones = drones
+        self.drones = drones; self.presentation = presentation
     }
 
     init(from decoder: Decoder) throws {
@@ -179,6 +181,7 @@ struct FixtureFrame: Codable {
         targetPosition = try? values.decode(SIMD3<Float>.self, forKey: .targetPosition)
         drones = try values.decode([DroneTelemetry].self, forKey: .drones)
         activeCount = try values.decodeIfPresent(Int.self, forKey: .activeCount) ?? drones.filter(\.active).count
+        presentation = try values.decodeIfPresent(FixturePresentation.self, forKey: .presentation)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -186,6 +189,40 @@ struct FixtureFrame: Codable {
         try values.encode(stepIndex, forKey: .stepIndex); try values.encode(time, forKey: .time)
         try values.encodeIfPresent(targetPosition, forKey: .targetPosition)
         try values.encode(activeCount, forKey: .activeCount); try values.encode(drones, forKey: .drones)
+        try values.encodeIfPresent(presentation, forKey: .presentation)
+    }
+}
+
+struct FixturePresentation: Codable {
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        _ = try decoder.singleValueContainer().decode(JSONValue.self)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encodeNil()
+    }
+}
+
+struct FixtureAbout: Codable {
+    let status: String?
+    let evidenceBoundary: String?
+    let commandAuthority: String?
+    let failsafe: String?
+    let generationCommand: String?
+    let seed: Int?
+    let scenarioID: String?
+
+    enum CodingKeys: String, CodingKey {
+        case status
+        case evidenceBoundary = "evidence_boundary"
+        case commandAuthority = "command_authority"
+        case failsafe
+        case generationCommand = "generation_command"
+        case seed
+        case scenarioID = "scenario_id"
     }
 }
 
@@ -202,6 +239,7 @@ struct Fixture: Codable {
     let evidenceBoundary: String
     let generationCommand: String
     let status: String
+    let about: FixtureAbout?
     var drones: [DroneTelemetry]
     var frames: [FixtureFrame]
 
@@ -209,7 +247,7 @@ struct Fixture: Codable {
         case schema, runID = "run_id", source, seed, model, unavailable
         case commandAuthority = "command_authority", failsafe, dt = "dt_s"
         case evidenceBoundary = "evidence_boundary", generationCommand = "generation_command"
-        case status, drones, frames
+        case status, about, drones, frames
     }
 
     init(schema: String, runID: String, source: String, seed: Int, model: String,
@@ -217,12 +255,12 @@ struct Fixture: Codable {
          failsafe: String = "unavailable without a live adapter", dt: Double = 0.05,
          evidenceBoundary: String = "Synthetic replay projection; not flight performance.",
          generationCommand: String = "tools/generate_s7_fixture.py --output runs/s7-swarm",
-         status: String = "synthetic deterministic replay", drones: [DroneTelemetry],
+         status: String = "synthetic deterministic replay", about: FixtureAbout? = nil, drones: [DroneTelemetry],
          frames: [FixtureFrame] = []) {
         self.schema = schema; self.runID = runID; self.source = source; self.seed = seed
         self.model = model; self.unavailable = unavailable; self.commandAuthority = commandAuthority
         self.failsafe = failsafe; self.dt = dt; self.evidenceBoundary = evidenceBoundary
-        self.generationCommand = generationCommand; self.status = status; self.drones = drones; self.frames = frames
+        self.generationCommand = generationCommand; self.status = status; self.about = about; self.drones = drones; self.frames = frames
     }
 
     init(from decoder: Decoder) throws {
@@ -239,6 +277,7 @@ struct Fixture: Codable {
         evidenceBoundary = try values.decodeIfPresent(String.self, forKey: .evidenceBoundary) ?? "Synthetic replay projection; not flight performance."
         generationCommand = try values.decodeIfPresent(String.self, forKey: .generationCommand) ?? "tools/generate_s7_fixture.py --output runs/s7-swarm"
         status = try values.decodeIfPresent(String.self, forKey: .status) ?? "synthetic deterministic replay"
+        about = try values.decodeIfPresent(FixtureAbout.self, forKey: .about)
         drones = try values.decodeIfPresent([DroneTelemetry].self, forKey: .drones) ?? []
         frames = try values.decodeIfPresent([FixtureFrame].self, forKey: .frames) ?? []
     }
@@ -251,6 +290,7 @@ struct Fixture: Codable {
         try values.encode(commandAuthority, forKey: .commandAuthority); try values.encode(failsafe, forKey: .failsafe)
         try values.encode(dt, forKey: .dt); try values.encode(evidenceBoundary, forKey: .evidenceBoundary)
         try values.encode(generationCommand, forKey: .generationCommand); try values.encode(status, forKey: .status)
+        try values.encodeIfPresent(about, forKey: .about)
         try values.encode(drones, forKey: .drones); try values.encode(frames, forKey: .frames)
     }
 }

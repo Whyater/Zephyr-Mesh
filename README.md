@@ -63,7 +63,7 @@ The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\Zeph
 
 ## Run from source
 
-The Python simulator and replay demo run offline from the repository root:
+The Python simulator and replay tools run offline from the repository root:
 
 ```bash
 python3 -m venv .venv
@@ -80,10 +80,9 @@ PYTHONPATH=. python tools/build_evidence_report.py espnow sim/trace_example.json
 PYTHONPATH=. python tools/build_investigation_report.py sim/investigation_example.json --output /tmp/zephyr-s6-report.json
 PYTHONPATH=. python tools/analyze_s7_run.py runs/s7-swarm/run.json
 PYTHONPATH=. python tools/run_scenario.py --config sim/scenario_example.json --output /tmp/zephyr-s7-scenario-run.json --summary
-python -m demo.demo --host 127.0.0.1 --port 8765
 ```
 
-Open `http://127.0.0.1:8765` in a browser on the same computer. The demo is read-only and serves synthetic fixtures. The generation command writes a temporary fixture and leaves the checked-in files unchanged. A scenario config may add `velocity_mps` to a keep-out sphere for a bounded linear moving constraint; the generated frame snapshots retain each synthetic center for inspection. The canonical artifacts are [`runs/s0-baseline`](runs/s0-baseline), [`runs/s2-physics`](runs/s2-physics), and [`runs/s7-swarm`](runs/s7-swarm). The native and Windows surfaces consume the S7 replay through [`desktop/replay.py`](desktop/replay.py) and the checked-in macOS fixture projection. See [`ROADMAP.md`](ROADMAP.md) for evidence gates.
+A scenario config may add `velocity_mps` to a keep-out sphere for a bounded linear moving constraint; the generated frame snapshots retain each synthetic center for inspection. The canonical artifacts are [`runs/s0-baseline`](runs/s0-baseline), [`runs/s2-physics`](runs/s2-physics), and [`runs/s7-swarm`](runs/s7-swarm). The native and Windows surfaces consume the S7 replay through [`desktop/replay.py`](desktop/replay.py) and the checked-in macOS fixture projection. See [`ROADMAP.md`](ROADMAP.md) for evidence gates.
 
 To inspect a trace or profile in either desktop app, create a portable report
 with `tools/build_evidence_report.py`, then choose **Open evidence report…**
