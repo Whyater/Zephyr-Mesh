@@ -4,6 +4,11 @@ This module is a portable boundary around :class:`sim.swarm.SwarmSimulator`.
 It accepts a small JSON-friendly scenario description and returns a canonical
 document suitable for a local, read-only replay.  The link model is synthetic:
 the result is not a radio, tracker, flight, or safety measurement.
+
+Determinism claim: the same scenario, seed, and environment (Python and NumPy
+versions, recorded in ``provenance``) give identical bytes. Bytes are not
+promised across machines or library versions; compare ``payload_sha256``
+there instead.
 """
 from __future__ import annotations
 
@@ -36,6 +41,7 @@ MAX_AGENT_COUNT = 256
 MAX_STEPS = 10_000
 MAX_KEEP_OUT_SPHERES = 64
 FRAME_TIME_TOLERANCE_S = 1e-9
+_REPO_ROOT = Path(__file__).resolve().parents[1]
 # Keep every integer representable by all contract readers, including
 # JavaScript-style JSON implementations and the Swift decoder.
 JSON_SAFE_INTEGER_MAX = 9_007_199_254_740_991
@@ -275,14 +281,21 @@ def scenario_hash(parameters: Mapping[str, Any]) -> str:
 
 
 def _code_revision() -> str | None:
-    """Return the repository base revision, not a fingerprint of dirty files."""
+    """Return the repository revision, marked when the tree is not clean.
+
+    ``ZEPHYR_CODE_REVISION`` wins when set (the caller vouches for it).
+    Otherwise this is ``git rev-parse HEAD`` plus a suffix: ``-dirty`` when
+    ``git status --porcelain`` lists any change or untracked file, and
+    ``-unchecked`` when the status check itself could not run. A bare hash
+    therefore means the working tree matched that commit.
+    """
     configured = os.environ.get("ZEPHYR_CODE_REVISION")
     if configured and all(char.isalnum() or char in ".-_" for char in configured):
         return configured
     try:
         result = subprocess.run(
             ["git", "rev-parse", "HEAD"],
-            cwd=Path(__file__).resolve().parents[1],
+            cwd=_REPO_ROOT,
             check=False,
             capture_output=True,
             text=True,
@@ -291,7 +304,22 @@ def _code_revision() -> str | None:
     except (OSError, subprocess.SubprocessError):
         return None
     revision = result.stdout.strip()
-    return revision if result.returncode == 0 and revision else None
+    if result.returncode != 0 or not revision:
+        return None
+    try:
+        status = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=_REPO_ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return revision + "-unchecked"
+    if status.returncode != 0:
+        return revision + "-unchecked"
+    return revision + "-dirty" if status.stdout.strip() else revision
 
 
 def run_scenario(raw: Mapping[str, Any], *, code_revision: str | None = None) -> dict[str, Any]:
@@ -409,8 +437,9 @@ def _validate_run_document(document: Mapping[str, Any]) -> None:
 def to_replay_document(document: Mapping[str, Any]) -> dict[str, Any]:
     """Convert a scenario-run envelope to the existing desktop replay contract.
 
-    The converter intentionally returns a new object and strips optional
-    hardware-profile fields that the frozen ``s7_run_schema`` does not carry.
+    The converter intentionally returns a new object. It drops the optional
+    hardware-profile and link-outcome fields, so the replay stays the minimal
+    original contract (``s7_run_schema`` accepts them but does not need them).
     It does not write or mutate ``runs/s7-swarm/run.json``.
     """
     _validate_run_document(document)

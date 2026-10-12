@@ -82,7 +82,11 @@ def test_hover_force_is_invariant_when_at_rest():
     np.testing.assert_allclose(drone.velocity, 0.0, atol=2e-12)
 
 
-def test_falling_body_rk4_converges_at_fourth_order():
+def test_falling_body_rk4_is_exact_for_constant_acceleration():
+    """Constant acceleration makes position a quadratic in time, which RK4
+    reproduces exactly at any step.  Forward Euler would be off by
+    0.5 * g * T * dt (0.49 m at dt 0.1).  This checks exactness, not order;
+    the order is measured by the spin and drag tests below."""
     errors = []
     duration = 1.0
     expected = -0.5 * GRAVITY * duration**2
@@ -92,28 +96,26 @@ def test_falling_body_rk4_converges_at_fourth_order():
     assert max(errors) < 2e-12
 
 
-def test_harmonic_oscillator_fixture_has_fourth_order_convergence():
-    """Independent scalar RK4 fixture, with force evaluated at each stage."""
-    omega = 2.3
-    duration = 1.0
-    exact = np.cos(omega * duration)
+def test_spin_quaternion_matches_closed_form_rotation_at_fourth_order():
+    """Measure the order of the real sim.drone integrator on an exact answer.
 
-    def integrate(dt):
-        x, v = 1.0, 0.0
-        for _ in range(round(duration / dt)):
-            def deriv(state):
-                return np.array([state[1], -(omega * omega) * state[0]])
-            state = np.array([x, v])
-            k1 = deriv(state)
-            k2 = deriv(state + 0.5 * dt * k1)
-            k3 = deriv(state + 0.5 * dt * k2)
-            k4 = deriv(state + dt * k3)
-            x, v = state + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
-        return abs(x - exact)
-
-    errors = [integrate(dt) for dt in (0.2, 0.1, 0.05)]
-    ratios = [errors[i] / errors[i + 1] for i in range(2)]
-    assert ratios[0] > 10.0 and ratios[1] > 10.0
+    A torque-free body spinning at r rad/s about its z axis keeps that spin,
+    and its attitude quaternion is exactly [cos(r t / 2), 0, 0, sin(r t / 2)].
+    The quaternion equation is a harmonic oscillator with frequency r / 2, so
+    r = 4.6 rad/s matches the old 2.3 rad/s oscillator fixture.  For a
+    fourth-order method, halving dt divides the error by 2**4 = 16.
+    """
+    rate, duration = 4.6, 1.0
+    exact = np.array([np.cos(rate * duration / 2), 0.0, 0.0, np.sin(rate * duration / 2)])
+    errors = []
+    for dt in (0.2, 0.1, 0.05, 0.025):
+        drone = SixDOFInterceptor(drag_coefficient=0.0)
+        drone.angular_velocity[:] = [0.0, 0.0, rate]
+        run(drone, np.array([0.0, 0.0, drone.mass * GRAVITY]), duration, dt)
+        errors.append(np.linalg.norm(drone.quaternion - exact))
+    ratios = [errors[i] / errors[i + 1] for i in range(3)]
+    # Measured about 15.1, 15.8, 15.9; second order would give about 4.
+    assert all(13.0 < ratio < 19.0 for ratio in ratios), ratios
 
 
 def test_rotation_matrix_matches_independent_quaternion_reference():
@@ -165,7 +167,7 @@ def test_quaternion_remains_normalized_under_torque():
     assert np.isclose(np.linalg.norm(drone.quaternion), 1.0, atol=2e-15)
 
 
-def test_quadratic_drag_timestep_error_decreases_at_fourth_order_reference():
+def test_quadratic_drag_timestep_error_shows_fourth_order_ratio():
     mass, speed0, duration = 0.45, 8.0, 0.8
     coefficient = 0.5 * 1.225 * 1.3 * 0.05 / mass
     exact = speed0 / (1.0 + coefficient * speed0 * duration)
@@ -175,8 +177,10 @@ def test_quadratic_drag_timestep_error_decreases_at_fourth_order_reference():
         drone.velocity[0] = speed0
         run(drone, np.array([0.0, 0.0, mass * GRAVITY]), duration, dt)
         errors.append(abs(drone.velocity[0] - exact))
-    assert errors[1] < errors[0] / 8.0
-    assert errors[2] < errors[1] / 8.0
+    # Closed form v0 / (1 + k v0 t).  Fourth order means a ratio near 16 per
+    # halving (measured 15.9 and 16.0); third order would give 8.
+    ratios = [errors[0] / errors[1], errors[1] / errors[2]]
+    assert all(13.0 < ratio < 19.0 for ratio in ratios), ratios
 
 
 def test_quadratic_drag_with_wind_preserves_fourth_order_convergence():
@@ -194,3 +198,172 @@ def test_quadratic_drag_with_wind_preserves_fourth_order_convergence():
         errors.append(np.linalg.norm(drone.velocity[[0]] - expected_speed) + abs(drone.position[0] - expected_distance))
     assert errors[1] < errors[0] / 8.0
     assert errors[2] < errors[1] / 8.0
+
+
+# ---------------------------------------------------------------------------
+# Closed-loop controller checks (controller + RK4 body at the S0 dt).
+# ---------------------------------------------------------------------------
+from sim.controller import GeometricFlightController
+
+
+def _yawed_drone(yaw_rad, **kwargs):
+    drone = SixDOFInterceptor(**kwargs)
+    # Unit quaternion for a rotation of yaw_rad about the vertical axis.
+    drone.quaternion[:] = [np.cos(yaw_rad / 2), 0.0, 0.0, np.sin(yaw_rad / 2)]
+    return drone
+
+
+def _fly(drone, target, duration, dt):
+    controller = GeometricFlightController()
+    for _ in range(round(duration / dt)):
+        force, torque = controller.update_control(drone, target, dt)
+        drone.step_physics(force, torque, dt)
+    return drone
+
+
+@pytest.mark.parametrize("yaw_rad", [0.0, np.pi / 4, np.pi / 2, np.pi])
+@pytest.mark.parametrize("target", [(0.2, 0.0, 3.0), (2.0, 0.0, 2.0), (0.0, 2.0, 2.0), (-1.5, 1.0, 2.5)])
+def test_lateral_step_converges_at_s0_dt_for_any_initial_yaw(target, yaw_rad):
+    """Hand-justified convergence bound for a lateral step at dt = 0.01 s.
+
+    Linearised outer loop per axis: x'' = -Kp x_err - Kd v.  Horizontal axes
+    use Kp = 2, Kd = 1.5, so the natural frequency is sqrt(2) = 1.41 rad/s and
+    the damping ratio is 1.5 / (2 * 1.41) = 0.53.  The error envelope is
+    step * exp(-0.53 * 1.41 * t) / sqrt(1 - 0.53**2) = 2.36 * exp(-0.75 t) m
+    for the largest 2 m step, which is 0.0013 m at t = 10 s.  The vertical
+    axis (Kp = 3, Kd = 2) decays faster.  The attitude loop adds a short lag,
+    so the test allows 0.05 m and 0.05 m/s, about 40 times the envelope.
+    Yaw pi is the case where body and ground axes are most opposed.
+    """
+    drone = _fly(_yawed_drone(yaw_rad), np.array(target), duration=10.0, dt=0.01)
+    assert np.linalg.norm(drone.position - np.array(target)) < 0.05
+    assert np.linalg.norm(drone.velocity) < 0.05
+
+
+def test_yaw_rate_damping_matches_sampled_hold_prediction_at_s0_dt():
+    """Discrete-time check of the zero-order-hold rate loop.
+
+    With the drone level and at its target, the only torque is yaw-rate
+    damping tau_z = -Kd_z * r, held constant over each step.  A constant
+    torque makes r change linearly inside the step, which RK4 integrates
+    exactly, so r_next = r * (1 - b * dt) with b = Kd_z / I_z.  The loop
+    decays only if |1 - b * dt| < 1, which means b * dt < 2.  This test
+    measures the per-step factor from the simulator and checks it against
+    that rule; it does not read the gains it is checking.
+    """
+    dt = 0.01
+    drone = SixDOFInterceptor(drag_coefficient=0.0)
+    drone.angular_velocity[:] = [0.0, 0.0, 1.0]
+    controller = GeometricFlightController()
+    rates = [drone.angular_velocity[2]]
+    for _ in range(20):
+        force, torque = controller.update_control(drone, drone.position.copy(), dt)
+        drone.step_physics(force, torque, dt)
+        rates.append(drone.angular_velocity[2])
+    factors = np.array(rates[1:]) / np.array(rates[:-1])
+    # One constant factor per step, as the hold-plus-RK4 argument predicts.
+    np.testing.assert_allclose(factors, factors[0], rtol=1e-9)
+    # Stability rule |1 - b dt| < 1, with margin: the rate must shrink each step
+    # without flipping sign (factor between 0 and 1).
+    assert 0.0 < factors[0] < 1.0
+    assert abs(rates[-1]) < 0.1
+
+
+def test_profile_vehicle_inertia_matches_hand_estimate_for_78_g_profile():
+    """Hand estimate for the 78 g default profile (arm d = 0.10 m).
+
+    This checks the stated model: motor point masses plus a frame plate, with
+    d taken as the axis-projected arm (motors at +-d on both body axes, the
+    convention in HardwareProfile).  It is not the review's cruder estimate,
+    which put the motors at d / sqrt(2) from each axis (about 3e-4 kg m^2).
+
+    Four motor+prop point masses (0.012 kg each) sit at (+-d, +-d), so
+    I_x = I_y = 4 * 0.012 * 0.1**2 = 4.8e-4 kg m^2 and I_z = 9.6e-4 kg m^2.
+    The 0.03 kg frame is treated as a uniform square plate spanning the motor
+    square (side 2d); its moments are integrated numerically here instead of
+    using the closed form, giving about 1.0e-4 (x, y) and 2.0e-4 (z).
+    """
+    from sim.scenarios import default_hardware_profile
+    from sim.vehicle import ActuatedQuadrotor
+
+    profile = default_hardware_profile(0)
+    d = profile.arm_length_m
+    rotor_mass = profile.motor.mass_kg + profile.propeller.mass_kg
+    motors = np.array([[d, d], [d, -d], [-d, -d], [-d, d]])
+    ix = np.sum(rotor_mass * motors[:, 1] ** 2)
+    iy = np.sum(rotor_mass * motors[:, 0] ** 2)
+    iz = np.sum(rotor_mass * (motors[:, 0] ** 2 + motors[:, 1] ** 2))
+    n = 400
+    cells = (np.arange(n) + 0.5) / n * 2 * d - d
+    gx, gy = np.meshgrid(cells, cells)
+    cell_mass = profile.frame_mass_kg / n**2
+    ix += np.sum(cell_mass * gy**2)
+    iy += np.sum(cell_mass * gx**2)
+    iz += np.sum(cell_mass * (gx**2 + gy**2))
+    vehicle = ActuatedQuadrotor(profile)
+    np.testing.assert_allclose([vehicle.drone.I_x, vehicle.drone.I_y, vehicle.drone.I_z], [ix, iy, iz], rtol=1e-4)
+    # Order-of-magnitude anchor: about 5.8e-4, far below the 450 g frame value.
+    assert 5.0e-4 < vehicle.drone.I_x < 7.0e-4
+
+
+@pytest.mark.parametrize("yaw_rad", [0.0, np.pi / 2, np.pi, -2.0])
+def test_tilt_torque_points_the_right_way_in_the_ground_frame(yaw_rad):
+    """A target straight ahead in +x needs the roof tipped toward +x.
+
+    Tipping the body z axis toward +x is a rotation about the ground +y axis
+    (right-hand rule).  The controller returns a body-frame torque, so mapping
+    it back with the body-to-ground rotation must give a mostly +y vector, for
+    any starting yaw.  At yaw pi the body y axis points along ground -y, which
+    is exactly where an unrotated (ground-frame) tilt error has the wrong sign.
+    """
+    drone = _yawed_drone(yaw_rad, drag_coefficient=0.0)
+    _, torque_body = GeometricFlightController().update_control(drone, [1.0, 0.0, 0.0], 0.01)
+    qw, qx, qy, qz = drone.quaternion
+    rotation = np.array([
+        [1 - 2 * (qy**2 + qz**2), 2 * (qx*qy - qw*qz), 2 * (qx*qz + qw*qy)],
+        [2 * (qx*qy + qw*qz), 1 - 2 * (qx**2 + qz**2), 2 * (qy*qz - qw*qx)],
+        [2 * (qx*qz - qw*qy), 2 * (qy*qz + qw*qx), 1 - 2 * (qx**2 + qy**2)],
+    ])
+    torque_ground = rotation @ torque_body
+    assert torque_ground[1] > 0.0
+    assert abs(torque_ground[0]) < 1e-9 * abs(torque_ground[1]) + 1e-15
+
+
+def test_s2_convergence_artifact_regenerates_from_real_integrator():
+    """runs/s2-physics/convergence.json must come from tools/make_s2_convergence.py.
+
+    The script integrates sim.drone itself.  As a control, the same system is
+    stepped here with forward Euler (one slope per step, written separately
+    below): its error ratio per halving is about 2, so a ratio near 16 really
+    does identify fourth order rather than any convergent method.
+    """
+    from pathlib import Path
+    from tools import make_s2_convergence as gen
+
+    committed = json.loads((Path(__file__).parents[1] / "runs" / "s2-physics" / "convergence.json").read_text())
+    fresh = gen.build_convergence()
+    assert committed["fixture"].startswith("sim.drone.SixDOFInterceptor")
+    assert [row["dt_s"] for row in committed["results"]] == [row["dt_s"] for row in fresh["results"]]
+    np.testing.assert_allclose(
+        [row["absolute_error"] for row in committed["results"]],
+        [row["absolute_error"] for row in fresh["results"]],
+        rtol=1e-6,
+    )
+    ratios = [row["error_ratio_to_next"] for row in fresh["results"][:-1]]
+    assert all(14.0 < ratio < 18.0 for ratio in ratios), ratios
+
+    def euler_final(dt):
+        drone = gen._initial_drone()
+        force, torque = np.asarray(gen.BODY_FORCE_N), np.asarray(gen.BODY_TORQUE_NM)
+        for _ in range(round(gen.DURATION_S / dt)):
+            state = drone._state_vector()
+            state = state + dt * np.concatenate(drone.compute_derivatives(force, torque, state=state))
+            drone.position, drone.velocity = state[0:3], state[3:6]
+            drone.quaternion = state[6:10] / np.linalg.norm(state[6:10])
+            drone.angular_velocity = state[10:13]
+        return drone._state_vector()
+
+    reference = gen.final_state(gen.STEPS_S[-1] / gen.REFERENCE_DIVISOR)
+    euler_errors = [np.linalg.norm(euler_final(dt) - reference) for dt in gen.STEPS_S[:3]]
+    euler_ratios = [euler_errors[i] / euler_errors[i + 1] for i in range(2)]
+    assert all(1.6 < ratio < 2.6 for ratio in euler_ratios), euler_ratios

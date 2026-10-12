@@ -39,8 +39,8 @@ def _release_fixture(*, digest: str | None = None, archive: bytes = b"") -> tupl
         "name": "Zephyr Mesh 0.2.0",
         "html_url": "https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.0",
         "assets": [{
-            "name": "ZephyrMesh-windows-x86_64.zip",
-            "browser_download_url": "https://example.invalid/ZephyrMesh-windows-x86_64.zip",
+            "name": "ZephyrMesh-windows-x86_64-v0.2.0.zip",
+            "browser_download_url": "https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.0/ZephyrMesh-windows-x86_64-v0.2.0.zip",
             "digest": "sha256:" + digest,
         }],
     }
@@ -56,7 +56,7 @@ def test_release_client_selects_platform_asset_and_reports_update():
         return _Response(archive)
 
     client = GitHubReleaseClient(opener=opener)
-    info, asset, newer = client.check("v0.1.0", platform="windows")
+    info, asset, newer = client.check("v0.1.0", platform="windows-x86_64")
     assert info.tag == "v0.2.0"
     assert asset.name.startswith("ZephyrMesh-windows")
     assert newer is True
@@ -65,13 +65,13 @@ def test_release_client_selects_platform_asset_and_reports_update():
 def test_release_client_prefers_runtime_architecture_asset():
     release, _archive = _release_fixture()
     release["assets"].append({
-        "name": "ZephyrMesh-windows-arm64.zip",
-        "browser_download_url": "https://example.invalid/arm.zip",
+        "name": "ZephyrMesh-windows-arm64-v0.2.0.zip",
+        "browser_download_url": "https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.0/ZephyrMesh-windows-arm64-v0.2.0.zip",
         "digest": "sha256:" + "1" * 64,
     })
     from tools.release_updater import ReleaseInfo
     selected = GitHubReleaseClient().select_asset(ReleaseInfo.from_json(release), platform="windows-arm64")
-    assert selected.name.endswith("arm64.zip")
+    assert selected.name == "ZephyrMesh-windows-arm64-v0.2.0.zip"
 
 
 def test_release_client_rejects_mismatched_architecture_asset():
@@ -209,3 +209,82 @@ def test_offline_manifest_refuses_nonempty_staging_directory(tmp_path):
     with pytest.raises(ReleaseUpdateError, match="new or empty"):
         stage_asset(source, manifest, platform_name="windows-x86_64", staging_dir=staging)
     assert (staging / "keep.txt").read_text(encoding="utf-8") == "do not delete"
+
+
+# ---------------------------------------------------------------------------
+# Shared cross-language cases. ReleaseUpdaterTests.swift reads the same file, so
+# the Python and Swift updaters cannot quietly disagree again.
+# ---------------------------------------------------------------------------
+CASES = json.loads((Path(__file__).parents[1] / "macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/updater-cases.json").read_text(encoding="utf-8"))
+
+
+def _sign(a: str, b: str) -> str:
+    from tools.release_updater import version_key
+    left, right = version_key(a), version_key(b)
+    return "greater" if left > right else "less" if left < right else "equal"
+
+
+@pytest.mark.parametrize("case", CASES["ordering"]["compare"], ids=lambda case: f"{case['a']}-vs-{case['b']}")
+def test_version_ordering_matches_shared_cases(case):
+    assert _sign(case["a"], case["b"]) == case["expect"]
+
+
+@pytest.mark.parametrize("value", CASES["ordering"]["invalid"], ids=repr)
+def test_unparseable_versions_are_rejected_not_guessed(value):
+    from tools.release_updater import version_key
+    with pytest.raises(UpdateError):
+        version_key(value)
+
+
+def test_check_reports_pre_release_current_version_as_older(monkeypatch):
+    release, archive = _release_fixture()
+    release["tag_name"] = "v0.3.0"
+    client = GitHubReleaseClient(opener=lambda request, timeout: _Response(json.dumps(release).encode()))
+    release["assets"][0]["name"] = "ZephyrMesh-windows-x86_64-v0.3.0.zip"
+    _, _, newer = client.check("0.3.0-rc1", platform="windows-x86_64")
+    assert newer is True
+    _, _, newer = client.check("0.3.0", platform="windows-x86_64")
+    assert newer is False
+
+
+@pytest.mark.parametrize("case", CASES["select"], ids=lambda case: case["name"])
+def test_asset_selection_matches_shared_cases(case):
+    from tools.release_updater import ReleaseInfo
+    base = "https://github.com/Whyater/Zephyr-Mesh/releases/download/" + case["tag"] + "/"
+    release = ReleaseInfo.from_json({
+        "tag_name": case["tag"], "name": case["tag"], "html_url": "https://github.com/Whyater/Zephyr-Mesh/releases",
+        "assets": [{"name": name, "browser_download_url": base + name, "digest": "sha256:" + "a" * 64} for name in case["assets"]],
+    })
+    client = GitHubReleaseClient()
+    if case["expect"] is None:
+        with pytest.raises(UpdateError):
+            client.select_asset(release, platform=case["platform"])
+    else:
+        assert client.select_asset(release, platform=case["platform"]).name == case["expect"]
+
+
+@pytest.mark.parametrize("url", CASES["download_urls"]["allowed"])
+def test_official_release_download_urls_are_allowed(url):
+    from tools.release_updater import is_official_download_url
+    assert is_official_download_url(url, CASES["download_urls"]["repository"])
+
+
+@pytest.mark.parametrize("url", CASES["download_urls"]["rejected"], ids=repr)
+def test_other_hosts_repos_and_odd_urls_are_rejected(url):
+    from tools.release_updater import is_official_download_url
+    assert not is_official_download_url(url, CASES["download_urls"]["repository"])
+
+
+def test_download_refuses_a_foreign_url_before_any_request(tmp_path):
+    from tools.release_updater import ReleaseAsset
+    calls = []
+
+    def opener(request, timeout):
+        calls.append(request.full_url)
+        return _Response(b"never fetched")
+
+    asset = ReleaseAsset(name="ZephyrMesh-windows-x86_64-v0.2.0.zip", url="https://example.invalid/x.zip", digest="sha256:" + "a" * 64)
+    with pytest.raises(UpdateError, match="official release"):
+        GitHubReleaseClient(opener=opener).download_and_stage(asset, staging_parent=tmp_path)
+    assert calls == []
+    assert list(tmp_path.iterdir()) == []

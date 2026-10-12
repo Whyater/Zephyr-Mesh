@@ -20,9 +20,11 @@ def test_s7_summary_reports_observed_contract_without_performance_claims():
     assert summary["run"]["frame_count"] == 6
     assert summary["run"]["agent_count"] == 50
     assert summary["link_events"]["attempted"] == 15000
-    assert summary["link_events"]["received"] == 14583
-    assert summary["link_events"]["lost"] == 417
-    assert summary["estimation"]["fused_target_present"] == 198
+    # Regression pins for the retained run (separate loss and delay RNG streams).
+    # Plausibility: expected loss 300 x 0.08 + 14700 x 0.03 = 465, std about 21; 479 is within one std.
+    assert summary["link_events"]["received"] == 14521
+    assert summary["link_events"]["lost"] == 479
+    assert summary["estimation"]["fused_target_present"] == 196
     assert "not" in summary["evidence_boundary"]
 
 

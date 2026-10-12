@@ -1,33 +1,76 @@
 {
-  "schema": "zephyr-s2-convergence-1",
-  "fixture": "x_ddot_plus_omega2_x=0",
-  "omega_rad_s": 2.3,
+  "schema": "zephyr-s2-convergence-2",
+  "fixture": "sim.drone.SixDOFInterceptor full 13-state rigid body, RK4 fixed step vs finer RK4 reference",
+  "generator": "tools/make_s2_convergence.py",
   "duration_s": 1.0,
-  "exact_final_position": -0.6662760212798241,
+  "reference_dt_s": 0.00025,
+  "error_metric": "Euclidean norm of the final 13-state difference from the reference",
+  "inputs": {
+    "mass_kg": 0.45,
+    "inertia_kg_m2": [
+      0.0023,
+      0.0023,
+      0.004
+    ],
+    "drag_coefficient": 1.3,
+    "cross_sectional_area_m2": 0.05,
+    "wind_velocity_mps": [
+      1.0,
+      0.5,
+      0.0
+    ],
+    "initial_position_m": [
+      0.0,
+      0.0,
+      1.0
+    ],
+    "initial_velocity_mps": [
+      3.0,
+      -1.0,
+      2.0
+    ],
+    "initial_tilt_axis": [
+      1.0,
+      2.0,
+      3.0
+    ],
+    "initial_tilt_rad": 0.4,
+    "initial_body_rate_rad_s": [
+      0.4,
+      -0.3,
+      0.8
+    ],
+    "body_force_n": [
+      0.0,
+      0.0,
+      4.855950000000001
+    ],
+    "body_torque_nm": [
+      0.002,
+      -0.001,
+      0.0005
+    ]
+  },
   "results": [
     {
-      "dt_s": 0.2,
-      "final_position": -0.6654703507463396,
-      "absolute_error": 0.0008056705334844594,
-      "error_ratio_to_next": 17.49614480453494
-    },
-    {
       "dt_s": 0.1,
-      "final_position": -0.6662299728192926,
-      "absolute_error": 4.604846053146705e-05,
-      "error_ratio_to_next": 17.044265621967828
+      "absolute_error": 1.3070934493402465e-05,
+      "error_ratio_to_next": 16.093288103852828
     },
     {
       "dt_s": 0.05,
-      "final_position": -0.6662733195816957,
-      "absolute_error": 2.7016981284377906e-06,
-      "error_ratio_to_next": 16.601395702917785
+      "absolute_error": 8.121978808217077e-07,
+      "error_ratio_to_next": 16.02944386407359
     },
     {
       "dt_s": 0.025,
-      "final_position": -0.6662758585406077,
-      "absolute_error": 1.627392164360586e-07
+      "absolute_error": 5.0669124126138123e-08,
+      "error_ratio_to_next": 16.01031454397462
+    },
+    {
+      "dt_s": 0.0125,
+      "absolute_error": 3.1647800539438577e-09
     }
   ],
-  "interpretation": "Ratios are observed fixture error ratios only; they are not flight-performance measurements."
+  "interpretation": "A ratio near 16 per halving of dt is the signature of a fourth-order integrator. These are numerical integration errors of a synthetic model, not flight-performance measurements."
 }

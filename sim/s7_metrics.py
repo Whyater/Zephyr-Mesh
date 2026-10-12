@@ -2,21 +2,12 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from math import floor, fsum, isfinite
+from math import fsum, isfinite
 from typing import Any, Mapping
 
+from .stats import quantile as _quantile
+
 SUMMARY_SCHEMA = "zephyr-s7-swarm-summary-1"
-
-
-def _quantile(values: list[float], probability: float) -> float | None:
-    if not values:
-        return None
-    ordered = sorted(values)
-    position = (len(ordered) - 1) * probability
-    lower = floor(position)
-    upper = min(lower + 1, len(ordered) - 1)
-    fraction = position - lower
-    return (1.0 - fraction) * ordered[lower] + fraction * ordered[upper]
 
 
 def _distribution(values: list[float], unit: str) -> dict[str, Any]:

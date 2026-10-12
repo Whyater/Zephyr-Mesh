@@ -22,6 +22,10 @@ class LinkConfig:
     CSMA/CA, airtime, or radio backoff.
     """
 
+    # delay_s is the mean one-way delay and delay_jitter_s is the standard
+    # deviation of the delay.  With jitter, delay is lognormal (always above
+    # zero, right-skewed), so the realized mean and spread match these two
+    # numbers.  See SimulatedLink._sample_delay.
     delay_s: float = 0.0
     delay_jitter_s: float = 0.0
     loss_model: str = "independent"  # independent, burst, or none
@@ -82,7 +86,12 @@ class SimulatedLink:
 
     def __init__(self, config: LinkConfig | None = None, *, seed: int | None = None):
         self.config = config or LinkConfig()
-        self.rng = np.random.default_rng(seed)
+        # Loss and delay draw from separate streams spawned from one seed, so
+        # changing the jitter setting cannot change which packets are lost,
+        # and changing the loss setting cannot change any packet's delay.
+        loss_seq, delay_seq = np.random.SeedSequence(seed).spawn(2)
+        self.loss_rng = np.random.default_rng(loss_seq)
+        self.delay_rng = np.random.default_rng(delay_seq)
         self.events: list[PacketEvent] = []
         self._pending: list[PacketEvent] = []
         self._seen: dict[tuple[str, str], set[int]] = {}
@@ -96,22 +105,34 @@ class SimulatedLink:
         if c.loss_model == "none":
             return None
         if c.loss_model == "independent":
-            return "independent_loss" if self.rng.random() < c.loss_probability else None
-        if not self._burst_active and self.rng.random() < c.burst_start_probability:
+            return "independent_loss" if self.loss_rng.random() < c.loss_probability else None
+        if not self._burst_active and self.loss_rng.random() < c.burst_start_probability:
             self._burst_active = True
         if self._burst_active:
             reason = "burst_loss"
-            if self.rng.random() < c.burst_end_probability:
+            if self.loss_rng.random() < c.burst_end_probability:
                 self._burst_active = False
             return reason
         return None
 
     def _sample_delay(self) -> float:
+        """Draw one one-way delay in seconds.
+
+        ``delay_s`` is the mean and ``delay_jitter_s`` the standard deviation.
+        A Normal(mean, std) clipped at zero would pile packets up at exactly
+        0 s and push the realized mean above the configured one (for mean
+        0.01 s, std 0.02 s the clipped mean is 0.0140 s, not 0.010 s).  A
+        lognormal has no negative values and a right-skewed tail, and its
+        two parameters can be solved so the mean and std come out exact:
+        sigma^2 = ln(1 + std^2 / mean^2), mu = ln(mean) - sigma^2 / 2.
+        This is a modelling choice, not a measured ESP-NOW latency law.
+        """
         c = self.config
-        delay = c.delay_s
-        if c.delay_jitter_s:
-            delay += float(self.rng.normal(0.0, c.delay_jitter_s))
-        return max(0.0, delay)
+        if not c.delay_jitter_s:
+            return c.delay_s
+        sigma2 = float(np.log1p((c.delay_jitter_s / c.delay_s) ** 2))
+        mu = float(np.log(c.delay_s)) - sigma2 / 2.0
+        return float(self.delay_rng.lognormal(mu, np.sqrt(sigma2)))
 
     def send(self, sender: str, receiver: str, seq: int, send_time: float,
              payload: Any = None) -> PacketEvent:
@@ -119,6 +140,12 @@ class SimulatedLink:
 
         Payload is accepted for caller convenience but deliberately not copied
         into the event log. The link models timing and identity, not contents.
+
+        ``seq`` must not wrap within a route: duplicate and out-of-order flags
+        identify a packet by ``(sender, receiver, seq)``.  A uint8 or uint16
+        counter that repeats values will be flagged as duplicates.  Unwrap the
+        counter before calling this method (for example, keep a per-session
+        count that only increases).
         """
         del payload
         if not isinstance(sender, str) or not isinstance(receiver, str) or not sender or not receiver:
@@ -139,7 +166,10 @@ class SimulatedLink:
             raise ValueError("send_time must be nondecreasing per sender/receiver route")
         self._last_send_time[route] = actual_send
         reason = self._loss_reason()
-        receive_time = None if reason else actual_send + self._sample_delay()
+        # The delay is drawn even for a lost packet so the delay stream stays
+        # aligned with packet index whatever the loss setting is.
+        delay = self._sample_delay()
+        receive_time = None if reason else actual_send + delay
         event = PacketEvent(sender, receiver, int(seq), actual_send, receive_time,
                             loss_reason=reason,
                             packet_age_s=None if receive_time is None else receive_time - actual_send,
@@ -179,6 +209,13 @@ def replay_trace(trace: Any) -> list[PacketEvent]:
     This function only derives duplicate and out-of-order flags when the raw
     capture did not provide them. It intentionally does not estimate missing
     packets, interpolate clocks, or turn RSSI into distance.
+
+    Derived flags identify a packet by ``(sender, receiver, session, seq)``, so
+    a sequence counter that wraps (for example uint8, every 256 packets) is
+    misread as duplicates.  The schema has no field that says how wide the
+    counter is, so replay cannot unwrap it.  A capture tool with a narrow
+    counter must supply the explicit ``duplicate`` and ``out_of_order`` flags,
+    or write an unwrapped ``seq``; those override the derived values.
     """
 
     from .trace import EspNowTrace

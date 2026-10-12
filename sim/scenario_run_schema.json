@@ -784,7 +784,7 @@
             "string",
             "null"
           ],
-          "description": "Repository base revision reported by git or the configured environment. It does not fingerprint uncommitted working-tree edits."
+          "description": "Repository revision reported by git or the configured environment. A git-derived value ends in -dirty when the working tree had changes and -unchecked when that check could not run. It is not a fingerprint of the edits."
         },
         "generator": {
           "const": "sim.scenario_runner"

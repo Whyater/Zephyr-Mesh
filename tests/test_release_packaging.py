@@ -79,3 +79,43 @@ def test_manifest_rejects_windows_asset_version_mismatch(tmp_path: Path):
 def test_platform_name_maps_common_runner_architectures():
     assert platform_name("macos", "arm64") == "macos-arm64"
     assert platform_name("windows", "AMD64") == "windows-x86_64"
+
+
+def _workflow_text() -> str:
+    from pathlib import Path
+    return (Path(__file__).parents[1] / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+
+
+def _run_script_lines(text: str) -> list[str]:
+    """Every line that the shell will see (inline `run:` or the indented block under `run: |`)."""
+    lines, collected, block_indent = text.splitlines(), [], None
+    for line in lines:
+        indent = len(line) - len(line.lstrip())
+        if block_indent is not None:
+            if line.strip() and indent <= block_indent:
+                block_indent = None
+            else:
+                collected.append(line)
+                continue
+        stripped = line.strip().removeprefix("- ")
+        if stripped.startswith("run:"):
+            rest = stripped[4:].strip()
+            if rest in {"|", ">", "|-", ">-"}:
+                block_indent = indent
+            else:
+                collected.append(rest)
+    return collected
+
+
+def test_workflow_never_pastes_github_expressions_into_shell_scripts():
+    offenders = [line.strip() for line in _run_script_lines(_workflow_text()) if "${{" in line]
+    assert offenders == [], "pass values through env: so the shell never parses them: " + "; ".join(offenders)
+
+
+def test_only_the_publish_job_can_write_repository_contents():
+    text = _workflow_text()
+    assert text.count("contents: write") == 1
+    header, _, publish = text.partition("\n  publish:\n")
+    assert "contents: write" in publish
+    top_level = header.split("\njobs:\n", 1)[0]
+    assert "contents: read" in top_level and "write" not in top_level

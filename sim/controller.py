@@ -1,5 +1,8 @@
 import numpy as np
 
+from sim.environment import GRAVITY
+
+
 class GeometricFlightController:
     def __init__(self):
         """
@@ -10,9 +13,22 @@ class GeometricFlightController:
         self.K_p_pos = np.array([2.0, 2.0, 3.0])  # X, Y, Z responsiveness
         self.K_d_pos = np.array([1.5, 1.5, 2.0])  # X, Y, Z dampening
 
-        # Inner Loop: Attitude Gains (Translating orientation error to torque)
-        self.K_p_att = np.array([12.0, 12.0, 4.0]) # Roll, Pitch, Yaw responsiveness
-        self.K_d_att = np.array([2.5, 2.5, 1.0])   # Roll, Pitch, Yaw dampening
+        # Inner Loop: Attitude Gains, written per unit of moment of inertia.
+        # The torque on each body axis is I * (K_p_att * tilt - K_d_att * rate),
+        # so the same law gives the same angular response for a heavy or a
+        # light frame.  Natural frequency 10 rad/s and damping ratio 0.9 give
+        # K_p_att = 10**2 = 100 per s^2 and K_d_att = 2 * 0.9 * 10 = 18 per s.
+        # The controller is sampled: torque is held constant for a whole step
+        # (zero-order hold).  The rate term then multiplies the spin rate by
+        # (1 - K_d_att * dt) each step, so the loop only settles if
+        # K_d_att * dt < 2, which is dt < 0.11 s here.  The old fixed gains
+        # (2.5 N m s on I = 0.0023 kg m^2, so 1087 per s) needed dt < 0.0018 s
+        # and diverged at the 0.01 s baseline step for any sideways command.
+        # The yaw entry of K_p_att has no effect: the body-frame tilt error is
+        # always perpendicular to body z, so its yaw part is exactly zero.  Yaw
+        # is rate damping only (there is no heading setpoint).
+        self.K_p_att = np.array([100.0, 100.0, 100.0])  # Roll, Pitch, Yaw (per s^2)
+        self.K_d_att = np.array([18.0, 18.0, 18.0])     # Roll, Pitch, Yaw (per s)
 
     def update_control(self, drone, target_position, dt):
         """
@@ -22,6 +38,10 @@ class GeometricFlightController:
         dt = float(dt)
         if not np.isfinite(dt) or dt <= 0:
             raise ValueError("dt must be positive and finite")
+        # Necessary condition for the sampled rate loop to settle (see __init__).
+        dt_limit = 2.0 / float(np.max(self.K_d_att))
+        if dt >= dt_limit:
+            raise ValueError(f"dt {dt} s is at or above the sampled attitude-loop limit {dt_limit:.4f} s")
         target_position = np.asarray(target_position, dtype=float)
         if target_position.shape != (3,) or not np.all(np.isfinite(target_position)):
             raise ValueError("target_position must be a finite length-3 vector")
@@ -41,7 +61,7 @@ class GeometricFlightController:
         desired_accel = (self.K_p_pos * position_error) + (self.K_d_pos * velocity_error)
 
         # Total inertial force needed (Mass * Accel + Counteracting Gravity)
-        gravity_compensation = np.array([0.0, 0.0, drone.mass * 9.81])
+        gravity_compensation = np.array([0.0, 0.0, drone.mass * GRAVITY])
         desired_force_inertial = (drone.mass * desired_accel) + gravity_compensation
 
         # Prevent the drone from trying to fly upside down by capping minimum vertical force
@@ -71,15 +91,20 @@ class GeometricFlightController:
         # past 90 degrees, command zero thrust and let the attitude loop recover.
         collective_thrust = max(0.0, float(np.dot(desired_force_inertial, current_z_body)))
 
-        # Geometric Tilt Error: Take the cross product of where we are pointing vs where we want to point
-        # This gives us a vector showing the exact axis and magnitude of tilt error instantly
-        tilt_error = np.cross(current_z_body, desired_z_body)
+        # Geometric Tilt Error: the cross product of where we point and where we
+        # want to point gives the rotation axis and size of the tilt error.  Both
+        # vectors are in the ground frame, so the result is too.  Torque is
+        # applied in the body frame, so rotate it into body axes with R.T
+        # (R maps body to ground; its transpose maps ground to body).  Without
+        # this, a drone yawed by 180 degrees tilts the wrong way.
+        tilt_error_body = R.T @ np.cross(current_z_body, desired_z_body)
 
         # Angular rate error (current spin speeds vs desired spin speeds which are 0)
         rate_error = np.array([0.0, 0.0, 0.0]) - drone.angular_velocity
 
-        # Compute required 3D torque vector to rotate the drone body
-        desired_torque = (self.K_p_att * tilt_error) + (self.K_d_att * rate_error)
+        # Required body torque: per-axis inertia times the desired angular acceleration.
+        inertia = np.array([drone.I_x, drone.I_y, drone.I_z])
+        desired_torque = inertia * ((self.K_p_att * tilt_error_body) + (self.K_d_att * rate_error))
 
         # Package outputs for the physics engine
         # Thrust force vector acts strictly upward relative to the drone's own floor [0, 0, Thrust]

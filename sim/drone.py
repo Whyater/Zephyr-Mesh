@@ -8,17 +8,25 @@ from sim.environment import AIR_DENSITY, GRAVITY, calculate_drag, relative_air_v
 class SixDOFInterceptor:
     def __init__(self, init_pos=(0.0, 0.0, 0.0), mass=0.450, *,
                  drag_coefficient=1.3, cross_sectional_area=0.05,
-                 wind_velocity=(0.0, 0.0, 0.0)):
+                 wind_velocity=(0.0, 0.0, 0.0), inertia_kg_m2=(0.0023, 0.0023, 0.0040)):
         """Create a 13-state rigid body using SI units.
 
         ``wind_velocity`` is inertial-frame air velocity in m/s. Drag uses
         relative air velocity ``drone_velocity - wind_velocity``. Coefficients
         are transparent scenario parameters, not measured drone coefficients.
+
+        ``inertia_kg_m2`` is the principal moment of inertia about body x, y
+        and z.  The default is a fixed estimate for a 450 g, 5-inch frame. It
+        is not derived from ``mass``, so pass a matching value when ``mass``
+        describes a different airframe.
         """
         self.mass = float(mass)
         if not np.isfinite(self.mass) or self.mass <= 0:
             raise ValueError("mass must be finite and positive")
-        self.I_x, self.I_y, self.I_z = 0.0023, 0.0023, 0.0040
+        inertia = np.asarray(inertia_kg_m2, dtype=float)
+        if inertia.shape != (3,) or not np.all(np.isfinite(inertia)) or np.any(inertia <= 0):
+            raise ValueError("inertia_kg_m2 must be three finite positive values")
+        self.I_x, self.I_y, self.I_z = (float(value) for value in inertia)
         self.inertia_matrix = np.diag([self.I_x, self.I_y, self.I_z])
         self.inv_inertia = np.linalg.inv(self.inertia_matrix)
         self.drag_coefficient = float(drag_coefficient)

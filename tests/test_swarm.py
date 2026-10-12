@@ -1,7 +1,14 @@
 """Independent checks for the Stage 7 multi-agent coordination fixture."""
 
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
 import numpy as np
 import pytest
+from jsonschema import Draft202012Validator
 
 from sim.link import LinkConfig
 from sim.swarm import AgentSpec, KeepOutSphere, SwarmConfig, SwarmSimulator
@@ -126,3 +133,104 @@ def test_config_rejects_duplicate_ids_and_invalid_geometry():
         SwarmConfig(agents=(AgentSpec("a", (0, 0, 1)),), min_separation_m=-1)
     with pytest.raises(ValueError):
         KeepOutSphere((0, 0, 0), -0.1)
+
+
+# --- Fixture reproducibility (generator versus schema versus retained file) ---
+
+ROOT = Path(__file__).parents[1]
+DOCUMENTED_GENERATION_COMMAND = (
+    "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm"
+)
+
+
+def _regenerate_default_fixture(destination: Path) -> tuple[dict, dict]:
+    """Run the documented generator with its documented defaults."""
+    env = dict(os.environ, PYTHONPATH=str(ROOT))
+    subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "generate_s7_fixture.py"), "--output", str(destination)],
+        cwd=ROOT, env=env, check=True, capture_output=True,
+    )
+    return (
+        json.loads((destination / "run.json").read_text(encoding="utf-8")),
+        json.loads((destination / "manifest.json").read_text(encoding="utf-8")),
+    )
+
+
+@pytest.fixture(scope="module")
+def regenerated_default_fixture(tmp_path_factory):
+    return _regenerate_default_fixture(tmp_path_factory.mktemp("s7-regen"))
+
+
+def test_generator_output_validates_against_the_s7_schema(regenerated_default_fixture):
+    run, _ = regenerated_default_fixture
+    schema = json.loads((ROOT / "sim" / "s7_run_schema.json").read_text(encoding="utf-8"))
+    errors = list(Draft202012Validator(schema).iter_errors(run))
+    assert len(errors) == 0, f"{len(errors)} schema errors, first: {errors[0].message if errors else ''}"
+
+
+def test_retained_s7_run_and_manifest_equal_a_fresh_regeneration(regenerated_default_fixture):
+    run, manifest = regenerated_default_fixture
+    retained_run = json.loads((ROOT / "runs" / "s7-swarm" / "run.json").read_text(encoding="utf-8"))
+    retained_manifest = json.loads((ROOT / "runs" / "s7-swarm" / "manifest.json").read_text(encoding="utf-8"))
+    # The command string embeds the output directory, so it is the only field
+    # allowed to differ. The retained copy must carry the documented command.
+    assert retained_run.pop("generation_command") == DOCUMENTED_GENERATION_COMMAND
+    assert retained_manifest["reproducibility"].pop("command") == DOCUMENTED_GENERATION_COMMAND
+    run.pop("generation_command")
+    manifest["reproducibility"].pop("command")
+    assert run == retained_run
+    assert manifest == retained_manifest
+
+
+# --- provenance validation and fused-target reuse ---
+
+def test_model_provenance_rejects_a_missing_profile_with_value_error():
+    simulator = SwarmSimulator(two_agent_config())
+    # AgentSpec fills in a default profile, so reach past it the way a bad caller could.
+    object.__setattr__(simulator._agents["a"].spec, "hardware_profile", None)
+    with pytest.raises(ValueError, match="hardware profile"):
+        simulator.model_provenance()
+
+
+def test_fused_target_is_computed_once_per_active_agent_per_step(monkeypatch):
+    simulator = SwarmSimulator(two_agent_config())
+    calls = []
+    original = SwarmSimulator._fused_target
+
+    def counting(self, agent):
+        calls.append(agent.spec.agent_id)
+        return original(self, agent)
+
+    monkeypatch.setattr(SwarmSimulator, "_fused_target", counting)
+    simulator.step()
+    assert sorted(calls) == ["a", "b"]
+
+
+# Digest of the run below, computed with sim/swarm.py as it was BEFORE the fused-target
+# cleanup (git show 0595dc3:sim/swarm.py copied over a copy of sim/) together with
+# the current sim/link.py, in the same environment. It is a literal on purpose:
+# a test that recomputed the expected value with the new code would only restate it.
+OLD_SWARM_RUN_SHA256 = "9213e3f5a13f1fb905d0946faac2f8568af83ad6b36ea186cb10ef9e2f536b9d"
+
+
+def test_run_with_jitter_loss_dropout_and_keep_out_matches_pre_cleanup_digest():
+    from dataclasses import replace
+    import hashlib
+
+    from sim.scenarios import make_ring_swarm_config
+
+    config = make_ring_swarm_config(
+        agent_count=8, radius_m=1.0, seed=5,
+        target_link=LinkConfig(delay_s=0.1, delay_jitter_s=0.02, loss_probability=0.3),
+        neighbor_link=LinkConfig(delay_s=0.05, delay_jitter_s=0.01, loss_probability=0.2),
+    )
+    config = replace(
+        config,
+        target_velocity_mps=(0.3, 0.0, 0.0),
+        keep_out_spheres=(KeepOutSphere((0.5, 0.5, 1.5), 0.4, "pole", (0.0, 0.1, 0.0)),),
+    )
+    run = SwarmSimulator(config).run(40, dropout_schedule={10: ["drone-002"]}).as_dict()
+    # The scenario must actually exercise constraints, or the digest proves little.
+    assert any(state["constraint_flags"] for step in run["steps"] for state in step["agents"])
+    digest = hashlib.sha256(json.dumps(run, sort_keys=True).encode("utf-8")).hexdigest()
+    assert digest == OLD_SWARM_RUN_SHA256

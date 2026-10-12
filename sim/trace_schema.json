@@ -37,7 +37,7 @@
           "sender_id": {"type": "string", "minLength": 1},
           "receiver_id": {"type": "string", "minLength": 1},
           "sender_session_id": {"type": "string", "minLength": 1},
-          "seq": {"type": "integer", "minimum": 0},
+          "seq": {"type": "integer", "minimum": 0, "description": "Per-packet counter that must be unwrapped (monotonic, never repeating) within one sender_session_id. A wrapping hardware counter (for example uint8) is misread as duplicates unless the exporter unwraps it or supplies explicit duplicate/out_of_order flags."},
           "send_time_s": {"type": "number", "minimum": 0},
           "outcome": {"enum": ["received", "lost", "unknown"]},
           "receive_time_s": {"type": ["number", "null"], "minimum": 0},

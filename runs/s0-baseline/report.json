@@ -3,8 +3,8 @@
   "status": "retained baseline measurement; source revision is recorded separately; not flight performance",
   "source": {
     "telemetry_source": "runs/s0-baseline/telemetry.csv",
-    "telemetry_sha256": "a0c74fa0e5da12d01cb2577524d120404167c5d683bcd2379119fc6eeff4d8df",
-    "manifest_sha256": "9bd08cccf6b8b4b4df5997d37d5a255446eab1a4f6720603830fc6f6125eadf4",
+    "telemetry_sha256": "66f542dcd128df4e9e695e7dda7668179755ea37a1f746d74e2e8351ccfc7391",
+    "manifest_sha256": "843493b2eddb73258437ac49b72438758a561f25c8a4377a28c156cef0e3b4c0",
     "columns": [
       "time",
       "x",
@@ -24,7 +24,7 @@
   },
   "provenance": {
     "artifact_status": "frozen historical fixture",
-    "source_git_revision": "8e8512a786ca65e51a5d2c452657d65f1e534c8a",
+    "source_git_revision": "0595dc3fc85c327c068b1eb74c3c67bad9a7247d",
     "source_git_tree_state": "dirty",
     "current_worktree_match": "not claimed",
     "python": "3.13.15",
@@ -40,21 +40,21 @@
   },
   "sampling": {
     "time_column": "time",
-    "time_semantics": "S0 pre-step label for the state recorded after that step; no relabeling performed",
+    "time_semantics": "S0 post-step time: each row is the state at the end of its step. sample_count and duration_s describe the 700 logged rows (first row at t = 0.01 s). step_response metrics prepend the configured t = 0 initial state, so step_response.count is 701 samples spanning 0 to 7 s",
     "sample_count": 700,
     "duration_s": 6.99
   },
   "step_response": {
     "goal_m": 3.0,
-    "rise_time_s": 0.28,
-    "overshoot_pct": 8.352685040847744,
-    "settling_time_s": 2.99,
+    "rise_time_s": 0.29,
+    "overshoot_pct": 8.351432154718347,
+    "settling_time_s": 3.0,
     "censored": {
       "rise_time_s": false,
       "overshoot_pct": false,
       "settling_time_s": false
     },
-    "count": 700,
+    "count": 701,
     "definitions": {
       "rise": "first sample at rise_fraction of step amplitude",
       "overshoot": "peak beyond goal divided by step amplitude",
@@ -84,5 +84,14 @@
     "controller_recovery": "No outage and settled-window events in S0 telemetry",
     "miss_distance": "No target trajectory/capture event in S0 telemetry"
   },
-  "known_issues": []
+  "known_issues": [
+    "Sampled-controller limit: attitude rate damping of 18 per second needs dt < 2/18 = 0.111 s (necessary condition; the controller rejects larger steps). Sideways steps are tested to converge at dt 0.01 s for four targets and four starting yaw angles, not at every dt below the limit.",
+    "No heading setpoint: the controller damps yaw rate but does not hold or command a yaw angle.",
+    "No ground plane: the body can descend below z = 0 without contact.",
+    "No integral action: a steady thrust shortfall leaves a small steady position error.",
+    "Default inertia (0.0023, 0.0023, 0.0040 kg m^2) is a fixed estimate for a 450 g 5-inch frame and is not derived from mass. Hardware-profile vehicles use a point-mass plus plate estimate. Neither is measured.",
+    "Drag coefficient, reference area, and controller gains are synthetic scenario inputs, not measured values.",
+    "This artifact only runs the vertical step to (0, 0, 3) m; sideways and yawed cases are covered by tests, not by this run.",
+    "RK4 stages use the attitude quaternion without renormalizing it inside a step (it is renormalized after each step). The effect is small: the measured convergence ratio is still about 16 per halving of dt."
+  ]
 }

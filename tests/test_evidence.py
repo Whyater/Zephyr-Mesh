@@ -118,5 +118,5 @@ def test_swarm_report_retains_route_and_recovery_metrics():
     report = build_evidence_report(ROOT / "runs/s7-swarm/run.json", "swarm")
     assert report["status"] == "synthetic"
     assert report["summary"]["link_events"]["attempted"] == 15000
-    assert report["summary"]["estimation"]["fused_target_present"] == 198
+    assert report["summary"]["estimation"]["fused_target_present"] == 196
     assert report["summary"]["provenance"]["timestamp_basis"].startswith("abstract")

@@ -41,7 +41,9 @@ def run_baseline(config: BaselineConfig = BaselineConfig()) -> dict[str, np.ndar
     target = np.asarray(config.target_position, dtype=float)
     rows = []
     for step in range(steps):
-        time = step * config.dt
+        # Each row holds the state after the step, so label it with the time
+        # at the end of the step.  The initial state at t = 0 is the config.
+        time = (step + 1) * config.dt
         force_body, torque_body = controller.update_control(drone, target, config.dt)
         drone.step_physics(force_body, torque_body, config.dt)
         rows.append((
@@ -57,6 +59,43 @@ def run_baseline(config: BaselineConfig = BaselineConfig()) -> dict[str, np.ndar
         "qw", "qx", "qy", "qz", "p", "q", "r",
     )
     return {name: values[:, index] for index, name in enumerate(names)}
+
+
+# Real, current limits of this baseline and the models it runs.  Keep this list
+# in step with the code; an empty list would claim there are none.
+KNOWN_LIMITS = (
+    "Sampled-controller limit: attitude rate damping of 18 per second needs dt < 2/18 = 0.111 s "
+    "(necessary condition; the controller rejects larger steps). Sideways steps are tested to converge "
+    "at dt 0.01 s for four targets and four starting yaw angles, not at every dt below the limit.",
+    "No heading setpoint: the controller damps yaw rate but does not hold or command a yaw angle.",
+    "No ground plane: the body can descend below z = 0 without contact.",
+    "No integral action: a steady thrust shortfall leaves a small steady position error.",
+    "Default inertia (0.0023, 0.0023, 0.0040 kg m^2) is a fixed estimate for a 450 g 5-inch frame and "
+    "is not derived from mass. Hardware-profile vehicles use a point-mass plus plate estimate. Neither is measured.",
+    "Drag coefficient, reference area, and controller gains are synthetic scenario inputs, not measured values.",
+    "This artifact only runs the vertical step to (0, 0, 3) m; sideways and yawed cases are covered by tests, not by this run.",
+    "RK4 stages use the attitude quaternion without renormalizing it inside a step (it is renormalized after each step). "
+    "The effect is small: the measured convergence ratio is still about 16 per halving of dt.",
+)
+
+
+def _portable(path) -> str:
+    """Return *path* relative to the repository root when it lies inside it.
+
+    Absolute machine paths (home folders, temporary checkouts) are not useful
+    evidence in a shared repository, so paths inside the repo are recorded
+    from its root.  Paths outside the repo are kept as given.
+    """
+    repo = Path(__file__).resolve().parents[1]
+    candidate = Path(os.path.abspath(path))
+    for base in (repo, Path(os.path.abspath(Path(__file__).parents[1]))):
+        for probe in (candidate, candidate.parent.resolve() / candidate.name):
+            try:
+                relative = probe.relative_to(base)
+            except ValueError:
+                continue
+            return relative.as_posix() or "."
+    return str(path)
 
 
 def _git_revision() -> str | None:
@@ -107,11 +146,12 @@ def _repo_revision() -> tuple[str | None, str, dict]:
 def build_manifest(config: BaselineConfig, *, command=None, output_dir=None, telemetry=None) -> dict:
     """Return run metadata needed to reproduce an S0 result."""
     revision, tree_state, git_status = _repo_revision()
-    repo = Path(__file__).resolve().parents[1]
     argv = list(sys.argv)
-    invocation = [sys.executable, *argv]
+    executable = _portable(sys.executable)
+    invocation = [executable, *argv]
     command_text = command or " ".join(shlex.quote(arg) for arg in invocation)
-    replay_command = f"cd {shlex.quote(str(repo))} && {command_text}"
+    cwd = _portable(os.getcwd())
+    replay_command = command_text if cwd == "." else f"cd {shlex.quote(cwd)} && {command_text}"
     target = np.asarray(config.target_position)
     predicted_vz = 3.0 * target[2] * config.dt
     actual_vz = None if telemetry is None else float(telemetry["vz"][0])
@@ -124,12 +164,12 @@ def build_manifest(config: BaselineConfig, *, command=None, output_dir=None, tel
         "schema": "zephyr-s0-baseline-1",
         "config": asdict(config),
         "command": command_text,
-        "executable": sys.executable,
+        "executable": executable,
         "argv": argv,
         "invocation": invocation,
         "replay_command": replay_command,
-        "cwd": os.getcwd(),
-        "output_dir": str(Path(output_dir).resolve()) if output_dir else None,
+        "cwd": cwd,
+        "output_dir": _portable(output_dir) if output_dir else None,
         "python": platform.python_version(),
         "numpy": np.__version__,
         "platform": platform.platform(),
@@ -137,9 +177,10 @@ def build_manifest(config: BaselineConfig, *, command=None, output_dir=None, tel
         "git_tree_state": tree_state,
         "git_status": git_status,
         "random_seed": None,
-        "known_issues": [],
+        "known_issues": list(KNOWN_LIMITS),
         "status": "post-S2 baseline measurement hook; not flight performance",
-        "physics_revision": "S2 true RK4 with quadratic drag",
+        "physics_revision": "S2 true RK4 with quadratic drag; inertia-scaled attitude gains with body-frame tilt error",
+        "time_semantics": "time is the end of the step that produced each row's state; the t = 0 state is config.initial_position at rest",
         "prediction": "Initial vertical acceleration is 9 m/s^2, so vz at the first recorded sample should be 3*target_z*dt.",
         "independent_check": {
             "name": "initial vertical acceleration limiting-case check",
@@ -149,6 +190,12 @@ def build_manifest(config: BaselineConfig, *, command=None, output_dir=None, tel
             "method": "stationary initial state implies zero drag; compare first-step result to a*dt",
             "passed": bool(actual_vz is not None and abs(actual_vz - predicted_vz) <= check_tolerance),
         },
+        "artifact_status": "frozen historical fixture",
+        "provenance_note": (
+            "The recorded revision and tree state describe the run that wrote this file; uncommitted "
+            "changes listed in git_status were present. No match to any later worktree is claimed. "
+            "Paths inside the repository are recorded relative to its root."
+        ),
     }
 
 
@@ -165,7 +212,7 @@ def write_baseline(output_dir: str | Path, config: BaselineConfig = BaselineConf
         writer.writerow(names)
         writer.writerows(zip(*(telemetry[name] for name in names)))
     manifest = build_manifest(config, command=command, output_dir=destination, telemetry=telemetry)
-    manifest["artifacts"] = {"telemetry.csv": {"path": str(csv_path.resolve()), "sha256": _sha256(csv_path)}}
+    manifest["artifacts"] = {"telemetry.csv": {"path": _portable(csv_path), "sha256": _sha256(csv_path)}}
     manifest_path = destination / "manifest.json"
     with manifest_path.open("w") as handle:
         json.dump(manifest, handle, indent=2)

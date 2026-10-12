@@ -13,7 +13,7 @@ from pathlib import Path
 import subprocess
 import time
 
-from tools.release_updater import apply_staged_update
+from tools.release_updater import apply_staged_update, clear_update_result, write_update_result
 
 
 def _pid_is_listed(output: str, pid: int) -> bool:
@@ -49,8 +49,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--install-dir", type=Path, required=True, help="current application directory")
     parser.add_argument("--launch", type=Path, required=True, help="replacement executable")
     args = parser.parse_args(argv)
-    wait_for_process(args.pid)
-    apply_staged_update(args.staged, args.install_dir)
+    try:
+        wait_for_process(args.pid)
+        apply_staged_update(args.staged, args.install_dir)
+    except Exception as exc:
+        # This process has no console and the app has exited, so record the
+        # failure where the app can show it next time. apply_staged_update puts
+        # the old folder back when the move fails, so start that copy again,
+        # except after a timeout, when the old app is still running.
+        write_update_result(f"The last update did not install: {type(exc).__name__}: {exc}")
+        if not isinstance(exc, TimeoutError):
+            try:
+                subprocess.Popen([str(args.launch)], close_fds=True)
+            except OSError:
+                pass
+        return 1
+    clear_update_result()
     subprocess.Popen([str(args.launch)], close_fds=True)
     return 0
 

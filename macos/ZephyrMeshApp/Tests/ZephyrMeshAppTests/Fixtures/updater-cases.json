@@ -1,0 +1,70 @@
+{
+  "comment": "Shared by tests/test_release_updater.py and ReleaseUpdaterTests.swift. Both updaters must agree on every case.",
+  "ordering": {
+    "rule": "Dotted numeric parts compare as numbers with trailing zeros ignored (0.2 equals 0.2.0). A suffix after a hyphen marks a pre-release, which sorts below the same release (0.3.0-rc1 is older than 0.3.0) and above the previous release. Build metadata after a plus sign is ignored.",
+    "compare": [
+      {"a": "v0.2.0", "b": "0.2", "expect": "equal"},
+      {"a": "v0.2.0.0", "b": "v0.2", "expect": "equal"},
+      {"a": "v0.2.1", "b": "v0.2.0", "expect": "greater"},
+      {"a": "v0.2.0", "b": "v0.2.1", "expect": "less"},
+      {"a": "v0.10.0", "b": "v0.9.0", "expect": "greater"},
+      {"a": "v1.0.0", "b": "v0.99.99", "expect": "greater"},
+      {"a": "v0.3.0", "b": "v0.3.0-rc1", "expect": "greater"},
+      {"a": "v0.3.0-rc1", "b": "v0.3.0", "expect": "less"},
+      {"a": "v0.3.0-rc1", "b": "v0.2.9", "expect": "greater"},
+      {"a": "v0.3.0-rc2", "b": "v0.3.0-rc1", "expect": "greater"},
+      {"a": "v0.3.0-rc10", "b": "v0.3.0-rc2", "expect": "greater"},
+      {"a": "v1.0.0+build5", "b": "v1.0.0", "expect": "equal"}
+    ],
+    "invalid": ["", "v", "latest", "release-2", "1..2", "1.a", "v0.2.", "v0.2.0-", "-rc1", "v1234567890.0", "v1.0.0-rc1234567890", "0.2 beta", "v٣.0"]
+  },
+  "select": [
+    {"name": "exact windows asset", "tag": "v0.2.0", "platform": "windows-x86_64",
+     "assets": ["ZephyrMesh-macos-arm64-v0.2.0.zip", "ZephyrMesh-windows-x86_64-v0.2.0.zip"],
+     "expect": "ZephyrMesh-windows-x86_64-v0.2.0.zip"},
+    {"name": "windows arm64 must not match a darwin asset", "tag": "v0.2.0", "platform": "windows-arm64",
+     "assets": ["ZephyrMesh-darwin-arm64-v0.2.0.zip"], "expect": null},
+    {"name": "darwin is not a macos name", "tag": "v0.2.0", "platform": "macos-arm64",
+     "assets": ["ZephyrMesh-darwin-arm64-v0.2.0.zip"], "expect": null},
+    {"name": "macos arm64 picks its own asset", "tag": "v0.2.0", "platform": "macos-arm64",
+     "assets": ["ZephyrMesh-windows-arm64-v0.2.0.zip", "ZephyrMesh-macos-x86_64-v0.2.0.zip", "ZephyrMesh-macos-arm64-v0.2.0.zip"],
+     "expect": "ZephyrMesh-macos-arm64-v0.2.0.zip"},
+    {"name": "wrong architecture only", "tag": "v0.2.0", "platform": "windows-arm64",
+     "assets": ["ZephyrMesh-windows-x86_64-v0.2.0.zip"], "expect": null},
+    {"name": "asset version must match the tag", "tag": "v0.2.0", "platform": "macos-arm64",
+     "assets": ["ZephyrMesh-macos-arm64-v0.1.0.zip"], "expect": null},
+    {"name": "tag without a leading v", "tag": "0.2.0", "platform": "macos-arm64",
+     "assets": ["ZephyrMesh-macos-arm64-v0.2.0.zip"], "expect": "ZephyrMesh-macos-arm64-v0.2.0.zip"},
+    {"name": "checksum sidecar is not an installable asset", "tag": "v0.2.0", "platform": "macos-arm64",
+     "assets": ["ZephyrMesh-macos-arm64-v0.2.0.zip.sha256"], "expect": null},
+    {"name": "names are case sensitive", "tag": "v0.2.0", "platform": "macos-arm64",
+     "assets": ["ZEPHYRMESH-MACOS-ARM64-V0.2.0.ZIP"], "expect": null},
+    {"name": "no universal fallback", "tag": "v0.2.0", "platform": "macos-arm64",
+     "assets": ["ZephyrMesh-macos-universal-v0.2.0.zip"], "expect": null},
+    {"name": "pre-release tag", "tag": "v0.3.0-rc1", "platform": "macos-arm64",
+     "assets": ["ZephyrMesh-macos-arm64-v0.3.0-rc1.zip"], "expect": "ZephyrMesh-macos-arm64-v0.3.0-rc1.zip"}
+  ],
+  "download_urls": {
+    "repository": "Whyater/Zephyr-Mesh",
+    "allowed": [
+      "https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.0/ZephyrMesh-macos-arm64-v0.2.0.zip"
+    ],
+    "rejected": [
+      "http://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.0/a.zip",
+      "https://example.invalid/ZephyrMesh-macos-arm64-v0.2.0.zip",
+      "https://github.com/Evil/Zephyr-Mesh/releases/download/v0.2.0/a.zip",
+      "https://github.com/Whyater/Zephyr-Mesh-evil/releases/download/v0.2.0/a.zip",
+      "https://github.com/Whyater/Zephyr-Mesh/releases/latest/a.zip",
+      "https://github.com/Whyater/Zephyr-Mesh/releases/download/",
+      "https://github.com.evil.example/Whyater/Zephyr-Mesh/releases/download/v0.2.0/a.zip",
+      "https://github.com@evil.example/Whyater/Zephyr-Mesh/releases/download/v0.2.0/a.zip",
+      "https://github.com:/Whyater/Zephyr-Mesh/releases/download/v0.2.0/a.zip",
+      "https://github.com:8443/Whyater/Zephyr-Mesh/releases/download/v0.2.0/a.zip",
+      "https://github.com/Whyater/Zephyr-Mesh/releases/download/../../../Evil/x/releases/download/a.zip",
+      "https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.0/%2e%2e/%2e%2e/a.zip",
+      "https://github.com/whyater/zephyr-mesh/releases/download/v0.2.0/a.zip",
+      "file:///tmp/a.zip",
+      ""
+    ]
+  }
+}

@@ -214,3 +214,16 @@ def test_drone_state_validates_bounds_and_serializes():
     assert state.as_dict()["position"] == [0.0, 0.0, 0.0]
     with pytest.raises(ValueError):
         DroneState(np.zeros(3), np.zeros(3), 101, 0, 0)
+
+
+def test_killed_synthetic_vehicle_is_frozen_in_place_not_falling():
+    # Documents a model limit: the point-mass adapter has no gravity, so the
+    # synthetic motor stop zeroes velocity and the vehicle stays where it was.
+    adapter = SimAdapter("sim-kill", initial_position_m=(0.0, 0.0, 1.0))
+    adapter.connect()
+    adapter.kill()
+    for _ in range(20):  # one second
+        state = adapter.step()
+    assert state.failsafe_state == "killed"
+    assert np.allclose(state.velocity, 0.0)
+    assert state.position[2] == pytest.approx(1.0)  # no fall is modelled

@@ -93,7 +93,7 @@ def test_s4_s5_s6_fixture_endpoints_are_explicitly_synthetic():
         assert sweep["schema"].startswith("zephyr-s6") and "not flight" in sweep["status"]
         assert sweep["rows"] and "criterion" in sweep["rows"][0]
         assert "held_last_p95_error_m" in sweep["rows"][0]
-        assert any(row["target_acceleration_mps2"] == 0.5 for row in sweep["rows"])
+        assert any(row["target_acceleration_mps2"] == 0.15 for row in sweep["rows"])
     finally:
         s.shutdown()
 
@@ -104,8 +104,10 @@ def test_s7_fixture_endpoint_exposes_manifest_and_provenance():
         payload = json.load(request(s, "/api/swarm"))
         assert payload["schema"] == "zephyr-s7-swarm-fixture-1"
         assert payload["status"].startswith("synthetic")
-        assert payload["run"]["scenario_id"] == "s7-ring-50-seed-17"
-        assert payload["manifest"]["agent_count"] == 50
+        from pathlib import Path
+        raw = json.loads((Path(__file__).parents[1] / "runs" / "s7-swarm" / "run.json").read_text(encoding="utf-8"))
+        assert payload["run"]["scenario_id"] == raw["scenario_id"]
+        assert payload["manifest"]["agent_count"] == len(raw["steps"][0]["agents"])
         assert payload["source"]["run_sha256"]
         try: request(s, "/api/swarm?seed=1"); assert False
         except urllib.error.HTTPError as e: assert e.code == 400

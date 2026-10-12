@@ -38,17 +38,26 @@ For a development loop that rebuilds and opens a fresh bundle when SwiftUI or
 fixture files change, run `python3 macos/watch_app.py` from the repository
 root. Stop the watcher with `Ctrl-C`; the release bundle remains ignored.
 
-Alternatively, open `Package.swift` in Xcode and run the `ZephyrMeshApp` scheme. `swift test` runs the release-selector tests for exact architecture, universal fallback, and mismatch rejection. The package has no third-party or network dependency. SceneKit is an Apple platform framework selected for the no-SVG, offline desktop surface documented in the private Decision Log.
+Alternatively, open `Package.swift` in Xcode and run the `ZephyrMeshApp` scheme. `swift test` runs the release-selector tests (exact asset name, no cross-platform matches), the version-ordering and download-URL cases shared with the Python updater, the SHA-256 `verify` checks, and the generated install script in temporary folders (good update, bad signature, hostile paths, symlink, two roots, and a failed final move that must restore the old app). The package has no third-party or network dependency. SceneKit is an Apple platform framework selected for the no-SVG, offline desktop surface documented in the private Decision Log.
 
 The **Update** button and app-menu command query the latest GitHub release.
-When a newer architecture-matched macOS ZIP exists, the app verifies its
-SHA-256 digest and archive entries, checks the bundle signature, starts a
+When a newer architecture-matched macOS ZIP exists (exactly
+`ZephyrMesh-macos-<arch>-v<version>.zip`, downloaded only from
+`https://github.com/Whyater/Zephyr-Mesh/releases/download/`), the app verifies
+its SHA-256 digest and archive entries, checks the bundle signature, starts a
 detached helper, exits, swaps the bundle, retains the previous bundle for
-rollback, and relaunches. `swift run` reports that it has no installable app
-bundle; a Finder-launched `ZephyrMesh.app` is required. The updater code and
-offline staging checks are implemented locally, but the end-to-end install path
-has not run against a published release because GitHub currently has no latest
-release for this repository.
+rollback, and relaunches. If the helper cannot finish, it moves the previous
+bundle back if needed, writes the reason to
+`~/Library/Logs/ZephyrMesh/last-update.txt`, and reopens the old app, which
+shows that message once. `swift run` reports that it has no installable app
+bundle; a Finder-launched `ZephyrMesh.app` is required.
+
+The digest check is an integrity check only, not publisher authentication: it
+shows the file matches what GitHub reported for that release asset, not who
+published it. The bundle signature check accepts an ad hoc signature, which any
+build can carry. The app is not notarized. The install script is tested in
+temporary folders, but the whole path has not yet been run end to end against a
+published release by a person.
 
 ## Evidence boundary
 

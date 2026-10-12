@@ -19,6 +19,7 @@ import shutil
 import stat
 import tempfile
 from typing import Any, Callable, Iterable
+from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 from zipfile import ZipFile, BadZipFile
 
@@ -185,10 +186,38 @@ class StagedUpdate:
     sha256: str
 
 
-def version_key(value: str) -> tuple[int, ...]:
-    """Turn tags such as ``v0.2.1`` into a comparable numeric tuple."""
-    numbers = tuple(int(part) for part in re.findall(r"\d+", value))
-    return numbers or (0,)
+_VERSION_PATTERN = re.compile(r"v?(?P<numbers>[0-9]{1,9}(?:\.[0-9]{1,9})*)(?:-(?P<pre>[0-9A-Za-z.\-]+))?(?:\+[0-9A-Za-z.\-]+)?")
+
+
+def version_key(value: str) -> tuple:
+    """Turn a release tag such as ``v0.2.1`` into an ordered, comparable key.
+
+    Rules (the Swift updater implements the same ones, and both are tested
+    against ``updater-cases.json``):
+
+    * An optional leading ``v``, then dotted numbers. They compare as numbers
+      and trailing zeros are ignored, so ``0.2`` equals ``v0.2.0``.
+    * A suffix after a hyphen marks a pre-release. It sorts below the same
+      release (``0.3.0-rc1`` is older than ``0.3.0``) and above the previous
+      release. Pre-releases compare chunk by chunk, digits as numbers, so
+      ``rc10`` is newer than ``rc2``.
+    * Build metadata after ``+`` is ignored.
+    * Anything else raises ``UpdateError`` instead of being guessed at.
+    """
+    match = _VERSION_PATTERN.fullmatch(value) if isinstance(value, str) else None
+    if match is None:
+        raise UpdateError(f"unrecognized version: {value!r}")
+    numbers = [int(part) for part in match.group("numbers").split(".")]
+    while numbers and numbers[-1] == 0:
+        numbers.pop()
+    pre = match.group("pre")
+    if pre is None:
+        return (tuple(numbers), 1, ())
+    chunks = re.findall(r"[0-9]+|[^0-9.\-]+", pre)
+    if not chunks or any(chunk[0] in "0123456789" and len(chunk) > 9 for chunk in chunks):
+        raise UpdateError(f"unrecognized version: {value!r}")
+    # (0, number) sorts before (1, text), so a numeric chunk is older than a word.
+    return (tuple(numbers), 0, tuple((0, int(chunk)) if chunk[0] in "0123456789" else (1, chunk) for chunk in chunks))
 
 
 def normalize_digest(value: str | None) -> str | None:
@@ -200,6 +229,33 @@ def normalize_digest(value: str | None) -> str | None:
     if not re.fullmatch(r"[0-9a-f]{64}", digest):
         raise UpdateError("release digest must be a SHA-256 hex string")
     return digest
+
+
+def is_official_download_url(url: str, repository: str = DEFAULT_REPOSITORY) -> bool:
+    """True only for ``https://github.com/<repository>/releases/download/<something>``.
+
+    The asset URL comes from the same API response as its digest, so a digest
+    check alone cannot tell a real release from a forged one. This narrows
+    where a download may come from: no other host, repository, port, user info,
+    or ``..`` path tricks.
+    """
+    if not isinstance(url, str) or not url or "\\" in url:
+        return False
+    try:
+        parts = urlsplit(url)
+        port = parts.port
+    except ValueError:
+        return False
+    if parts.scheme != "https" or parts.netloc != "github.com" or port is not None:
+        return False
+    prefix = f"/{repository}/releases/download/"
+    if not parts.path.startswith(prefix):
+        return False
+    tail = parts.path[len(prefix):]
+    lowered = tail.lower()
+    if not tail or "%2e" in lowered or "%2f" in lowered or "%5c" in lowered:
+        return False
+    return all(segment not in {".", ".."} for segment in tail.split("/"))
 
 
 class GitHubReleaseClient:
@@ -238,29 +294,24 @@ class GitHubReleaseClient:
         return platform_key(sys.platform, __import__("platform").machine())
 
     def select_asset(self, release: ReleaseInfo, *, platform: str | None = None) -> ReleaseAsset:
+        """Return the asset named exactly ``ZephyrMesh-{platform}-v{version}.zip``.
+
+        That is the name ``tools/package_release.py`` writes. Matching the whole
+        name (not a substring such as ``win`` inside ``darwin``) means a
+        release can never hand a Mac build to a Windows machine or the reverse.
+        """
         platform = platform or self.platform_name()
         base, _, architecture = platform.partition("-")
-        tokens = {
-            "windows": ("windows", "win"),
-            "macos": ("macos", "darwin", "mac"),
-            "linux": ("linux",),
-        }.get(base)
-        if tokens is None:
+        if base not in {"windows", "macos", "linux"}:
             raise ValueError("platform must be windows, macos, or linux with an optional architecture")
-        candidates = [asset for asset in release.assets if asset.name.lower().endswith(".zip") and any(token in asset.name.lower() for token in tokens)]
-        if architecture:
-            arch_tokens = {"x86_64": ("x86_64", "amd64", "x64"), "arm64": ("arm64", "aarch64")}.get(architecture, (architecture,))
-            preferred = [asset for asset in candidates if any(token in asset.name.lower() for token in arch_tokens)]
-            universal = [asset for asset in candidates if any(token in asset.name.lower() for token in ("universal", "any-arch", "any_arch"))]
-            if preferred:
-                candidates = preferred
-            elif universal:
-                candidates = universal
-            else:
-                raise UpdateError(f"release {release.tag} has no exact {platform} zip asset")
-        if not candidates:
-            raise UpdateError(f"release {release.tag} has no {platform} zip asset")
-        return sorted(candidates, key=lambda asset: asset.name)[0]
+        if not architecture:
+            platform = platform_key(base, __import__("platform").machine())
+        version = release.tag.removeprefix("v")
+        wanted = f"ZephyrMesh-{platform}-v{version}.zip"
+        for asset in release.assets:
+            if asset.name == wanted:
+                return asset
+        raise UpdateError(f"release {release.tag} has no exact {platform} zip asset ({wanted})")
 
     def check(self, current_version: str, *, platform: str | None = None) -> tuple[ReleaseInfo, ReleaseAsset, bool]:
         release = self.latest_release()
@@ -271,6 +322,8 @@ class GitHubReleaseClient:
         expected = normalize_digest(asset.digest)
         if expected is None:
             raise UpdateError(f"release asset {asset.name} has no SHA-256 digest")
+        if not is_official_download_url(asset.url, self.repository):
+            raise UpdateError(f"download URL is not an official release asset of {self.repository}")
         root = Path(tempfile.mkdtemp(prefix="zephyr-update-", dir=staging_parent))
         archive = root / asset.name
         try:
@@ -335,6 +388,46 @@ def apply_staged_update(staged: StagedUpdate | Path, install_dir: Path, *, backu
             os.replace(backup, install_dir)
         raise
     return backup
+
+
+def update_result_path() -> Path:
+    """Per-user file where the detached update helper records a failed update.
+
+    The helper has no console and the app that started it has already exited,
+    so this file is the only place a failure can be written down. It lives next
+    to ``startup.log`` and outside the folder the updater swaps.
+    """
+    app_data = os.environ.get("LOCALAPPDATA")
+    base = Path(app_data) / "ZephyrMesh" if app_data else Path.home() / ".zephyr-mesh"
+    return base / "update-result.txt"
+
+
+def write_update_result(message: str) -> None:
+    """Best effort: a logging failure must not hide the original update error."""
+    path = update_result_path()
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(message + "\n", encoding="utf-8")
+    except OSError:
+        pass
+
+
+def clear_update_result() -> None:
+    try:
+        update_result_path().unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
+def take_update_result() -> str | None:
+    """Return the recorded failure once and delete it, or None if there is none."""
+    path = update_result_path()
+    try:
+        message = path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    clear_update_result()
+    return message or None
 
 
 def main() -> None:

@@ -215,7 +215,11 @@ class DroneAdapter(ABC):
 
     @abstractmethod
     def kill(self) -> FailsafeDecision:
-        """Request a latched motor-stop failsafe in the synthetic model."""
+        """Request a latched motor-stop failsafe in the synthetic model.
+
+        In ``SimAdapter`` this only zeroes velocity: the point mass has no
+        gravity, so a killed vehicle stays where it was instead of falling.
+        """
 
     @abstractmethod
     def reset_failsafe(self) -> FailsafeDecision:
@@ -228,7 +232,9 @@ class SimAdapter(DroneAdapter):
     The adapter is intentionally modest: a bounded acceleration response moves
     the vehicle toward the winning position command.  It provides the seam for
     testing command ownership and recovery before a measured actuator model
-    or hardware transport exists.
+    or hardware transport exists.  There is no gravity or ground contact
+    model beyond a floor clamp, so a killed (motor-stopped) vehicle freezes
+    where it is rather than falling.
     """
 
     def __init__(
@@ -519,7 +525,9 @@ class SimAdapter(DroneAdapter):
                 self._landed = True
                 decision = self._observe_failsafe(landed=True)
 
-        # A killed vehicle is stopped immediately.  A landed one remains held.
+        # A killed vehicle is stopped immediately and frozen in place (this
+        # point-mass model has no gravity, so it does not fall).  A landed one
+        # remains held.
         if decision.action is FailsafeAction.KILL:
             self.velocity[:] = 0.0
         return self.get_state()

@@ -28,19 +28,21 @@ The app does not require a server or network connection to show the bundled repl
 
 Download the [Windows x86_64 package](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.2/ZephyrMesh-windows-x86_64-v0.2.2.zip) from [Zephyr Mesh v0.2.2](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.2). Extract the complete ZIP before opening `ZephyrMeshWindows\ZephyrMeshWindows.exe`; keep the `_internal` folder beside it. The release also provides a separate .zip.sha256 asset for verification.
 
+The Windows download is unsigned, so Windows SmartScreen may show a warning the first time you run it. Release v0.2.2 predates the Windows startup diagnostics (`startup.log` and `README-Windows.txt`); they are in the source and are not in a published release yet. They are extra diagnostics for Windows startup failures; startup problems have not been reproduced on a Windows machine or confirmed fixed.
+
 To build locally, install Python 3.11 or newer, open PowerShell at the repository root, and run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File desktop/build_windows.ps1
 ```
 
-The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\ZephyrMeshUpdater.exe`. Keep the updater beside the application directory. The app's update action only installs a published release asset with a matching platform architecture and GitHub SHA-256 digest.
+The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\ZephyrMeshUpdater.exe`. Keep the updater beside the application directory. The app's update action only installs a published release asset with a matching platform architecture and GitHub SHA-256 digest. The digest check is an integrity check only, not publisher authentication: it does not prove who published the file. Releases are not notarized or signed with a developer certificate.
 
 ## Current features
 
-- Six-degree-of-freedom rigid-body simulation with quaternion attitude, gravity, configurable wind, quadratic relative-air drag, and a tested RK4 integrator.
-- Cascaded position and attitude control with transparent, inspectable inputs.
-- Deterministic communication fixtures for delay, jitter, independent loss, burst loss, serialized contention, packet age, duplicates, and out-of-order delivery.
+- Six-degree-of-freedom rigid-body simulation with quaternion attitude, gravity, configurable wind, quadratic relative-air drag, and an RK4 integrator whose fourth-order convergence is regenerated on the real model by `tools/make_s2_convergence.py` into `runs/s2-physics/convergence.json`.
+- Cascaded position and attitude control with transparent, inspectable inputs. Attitude gains are scaled by moment of inertia, and the controller rejects steps at or above 2 divided by its largest attitude damping gain (about 0.111 s with the default gains), where its sampled attitude loop cannot settle.
+- Deterministic communication fixtures for delay, jitter (lognormal, with mean and spread equal to the configured values), independent loss, burst loss, serialized contention, packet age, duplicates, and out-of-order delivery. Loss and delay use separate random streams so one can be changed without altering the other. Sequence numbers must not wrap (see `sim/link.py`).
 - Versioned ESP-NOW trace schema and replay bridge that preserve packet identity, measured outcomes, timestamps, RSSI, retries, and clock boundaries without fitting unmeasured radio behavior.
 - Trace summary CLI with unresolved-outcome counts, shared-clock delay summaries, observed-record loss bounds, RSSI summaries, and provenance.
 - Versioned camera/tracker trace schema and summary CLI that preserve detection, miss, and unresolved outcomes, confidence, image-space boxes, optional frame-labelled positions, clock boundaries, and provenance.
@@ -51,7 +53,7 @@ The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\Zeph
 - Strict SI-unit hardware-profile documents with custom motor and propeller part IDs, status/source/calibration provenance, JSON Schema validation, round-trip loading, and a normalization CLI.
 - Versioned bench trace schema and summary CLI for RPM, thrust, voltage, current, temperature, test conditions, incomplete readings, and transparent electrical input power summaries without curve fitting.
 - Portable evidence reports for the macOS and Windows inspectors, preserving source hashes, declared status, nested values, and limitations.
-- S6 investigation reports for latency, loss probability, sensing noise, target acceleration, estimator error, and scenario-specific failure labels. These are deterministic research fixtures, not tolerance or flight-performance results.
+- S6 investigation reports for latency, loss probability, sensing noise, target acceleration, estimator error, and scenario-specific failure labels. The estimator is a naive receive-time tracker (its error grows like speed x delay by construction) and is given the true noise level (oracle tuning), which flatters it; no recovery arm, multi-seed intervals, or burst-loss sweep exists yet. These are deterministic research fixtures, not tolerance or flight-performance results.
 - S7 replay analysis for per-route outcomes, abstract packet age, estimator coverage and age, bracketed reacquisition intervals, constraint flags, and observed separation. These metrics describe the checked-in replay and do not establish radio tolerance or flight safety.
 - Typed drone adapter, authority arbitration, and replayable link or battery failsafe contracts.
 - Native macOS SwiftUI and SceneKit cockpit plus a Windows Tkinter desktop surface built from the same canonical replay, including compact mission-event history and replay-only authority or failsafe context.
@@ -105,12 +107,13 @@ The published v0.2.2 binaries are the replay baseline. The scenario-run CLI and 
 ## Known Bugs/Limitations
 
 - The checked-in event logs and desktop views are synthetic replays. They do not represent a measured radio link, camera, motor, controller, or flight test.
+- The single-drone controller has no heading setpoint and no integral action, and the simulator has no ground plane. Default rigid-body inertia is a fixed estimate for a 450 g frame; hardware-profile vehicles use a geometry estimate. Neither is measured. The full list is `known_issues` in `runs/s0-baseline/manifest.json`.
 - No measured ESP-NOW or camera trace is included yet. The versioned schemas are ready for documented hardware captures, but no radio tolerance, camera calibration, tracker, or flight-performance result is claimed.
 - Motor, propeller, battery, drag, and airflow values are scenario inputs or calibration placeholders. The profile document loader validates units, provenance fields, and schema structure, but it does not calibrate coefficients. Its thrust field is a declared-coefficient estimate at the lower motor/propeller RPM limit and does not apply torque or electrical power limits. Downwash, ground effect, propeller wake interaction, and venue airflow still need measured models.
 - The bench trace boundary and electrical input power summary are synthetic until a documented run records instruments, part identity, calibration, units, clock conditions, and repeatable test settings. No fitted motor map is included.
 - The release workflow runs the Python suite, builds, and smoke-tests the Windows package, but physical Windows install, updater relaunch, accessibility, and frame-time measurements remain open. Linux packaging is later work.
-- Scenario runs are deterministic point-mass coordination fixtures over abstract links. They support reproducible replay and contract testing, but do not establish radio tolerance, tracker performance, safety thresholds, or flight performance.
-- Scenario temporal integrity uses an absolute 1e-9 second contract tolerance, and `code_revision` identifies the repository base revision rather than uncommitted working-tree edits. These are integrity and provenance fields, not performance measurements.
+- Scenario runs are deterministic point-mass coordination fixtures over abstract links. They support reproducible replay and contract testing, but do not establish radio tolerance, tracker performance, safety thresholds, or flight performance. The same scenario, seed, and environment (Python and NumPy versions) give identical bytes; across machines compare `payload_sha256`, not file bytes.
+- Scenario temporal integrity uses an absolute 1e-9 second contract tolerance, and `code_revision` is, by default, the git commit hash (or the value of the `ZEPHYR_CODE_REVISION` environment variable when it is set), with `-dirty` appended when the working tree had uncommitted changes or untracked files and `-unchecked` when that check could not run; it is not a fingerprint of the edits. These are integrity and provenance fields, not performance measurements.
 - The altitude profile is a bounded selected-frame projection, not a full 3D scene or a live vehicle view. Swarm profile provenance records declared parts only; it does not synthesize motor power, battery depletion, actuator state, or flight results.
 - The v0.2.2 macOS package is not notarized. Broad distribution still needs a Developer ID signature and notarization.
 

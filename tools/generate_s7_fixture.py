@@ -14,6 +14,30 @@ from sim.scenarios import make_ring_swarm_config, scenario_manifest
 from sim.swarm import SwarmSimulator
 
 
+def _known_limits(run: dict, size_bytes: int) -> str:
+    """Describe what this particular run does and does not contain.
+
+    The numbers are counted from the run itself, so the text cannot drift from
+    the file it describes.
+    """
+    moved = 0
+    flagged = 0
+    previous: dict[str, list] = {}
+    for step in run["steps"]:
+        for agent in step["agents"]:
+            if agent["agent_id"] in previous and previous[agent["agent_id"]] != agent["position_m"]:
+                moved += 1
+            previous[agent["agent_id"]] = agent["position_m"]
+            flagged += len(agent["constraint_flags"])
+    return (
+        f"Known limits of this run: {moved} agent-steps where an agent changed position and "
+        f"{flagged} constraint flags (the target is stationary and agents start on their slots, "
+        "so this is a bookkeeping fixture, not evidence of coordination); "
+        f"run.json is {size_bytes / 1e6:.1f} MB; agents are point masses with no actuator, energy or 6-DOF model; "
+        "the link is a synthetic abstract packet model, not a measured radio."
+    )
+
+
 def generate(output_dir: Path, *, agent_count: int = 50, steps: int = 6, seed: int = 17) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     config = make_ring_swarm_config(
@@ -36,8 +60,10 @@ def generate(output_dir: Path, *, agent_count: int = 50, steps: int = 6, seed: i
     run["failsafe"] = "synthetic constraints only; live failsafe unavailable"
     manifest["command_authority"] = "replay only"
     manifest["failsafe"] = "synthetic constraints only; live failsafe unavailable"
+    run_text = json.dumps(run, indent=2) + "\n"
+    manifest["evidence_boundary"] = f"{manifest['evidence_boundary']} {_known_limits(run, len(run_text.encode('utf-8')))}"
     (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    (output_dir / "run.json").write_text(json.dumps(run, indent=2) + "\n")
+    (output_dir / "run.json").write_text(run_text)
 
 
 def main() -> None:

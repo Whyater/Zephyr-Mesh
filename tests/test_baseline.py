@@ -19,14 +19,22 @@ def test_baseline_is_deterministic_and_has_expected_samples():
     assert np.all(np.isfinite(first["z"]))
 
 
-def test_manifest_records_s2_physics_and_independent_check():
+def test_manifest_records_s2_physics_and_lists_real_known_limits():
+    """Field presence plus the known limits; it cannot detect controller bugs.
+
+    Sideways and yawed closed-loop behaviour is checked in test_physics.py.
+    """
     manifest = build_manifest(BaselineConfig())
     assert manifest["schema"] == "zephyr-s0-baseline-1"
-    assert manifest["known_issues"] == []
+    limits = " ".join(manifest["known_issues"])
+    for phrase in ("dt < 2/18", "No ground plane", "450 g", "vertical step", "No heading setpoint"):
+        assert phrase in limits, phrase
     assert manifest["config"]["dt"] == 0.01
     assert manifest["executable"]
     assert manifest["invocation"][0] == manifest["executable"]
-    assert manifest["replay_command"].startswith("cd ")
+    assert manifest["replay_command"].endswith(manifest["command"])
+    # Paths inside the repo are portable (relative), never this machine's absolute path.
+    assert not manifest["cwd"].startswith("/")
     assert set(manifest["git_status"]) == {"staged", "unstaged", "entries"}
     check = manifest["independent_check"]
     assert check["name"].endswith("limiting-case check")
@@ -41,6 +49,19 @@ def test_writer_emits_machine_readable_outputs(tmp_path):
     assert manifest["config"]["total_time"] == 0.3
     assert manifest["independent_check"]["passed"]
     assert (tmp_path / "manifest.sha256").exists()
+
+
+def test_time_column_labels_the_state_it_sits_beside():
+    """Limiting case: from rest with acceleration a, speed is v = a * t.
+
+    The controller's first vertical acceleration is Kp_z * 3 m = 9 m/s^2 and
+    drag is zero at rest, so on the first row vz / time must be about 9.  If
+    the row were labelled with the step's start time (t = 0) this fails.
+    """
+    telemetry = run_baseline(BaselineConfig(dt=0.01, total_time=0.05))
+    assert telemetry["time"][0] == pytest.approx(0.01)
+    assert telemetry["vz"][0] / telemetry["time"][0] == pytest.approx(9.0, rel=1e-3)
+    np.testing.assert_allclose(np.diff(telemetry["time"]), 0.01)
 
 
 def test_retained_default_baseline_matches_fresh_rerun():

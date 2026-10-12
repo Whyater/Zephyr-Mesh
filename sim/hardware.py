@@ -161,7 +161,15 @@ class PropellerProfile:
 
 @dataclass(frozen=True)
 class HardwareProfile:
-    """A per-agent airframe and its replaceable motor/propeller parts."""
+    """A per-agent airframe and its replaceable motor/propeller parts.
+
+    ``arm_length_m`` is the lever arm used for roll and pitch torque: the
+    perpendicular distance from each motor axis to the body x (roll) axis and
+    to the body y (pitch) axis, so motors sit at (+-arm, +-arm) in the body
+    plane.  For an X frame measured centre to motor as ``L``, enter
+    ``L / sqrt(2)``.  Entering ``L`` directly overstates roll and pitch torque
+    by a factor of sqrt(2), about 41 percent.
+    """
 
     profile_id: str
     motor: MotorProfile
@@ -203,6 +211,22 @@ class HardwareProfile:
     @property
     def total_mass_kg(self) -> float:
         return self.frame_mass_kg + self.motor_count * (self.motor.mass_kg + self.propeller.mass_kg)
+
+    def estimated_inertia_kg_m2(self) -> tuple[float, float, float]:
+        """Return an ESTIMATE of the principal inertia (I_x, I_y, I_z) in kg m^2.
+
+        Each motor plus propeller is a point mass at (+-arm, +-arm), and the
+        frame mass (including battery and electronics) is a uniform square
+        plate of side ``2 * arm`` spanning the motors.  This is a geometry
+        estimate for a four-motor X layout, not a measured inertia.
+        """
+        arm = self.arm_length_m
+        rotor_mass = self.motor.mass_kg + self.propeller.mass_kg
+        # Point masses: distance to the roll (or pitch) axis is arm; to the yaw axis it is sqrt(2) * arm.
+        roll = self.motor_count * rotor_mass * arm**2
+        # Uniform plate of side s = 2 * arm: m * s**2 / 12 about an in-plane axis.
+        plate = self.frame_mass_kg * (2.0 * arm) ** 2 / 12.0
+        return (roll + plate, roll + plate, 2.0 * (roll + plate))
 
     def estimated_thrust_at_rpm_limit_n(self, air_density_kg_m3: float = 1.225) -> float:
         """Estimate static thrust at the lower declared motor/prop RPM limit.

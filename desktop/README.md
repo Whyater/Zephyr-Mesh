@@ -13,7 +13,7 @@ frame rows, Windows derives the link-envelope line from the replay-wide
 observed loss envelope and labels it as modeled replay evidence. It shares
 `desktop/replay.py` with tests and uses no SVG or network data for the replay.
 
-Keyboard access is built in: Space plays or pauses, Right Arrow advances one
+Keyboard access is built in (single-key shortcuts are ignored while you type in the fleet filter): Space plays or pauses (the Play button reads Pause while playing), Right Arrow advances one
 frame, `F` focuses the selected vehicle, `R` resets the view, `O` toggles the
 keep-out volume, and Control-L moves focus to the fleet filter. The Canvas
 projection is intentionally lightweight and deterministic, while the macOS
@@ -53,8 +53,8 @@ build embeds the requested version in `VERSION.txt`, so later releases can be
 compared by the updater without changing source code.
 The tagged release workflow also runs the Python suite on a Windows runner before packaging. Before publishing a local Windows build, run
 `python tools/validate_windows_bundle.py dist/ZephyrMeshWindows` on Windows;
-it checks the bundled replay, sibling helper, and the expected six-frame,
-50-vehicle contract without relying on stdout from a windowed executable.
+it checks the bundled replay, sibling helper, and that the replay's frame and
+vehicle counts match the bundled `run.json` itself, without relying on stdout from a windowed executable.
 On a Windows desktop, add `--gui-smoke` to launch the frozen Tk executable,
 step one replay frame through its smoke handshake, verify a readiness marker,
 and close it before publishing.
@@ -63,13 +63,28 @@ dependency-light smoke check on any platform. The macOS app remains the native
 SwiftUI + SceneKit surface.
 
 Both desktop surfaces use `tools/release_updater.py`. It checks a GitHub
-release, selects the platform and architecture asset, requires a SHA-256
+release and selects the asset named exactly
+`ZephyrMesh-{platform}-v{version}.zip` (the name `tools/package_release.py`
+writes). It downloads only from
+`https://github.com/Whyater/Zephyr-Mesh/releases/download/`, requires a SHA-256
 digest, stages a safe ZIP extraction, and applies it only after the running
-process exits. Packaged Windows builds automatically start the sibling
-or embedded `ZephyrMeshUpdater.exe` when a newer verified release is available;
-embedded helpers are copied to a temporary path before swapping their own
-application directory. No update is attempted from an unverified branch or a
-missing digest.
+process exits. Version tags compare as numbers (`0.2` equals `v0.2.0`), and a
+pre-release such as `v0.3.0-rc1` is older than `v0.3.0`; the macOS updater
+follows the same rules and both are tested against one shared case list
+(`macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/updater-cases.json`).
+Packaged Windows builds start the sibling or embedded `ZephyrMeshUpdater.exe`
+when a newer release is available; embedded helpers are copied to a temporary
+path before swapping their own application directory. If the swap fails, the
+helper writes `update-result.txt` next to `startup.log`, starts the previous copy
+again, and the app shows that message the next time it opens.
+
+What the SHA-256 check does and does not do: it proves the downloaded file
+matches the digest GitHub reported for that release asset, so it catches
+corruption and tampering in transit. It is an integrity check only, not
+publisher authentication. The digest and the file come from the same GitHub
+account, so anyone who can publish a release there can publish a matching
+pair. The Windows build is also unsigned, so Windows SmartScreen may warn when
+you first run it.
 
 ## Release packaging
 

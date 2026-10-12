@@ -18,6 +18,24 @@ TRACE_STATUSES = {"measured", "synthetic", "fixture"}
 OUTCOMES = {"received", "lost", "unknown"}
 
 
+def _reject_unknown(raw: Mapping[str, Any], allowed: set[str], field: str) -> None:
+    unknown = sorted(set(raw) - allowed)
+    if unknown:
+        raise ValueError(f"{field} contains unknown field(s): {', '.join(unknown)}")
+
+
+_PACKET_FIELDS = {
+    "packet_id", "sender_id", "receiver_id", "sender_session_id", "seq", "send_time_s",
+    "outcome", "receive_time_s", "callback_time_s", "rssi_dbm", "payload_bytes",
+    "retry_count", "loss_reason", "unknown_reason", "duplicate", "out_of_order",
+}
+_TRACE_FIELDS = {
+    "schema", "trace_id", "status", "clock_domain", "source", "code_revision",
+    "clock_uncertainty_s", "notes", "capture", "packets",
+}
+_CAPTURE_FIELDS = {"transport", "device_ids", "firmware", "channel", "phy"}
+
+
 def _required_text(value: Any, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{field} must be a non-empty string")
@@ -53,6 +71,11 @@ class EspNowPacket:
     parent trace. A null receive time is retained for a loss or an incomplete
     observation. ``packet_id`` should remain stable across raw-log exports;
     sequence numbers alone can repeat after a device reboot.
+
+    ``seq`` should be an unwrapped counter within one ``sender_session_id``.
+    A narrow hardware counter (uint8, uint16) repeats values, and replay then
+    derives false duplicate flags; either unwrap it when exporting or supply
+    explicit ``duplicate`` and ``out_of_order`` flags.
     """
 
     packet_id: str
@@ -76,6 +99,7 @@ class EspNowPacket:
     def from_dict(cls, raw: Mapping[str, Any]) -> "EspNowPacket":
         if not isinstance(raw, Mapping):
             raise ValueError("packet must be an object")
+        _reject_unknown(raw, _PACKET_FIELDS, "packet")
         packet_id = _required_text(raw.get("packet_id"), "packet_id")
         sender_id = _required_text(raw.get("sender_id"), "sender_id")
         receiver_id = _required_text(raw.get("receiver_id"), "receiver_id")
@@ -160,6 +184,7 @@ class EspNowTrace:
     def from_dict(cls, raw: Mapping[str, Any]) -> "EspNowTrace":
         if not isinstance(raw, Mapping):
             raise ValueError("trace must be an object")
+        _reject_unknown(raw, _TRACE_FIELDS, "trace")
         if raw.get("schema") != TRACE_SCHEMA:
             raise ValueError(f"schema must be {TRACE_SCHEMA}")
         status = _required_text(raw.get("status"), "status")
@@ -171,6 +196,7 @@ class EspNowTrace:
         capture = raw.get("capture")
         if not isinstance(capture, Mapping):
             raise ValueError("capture must be an object")
+        _reject_unknown(capture, _CAPTURE_FIELDS, "capture")
         if capture.get("transport") != "ESP-NOW":
             raise ValueError('capture.transport must be "ESP-NOW"')
         device_ids = capture.get("device_ids")

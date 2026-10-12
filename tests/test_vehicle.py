@@ -75,3 +75,27 @@ def test_vehicle_model_provenance_exposes_both_synthetic_layers():
     assert metadata["dynamics"]["model"] == "six_dof_rigid_body"
     assert metadata["actuator"]["model"] == "quadrotor_actuator_envelope"
     assert metadata["actuator"]["profile"]["status"] == "synthetic"
+
+
+@pytest.mark.parametrize("dt", [0.01, 0.05])
+def test_vehicle_reaches_lateral_target_at_baseline_and_swarm_dt(dt):
+    """dt 0.05 s is the swarm step; the coupled vehicle used to fall at it.
+
+    Hand bound: the horizontal loop has natural frequency sqrt(2) rad/s and
+    damping ratio 0.53, so a 2 m step decays like 2.36 * exp(-0.75 t) m, which
+    is under 0.001 m by t = 12 s.  Motor lag (55 ms) and battery sag leave a
+    few millimetres of steady altitude error because the loop has no integral
+    term, so the bound is 0.05 m.
+    """
+    vehicle = ActuatedQuadrotor(default_hardware_profile(5))
+    samples = [vehicle.step((2.0, 0.0, 1.0), dt) for _ in range(round(15.0 / dt))]
+    assert np.linalg.norm(np.asarray(samples[-1].position_m) - (2.0, 0.0, 1.0)) < 0.05
+    assert not any(sample.mixer.saturated for sample in samples)
+
+
+def test_controller_rejects_dt_at_or_above_sampled_attitude_limit():
+    """Rate damping of 18 per second times dt must stay below 2 (dt < 0.111 s)."""
+    vehicle = ActuatedQuadrotor(default_hardware_profile(5))
+    vehicle.step((0.0, 0.0, 1.0), 0.11)
+    with pytest.raises(ValueError, match="attitude-loop limit"):
+        vehicle.step((0.0, 0.0, 1.0), 0.12)

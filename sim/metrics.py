@@ -11,28 +11,49 @@ def _xy(t, y):
     return t,y
 
 def step_response(t, y, goal, *, tolerance=0.05, rise_fraction=0.1):
-    t,y=_xy(t,y); out={"rise_time_s":None,"overshoot_pct":None,"settling_time_s":None,"censored":{},"count":len(y)}
-    out["definitions"]={"rise":"first sample at rise_fraction of step amplitude","overshoot":"peak beyond goal divided by step amplitude","settling":"first sample after which all samples stay within tolerance of goal"}
-    for k in ("rise_time_s", "overshoot_pct", "settling_time_s"): out["censored"][k]=False
+    t, y = _xy(t, y)
+    out = {"rise_time_s": None, "overshoot_pct": None, "settling_time_s": None, "censored": {}, "count": len(y)}
+    out["definitions"] = {
+        "rise": "first sample at rise_fraction of step amplitude",
+        "overshoot": "peak beyond goal divided by step amplitude",
+        "settling": "first sample after which all samples stay within tolerance of goal",
+    }
+    for k in ("rise_time_s", "overshoot_pct", "settling_time_s"):
+        out["censored"][k] = False
     if np.any(~np.isfinite(y)) or not math.isfinite(float(goal)):
         raise ValueError("response and goal must be finite")
     if not len(y):
-        out["censored"]={k:True for k in out["censored"]}
+        out["censored"] = {k: True for k in out["censored"]}
         return out
-    initial=float(y[0]); amp=float(goal-initial)
-    if amp==0: out["censored"]={"rise_time_s":True,"overshoot_pct":True,"settling_time_s":True}; return out
-    level=initial+rise_fraction*amp
-    idx=np.flatnonzero(y>=level if amp>0 else y<=level)
-    if len(idx): out["rise_time_s"]=float(t[idx[0]]-t[0])
-    else: out["censored"]["rise_time_s"]=True
-    peak=float(np.max(y) if amp>0 else np.min(y)); excess=max(0., (peak-goal)/abs(amp) if amp>0 else (goal-peak)/abs(amp)); out["overshoot_pct"]=100*excess
-    tol=abs(amp)*tolerance; ok=np.abs(y-goal)<=tol
-    starts=np.flatnonzero(np.all(ok[np.newaxis,:] if False else ok[None,:],axis=0))
-    settle=None
+    initial = float(y[0])
+    amp = float(goal - initial)
+    if amp == 0:
+        out["censored"] = {"rise_time_s": True, "overshoot_pct": True, "settling_time_s": True}
+        return out
+    # Rise: first sample past rise_fraction of the way from start to goal.
+    level = initial + rise_fraction * amp
+    idx = np.flatnonzero(y >= level if amp > 0 else y <= level)
+    if len(idx):
+        out["rise_time_s"] = float(t[idx[0]] - t[0])
+    else:
+        out["censored"]["rise_time_s"] = True
+    # Overshoot: how far the peak goes past the goal, as a percent of the step.
+    peak = float(np.max(y) if amp > 0 else np.min(y))
+    excess = max(0., (peak - goal) / abs(amp) if amp > 0 else (goal - peak) / abs(amp))
+    out["overshoot_pct"] = 100 * excess
+    # Settling: first in-band sample after which every later sample stays in band.
+    tol = abs(amp) * tolerance
+    ok = np.abs(y - goal) <= tol
+    starts = np.flatnonzero(ok)
+    settle = None
     for i in starts:
-        if np.all(ok[i:]): settle=float(t[i]-t[0]); break
-    if settle is None: out["censored"]["settling_time_s"]=True
-    else: out["settling_time_s"]=settle
+        if np.all(ok[i:]):
+            settle = float(t[i] - t[0])
+            break
+    if settle is None:
+        out["censored"]["settling_time_s"] = True
+    else:
+        out["settling_time_s"] = settle
     return out
 
 def tracking_error(truth, estimate):

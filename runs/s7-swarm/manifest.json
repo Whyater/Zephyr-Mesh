@@ -83,7 +83,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.134971975266999,
         "estimated_max_thrust_n": 7.134971975266999
       }
     },
@@ -127,7 +133,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.776952797693807,
         "estimated_max_thrust_n": 6.776952797693807
       }
     },
@@ -171,7 +183,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.4325792394289545,
         "estimated_max_thrust_n": 6.4325792394289545
       }
     },
@@ -215,7 +233,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.8933749397951685,
         "estimated_max_thrust_n": 7.8933749397951685
       }
     },
@@ -259,7 +283,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.506992565247283,
         "estimated_max_thrust_n": 7.506992565247283
       }
     },
@@ -303,7 +333,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.134971975266999,
         "estimated_max_thrust_n": 7.134971975266999
       }
     },
@@ -347,7 +383,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.776952797693807,
         "estimated_max_thrust_n": 6.776952797693807
       }
     },
@@ -391,7 +433,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.4325792394289545,
         "estimated_max_thrust_n": 6.4325792394289545
       }
     },
@@ -435,7 +483,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.8933749397951685,
         "estimated_max_thrust_n": 7.8933749397951685
       }
     },
@@ -479,7 +533,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.647253349734984,
         "estimated_max_thrust_n": 6.647253349734984
       }
     },
@@ -523,7 +583,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.309470520627013,
         "estimated_max_thrust_n": 6.309470520627013
       }
     },
@@ -567,7 +633,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.742309054760257,
         "estimated_max_thrust_n": 7.742309054760257
       }
     },
@@ -611,7 +683,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.3633213872696395,
         "estimated_max_thrust_n": 7.3633213872696395
       }
     },
@@ -655,7 +733,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.998420644009577,
         "estimated_max_thrust_n": 6.998420644009577
       }
     },
@@ -699,7 +783,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.647253349734984,
         "estimated_max_thrust_n": 6.647253349734984
       }
     },
@@ -743,7 +833,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.309470520627013,
         "estimated_max_thrust_n": 6.309470520627013
       }
     },
@@ -787,7 +883,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.742309054760257,
         "estimated_max_thrust_n": 7.742309054760257
       }
     },
@@ -831,7 +933,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.3633213872696395,
         "estimated_max_thrust_n": 7.3633213872696395
       }
     },
@@ -875,7 +983,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.998420644009577,
         "estimated_max_thrust_n": 6.998420644009577
       }
     },
@@ -919,7 +1033,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.5927027434938,
         "estimated_max_thrust_n": 7.5927027434938
       }
     },
@@ -963,7 +1083,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.221038336615453,
         "estimated_max_thrust_n": 7.221038336615453
       }
     },
@@ -1007,7 +1133,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.8631886492860446,
         "estimated_max_thrust_n": 6.8631886492860446
       }
     },
@@ -1051,7 +1183,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.518807036539051,
         "estimated_max_thrust_n": 6.518807036539051
       }
     },
@@ -1095,7 +1233,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.1875512580453815,
         "estimated_max_thrust_n": 6.1875512580453815
       }
     },
@@ -1139,7 +1283,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.5927027434938,
         "estimated_max_thrust_n": 7.5927027434938
       }
     },
@@ -1183,7 +1333,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.221038336615453,
         "estimated_max_thrust_n": 7.221038336615453
       }
     },
@@ -1227,7 +1383,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.8631886492860446,
         "estimated_max_thrust_n": 6.8631886492860446
       }
     },
@@ -1271,7 +1433,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.518807036539051,
         "estimated_max_thrust_n": 6.518807036539051
       }
     },
@@ -1315,7 +1483,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.1875512580453815,
         "estimated_max_thrust_n": 6.1875512580453815
       }
     },
@@ -1359,7 +1533,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.729275991096399,
         "estimated_max_thrust_n": 6.729275991096399
       }
     },
@@ -1403,7 +1583,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.391613858106003,
         "estimated_max_thrust_n": 6.391613858106003
       }
     },
@@ -1447,7 +1633,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.066821451684057,
         "estimated_max_thrust_n": 6.066821451684057
       }
     },
@@ -1491,7 +1683,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.4445560059957945,
         "estimated_max_thrust_n": 7.4445560059957945
       }
     },
@@ -1535,7 +1733,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.08014341328472,
         "estimated_max_thrust_n": 7.08014341328472
       }
     },
@@ -1579,7 +1783,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.729275991096399,
         "estimated_max_thrust_n": 6.729275991096399
       }
     },
@@ -1623,7 +1833,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.391613858106003,
         "estimated_max_thrust_n": 6.391613858106003
       }
     },
@@ -1667,7 +1883,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.066821451684057,
         "estimated_max_thrust_n": 6.066821451684057
       }
     },
@@ -1711,7 +1933,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.4445560059957945,
         "estimated_max_thrust_n": 7.4445560059957945
       }
     },
@@ -1755,7 +1983,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.08014341328472,
         "estimated_max_thrust_n": 7.08014341328472
       }
     },
@@ -1799,7 +2033,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 5.947281101543043,
         "estimated_max_thrust_n": 5.947281101543043
       }
     },
@@ -1843,7 +2083,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.297868842266244,
         "estimated_max_thrust_n": 7.297868842266244
       }
     },
@@ -1887,7 +2133,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.940636617277444,
         "estimated_max_thrust_n": 6.940636617277444
       }
     },
@@ -1931,7 +2183,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.596682669440643,
         "estimated_max_thrust_n": 6.596682669440643
       }
     },
@@ -1975,7 +2233,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.265673814435843,
         "estimated_max_thrust_n": 6.265673814435843
       }
     },
@@ -2019,7 +2283,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 5.947281101543043,
         "estimated_max_thrust_n": 5.947281101543043
       }
     },
@@ -2063,7 +2333,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 7.297868842266244,
         "estimated_max_thrust_n": 7.297868842266244
       }
     },
@@ -2107,7 +2383,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.940636617277444,
         "estimated_max_thrust_n": 6.940636617277444
       }
     },
@@ -2151,7 +2433,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.596682669440643,
         "estimated_max_thrust_n": 6.596682669440643
       }
     },
@@ -2195,7 +2483,13 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 6.265673814435843,
         "estimated_max_thrust_n": 6.265673814435843
       }
     },
@@ -2239,12 +2533,18 @@
         "arm_length_m": 0.1,
         "frame_mass_kg": 0.03,
         "battery_capacity_wh": 5.0,
+        "status": "synthetic",
+        "source": null,
+        "calibration_id": null,
+        "code_revision": null,
+        "notes": null,
         "total_mass_kg": 0.078,
+        "estimated_thrust_at_rpm_limit_n": 8.09555855039241,
         "estimated_max_thrust_n": 8.09555855039241
       }
     }
   ],
-  "evidence_boundary": "Coordination and hardware-parameter fixture only; numeric motor and propeller values are scenario inputs, not measured flight performance.",
+  "evidence_boundary": "Coordination and hardware-parameter fixture only; numeric motor and propeller values are scenario inputs, not measured flight performance. Known limits of this run: 0 agent-steps where an agent changed position and 0 constraint flags (the target is stationary and agents start on their slots, so this is a bookkeeping fixture, not evidence of coordination); run.json is 4.7 MB; agents are point masses with no actuator, energy or 6-DOF model; the link is a synthetic abstract packet model, not a measured radio.",
   "reproducibility": {
     "command": "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm",
     "module": "sim.scenarios.make_ring_swarm_config + sim.swarm.SwarmSimulator",

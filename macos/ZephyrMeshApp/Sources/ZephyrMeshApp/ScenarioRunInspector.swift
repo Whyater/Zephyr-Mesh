@@ -620,7 +620,7 @@ struct ScenarioRunInspectorView: View {
                     DataRow(label: "Python", value: run.pythonText, horizon: horizon)
                     DataRow(label: "NumPy", value: run.numpyText, horizon: horizon)
                     DataRow(label: "Base revision", value: run.codeRevisionText, horizon: horizon)
-                    DataRow(label: "Revision semantics", value: "base revision; dirty files are not fingerprinted", horizon: horizon)
+                    DataRow(label: "Revision semantics", value: "base revision; a -dirty suffix means uncommitted changes, -unchecked means the check could not run", horizon: horizon)
                 }
                 .font(ZephyrDesign.Typography.secondary)
             }

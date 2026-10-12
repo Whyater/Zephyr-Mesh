@@ -25,6 +25,9 @@ struct ZephyrMeshApp: App {
                 .alert(item: $evidenceInspector.error) { message in
                     Alert(title: Text("Could not open evidence report"), message: Text(message.message), dismissButton: .default(Text("OK")))
                 }
+                .alert(item: $model.updateNotice) { notice in
+                    Alert(title: Text("Zephyr Mesh update"), message: Text(notice.message), dismissButton: .default(Text("OK")))
+                }
                 .alert(item: $scenarioRunInspector.error) { message in
                     Alert(title: Text("Could not open scenario run"), message: Text(message.message), dismissButton: .default(Text("OK")))
                 }
@@ -261,6 +264,13 @@ struct MissionEvent: Identifiable {
     let level: Level
 }
 
+/// A message shown in a standard alert. The update helper cannot show one itself
+/// because the app has already quit by the time it runs.
+struct UpdateNotice: Identifiable {
+    let id = UUID()
+    let message: String
+}
+
 @MainActor
 final class CockpitModel: ObservableObject {
     @Published var fixture: Fixture
@@ -269,6 +279,7 @@ final class CockpitModel: ObservableObject {
     @Published var time: Double = 0
     @Published var showObstacles = true
     @Published var updateStatus = "Update check idle"
+    @Published var updateNotice: UpdateNotice?
     @Published var cameraResetToken = 0
     @Published var cameraFocusID: String?
 
@@ -284,6 +295,10 @@ final class CockpitModel: ObservableObject {
         selectedID = fixture.drones.first?.id ?? "drone-001"
         basePositions = Dictionary(uniqueKeysWithValues: fixture.drones.map { ($0.id, $0.position) })
         if let first = fixture.frames.first { fixture.drones = first.drones; time = first.time }
+        if let failure = ReleaseUpdater.takeLastResult() {
+            updateStatus = failure
+            updateNotice = UpdateNotice(message: failure)
+        }
         timer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
             guard let self else { return }
             Task { @MainActor in self.tick() }
@@ -368,6 +383,7 @@ final class CockpitModel: ObservableObject {
                 NSApp.terminate(nil)
             } catch {
                 updateStatus = "Update unavailable · \(error.localizedDescription)"
+                updateNotice = UpdateNotice(message: "Update unavailable: \(error.localizedDescription)")
             }
         }
     }

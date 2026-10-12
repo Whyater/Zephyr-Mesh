@@ -126,3 +126,26 @@ def test_cli_input_and_output_errors_are_concise(tmp_path, capsys):
         main([str(Path(__file__).parents[1] / "sim" / "trace_example.json"), "--output", str(tmp_path)])
     assert error.value.code == 2
     assert "Traceback" not in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
+# one shared quantile helper, same numbers at every former call site
+# ---------------------------------------------------------------------------
+
+def test_every_metrics_module_uses_the_same_quantile_with_identical_results():
+    import numpy as np
+
+    from sim import bench_metrics, s7_metrics, stats, trace_metrics, vision_metrics
+
+    values = [0.9, 0.1, 0.5, 0.3, 0.7, 0.2, 2.0]
+    modules = (trace_metrics, vision_metrics, bench_metrics, s7_metrics)
+    for probability in (0.0, 0.25, 0.5, 0.95, 1.0):
+        # Independent reference: NumPy's default linear interpolation.
+        expected = float(np.quantile(values, probability))
+        assert stats.quantile(values, probability) == pytest.approx(expected, abs=1e-15)
+        for module in modules:
+            assert module._quantile(values, probability) == stats.quantile(values, probability)
+    for module in modules:
+        assert module._quantile([], 0.5) is None
+        assert module._quantile([4.0], 0.95) == 4.0
+        assert module._quantile is stats.quantile

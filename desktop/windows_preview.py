@@ -181,6 +181,29 @@ def mission_event_lines(model: Any, selected_id: str) -> tuple[str, ...]:
     return tuple(events)
 
 
+def _take_previous_update_failure() -> str | None:
+    try:
+        try:
+            from tools.release_updater import take_update_result
+        except ModuleNotFoundError:
+            sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+            from tools.release_updater import take_update_result
+        return take_update_result()
+    except Exception:
+        return None
+
+
+def _show_update_failure(root: Any, message: str) -> None:
+    from tkinter import messagebox
+
+    messagebox.showwarning("Zephyr Mesh update", message, parent=root)
+
+
+def is_text_input_class(widget_class: str) -> bool:
+    """True for Tk widgets where the user types text (so bare-key shortcuts must stand down)."""
+    return widget_class in {"Entry", "TEntry", "Text", "Spinbox", "TSpinbox", "TCombobox"}
+
+
 def updater_launch_path(updater: Path, install_dir: Path, *, pid: int) -> Path:
     """Return a runnable helper path that is outside the directory being swapped.
 
@@ -211,6 +234,8 @@ class WindowsReplayApp:
         self.root = root
         self.model = model
         self.playing = False
+        self.play_button = None
+        self._tick_job = None
         self.selected_id = model.frame.agents[0].agent_id
         self.filter_var = None
         self.fleet_summary = None
@@ -286,14 +311,14 @@ class WindowsReplayApp:
         self.fleet.pack(fill="both", expand=True, pady=(TOKENS.table_top_gap, 0))
         self.fleet.bind("<<ListboxSelect>>", self._on_select)
         self.fleet.bind("<<TreeviewSelect>>", self._on_select)
-        root.bind("<space>", lambda _event: self._toggle())
-        root.bind("<Right>", lambda _event: self._step())
-        root.bind("<f>", lambda _event: self._focus_selected_vehicle())
-        root.bind("<F>", lambda _event: self._focus_selected_vehicle())
-        root.bind("<r>", lambda _event: self._reset_view())
-        root.bind("<R>", lambda _event: self._reset_view())
-        root.bind("<o>", lambda _event: self._toggle_keepout())
-        root.bind("<O>", lambda _event: self._toggle_keepout())
+        root.bind("<space>", self._shortcut(self._toggle))
+        root.bind("<Right>", self._shortcut(self._step))
+        root.bind("<f>", self._shortcut(self._focus_selected_vehicle))
+        root.bind("<F>", self._shortcut(self._focus_selected_vehicle))
+        root.bind("<r>", self._shortcut(self._reset_view))
+        root.bind("<R>", self._shortcut(self._reset_view))
+        root.bind("<o>", self._shortcut(self._toggle_keepout))
+        root.bind("<O>", self._shortcut(self._toggle_keepout))
         root.bind("<Control-l>", lambda _event: (filter_entry.focus_set(), "break")[1])
         root.bind("<Control-o>", lambda _event: (self._open_evidence_report(), "break")[1])
 
@@ -312,7 +337,8 @@ class WindowsReplayApp:
         self.timeline = self.tk.Scale(controls, from_=0, to=max(0, self.model.frame_count - 1), orient="horizontal", showvalue=False, command=self._seek, background=TOKENS.control_background, troughcolor=TOKENS.control_track, highlightthickness=0, activebackground=TOKENS.control_active)
         self.timeline.set(0)
         self.timeline.grid(row=0, column=1, sticky="ew", padx=TOKENS.timeline_gap)
-        self.ttk.Button(controls, text="Play", command=self._toggle, style="Action.TButton").grid(row=0, column=2, padx=TOKENS.button_gap)
+        self.play_button = self.ttk.Button(controls, text="Play", command=self._toggle, style="Action.TButton")
+        self.play_button.grid(row=0, column=2, padx=TOKENS.button_gap)
         self.ttk.Button(controls, text="Step", command=self._step, style="Action.TButton").grid(row=0, column=3, padx=TOKENS.button_gap)
         self.ttk.Button(controls, text="Reset replay", command=self._reset, style="Action.TButton").grid(row=0, column=4, padx=TOKENS.button_gap)
         self.ttk.Button(controls, text="Focus selected", command=self._focus_selected_vehicle, style="Action.TButton").grid(row=0, column=5, padx=TOKENS.button_gap)
@@ -623,28 +649,55 @@ class WindowsReplayApp:
             self.model.step(index)
         self._render()
 
+    def _shortcut(self, action: Any) -> Any:
+        """Wrap a bare-key shortcut so it is ignored while the user is typing.
+
+        Tk delivers a key press to the focused widget and then to the window it
+        sits in, so typing ``r`` in the fleet filter would also reset the view.
+        """
+        def handler(event: Any) -> None:
+            widget = getattr(event, "widget", None)
+            try:
+                widget_class = widget.winfo_class() if widget is not None else ""
+            except Exception:
+                widget_class = ""
+            if not is_text_input_class(widget_class):
+                action()
+
+        return handler
+
+    def _set_playing(self, playing: bool) -> None:
+        """Single place that changes playback, so the button label and timer stay in step."""
+        self.playing = playing
+        if self.play_button is not None:
+            self.play_button.configure(text="Pause" if playing else "Play")
+        if not playing and self._tick_job is not None:
+            self.root.after_cancel(self._tick_job)
+            self._tick_job = None
+
     def _toggle(self) -> None:
-        self.playing = not self.playing
+        self._set_playing(not self.playing)
         if self.playing:
             self._tick()
 
     def _tick(self) -> None:
+        self._tick_job = None
         if not self.playing:
             return
         if self.model.index >= self.model.frame_count - 1:
-            self.playing = False
+            self._set_playing(False)
             return
         self.model.step()
         self._render()
-        self.root.after(max(20, int(self.model.dt_s * 1000)), self._tick)
+        self._tick_job = self.root.after(max(20, int(self.model.dt_s * 1000)), self._tick)
 
     def _step(self) -> None:
-        self.playing = False
+        self._set_playing(False)
         self.model.step()
         self._render()
 
     def _reset(self) -> None:
-        self.playing = False
+        self._set_playing(False)
         self.model.reset()
         self._render()
 
@@ -1053,6 +1106,11 @@ def main(argv: list[str] | None = None) -> int:
             except tk.TclError:
                 pass
         else:
+            # An update helper cannot show anything itself (no console, and this
+            # app had already exited), so it leaves a note. Show it once.
+            previous_failure = _take_previous_update_failure()
+            if previous_failure:
+                root.after(300, lambda: _show_update_failure(root, previous_failure))
             root.mainloop()
         return 0
     except Exception as exc:

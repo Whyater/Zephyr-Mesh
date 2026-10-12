@@ -318,7 +318,8 @@ class SwarmSimulator:
         agents: dict[str, dict[str, Any]] = {}
         for agent_id in self.agent_ids:
             profile = self._agents[agent_id].spec.hardware_profile
-            assert profile is not None
+            if profile is None:
+                raise ValueError(f"agent {agent_id} has no hardware profile")
             agents[agent_id] = {
                 "profile_id": profile.profile_id,
                 "profile_status": profile.status,
@@ -473,7 +474,6 @@ class SwarmSimulator:
     def _constrain(
         self,
         candidates: dict[str, np.ndarray],
-        current: dict[str, np.ndarray],
         keep_out_spheres: tuple[KeepOutSphere, ...] | None = None,
     ) -> dict[str, set[str]]:
         flags = {agent_id: set() for agent_id in self.agent_ids}
@@ -516,7 +516,12 @@ class SwarmSimulator:
         self,
         flags: Mapping[str, set[str]],
         keep_out_spheres: tuple[KeepOutSphere, ...] = (),
+        fused_targets: Mapping[str, np.ndarray | None] | None = None,
     ) -> SwarmStep:
+        # ``fused_targets`` carries values already computed for this step.
+        # Estimates and neighbor messages do not change between control and
+        # snapshot, so reusing them gives the same numbers without recomputing.
+        fused_targets = {} if fused_targets is None else fused_targets
         active_ids = [agent_id for agent_id in self.agent_ids if self._agents[agent_id].active]
         states: list[AgentState] = []
         for agent_id in self.agent_ids:
@@ -528,6 +533,7 @@ class SwarmSimulator:
             target_age = None
             if agent.target_source_time_s is not None:
                 target_age = max(0.0, self.time_s - agent.target_source_time_s)
+            fused = fused_targets[agent_id] if agent_id in fused_targets else self._fused_target(agent)
             states.append(AgentState(
                 agent_id=agent_id,
                 profile_id=agent.spec.hardware_profile.profile_id,
@@ -535,7 +541,7 @@ class SwarmSimulator:
                 position_m=tuple(float(v) for v in agent.position),
                 velocity_mps=tuple(float(v) for v in agent.velocity),
                 target_estimate_m=None if agent.target_estimate is None else tuple(float(v) for v in agent.target_estimate),
-                fused_target_m=None if self._fused_target(agent) is None else tuple(float(v) for v in self._fused_target(agent)),
+                fused_target_m=None if fused is None else tuple(float(v) for v in fused),
                 target_source_time_s=agent.target_source_time_s,
                 target_age_s=target_age,
                 neighbor_count=0 if agent.neighbors is None else len(agent.neighbors),
@@ -562,14 +568,15 @@ class SwarmSimulator:
         self._send_messages()
         self._advance_links()
 
-        current = {agent_id: self._agents[agent_id].position.copy() for agent_id in self.agent_ids}
         candidates: dict[str, np.ndarray] = {}
+        fused_targets: dict[str, np.ndarray | None] = {}
         for agent_id in self.agent_ids:
             agent = self._agents[agent_id]
             if not agent.active:
                 candidates[agent_id] = agent.position.copy()
                 continue
             estimate = self._fused_target(agent)
+            fused_targets[agent_id] = estimate
             if estimate is None:
                 acceleration = -self.config.velocity_gain * agent.velocity
             else:
@@ -586,7 +593,7 @@ class SwarmSimulator:
             KeepOutSphere(zone.center_at(self.time_s), zone.radius_m, zone.label, zone.velocity_mps)
             for zone in self.config.keep_out_spheres
         )
-        flags = self._constrain(candidates, current, moving_keep_out_spheres)
+        flags = self._constrain(candidates, moving_keep_out_spheres)
         for agent_id in self.agent_ids:
             agent = self._agents[agent_id]
             if not agent.active:
@@ -597,7 +604,7 @@ class SwarmSimulator:
             )
             agent.position = candidates[agent_id]
 
-        snapshot = self._snapshot(flags, moving_keep_out_spheres)
+        snapshot = self._snapshot(flags, moving_keep_out_spheres, fused_targets)
         self.target_position = self.target_position + self.target_velocity * self.config.dt_s
         self.time_s += self.config.dt_s
         self.step_index += 1

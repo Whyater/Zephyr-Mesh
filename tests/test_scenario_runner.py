@@ -2,12 +2,17 @@
 
 import hashlib
 import json
+import os
 from pathlib import Path
+import shutil
+import subprocess
+import sys
 
 import pytest
 from jsonschema import Draft202012Validator
 
 from desktop.replay import ReplayModel
+from sim import scenario_runner
 from sim.scenario_runner import (
     JSON_SAFE_INTEGER_MAX,
     ScenarioConfigError,
@@ -289,3 +294,80 @@ def test_json_loader_rejects_duplicate_keys_and_symlink(tmp_path: Path):
     link.symlink_to(config_path)
     with pytest.raises(ScenarioConfigError):
         load_json_config(link)
+
+
+# --- Provenance: a dirty working tree must not look like a clean commit ---
+
+def _git(repo: Path, *args: str) -> None:
+    subprocess.run(
+        ["git", "-c", "user.email=t@example.invalid", "-c", "user.name=t", *args],
+        cwd=repo, check=True, capture_output=True,
+    )
+
+
+@pytest.fixture
+def temp_repo(tmp_path, monkeypatch):
+    if shutil.which("git") is None:
+        pytest.skip("git is not installed")
+    monkeypatch.delenv("ZEPHYR_CODE_REVISION", raising=False)
+    _git(tmp_path, "init", "-q")
+    (tmp_path / "code.py").write_text("x = 1\n")
+    _git(tmp_path, "add", "code.py")
+    _git(tmp_path, "commit", "-q", "-m", "first")
+    monkeypatch.setattr(scenario_runner, "_REPO_ROOT", tmp_path)
+    head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=tmp_path, capture_output=True, text=True, check=True)
+    return tmp_path, head.stdout.strip()
+
+
+def test_code_revision_is_the_bare_commit_when_the_tree_is_clean(temp_repo):
+    _, head = temp_repo
+    assert scenario_runner._code_revision() == head
+
+
+def test_code_revision_is_marked_dirty_for_edited_and_untracked_files(temp_repo):
+    repo, head = temp_repo
+    (repo / "code.py").write_text("x = 2\n")
+    assert scenario_runner._code_revision() == head + "-dirty"
+    _git(repo, "checkout", "--", "code.py")
+    assert scenario_runner._code_revision() == head
+    (repo / "new.py").write_text("y = 1\n")
+    assert scenario_runner._code_revision() == head + "-dirty"
+
+
+def test_pinned_environment_revision_is_used_unchanged_even_if_dirty(temp_repo, monkeypatch):
+    repo, _ = temp_repo
+    (repo / "code.py").write_text("x = 3\n")
+    monkeypatch.setenv("ZEPHYR_CODE_REVISION", "release-1")
+    assert scenario_runner._code_revision() == "release-1"
+
+
+def test_unchecked_tree_is_recorded_when_git_status_cannot_run(temp_repo, monkeypatch):
+    _, head = temp_repo
+    real_run = subprocess.run
+
+    def failing_status(command, *args, **kwargs):
+        if "status" in command:
+            raise OSError("status unavailable")
+        return real_run(command, *args, **kwargs)
+
+    monkeypatch.setattr(scenario_runner.subprocess, "run", failing_status)
+    assert scenario_runner._code_revision() == head + "-unchecked"
+
+
+def test_payload_digest_is_identical_across_python_hash_seeds():
+    """A fresh process per hash seed can catch environment effects that two
+    in-process calls cannot (set or dict ordering that depends on hashing)."""
+    root = Path(__file__).parents[1]
+    code = (
+        "from sim.scenario_runner import load_json_config, run_scenario, serialize_run\n"
+        "import hashlib\n"
+        "doc = run_scenario(load_json_config('sim/scenario_example.json'), code_revision='test')\n"
+        "print(doc['payload_sha256'], hashlib.sha256(serialize_run(doc)).hexdigest())\n"
+    )
+    outputs = set()
+    for seed in ("0", "123", "4242"):
+        env = dict(os.environ, PYTHONHASHSEED=seed, PYTHONPATH=str(root))
+        result = subprocess.run([sys.executable, "-c", code], cwd=root, env=env,
+                                capture_output=True, text=True, check=True)
+        outputs.add(result.stdout.strip())
+    assert len(outputs) == 1

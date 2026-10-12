@@ -132,3 +132,64 @@ def test_received_iteration_prefers_callback_time():
     payload["packets"][2]["callback_time_s"] = 1.4
     ordered = list(iter_received(validate_trace(payload)))
     assert [packet.packet_id for packet in ordered[:3]] == ["boot-a-2", "boot-a-1", "boot-a-0"]
+
+
+# ---------------------------------------------------------------------------
+# unknown fields are rejected (same strictness as the vision trace)
+# ---------------------------------------------------------------------------
+
+def test_trace_rejects_unknown_packet_root_and_capture_fields():
+    bad_packet = trace_payload()
+    bad_packet["packets"][0]["bogus"] = 1
+    with pytest.raises(ValueError, match="bogus"):
+        validate_trace(bad_packet)
+    bad_root = trace_payload()
+    bad_root["bogus_top"] = 1
+    with pytest.raises(ValueError, match="bogus_top"):
+        validate_trace(bad_root)
+    bad_capture = trace_payload()
+    bad_capture["capture"]["bogus_cap"] = 1
+    with pytest.raises(ValueError, match="bogus_cap"):
+        validate_trace(bad_capture)
+
+
+def test_python_allowed_field_sets_equal_the_json_schema_property_lists():
+    import sim.trace as trace_module
+
+    schema = json.loads((Path(__file__).parents[1] / "sim" / "trace_schema.json").read_text())
+    assert trace_module._TRACE_FIELDS == set(schema["properties"])
+    assert trace_module._CAPTURE_FIELDS == set(schema["properties"]["capture"]["properties"])
+    assert trace_module._PACKET_FIELDS == set(schema["properties"]["packets"]["items"]["properties"])
+    # Both validators also reject the same unknown packet field.
+    bad = trace_payload()
+    bad["packets"][1]["bogus"] = True
+    with pytest.raises(ValidationError):
+        Draft202012Validator(schema).validate(bad)
+    with pytest.raises(ValueError):
+        validate_trace(bad)
+
+
+# ---------------------------------------------------------------------------
+# wrapped sequence numbers in a captured trace
+# ---------------------------------------------------------------------------
+
+def _wrapped_trace(extra=None):
+    payload = trace_payload()
+    payload["packets"] = [
+        {"packet_id": f"p{i}", "sender_id": "a", "receiver_id": "b", "sender_session_id": "boot-a",
+         "seq": i % 256, "send_time_s": i * 0.01, "receive_time_s": i * 0.01 + 0.005,
+         "outcome": "received", **(extra or {})}
+        for i in range(600)
+    ]
+    return validate_trace(payload)
+
+
+def test_wrapped_sequence_is_misread_by_replay_unless_capture_supplies_flags():
+    # Honest current behavior: replay derives duplicate flags from (route, seq).
+    # A uint8 counter repeats identities, so 600 - 256 = 344 packets are
+    # flagged.  A capture tool that unwraps the counter itself can pass the
+    # explicit flags, which replay treats as authoritative.
+    derived = replay_trace(_wrapped_trace())
+    assert sum(e.duplicate for e in derived) == 600 - 256
+    explicit = replay_trace(_wrapped_trace({"duplicate": False, "out_of_order": False}))
+    assert sum(e.duplicate or e.out_of_order for e in explicit) == 0

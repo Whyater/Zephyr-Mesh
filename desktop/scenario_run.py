@@ -205,7 +205,7 @@ class ScenarioRun:
             "python": self.provenance["python"],
             "numpy": self.provenance["numpy"],
             "code_revision": self.provenance["code_revision"],
-            "code_revision_semantics": "base revision; does not fingerprint uncommitted files",
+            "code_revision_semantics": "base revision; a -dirty suffix means uncommitted changes, -unchecked means the check could not run",
             "status": self.provenance["status"],
             "evidence_boundary": self.document["evidence_boundary"],
         }

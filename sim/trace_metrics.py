@@ -8,24 +8,14 @@ radio tolerance.
 from __future__ import annotations
 
 from collections import Counter
-from math import floor, fsum
+from math import fsum
 from typing import Any
 
 from .link import replay_trace
 from .trace import EspNowTrace
+from .stats import quantile as _quantile
 
 SUMMARY_SCHEMA = "zephyr-espnow-trace-summary-1"
-
-
-def _quantile(values: list[float], probability: float) -> float | None:
-    if not values:
-        return None
-    ordered = sorted(values)
-    position = (len(ordered) - 1) * probability
-    lower = floor(position)
-    upper = min(lower + 1, len(ordered) - 1)
-    fraction = position - lower
-    return (1.0 - fraction) * ordered[lower] + fraction * ordered[upper]
 
 
 def _distribution(values: list[float], *, unit: str) -> dict[str, Any]:

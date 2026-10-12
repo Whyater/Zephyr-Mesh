@@ -1,4 +1,5 @@
 """Pure-model checks for the cross-platform desktop replay preview."""
+import json
 from pathlib import Path
 import sys
 import types
@@ -11,15 +12,21 @@ from desktop.scenario_run import ScenarioFrame, ScenarioRunCursor, clamp_scenari
 
 ROOT = Path(__file__).parents[1]
 RUN = ROOT / "runs/s7-swarm/run.json"
+# Read the counts straight from the file so regenerating the S7 run does not
+# break these tests. The JSON is parsed separately from desktop.replay.
+_RAW = json.loads(RUN.read_text(encoding="utf-8"))
+RAW_FRAMES = len(_RAW["steps"])
+RAW_AGENTS = len(_RAW["steps"][0]["agents"])
+RAW_SCENARIO = _RAW["scenario_id"]
 
 
 def test_replay_model_reads_canonical_s7_fixture():
     model = ReplayModel.from_path(RUN)
     assert model.schema == "zephyr-s7-swarm-run-1"
-    assert model.scenario_id == "s7-ring-50-seed-17"
-    assert model.frame_count == 6
-    assert len(model.frame.agents) == 50
-    assert model.frame.active_count == 50
+    assert model.scenario_id == RAW_SCENARIO
+    assert model.frame_count == RAW_FRAMES
+    assert len(model.frame.agents) == RAW_AGENTS
+    assert model.frame.active_count == _RAW["steps"][0]["active_count"]
     assert model.command_authority == "replay only"
     assert model.failsafe.startswith("synthetic constraints")
 
@@ -168,11 +175,11 @@ def test_replay_cursor_clamps_and_reset_is_deterministic():
     model = ReplayModel.from_path(RUN)
     first = model.frame
     assert model.step(-10) == first
-    assert model.step(100).step_index == 5
+    assert model.step(100).step_index == _RAW["steps"][-1]["step_index"]
     assert model.progress == 1.0
     assert model.reset() == first
     assert model.index == 0
-    assert model.summary()["frame"] == "1/6"
+    assert model.summary()["frame"] == f"1/{RAW_FRAMES}"
 
 
 def test_scenario_run_cursor_clamps_replaces_and_resets():
@@ -285,11 +292,12 @@ def test_replay_exposes_parts_and_observed_link_metrics():
     assert profile.estimated_max_thrust_n > 0
     link = model.link_stats_for("drone-001")
     assert link is not None
-    assert link.event_count == 300
-    assert link.loss_count == 7
+    events = [event for event in _RAW["link_events"] if event["receiver"] == "drone-001"]
+    assert link.event_count == len(events)
+    assert link.loss_count == sum(1 for event in events if event["loss_reason"] is not None)
     assert link.mean_delay_ms is not None
     assert link.mean_delay_ms > 0
-    assert model.summary()["profile_count"] == 50
+    assert model.summary()["profile_count"] == len(_RAW["agent_profiles"])
 
 
 def test_windows_mission_events_mirror_native_replay_vocabulary():
@@ -418,7 +426,11 @@ def test_windows_smoke_packages_and_checks_investigation_report():
     assert '"investigation_report_example.json", "investigation", "synthetic"' in validator
     assert 'action="append"' in preview
     assert '("s7_report_example.json", "swarm", "synthetic")' in validator
-    assert "evidence_kind=espnow,investigation,swarm" in validator
+    from tools.validate_windows_bundle import expected_smoke_marker
+    from desktop.evidence import load_evidence_report
+    kinds = [load_evidence_report(ROOT / "desktop" / name)["kind"] for name in ("evidence_report_example.json", "investigation_report_example.json", "s7_report_example.json")]
+    assert expected_smoke_marker("ready", RAW_FRAMES, kinds) == f"ready frame=2/{RAW_FRAMES} evidence_kind=espnow,investigation,swarm"
+    assert expected_smoke_marker("healthy", 1, ["swarm", "espnow", "swarm"]) == "healthy frame=1/1 evidence_kind=espnow,swarm"
     assert 'README-Windows.txt' in validator
     assert 'startup.log' in validator
 
@@ -455,3 +467,98 @@ def test_windows_preview_constructs_when_tk_display_is_available():
     app = WindowsReplayApp(root, ReplayModel.from_path(RUN))
     assert app.selected_id == "drone-001"
     root.destroy()
+
+
+# ---- Windows playback and shortcut behavior (logic only, no Tk display needed) ----
+class _FakeButton:
+    def __init__(self):
+        self.text = "Play"
+
+    def configure(self, **options):
+        self.text = options.get("text", self.text)
+
+
+class _FakeRoot:
+    """Records after()/after_cancel() so the test can count live timer chains."""
+
+    def __init__(self):
+        self.jobs = {}
+        self.counter = 0
+
+    def after(self, _delay_ms, callback):
+        self.counter += 1
+        self.jobs[f"job{self.counter}"] = callback
+        return f"job{self.counter}"
+
+    def after_cancel(self, job):
+        self.jobs.pop(job, None)
+
+
+def _headless_app():
+    from desktop.windows_preview import WindowsReplayApp
+
+    app = object.__new__(WindowsReplayApp)  # skip __init__: it needs a Tk display
+    app.model = ReplayModel.from_path(RUN)
+    app.playing = False
+    app.root = _FakeRoot()
+    app.play_button = _FakeButton()
+    app._tick_job = None
+    app._render = lambda: None
+    return app
+
+
+def test_play_button_shows_pause_while_playing_and_play_when_stopped():
+    app = _headless_app()
+    assert app.play_button.text == "Play"
+    app._toggle()
+    assert app.playing and app.play_button.text == "Pause"
+    app._toggle()
+    assert not app.playing and app.play_button.text == "Play"
+    app._toggle()
+    app._step()  # stepping stops playback, so the label must follow
+    assert not app.playing and app.play_button.text == "Play"
+    app._toggle()
+    app._reset()
+    assert not app.playing and app.play_button.text == "Play"
+
+
+def test_play_pause_play_keeps_exactly_one_timer_chain():
+    app = _headless_app()
+    app._toggle()
+    app._toggle()
+    app._toggle()
+    assert len(app.root.jobs) == 1, "a second after() chain means double-speed playback"
+    # run the chain: it must keep exactly one pending job and advance one frame per tick
+    start = app.model.index
+    for _ in range(3):
+        (callback,) = app.root.jobs.values()
+        app.root.jobs.clear()
+        app._tick_job = None
+        callback()
+        assert len(app.root.jobs) == 1
+    assert app.model.index == start + 3 or app.model.index == app.model.frame_count - 1
+
+
+def test_playback_ends_cleanly_at_the_last_frame_and_relabels_the_button():
+    app = _headless_app()
+    app.model.step(app.model.frame_count - 1)
+    app._toggle()
+    assert not app.playing and app.play_button.text == "Play"
+    assert app.root.jobs == {}
+
+
+@pytest.mark.parametrize("widget_class,typing", [("Entry", True), ("TEntry", True), ("Text", True), ("Spinbox", True), ("TSpinbox", True), ("TCombobox", True), ("Canvas", False), ("TButton", False), ("Treeview", False), ("Tk", False)])
+def test_text_input_widgets_are_recognised(widget_class, typing):
+    from desktop.windows_preview import is_text_input_class
+
+    assert is_text_input_class(widget_class) is typing
+
+
+def test_single_key_shortcuts_do_not_fire_while_typing_in_a_text_field():
+    app = _headless_app()
+    fired = []
+    handler = app._shortcut(lambda: fired.append("ran"))
+    handler(types.SimpleNamespace(widget=types.SimpleNamespace(winfo_class=lambda: "TEntry")))
+    assert fired == []
+    handler(types.SimpleNamespace(widget=types.SimpleNamespace(winfo_class=lambda: "Canvas")))
+    assert fired == ["ran"]

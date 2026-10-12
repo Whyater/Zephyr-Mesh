@@ -15,6 +15,17 @@ from desktop.replay import ReplayModel
 from desktop.evidence import load_evidence_report
 
 
+def expected_smoke_marker(word: str, frame_count: int, evidence_kinds: list[str]) -> str:
+    """The readiness line the frozen GUI prints after stepping one frame.
+
+    Built from the bundled replay and evidence files rather than typed in, so
+    regenerating the S7 run or adding an evidence kind does not break the gate.
+    One step moves from frame 1 to frame 2, or stays on frame 1 for a one-frame run.
+    """
+    stepped_frame = min(2, frame_count)
+    return f"{word} frame={stepped_frame}/{frame_count} evidence_kind={','.join(sorted(set(evidence_kinds)))}"
+
+
 def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
     bundle_dir = Path(bundle_dir).resolve()
     executable = bundle_dir / "ZephyrMeshWindows.exe"
@@ -36,6 +47,7 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
         raise FileNotFoundError("bundled canonical S7 run.json is missing")
     result = {"bundle": str(bundle_dir), "preview": str(executable), "updater": str(updater), "readme": str(readme), "run": str(run)}
     evidence_paths = []
+    evidence_kinds = []
     for filename, kind, status in (("evidence_report_example.json", "espnow", "fixture"), ("investigation_report_example.json", "investigation", "synthetic"), ("s7_report_example.json", "swarm", "synthetic")):
         evidence = next((root / "desktop" / filename for root in resource_roots if (root / "desktop" / filename).is_file()), None)
         if evidence is None:
@@ -44,13 +56,18 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
         if evidence_report["kind"] != kind or evidence_report["status"] != status:
             raise RuntimeError(f"bundled {filename} has an unexpected kind or status")
         evidence_paths.append(evidence)
+        evidence_kinds.append(evidence_report["kind"])
     result["evidence"] = ",".join(str(path) for path in evidence_paths)
     # A PyInstaller windowed executable has no reliable stdout contract. Parse
     # the bundled canonical replay directly so this validator remains useful
     # on CI and on Windows without launching a GUI process.
     model = ReplayModel.from_path(run)
-    if model.frame_count != 6 or len(model.frame.agents) != 50:
-        raise RuntimeError(f"unexpected bundled replay: {model.frame_count} frames, {len(model.frame.agents)} agents")
+    # Compare the parsed model with the raw file, not with typed-in numbers.
+    raw_steps = json.loads(run.read_text(encoding="utf-8"))["steps"]
+    expected_frames = len(raw_steps)
+    expected_agents = len(raw_steps[0]["agents"])
+    if model.frame_count != expected_frames or len(model.frame.agents) != expected_agents:
+        raise RuntimeError(f"unexpected bundled replay: {model.frame_count} frames, {len(model.frame.agents)} agents (file has {expected_frames} frames, {expected_agents} agents)")
     result["replay"] = "parsed"
     if gui_smoke:
         # Exercise the actual frozen executable. A windowed PyInstaller build
@@ -75,14 +92,14 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
                 details = (stderr or "").strip()[-4000:]
                 raise RuntimeError(f"frozen GUI did not publish its readiness marker (exit={process.returncode}); stderr={details}")
             marker_text = marker.read_text(encoding="utf-8").strip()
-            if marker_text != "ready frame=2/6 evidence_kind=espnow,investigation,swarm":
+            if marker_text != expected_smoke_marker("ready", model.frame_count, evidence_kinds):
                 raise RuntimeError(f"unexpected frozen GUI readiness marker: {marker_text}")
             if process.poll() is not None:
                 raise RuntimeError("frozen GUI exited after publishing readiness")
             deadline = time.monotonic() + 2.0
             while time.monotonic() < deadline and not health.is_file():
                 time.sleep(0.05)
-            if not health.is_file() or health.read_text(encoding="utf-8").strip() != "healthy frame=2/6 evidence_kind=espnow,investigation,swarm":
+            if not health.is_file() or health.read_text(encoding="utf-8").strip() != expected_smoke_marker("healthy", model.frame_count, evidence_kinds):
                 process.terminate()
                 _, stderr = process.communicate(timeout=5.0)
                 details = (stderr or "").strip()[-4000:]

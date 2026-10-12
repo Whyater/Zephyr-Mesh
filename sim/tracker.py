@@ -2,8 +2,13 @@
 
 The filter is an estimator fixture. It is not a flight controller and does
 not infer a camera model. Position and velocity are kept in one world frame.
-Measurements must be supplied in chronological capture-time order; callers
-can predict to a later receive time to make observation age explicit.
+The filter clock only moves forward. ``predict`` and ``update`` reject any
+time earlier than the filter's current time, and there is no retrodiction, so
+a measurement stamped at its capture time is rejected once the filter has
+already been advanced past that time (for example by ``predict`` to a later
+receive time). Feed measurements in capture-time order. To show an estimate
+at a later display time without advancing the filter, call ``predict`` on a
+``copy.deepcopy`` of the tracker and read that copy's state.
 """
 from __future__ import annotations
 
