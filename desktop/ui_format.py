@@ -24,6 +24,7 @@ EN_DASH = "–"
 _KINDS = {
     "ms": (0, " ms"),
     "pct": (None, "%"),
+    "pct1": (1, "%"),  # table cells: always one decimal, so a column of percentages lines up
     "s": (2, " s"),
     "m": (2, " m"),
     "mps": (2, " m/s"),
@@ -41,6 +42,14 @@ _WORDS = {
     "sha256": "SHA-256", "espnow": "ESP-NOW", "phy": "PHY", "dt": "Time step", "numpy": "NumPy",
     "rpm": "RPM", "cpu": "CPU", "imu": "IMU", "gps": "GPS", "fps": "FPS",
 }
+
+
+def finite_number(value: Any) -> float | None:
+    """A real, finite number from decoded data, or ``None`` (strings, booleans, NaN, and infinity are not numbers)."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    number = float(value)
+    return number if math.isfinite(number) else None
 
 
 def _number(value: float, digits: int | None) -> str:
@@ -61,7 +70,7 @@ def format_value(value: Any, kind: str) -> str | None:
         return None
     digits, unit = _KINDS[kind]
     if isinstance(value, Mapping):
-        low, high = value.get("min"), value.get("max")
+        low, high = finite_number(value.get("min")), finite_number(value.get("max"))
         if low is None or high is None:
             return None
         span_digits = 0 if digits is None else digits  # ranges use whole percents so they fit table cells
@@ -69,7 +78,19 @@ def format_value(value: Any, kind: str) -> str | None:
         if low_text == high_text:
             return f"{low_text}{unit}"
         return f"{low_text}{EN_DASH}{high_text}{unit}"
-    return f"{_number(value, digits)}{unit}"
+    number = finite_number(value)
+    return None if number is None else f"{_number(number, digits)}{unit}"
+
+
+def heading_text(heading_deg: Any, speed_mps: Any) -> str | None:
+    """Heading in degrees; "At rest" only when a speed was recorded and is too small for a heading.
+
+    With no recorded velocity both are ``None`` and the row reads "Not recorded".
+    """
+    text = format_value(heading_deg, "deg")
+    if text is not None:
+        return text
+    return UI_TEXT["windowsText"]["atRest"] if finite_number(speed_mps) is not None else None
 
 
 def display(value: Any, kind: str) -> str:
@@ -89,9 +110,12 @@ def format_age_span(newest: float | None, oldest: float | None) -> str | None:
 
 def format_vector(values: Sequence[float] | None, digits: int = 2) -> str:
     """Format a three-element vector without brackets."""
-    if values is None:
+    if not isinstance(values, (list, tuple)) or not values:
         return NOT_RECORDED
-    return ", ".join(f"{float(item):.{digits}f}" for item in values)
+    numbers = [finite_number(item) for item in values]
+    if any(number is None for number in numbers):
+        return NOT_RECORDED
+    return ", ".join(f"{number:.{digits}f}" for number in numbers)
 
 
 def status_word(level: str, word: str | None = None) -> str:
@@ -110,7 +134,8 @@ def event_row(event: Mapping[str, Any]) -> tuple[str, str, str, str]:
     level = str(event.get("level", ""))
     if level not in LEVELS:
         level = "unavailable"
-    time_text = f"{float(event['time_s']):.2f} s" if event.get("time_s") is not None else NOT_RECORDED
+    time_s = finite_number(event.get("time_s"))
+    time_text = f"{time_s:.2f} s" if time_s is not None else NOT_RECORDED
     return level, status_word(level), time_text, str(event.get("text", ""))
 
 
@@ -282,7 +307,7 @@ def is_raw_id(key: str) -> bool:
 def _stat_scale(stat: Mapping[str, Any]) -> tuple[str, float, int]:
     """Display unit, multiplier, and decimals for a statistics object."""
     unit = str(stat.get("unit", ""))
-    values = [abs(float(stat[key])) for key in _STAT_KEYS if isinstance(stat.get(key), (int, float))]
+    values = [abs(number) for number in (finite_number(stat.get(key)) for key in _STAT_KEYS) if number is not None]
     largest = max(values, default=0.0)
     if unit == "s" and largest < 1.0:
         return "ms", 1000.0, 0 if largest >= 0.01 else 1
@@ -295,11 +320,11 @@ def _stat_scale(stat: Mapping[str, Any]) -> tuple[str, float, int]:
 
 def stat_value(stat: Mapping[str, Any], key: str) -> str:
     """One statistic with its unit, for example ``12 ms``."""
-    value = stat.get(key)
-    if value is None or isinstance(value, bool):
+    value = finite_number(stat.get(key))
+    if value is None:
         return NOT_RECORDED
     unit, factor, digits = _stat_scale(stat)
-    number = float(value) * factor
+    number = value * factor
     return f"{number:.{digits}f} {unit}".strip()
 
 
@@ -316,6 +341,18 @@ def stat_line(stat: Mapping[str, Any]) -> str:
     if isinstance(count, int) and not isinstance(count, bool):
         text += f" ({count} sample{'s' if count != 1 else ''})"
     return text
+
+
+def stat_seconds(stat: Mapping[str, Any], key: str) -> float | None:
+    """One statistic in milliseconds for the timing plot, or ``None`` when it is missing or not a number."""
+    value = finite_number(stat.get(key))
+    return None if value is None else value * 1000.0
+
+
+def plottable_timing(stat: Mapping[str, Any]) -> bool:
+    """A seconds statistic the timing plot can draw: at least a median or a maximum that is a real number."""
+    return stat.get("unit") == "s" and stat.get("available") is not False and stat.get("count") != 0 and (
+        finite_number(stat.get("p50")) is not None or finite_number(stat.get("max")) is not None)
 
 
 def humanize_filename(name: str) -> str:
@@ -344,7 +381,7 @@ def report_view(summary: Mapping[str, Any]) -> dict[str, Any]:
         elif is_stat(value):
             label = re.sub(r" \([^)]*\)$", "", label)
             rows.append((label, stat_line(value)))
-            if value.get("unit") == "s" and value.get("available") is not False and value.get("count") != 0:
+            if plottable_timing(value):
                 timings.append((label, value))
         elif isinstance(value, Mapping) and value and all(not isinstance(item, (Mapping, list)) for item in value.values()) \
                 and len(value) <= 8:
@@ -380,7 +417,8 @@ def report_view(summary: Mapping[str, Any]) -> dict[str, Any]:
 
 
 __all__ = [
-    "EN_DASH", "FIELD_LABELS", "LEVELS", "NOT_RECORDED", "accelerator", "humanize_filename", "is_raw_id", "is_stat",
+    "EN_DASH", "FIELD_LABELS", "LEVELS", "NOT_RECORDED", "accelerator", "finite_number", "heading_text", "humanize_filename",
+    "is_raw_id", "is_stat", "plottable_timing", "stat_seconds",
     "report_view", "stat_line", "stat_value", "display", "event_row", "field_label",
     "format_age_span", "format_scalar", "link_text", "part_text", "quantity", "format_value", "format_vector", "group_label",
     "humanize_key", "status_word", "summary_sections", "time_label",

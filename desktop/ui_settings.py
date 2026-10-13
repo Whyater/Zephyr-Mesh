@@ -10,6 +10,8 @@ from typing import Any, Mapping
 APPEARANCES = ("system", "dark", "light")
 DEFAULT_APPEARANCE = "dark"
 SETTINGS_FILENAME = "settings.json"
+# The real file is about 30 bytes. Anything far larger is not ours; refuse it before parsing.
+MAX_SETTINGS_BYTES = 64 * 1024
 _THEME_KEY = r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 
 
@@ -25,9 +27,17 @@ def _valid(value: Any) -> str:
 
 def load_appearance(home: str | os.PathLike[str] | None = None) -> str:
     """Load the saved appearance, using dark when the file is absent or invalid."""
+    path = settings_path(home)
     try:
-        document = json.loads(settings_path(home).read_text(encoding="utf-8"))
-    except (OSError, ValueError, TypeError):
+        if path.stat().st_size > MAX_SETTINGS_BYTES:
+            return DEFAULT_APPEARANCE
+        with path.open("rb") as handle:
+            raw = handle.read(MAX_SETTINGS_BYTES + 1)
+        if len(raw) > MAX_SETTINGS_BYTES:
+            return DEFAULT_APPEARANCE
+        document = json.loads(raw.decode("utf-8"))
+    except (OSError, ValueError, TypeError, RecursionError):
+        # Missing, unreadable, not UTF-8, not JSON, or nested deep enough to exhaust the parser: use the default.
         return DEFAULT_APPEARANCE
     if not isinstance(document, Mapping):
         return DEFAULT_APPEARANCE

@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_camera_clamps_and_top_view():
     camera = OrbitCamera(pitch=-5, distance=100, swarm_radius=2)
     assert camera.pitch == 10
-    assert camera.distance == 6
+    assert camera.distance == 12, "zoom out is bounded at FAR_LIMIT_RADII (6) swarm radii"
     assert clamp_pitch(100) == 85
     assert clamp_distance(0, 2) == 0.5
     assert camera.top_view().pitch == 85

@@ -270,5 +270,42 @@
         "background": "hoverFill"
       }
     ]
+  },
+  "windowsLayout": {
+    "comment": "Windows Tk sizes in device-independent pixels, scaled by DPI. Gaps between controls come from spacing; these are control, column, and window sizes.",
+    "controlHeight": 28,
+    "iconSize": 14,
+    "chevronSize": 12,
+    "glyphSize": 10,
+    "glyphBox": 16,
+    "hairline": 1,
+    "sliderHeight": 28,
+    "sidebarWidth": 356,
+    "screenMarginX": 80,
+    "screenMarginY": 120,
+    "eventRows": 5,
+    "eventTextMinWidth": 240,
+    "inspectorLabelWidth": 148,
+    "viewerLabelWidth": 200,
+    "timingRowHeight": 30,
+    "scenarioPlotHeight": 260,
+    "aboutWindow": {
+      "width": 640,
+      "height": 620,
+      "minWidth": 520,
+      "minHeight": 420
+    },
+    "scenarioWindow": {
+      "width": 760,
+      "height": 780,
+      "minWidth": 620,
+      "minHeight": 560
+    },
+    "evidenceWindow": {
+      "width": 720,
+      "height": 780,
+      "minWidth": 580,
+      "minHeight": 480
+    }
   }
 }

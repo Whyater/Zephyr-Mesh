@@ -23,12 +23,29 @@ TOP_YAW = -90.0
 TOP_PITCH = 90.0
 DEFAULT_YAW = -62.0
 DEFAULT_PITCH = 32.0
+# Farthest camera distance in swarm radii. A wide, short canvas needs more than 3x to show the
+# whole ring at the default pitch; 6x matches the top-view bound and still keeps zoom bounded.
+FAR_LIMIT_RADII = 6.0
+MIN_DISTANCE = 1e-6
 
 
 def _vec(value: Sequence[float]) -> Vec3:
     if len(value) != 3:
         raise ValueError("a world point must have three coordinates")
-    return float(value[0]), float(value[1]), float(value[2])
+    point = float(value[0]), float(value[1]), float(value[2])
+    if not all(math.isfinite(item) for item in point):
+        raise ValueError("a world point must have finite coordinates")
+    return point
+
+
+def finite_point(value: Any) -> Vec3 | None:
+    """A three-coordinate finite point from decoded data, or ``None`` for anything malformed."""
+    if not isinstance(value, (list, tuple)) or len(value) != 3:
+        return None
+    try:
+        return _vec(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def clamp_pitch(pitch: float) -> float:
@@ -36,9 +53,12 @@ def clamp_pitch(pitch: float) -> float:
 
 
 def clamp_distance(distance: float, swarm_radius: float, near_limit: float = DEFAULT_NEAR_LIMIT) -> float:
-    near = max(float(near_limit), 1e-6)
+    near = max(float(near_limit), MIN_DISTANCE)
     radius = max(float(swarm_radius), 0.0)
-    return min(max(float(distance), near), max(near, radius * 3.0))
+    value = float(distance)
+    if not math.isfinite(value):
+        value = near
+    return min(max(value, near), max(near, radius * FAR_LIMIT_RADII))
 
 
 @dataclass(frozen=True)
@@ -122,7 +142,7 @@ def fit_distance(
     """Smallest allowed distance at which every point projects inside the margins."""
     items = [_vec(point) for point in points]
     low = max(camera.near_limit, 1e-3)
-    high = max(low, camera.swarm_radius * 3.0)
+    high = max(low, camera.swarm_radius * FAR_LIMIT_RADII)
     if not items or width <= 2 * margin or height <= 2 * margin:
         return high
 
@@ -205,15 +225,21 @@ def top_pose(camera: Any) -> ViewPose:
 
 
 def _basis(camera: Any) -> tuple[Vec3, Vec3, Vec3, Vec3]:
-    pitch = math.radians(camera.pitch)
-    yaw = math.radians(camera.yaw)
-    target = camera.target
+    pitch = float(camera.pitch)
+    yaw = float(camera.yaw)
+    distance = float(camera.distance)
+    if not (math.isfinite(pitch) and math.isfinite(yaw) and math.isfinite(distance)):
+        raise ValueError("camera yaw, pitch, and distance must be finite")
+    # A zero distance would divide by zero; the smallest positive distance keeps the basis defined.
+    distance = max(distance, MIN_DISTANCE)
+    pitch, yaw = math.radians(pitch), math.radians(yaw)
+    target = _vec(camera.target)
     position = (
-        target[0] + camera.distance * math.cos(pitch) * math.cos(yaw),
-        target[1] + camera.distance * math.cos(pitch) * math.sin(yaw),
-        target[2] + camera.distance * math.sin(pitch),
+        target[0] + distance * math.cos(pitch) * math.cos(yaw),
+        target[1] + distance * math.cos(pitch) * math.sin(yaw),
+        target[2] + distance * math.sin(pitch),
     )
-    forward = tuple((target[i] - position[i]) / camera.distance for i in range(3))
+    forward = tuple((target[i] - position[i]) / distance for i in range(3))
     right = (-math.sin(yaw), math.cos(yaw), 0.0)
     up = (
         right[1] * forward[2] - right[2] * forward[1],
@@ -485,7 +511,8 @@ class CameraAnimator:
 
 
 __all__ = [
-    "CameraAnimator", "DEFAULT_FOV", "DEFAULT_NEAR_LIMIT", "DroneGlyph", "NEAR_PLANE", "OrbitCamera",
+    "CameraAnimator", "DEFAULT_FOV", "DEFAULT_NEAR_LIMIT", "DroneGlyph", "FAR_LIMIT_RADII", "NEAR_PLANE", "OrbitCamera",
+    "finite_point",
     "PITCH_MAX", "PITCH_MIN", "Primitive", "ProjectedPoint", "Projector", "ViewPose", "circle_points",
     "clamp_distance", "clamp_pitch", "drag_delta", "ease_out", "far_to_near", "fit_all", "focus_point",
     "fit_distance", "framing_camera", "grid_lines", "hit_test", "painter_order", "project_point", "project_points",

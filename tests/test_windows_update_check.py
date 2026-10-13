@@ -151,7 +151,6 @@ def test_unexpected_error_text_is_not_raw_python(harness):
 def _viewer(smoke):
     app = SimpleNamespace(_smoke_mode=smoke, root=None)
     app._evidence_loader = WindowsReplayApp._evidence_loader
-    app._plain_open_error = WindowsReplayApp._plain_open_error
     app._report_open_failure = lambda title, message: WindowsReplayApp._report_open_failure(app, title, message)
     return app
 
@@ -164,20 +163,9 @@ def test_smoke_run_prints_open_errors_instead_of_showing_a_dialog(tmp_path, caps
     assert WindowsReplayApp._show_evidence_report(_viewer(True), bad) is False
     assert WindowsReplayApp._show_evidence_report(_viewer(True), tmp_path / "missing.json") is False
     err = capsys.readouterr().err
-    assert "Evidence report: The file bad.json is not valid JSON" in err
-    assert "Evidence report: The file missing.json was not found." in err
+    assert "bad.json" in err and "is not valid JSON" in err
+    assert "missing.json" in err and "no longer exists" in err
     assert "Errno" not in err
-
-
-def test_open_errors_read_the_same_for_both_viewers(tmp_path):
-    missing = tmp_path / "missing.json"
-    from desktop.scenario_run import ScenarioRunFormatError
-
-    assert WindowsReplayApp._plain_open_error(FileNotFoundError(2, "No such file"), missing, "evidence report") == "The file missing.json was not found."
-    assert WindowsReplayApp._plain_open_error(ScenarioRunFormatError("scenario run must be a regular file"), missing, "scenario run") == "The file missing.json was not found."
-    binary = tmp_path / "binary.json"
-    binary.write_bytes(b"\xff\xfe")
-    assert "not UTF-8 text" in WindowsReplayApp._plain_open_error(UnicodeDecodeError("utf-8", b"\xff", 0, 1, "bad"), binary, "scenario run")
 
 
 def test_headless_missing_scenario_is_a_message_not_a_traceback(tmp_path, capsys):
@@ -185,4 +173,4 @@ def test_headless_missing_scenario_is_a_message_not_a_traceback(tmp_path, capsys
 
     assert main(["--headless", "--scenario-run", str(tmp_path / "missing.json")]) == 2
     err = capsys.readouterr().err
-    assert "missing.json was not found" in err and "Traceback" not in err
+    assert "missing.json" in err and "no longer exists" in err and "Traceback" not in err

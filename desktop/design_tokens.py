@@ -72,6 +72,25 @@ MOTION_MS = {
     'reduced': 0,
 }
 LAYOUT = {'windowMinWidth': 1180, 'windowMinHeight': 760, 'sidebarWidth': 260, 'inspectorWidth': 300, 'rowHeight': 28, 'sceneMinWidth': 520, 'windowDefaultWidth': 1440, 'windowDefaultHeight': 900, 'eventListHeight': 128, 'inspectorMaxWidth': 360, 'sidebarIdealWidth': 300, 'eventPaneHeight': 192, 'sidebarWidthWindows': 340, 'contentInset': 16, 'controlHeight': 28, 'iconButtonSize': 28, 'iconGlyphSize': 14, 'speedSegmentWidth': 48, 'viewSegmentWidth': 44, 'stripOneRowMinWidth': 960, 'stripMetricWidth': 136, 'stripValueHeight': 28, 'stripDividerHeight': 40, 'eventRowHeight': 24, 'eventWordWidth': 60, 'eventTimeWidth': 52, 'eventRowsCompact': 4, 'eventRowsRegular': 6, 'compactDetailHeight': 820, 'teamAgeWidth': 64, 'teamLossWidth': 52, 'teamColumnSpacing': 6, 'scrubberMinWidth': 160, 'scrubberTrackHeight': 4, 'scrubberThumbSize': 14, 'scrubberTickHeight': 6, 'metricTileMinHeight': 56, 'sceneStatusMarkerPoints': 11, 'sceneSelectionRingPoints': 15, 'sceneTargetRingPoints': 9, 'sceneFitMarginPoints': 20, 'hoverLabelOffset': 16, 'viewerContentMaxWidth': 720, 'viewerLabelWidth': 220, 'viewerTwoColumnWidth': 960, 'scenarioSideWidth': 360, 'scenarioPlotHeight': 340, 'scenarioRailWidth': 84, 'plotDroneMark': 9, 'plotTargetMark': 14, 'aboutWindowWidth': 560, 'aboutWindowHeight': 680, 'aboutWindowMinWidth': 480, 'aboutWindowMinHeight': 420, 'evidenceWindowWidth': 720, 'evidenceWindowHeight': 840, 'evidenceWindowMinWidth': 560, 'evidenceWindowMinHeight': 440, 'scenarioWindowWidth': 1000, 'scenarioWindowHeight': 720, 'scenarioWindowMinWidth': 620, 'scenarioWindowMinHeight': 520, 'badgeHeight': 22, 'settingsWidth': 360, 'messageMaxWidth': 520, 'emptyWindowMinWidth': 420, 'emptyWindowMinHeight': 240, 'jsonTreeMaxChildren': 100}
+WIN_LAYOUT = {'controlHeight': 28,
+ 'iconSize': 14,
+ 'chevronSize': 12,
+ 'glyphSize': 10,
+ 'glyphBox': 16,
+ 'hairline': 1,
+ 'sliderHeight': 28,
+ 'sidebarWidth': 356,
+ 'screenMarginX': 80,
+ 'screenMarginY': 120,
+ 'eventRows': 5,
+ 'eventTextMinWidth': 240,
+ 'inspectorLabelWidth': 148,
+ 'viewerLabelWidth': 200,
+ 'timingRowHeight': 30,
+ 'scenarioPlotHeight': 260,
+ 'aboutWindow': {'width': 640, 'height': 620, 'minWidth': 520, 'minHeight': 420},
+ 'scenarioWindow': {'width': 760, 'height': 780, 'minWidth': 620, 'minHeight': 560},
+ 'evidenceWindow': {'width': 720, 'height': 780, 'minWidth': 580, 'minHeight': 480}}
 
 @dataclass(frozen=True)
 class Shortcut:
@@ -491,7 +510,34 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
                'altitude': 'Altitude',
                'details': 'Details',
                'emptyTitle': 'No drone selected',
-               'emptyHint': 'Click a drone in the team list or the scene.'}}
+               'emptyHint': 'Click a drone in the team list or the scene.'},
+ 'windowsText': {'comment': 'Copy used only by the Windows Tk app. Shared wording lives in the '
+                            'sections above.',
+                 'missingLegend': '– means not recorded',
+                 'eventsTitle': 'Events',
+                 'eventsHint': 'Click an event to jump to it',
+                 'selectDroneFirst': 'Select a drone first',
+                 'copied': 'Copied',
+                 'clipboardBusy': 'Could not copy: the clipboard is in use. Try again.',
+                 'groupLabel': '{word} · {count}',
+                 'groupLabelFiltered': '{word} · {shown} of {total}',
+                 'droneLabel': '{name} · {word}',
+                 'openScenarioTitle': 'Could not open the scenario run',
+                 'openEvidenceTitle': 'Could not open the evidence report',
+                 'openMissing': '“{name}” no longer exists. It may have been moved or deleted.',
+                 'openNotFile': '“{name}” is not a file.',
+                 'openPermission': 'Zephyr Mesh does not have permission to read “{name}”.',
+                 'openNotUtf8': '“{name}” is not a UTF-8 text file, so it cannot be a {noun}.',
+                 'openNotJson': '“{name}” is not valid JSON (line {line}, column {column}).',
+                 'openInvalid': '“{name}” is not a valid {noun}. {reason}',
+                 'openUnreadable': '“{name}” could not be read. {reason}',
+                 'scenarioNoun': 'scenario run',
+                 'evidenceNoun': 'evidence report',
+                 'scenarioLegend': 'Ring: target.  Dots: drones (dim when inactive).  Shaded '
+                                   'circles: keep-out volumes.',
+                 'gridLabel': 'Grid 1 m, heavy line every 5 m',
+                 'timingSingle': '1 sample',
+                 'atRest': 'At rest'}}
 
 # Transport labels with shortcut labels resolved, so callers never re-derive them.
 TRANSPORT = {'restart': {'label': 'Restart', 'help': 'Go back to the first frame'},

@@ -502,5 +502,32 @@
     "details": "Details",
     "emptyTitle": "No drone selected",
     "emptyHint": "Click a drone in the team list or the scene."
+  },
+  "windowsText": {
+    "comment": "Copy used only by the Windows Tk app. Shared wording lives in the sections above.",
+    "missingLegend": "– means not recorded",
+    "eventsTitle": "Events",
+    "eventsHint": "Click an event to jump to it",
+    "selectDroneFirst": "Select a drone first",
+    "copied": "Copied",
+    "clipboardBusy": "Could not copy: the clipboard is in use. Try again.",
+    "groupLabel": "{word} · {count}",
+    "groupLabelFiltered": "{word} · {shown} of {total}",
+    "droneLabel": "{name} · {word}",
+    "openScenarioTitle": "Could not open the scenario run",
+    "openEvidenceTitle": "Could not open the evidence report",
+    "openMissing": "“{name}” no longer exists. It may have been moved or deleted.",
+    "openNotFile": "“{name}” is not a file.",
+    "openPermission": "Zephyr Mesh does not have permission to read “{name}”.",
+    "openNotUtf8": "“{name}” is not a UTF-8 text file, so it cannot be a {noun}.",
+    "openNotJson": "“{name}” is not valid JSON (line {line}, column {column}).",
+    "openInvalid": "“{name}” is not a valid {noun}. {reason}",
+    "openUnreadable": "“{name}” could not be read. {reason}",
+    "scenarioNoun": "scenario run",
+    "evidenceNoun": "evidence report",
+    "scenarioLegend": "Ring: target.  Dots: drones (dim when inactive).  Shaded circles: keep-out volumes.",
+    "gridLabel": "Grid 1 m, heavy line every 5 m",
+    "timingSingle": "1 sample",
+    "atRest": "At rest"
   }
 }

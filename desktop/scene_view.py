@@ -8,12 +8,14 @@ so at most one draw runs per Tk idle cycle or animation frame.
 from __future__ import annotations
 
 import math
+import sys
 import time
 from typing import Any, Callable, Mapping, Sequence
 
-from .design_tokens import MOTION_MS, SPACE
+from .design_tokens import MOTION_MS, SPACE, UI_TEXT, WIN_LAYOUT
 from .scene_projection import (
     CameraAnimator,
+    finite_point,
     fit_distance,
     OrbitCamera,
     Projector,
@@ -31,6 +33,9 @@ from .ui_theme import Theme, mix
 
 
 FADED_LEVELS = {"caution", "alert"}
+# Late and lost drones also get a small status-colored marker above them: fading alone is easy to miss.
+MARKED_LEVELS = FADED_LEVELS
+MARKER_PX = SPACE["xxs"] + 1.5
 FOCUS_DISTANCE_M = 4.0
 FIT_MARGIN_PX = 34
 TOP_LIMIT_RADII = 6.0
@@ -39,14 +44,24 @@ ROTOR_M = 0.1
 FRAME_MS = 16
 
 
+HUD_AXIS = SPACE["lg"] + SPACE["sm"] - SPACE["xxs"]  # axis arrow length; the HUD sits SPACE["lg"] from the corner
+
+
 def _agents(frame: Mapping[str, Any]) -> list[Mapping[str, Any]]:
-    return list(frame.get("agents", frame.get("drones", [])))
+    agents = frame.get("agents", frame.get("drones", [])) if isinstance(frame, Mapping) else []
+    return [agent for agent in agents if isinstance(agent, Mapping)] if isinstance(agents, list) else []
 
 
-def _heading(velocity: Sequence[float] | None) -> float | None:
-    if not velocity or math.hypot(float(velocity[0]), float(velocity[1])) < 0.01:
+def _heading(velocity: Any) -> float | None:
+    """Heading in radians from a recorded velocity; ``None`` at rest or when the vector is malformed."""
+    point = finite_point(velocity)
+    if point is None or math.hypot(point[0], point[1]) < 0.01:
         return None
-    return math.atan2(float(velocity[1]), float(velocity[0]))
+    return math.atan2(point[1], point[0])
+
+
+def _agent_position(agent: Mapping[str, Any]) -> tuple[float, float, float] | None:
+    return finite_point(agent.get("position_m", agent.get("position")))
 
 
 class SceneView:
@@ -69,7 +84,8 @@ class SceneView:
         self.tk = tk
         self.scale = scale
         self.fonts = fonts
-        self.canvas = tk.Canvas(parent, highlightthickness=1, borderwidth=0, takefocus=1)
+        ring = max(1, int(round(WIN_LAYOUT["hairline"] * scale)))
+        self.canvas = tk.Canvas(parent, highlightthickness=ring, borderwidth=0, takefocus=1)
         self.on_select = on_select
         self.on_focus = on_focus
         self.on_context = on_context
@@ -82,7 +98,8 @@ class SceneView:
         self.view_mode = "3d"
         self.show_keepout = True
         self.draw_count = 0
-        self._points = [tuple(float(value) for value in point) for point in all_points]
+        # Malformed or non-finite points would poison the framing (NaN on the Canvas), so they are left out.
+        self._points = [point for point in (finite_point(item) for item in all_points) if point is not None]
         self._home = framing_camera(self._points)
         self._fitted_size: tuple[int, int] | None = None
         self._top_fit = self._home.distance
@@ -113,6 +130,8 @@ class SceneView:
         canvas.bind("<Motion>", self._on_motion)
         canvas.bind("<Button-3>", self._on_context_click)
         canvas.bind("<Control-Button-1>", self._on_context_click)
+        if sys.platform == "darwin":
+            canvas.bind("<Button-2>", self._on_context_click)  # Aqua reports the secondary click as Button-2
 
     # ---- state from the app -------------------------------------------------
     def set_frame(self, frame: Mapping[str, Any], records: Sequence[Mapping[str, Any]], selected: str) -> None:
@@ -210,6 +229,11 @@ class SceneView:
                 low = middle
         return high
 
+    def refit(self) -> None:
+        """Frame the swarm again for the current canvas size (after a side panel is shown or hidden)."""
+        self._fitted_size = None
+        self.request_draw()
+
     def reset_camera(self) -> None:
         self._user_moved = False
         self.camera = self._home
@@ -299,8 +323,7 @@ class SceneView:
     def _position(self, drone_id: str) -> tuple[float, float, float] | None:
         for agent in _agents(self.frame):
             if str(agent.get("agent_id", agent.get("id", ""))) == drone_id:
-                raw = agent.get("position_m", agent.get("position"))
-                return (float(raw[0]), float(raw[1]), float(raw[2])) if raw else None
+                return _agent_position(agent)
         return None
 
     def _ensure_items(self) -> None:
@@ -315,7 +338,8 @@ class SceneView:
             self._static["axis_y"] = canvas.create_line(0, 0, 0, 0, tags=("hud",))
             self._static["axis_x_label"] = canvas.create_text(0, 0, text="x", anchor="center", tags=("hud",))
             self._static["axis_y_label"] = canvas.create_text(0, 0, text="y", anchor="center", tags=("hud",))
-            self._static["grid_label"] = canvas.create_text(0, 0, text="Grid 1 m", anchor="w", tags=("hud",))
+            self._static["grid_label"] = canvas.create_text(0, 0, text=UI_TEXT["windowsText"]["gridLabel"], anchor="w",
+                                                            tags=("hud",))
             self._static["label"] = canvas.create_text(0, 0, text="", anchor="w", tags=("hud",))
             self._recolor_static()
         while len(self._drone_items) < len(self.order):
@@ -328,6 +352,7 @@ class SceneView:
                 "body": canvas.create_oval(0, 0, 0, 0, tags=(tag,)),
                 "motors": [canvas.create_oval(0, 0, 0, 0, width=0, tags=(tag,)) for _ in range(4)],
                 "nose": canvas.create_polygon(0, 0, 0, 0, 0, 0, width=0, tags=(tag,)),
+                "marker": canvas.create_oval(0, 0, 0, 0, width=0, tags=(tag,)),
                 "tag": tag,
                 "style": None,
             }
@@ -339,8 +364,13 @@ class SceneView:
         theme = self.theme
         p, scene = theme.p, theme.scene
         floor = scene.floor.hex
-        minor = scene.grid.hex
-        major = mix(p.lineStrong, scene.grid.hex, 0.45)
+        if theme.dark:
+            minor = scene.grid.hex
+            major = mix(p.lineStrong, scene.grid.hex, 0.45)
+        else:
+            # On the light floor the token grid reads as heavy rules through the ring; keep both quieter.
+            minor = mix(scene.grid.hex, floor, 0.55)
+            major = mix(p.lineStrong, floor, 0.35)
         for item, is_major, _ends in self._grid_items:
             self.canvas.itemconfigure(item, fill=major if is_major else minor, width=1)
         ring = scene.target_ring.hex
@@ -367,12 +397,15 @@ class SceneView:
         if record is not None and record.get("level") in FADED_LEVELS and not selected:
             # Faded, but still legible on the dark floor: keep about 60 percent of the color.
             body, arms, disc = mix(body, floor, 0.6), mix(arms, floor, 0.6), mix(disc, floor, 0.7)
+        level = str(record.get("level", "")) if record is not None else ""
+        marker = theme.status_color(level) if level in MARKED_LEVELS else ""
         return (
             body,
             arms,
             mix(disc, floor, 0.3),
             mix(disc, floor, 0.62),
             mix(theme.p.textSecondary, floor, 0.22),
+            marker,
         )
 
     def _draw_now(self) -> None:
@@ -394,10 +427,10 @@ class SceneView:
             segment = projector.segment(start, end)
             canvas.coords(item, *(hidden if segment is None else (segment[0].x, segment[0].y, segment[1].x, segment[1].y)))
 
-        target = self.frame.get("target_position_m", self.frame.get("target_position"))
+        target = finite_point(self.frame.get("target_position_m", self.frame.get("target_position")))
         entities: list[tuple[float, str, Any]] = []
         if target is not None:
-            tx, ty, tz = (float(value) for value in target)
+            tx, ty, tz = target
             ring = [projector.project(point) for point in circle_points((tx, ty, tz), 0.32, 48)]
             stem = projector.segment((tx, ty, tz), (tx, ty, 0.0))
             foot_center = projector.project((tx, ty, 0.0))
@@ -423,10 +456,9 @@ class SceneView:
         for index, drone_id in enumerate(self.order):
             items = self._drone_items[index]
             agent = agents.get(drone_id, {})
-            raw = agent.get("position_m", agent.get("position"))
+            position = _agent_position(agent)
             glyph = None
-            if raw is not None:
-                position = (float(raw[0]), float(raw[1]), float(raw[2]))
+            if position is not None:
                 glyph = xframe_glyph(projector, position, _heading(agent.get("velocity_mps")), ARM_M, ROTOR_M)
             if glyph is None:
                 screen_points.append(None)
@@ -438,7 +470,7 @@ class SceneView:
             selected = drone_id == self.selected
             style = self._drone_style(self.records.get(drone_id), selected)
             if items["style"] != style:
-                body, arms, disc_fill, disc_line, foot = style
+                body, arms, disc_fill, disc_line, foot, marker = style
                 for disc in items["discs"]:
                     canvas.itemconfigure(disc, fill=disc_fill, outline=disc_line, width=1)
                 for arm in items["arms"]:
@@ -448,6 +480,7 @@ class SceneView:
                     canvas.itemconfigure(motor, fill=arms)
                 canvas.itemconfigure(items["nose"], fill=body)
                 canvas.itemconfigure(items["foot"], fill=foot)
+                canvas.itemconfigure(items["marker"], fill=marker or "", state="normal" if marker else "hidden")
                 items["style"] = style
             tips = glyph.arm_tips
             for disc, (cx, cy, rx, ry) in zip(items["discs"], glyph.rotors):
@@ -463,6 +496,12 @@ class SceneView:
                 canvas.coords(items["nose"], *hidden[:2], *hidden[:2], *hidden[:2])
             else:
                 canvas.coords(items["nose"], *[value for point in glyph.heading for value in point])
+            if style[-1]:
+                lowest_top = min(cy - ry for cx, cy, rx, ry in glyph.rotors)
+                marker_r = MARKER_PX * self.scale
+                marker_y = lowest_top - marker_r - SPACE["xs"] * self.scale
+                canvas.coords(items["marker"], glyph.center.x - marker_r, marker_y - marker_r, glyph.center.x + marker_r,
+                              marker_y + marker_r)
             foot = projector.project((position[0], position[1], 0.0))
             foot_r = 0.07 * projector.scale_at(max(foot.depth, 0.2))
             canvas.coords(items["foot"], foot.x - foot_r, foot.y - foot_r * projector.ellipse_ratio,
@@ -470,7 +509,7 @@ class SceneView:
             screen_points.append((glyph.center.x, glyph.center.y))
             entities.append((glyph.center.depth, "drone", items["tag"]))
             if selected:
-                label_at = (glyph.rotors[0][0] + glyph.rotors[0][2] + 4 * self.scale, glyph.center.y,
+                label_at = (glyph.rotors[0][0] + glyph.rotors[0][2] + SPACE["xs"] * self.scale, glyph.center.y,
                             self.records.get(drone_id, {}).get("compact_name", drone_id))
         for index in range(len(self.order), len(self._drone_items)):
             canvas.itemconfigure(self._drone_items[index]["tag"], state="hidden")
@@ -507,10 +546,13 @@ class SceneView:
         floor = self.theme.scene.floor.hex
         for sphere in spheres:
             try:
-                cx, cy, cz = (float(value) for value in sphere["center_m"])
+                center_point = finite_point(sphere["center_m"])
                 radius = float(sphere["radius_m"])
             except (KeyError, TypeError, ValueError):
                 continue
+            if center_point is None or not math.isfinite(radius) or radius <= 0:
+                continue
+            cx, cy, cz = center_point
             center = projector.project((cx, cy, cz))
             if center.depth <= radius + 0.2:
                 continue
@@ -527,9 +569,9 @@ class SceneView:
 
     def _draw_hud(self, pose: ViewPose, height: int) -> None:
         canvas = self.canvas
-        origin_x = SPACE["lg"] * self.scale + 14 * self.scale
-        origin_y = height - SPACE["lg"] * self.scale - 14 * self.scale
-        length = 22 * self.scale
+        origin_x = (SPACE["lg"] + SPACE["md"]) * self.scale
+        origin_y = height - (SPACE["lg"] + SPACE["md"]) * self.scale
+        length = HUD_AXIS * self.scale
         yaw = math.radians(pose.yaw)
         pitch_factor = max(0.25, math.sin(math.radians(pose.pitch)))
         right = (-math.sin(yaw), math.cos(yaw))
@@ -544,7 +586,7 @@ class SceneView:
             canvas.coords(self._static[axis], origin_x, origin_y, *end)
             label_point = screen(dx * 1.6, dy * 1.6)
             canvas.coords(self._static[label], *label_point)
-        canvas.coords(self._static["grid_label"], origin_x + length + 26 * self.scale, origin_y)
+        canvas.coords(self._static["grid_label"], origin_x + length + SPACE["xl"] * self.scale, origin_y)
 
 
 __all__ = ["SceneView"]

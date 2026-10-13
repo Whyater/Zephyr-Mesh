@@ -549,17 +549,23 @@ def test_user_selection_renders_once_and_never_loops():
     assert app.inspector_renders == 1
 
 
-def test_selecting_a_collapsed_group_keeps_the_group_row_and_settles():
+def test_landing_on_a_group_header_keeps_the_selected_drone_and_settles():
     queue = []
     app = _selection_app(queue)
+    late = next(row for row in app._team_plan if row["level"] != "ok")
+    app.session.selected_drone_id = before = late["members"][0]
     ok_group = next(row for row in app._team_plan if row["level"] == "ok")
-    app.fleet.selected = (ok_group["iid"],)
+    assert before not in ok_group["members"]
+    app.fleet.selected = (ok_group["iid"],)  # arrow keys land on a header: Tk queues one event
     queue.append("<<TreeviewSelect>>")
     _drain(app, queue)
-    assert app.session.selected_drone_id == ok_group["members"][0]
+    assert app.session.selected_drone_id == before, "a header never picks a drone by itself"
+    assert app.inspector_renders == 0 and queue == []
+    app.session.selected_drone_id = ok_group["members"][0]
+    app._sync_team_selection()  # drone in a closed group: the group row shows the selection
     assert app.fleet.selection() == (ok_group["iid"],)
-    assert queue == []
-    app.fleet.open[ok_group["iid"]] = True  # the user expands it; selection moves to the drone row
+    _drain(app, queue)
+    app.fleet.open[ok_group["iid"]] = True  # expanded: the selection moves to the drone row
     app._sync_team_selection()
     assert app.fleet.selection() == (ok_group["members"][0],)
     renders = app.inspector_renders
@@ -592,19 +598,23 @@ def test_team_rows_group_drones_and_filter_never_hides_non_ok():
     rows = team_rows(presentation["groups"], presentation["per_drone"])
     assert sum(len(row["members"]) for row in rows) == RAW_AGENTS
     assert rows[0]["level"] != "ok", "non-OK groups sort first"
-    assert rows[-1]["label"].endswith("drones")
+    assert rows[-1]["label"] == f"OK · {len(rows[-1]['members'])} drones", "status word first, like the Mac"
     filtered = team_rows(presentation["groups"], presentation["per_drone"], "D01")
     assert {row["level"] for row in rows if row["level"] != "ok"} <= {row["level"] for row in filtered}
     ok_row = next(row for row in filtered if row["level"] == "ok")
-    assert [child["label"] for child in ok_row["children"]] == ["D01"]
-    assert ok_row["label"].startswith(f"{len(ok_row['children'])} of ")
+    assert [child["label"] for child in ok_row["children"]] == ["D01 · OK"], "drone rows repeat their word"
+    assert all(child["level"] == "ok" for child in ok_row["children"]), "and their status shape"
+    ok_full = next(row for row in rows if row["level"] == "ok")
+    assert ok_row["label"] == f"OK · {len(ok_row['children'])} of {len(ok_full['members'])}"
     first = rows[0]
     assert desired_team_selection(rows, first["members"][0], set()) == first["iid"]
     assert desired_team_selection(rows, first["members"][0], {first["iid"]}) == first["members"][0]
-    assert drone_for_team_row(rows, first["iid"], "nobody") == first["members"][0]
+    assert drone_for_team_row(rows, first["iid"], "nobody") is None, "a header never picks a drone"
+    assert drone_for_team_row(rows, first["iid"], first["members"][-1]) == first["members"][-1]
     assert drone_for_team_row(rows, first["members"][-1], "nobody") == first["members"][-1]
     waiting = team_rows(ReplaySession(RUN).presentation["groups"], ReplaySession(RUN).presentation["per_drone"])
-    assert waiting[0]["values"][1:] == ("–", "–", "–"), "missing values are never shown as 0"
+    assert waiting[0]["values"] == ("–", "–"), "missing values are never shown as 0"
+    assert all(child["values"] == ("–", "–") for child in waiting[0]["children"])
 
 
 class _FakeRoot:
@@ -641,6 +651,7 @@ def _playback_app():
     app.renders = 0
     app._render = lambda: setattr(app, "renders", app.renders + 1)
     app.play_button = _FakeWidget()
+    app.play_tip = types.SimpleNamespace(text="", set_text=lambda text: setattr(app.play_tip, "text", text))
     app.time_label = _FakeWidget()
     app.slider = types.SimpleNamespace(set_state=lambda *args: None)
     app.images = types.SimpleNamespace(icon=lambda name, *args: name)
@@ -654,17 +665,17 @@ def _run_next_job(app):
     callback(*args)
 
 
-def test_play_button_label_and_icon_follow_playback():
+def test_play_button_icon_and_tooltip_follow_playback():
     app = _playback_app()
     app._render_timeline()
-    assert app.play_button.options["text"].strip() == "Play" and app.play_button.options["image"] == "play"
+    assert app.play_button.options["image"] == "play" and app.play_tip.text == "Play  (Space)"
     app._toggle()
     app._render_timeline()
-    assert app.playing and app.play_button.options["text"].strip() == "Pause"
-    assert app.play_button.options["image"] == "pause"
+    assert app.playing and app.play_button.options["image"] == "pause"
+    assert app.play_tip.text == "Pause  (Space)"
     app._step()  # stepping pauses
     app._render_timeline()
-    assert not app.playing and app.play_button.options["text"].strip() == "Play"
+    assert not app.playing and app.play_button.options["image"] == "play" and app.play_tip.text.startswith("Play")
     assert app.time_label.options["text"] == "0.05 / 0.25 s"
 
 
@@ -710,11 +721,12 @@ def test_single_key_shortcuts_yield_to_the_focused_widget():
 
     assert press("TEntry", "f") is None and fired == []
     assert press("TButton", "space") is None and fired == [], "a focused button owns Space"
-    assert press("Treeview", "right") is None and fired == [], "a focused list owns the arrow keys"
+    assert press("Treeview", "right") is None and fired == [], "the team list owns the arrow keys"
+    assert press("Treeview", "space") is None and fired == [], "and Space, which opens or closes a group"
     assert press("Canvas", "f") == "break" and fired == ["f"]
     assert press("TButton", "f") == "break"
-    assert press("Treeview", "space") == "break"
-    assert fired == ["f", "f", "space"]
+    assert press("Treeview", "home") == "break", "Home has no list binding, so it stays Restart"
+    assert fired == ["f", "f", "home"]
 
 
 def test_menu_layout_covers_every_shortcut_with_generated_accelerators():
@@ -998,7 +1010,7 @@ def test_scene_hides_stale_target_and_bounds_top_view():
     scene._draw_now()
     assert all(scene.canvas.itemcget(item, "state") == "hidden" for item in scene.canvas.find_withtag("target"))
     scene.set_view_mode("top")
-    assert scene.camera.distance <= scene.camera.swarm_radius * 3 + 1e-9, "orbit stays within 3x the swarm radius"
+    assert scene.camera.distance <= scene.camera.swarm_radius * 6 + 1e-9, "orbit stays within 6x the swarm radius"
     assert scene._goal_pose().distance <= scene.camera.swarm_radius * 6 + 1e-9, "top view is bounded too"
     root.destroy()
 
