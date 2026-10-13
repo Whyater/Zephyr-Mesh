@@ -226,13 +226,16 @@ struct QuietButtonStyle: ButtonStyle {
     var isActive = false
     var font: Font = TypeScale.body
     var tone: Tone = .primary
+    /// A text button that needs to read as a button (for example Clear filter): a hairline
+    /// outline and `Space.md` side padding.
+    var bordered = false
 
     /// Space between the square's edge and a glyph of `iconGlyphSize`, used to line glyph ink
     /// up with the content inset instead of the invisible hit area.
     static let glyphInset = (LayoutMetrics.iconButtonSize - LayoutMetrics.iconGlyphSize) / 2
 
     func makeBody(configuration: Configuration) -> some View {
-        QuietButtonBody(configuration: configuration, isActive: isActive, font: font, tone: tone)
+        QuietButtonBody(configuration: configuration, isActive: isActive, font: font, tone: tone, bordered: bordered)
     }
 
     private struct QuietButtonBody: View {
@@ -240,6 +243,7 @@ struct QuietButtonStyle: ButtonStyle {
         let isActive: Bool
         let font: Font
         let tone: Tone
+        let bordered: Bool
         @Environment(\.palette) private var palette
         @Environment(\.isEnabled) private var isEnabled
         @State private var hovering = false
@@ -248,9 +252,15 @@ struct QuietButtonStyle: ButtonStyle {
             configuration.label
                 .font(font)
                 .foregroundStyle(foreground)
+                .padding(.horizontal, bordered ? Space.md : 0)
                 .frame(minWidth: LayoutMetrics.iconButtonSize, minHeight: LayoutMetrics.iconButtonSize)
                 .background {
                     RoundedRectangle(cornerRadius: Radius.small).fill(fill)
+                }
+                .overlay {
+                    if bordered {
+                        RoundedRectangle(cornerRadius: Radius.small).strokeBorder(palette.lineStrong, lineWidth: 1)
+                    }
                 }
                 .contentShape(Rectangle())
                 .onHover { hovering = $0 && isEnabled }
@@ -373,6 +383,7 @@ struct DetailsDisclosureStyle: DisclosureGroupStyle {
                             .foregroundStyle(palette.textSecondary)
                             .rotationEffect(.degrees(configuration.isExpanded ? 90 : 0))
                             .frame(width: Space.md)
+                            .accessibilityHidden(true)
                         configuration.label
                             .font(font)
                             .foregroundStyle(palette.text)
@@ -438,9 +449,10 @@ struct RawTreeBlock: View {
 
 /// Raw tree with every key labeled, collapsed by default. Shared by the Evidence and the
 /// Scenario Run windows. Each branch builds its children only when opened and lists at most
-/// `jsonTreeMaxChildren` of them, so a huge shallow file cannot create thousands of views.
+/// `limit` of them, so a huge shallow file cannot create thousands of views.
 struct JSONTree: View {
-    static let limit = Int(LayoutMetrics.jsonTreeMaxChildren)
+    /// A data cap, not a layout size: entries listed per branch (the summary uses it too).
+    static let limit = 100
     let value: JSONValue
     @Environment(\.palette) private var palette
 

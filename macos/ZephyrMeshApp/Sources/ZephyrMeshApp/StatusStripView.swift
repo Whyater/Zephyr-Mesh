@@ -21,12 +21,16 @@ struct StatusStripView: View {
         ]
         Group {
             if availableWidth >= LayoutMetrics.stripOneRowMinWidth {
-                HStack(spacing: 0) {
+                // Dividers only between the numbers, and the last number ends on the content inset.
+                HStack(spacing: Space.lg) {
                     TrackingCell(headline: presentation.headline)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    ForEach(metrics, id: \.0) { label, value in
-                        StripMetric(label: label, value: value, showsDivider: true)
-                            .frame(width: LayoutMetrics.stripMetricWidth, alignment: .leading)
+                    HStack(spacing: Space.md) {
+                        ForEach(Array(metrics.enumerated()), id: \.offset) { index, metric in
+                            StripMetric(label: metric.0, value: metric.1, showsDivider: index > 0)
+                                .frame(minWidth: LayoutMetrics.stripMetricMinWidth, alignment: .leading)
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
                     }
                 }
             } else {

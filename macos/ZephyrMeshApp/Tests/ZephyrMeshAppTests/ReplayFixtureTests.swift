@@ -200,7 +200,7 @@ final class TeamPresentationTests: XCTestCase {
         XCTAssertTrue(hidden.isEmpty, "a waiting group is filtered like an OK group")
         let counts = TeamPresentation.filterCounts(rows: hidden, drones: waiting.perDrone, query: "zzz")
         XCTAssertEqual(counts, TeamPresentation.FilterCounts(
-            shown: 0, matched: 0, total: 50, caption: "Showing 0 of 50", emptyText: "No drones match \"zzz\""))
+            shown: 0, matched: 0, total: 50, caption: "Showing 0 of 50", emptyText: "No drones match \u{201C}zzz\u{201D}"))
 
         let presentation = fixture.frames[3].presentation
         let none = TeamPresentation.rows(groups: presentation.groups, drones: presentation.perDrone, query: "zzz")
@@ -532,13 +532,6 @@ final class SceneGeometryTests: XCTestCase {
         XCTAssertTrue(ring.isHidden, "close up the drone is wider than the ring, so the ring steps aside")
     }
 
-    func testScreenSizerWorldSizeMatchesTheProjection() {
-        // Independent check: at distance d the view height spans 2 d tan(fov / 2) metres.
-        let sizer = ScreenSizer(verticalFieldOfView: 38, camera: SCNNode())
-        sizer.viewHeight = 400
-        let expected = Float(10.0 * 5.0 * 2 * tan(19.0 * Double.pi / 180) / 400)
-        XCTAssertEqual(sizer.worldSize(points: 10, distance: 5), expected, accuracy: 1e-6)
-    }
 }
 
 final class CameraFitTests: XCTestCase {

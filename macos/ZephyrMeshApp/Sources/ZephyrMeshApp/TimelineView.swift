@@ -9,7 +9,8 @@ struct TimelineView: View {
 
     var body: some View {
         HStack(spacing: Space.lg) {
-            HStack(spacing: Space.sm) {
+            // Space.md plus the last glyph's own inset matches the Space.lg gaps after the track.
+            HStack(spacing: Space.md) {
                 HStack(spacing: Space.xs) {
                     transportButton(UIText.Transport.restart, symbol: "backward.end.fill",
                                     disabled: model.isAtStart && !model.isPlaying) {

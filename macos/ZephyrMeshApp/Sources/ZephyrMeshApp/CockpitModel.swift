@@ -48,10 +48,19 @@ struct CameraCommand: Equatable {
     let serial: Int
 }
 
+/// Update messages from the shared UI text (`UIText.update`), with `{tag}` and `{reason}` filled in.
+enum UpdateText {
+    static func text(_ key: String, _ values: [String: String] = [:]) -> String {
+        Format.fill(UIText.update[key] ?? key, values)
+    }
+}
+
 struct UpdateNotice: Identifiable {
     let id = UUID()
     let title: String
     let message: String
+    /// True for the "installing" notice: the app quits moments later, so it must never block.
+    var precedesQuit = false
 }
 
 /// Replay state for one loaded fixture. It never computes a displayed metric: every value the
@@ -86,7 +95,7 @@ final class CockpitModel: ObservableObject {
         self.fixture = fixture
         self.selectedID = fixture.drones.first?.id
         if let failure = ReleaseUpdater.takeLastResult() {
-            updateNotice = UpdateNotice(title: "Update did not finish", message: failure)
+            updateNotice = UpdateNotice(title: UpdateText.text("keptCurrent"), message: failure)
         }
         if automaticallyPlay { play() }
     }
@@ -119,6 +128,9 @@ final class CockpitModel: ObservableObject {
     var eventsSoFar: [PresentationEvent] {
         fixture.frames.prefix(frameIndex + 1).flatMap(\.presentation.events)
     }
+
+    /// Events in the whole run, for sizing the events pane once.
+    private(set) lazy var totalEventCount = fixture.frames.reduce(0) { $0 + $1.presentation.events.count }
 
     /// Frame indexes that carry at least one event, for the timeline tick marks.
     var eventFrameIndexes: [Int] {
@@ -231,16 +243,16 @@ final class CockpitModel: ObservableObject {
             do {
                 let check = try await ReleaseUpdater.checkLatest()
                 guard check.isNewer else {
-                    updateNotice = UpdateNotice(title: "Zephyr Mesh is up to date",
-                                                message: "Version \(check.release.tagName) is the latest release.")
+                    updateNotice = UpdateNotice(title: UpdateText.text("upToDate", ["tag": check.release.tagName]), message: "")
                     return
                 }
                 let tag = try await ReleaseUpdater.installLatest()
-                updateNotice = UpdateNotice(title: "Installing \(tag)", message: "Zephyr Mesh will restart to finish the update.")
+                updateNotice = UpdateNotice(title: UpdateText.text("installing"), message: UpdateText.text("available", ["tag": tag]),
+                                            precedesQuit: true)
                 try? await Task.sleep(for: .milliseconds(800))
                 NSApp.terminate(nil)
             } catch {
-                updateNotice = UpdateNotice(title: "Update unavailable", message: error.localizedDescription)
+                updateNotice = UpdateNotice(title: UpdateText.text("failed", ["reason": error.localizedDescription]), message: "")
             }
         }
     }

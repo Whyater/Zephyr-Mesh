@@ -142,7 +142,7 @@ def test_team_filter_counts_and_texts_for_the_caption_and_empty_state():
     missing = team_filter(groups, "zzz")
     assert (missing["shown"], missing["matched"], missing["total"]) == (3, 0, 50)
     assert missing["caption"] == "Showing 3 of 50"
-    assert missing["empty_text"] == 'No drones match "zzz"'
+    assert missing["empty_text"] == "No drones match \u201czzz\u201d"
     one = team_filter(groups, "d07")
     assert (one["shown"], one["matched"]) == (4, 1)
     assert one["empty_text"] is None

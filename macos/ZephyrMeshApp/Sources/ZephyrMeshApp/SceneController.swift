@@ -394,12 +394,12 @@ final class SceneController {
         holder.addChildNode(facing)
         let outline = SCNNode()
         outline.name = "status-marker-outline"
-        outline.position = SCNVector3(0, 1.05, 0)
+        outline.position = SCNVector3(0, CGFloat(Self.markerLift), 0)
         outline.scale = SCNVector3(1.45, 1.45, 1)
         outline.renderingOrder = 40
         let shape = SCNNode()
         shape.name = "status-marker-shape"
-        shape.position = SCNVector3(0, 1.05, 0.001)
+        shape.position = SCNVector3(0, CGFloat(Self.markerLift), 0.001)
         shape.renderingOrder = 41
         facing.addChildNode(outline)
         facing.addChildNode(shape)
@@ -409,6 +409,12 @@ final class SceneController {
         shape.castsShadow = false
         return holder
     }
+
+    /// Marker centre above its holder, in marker sizes: just above the drone, or above the
+    /// selection ring (`sceneSelectionRingPoints` plus a small gap) on the selected drone.
+    static let markerLift: Float = 1.05
+    static let selectedMarkerLift = Float((LayoutMetrics.sceneSelectionRingPoints + Space.xs)
+                                          / LayoutMetrics.sceneStatusMarkerPoints) + 0.5
 
     /// Unit-size status shape centred on its origin: a triangle for caution, a square for alert.
     private static func markerPath(level: String) -> NSBezierPath {
@@ -575,9 +581,14 @@ final class SceneController {
                 drone.look = look
                 drone.body.geometry = bodyGeometry[drone.dimensions]?[look]
             }
-            // Status is a marker, never opacity: a selected late or lost drone keeps its marker.
+            // Status is a marker, never opacity: a selected late or lost drone keeps its marker,
+            // lifted clear of the selection ring.
             let style = state.styles[telemetry.id]
             let level = style?.hasSceneMarker == true ? style?.level : nil
+            let lift = telemetry.id == state.selectedID ? Self.selectedMarkerLift : Self.markerLift
+            for part in drone.marker.childNodes.first?.childNodes ?? [] where Float(part.position.y) != lift {
+                part.position.y = CGFloat(lift)
+            }
             if drone.markerLevel != level || drone.marker.isHidden != (level == nil) {
                 drone.markerLevel = level
                 drone.marker.isHidden = level == nil

@@ -79,26 +79,25 @@ struct AboutReplayView: View {
 private struct CommandBlock: View {
     private static let copyTitle = Format.label("copy_command")
     private static let copiedTitle = Format.label("copied")
+    /// How long the checkmark stays after copying.
+    private static let copiedFeedback: TimeInterval = 1.2
     let command: String
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var copied = false
 
     var body: some View {
-        // One line that scrolls sideways, so a path never breaks after a slash. The copy button
-        // sits beside the scroll area, inside the block, so text never runs under it.
-        HStack(alignment: .top, spacing: 0) {
-            ScrollView(.horizontal) {
-                Text(command)
-                    .font(ValueStyle.code.font)
-                    .foregroundStyle(palette.text)
-                    .textSelection(.enabled)
-                    .lineLimit(1)
-                    .fixedSize()
-                    .padding(.vertical, Space.md)
-                    .padding(.horizontal, Space.md)
-            }
-            .scrollIndicators(.automatic)
+        // Wraps only at spaces, so every part of the command is visible and a path never breaks
+        // after a slash. The copy button sits inside the block, beside the text.
+        HStack(alignment: .top, spacing: Space.xs) {
+            Text(CommandText.display(command))
+                .font(ValueStyle.code.font)
+                .foregroundStyle(palette.text)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, Space.md)
+                .padding(.leading, Space.md)
+                .accessibilityLabel(command)
             Button(action: copy) {
                 Label(copied ? Self.copiedTitle : Self.copyTitle,
                       systemImage: copied ? "checkmark" : "doc.on.doc")
@@ -107,7 +106,7 @@ private struct CommandBlock: View {
             .buttonStyle(QuietButtonStyle(tone: .secondary))
             .padding(Space.xs)
             .help(copied ? Self.copiedTitle : Self.copyTitle)
-            .accessibilityLabel(Self.copyTitle)
+            .accessibilityLabel(copied ? Self.copiedTitle : Self.copyTitle)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(palette.surface, in: RoundedRectangle(cornerRadius: Radius.small))
@@ -118,7 +117,7 @@ private struct CommandBlock: View {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(command, forType: .string)
         withAnimation(.easeOut(duration: Motion.duration(Motion.fast, reduceMotion: reduceMotion))) { copied = true }
-        DispatchQueue.main.asyncAfter(deadline: .now() + Motion.standard * 7) { copied = false }
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.copiedFeedback) { copied = false }
     }
 }
 
@@ -140,5 +139,19 @@ struct SettingsView: View {
         }
         .padding(Space.xl)
         .frame(width: LayoutMetrics.settingsWidth)
+    }
+}
+
+/// The command as displayed: a word joiner between the characters of each space-separated part,
+/// so the line can break only at spaces. The copy button always copies the original command,
+/// because the joiners are invisible characters a shell would not accept; for that reason the
+/// displayed text is not selectable.
+enum CommandText {
+    static let joiner = "\u{2060}"
+
+    static func display(_ command: String) -> String {
+        command.split(separator: " ", omittingEmptySubsequences: false)
+            .map { $0.map(String.init).joined(separator: joiner) }
+            .joined(separator: " ")
     }
 }

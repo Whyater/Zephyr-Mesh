@@ -290,30 +290,40 @@ struct ScenarioPlotView: View {
         let minX = centerX - plotWidth / 2 / scale, maxX = centerX + plotWidth / 2 / scale
         let minY = centerY - height / 2 / scale, maxY = centerY + height / 2 / scale
         var grid = Path()
-        for index in Int((minX / step).rounded(.up))...max(Int((minX / step).rounded(.up)), Int((maxX / step).rounded(.down))) {
-            let x = plotWidth / 2 + (Double(index) * step - centerX) * scale
-            grid.move(to: CGPoint(x: x, y: 0))
-            grid.addLine(to: CGPoint(x: x, y: height))
+        if let columns = ScenarioPlotGeometry.gridLineRange(from: minX, to: maxX, step: step) {
+            for index in columns {
+                let x = plotWidth / 2 + (Double(index) * step - centerX) * scale
+                grid.move(to: CGPoint(x: x, y: 0))
+                grid.addLine(to: CGPoint(x: x, y: height))
+            }
         }
-        for index in Int((minY / step).rounded(.up))...max(Int((minY / step).rounded(.up)), Int((maxY / step).rounded(.down))) {
-            let y = height / 2 - (Double(index) * step - centerY) * scale
-            grid.move(to: CGPoint(x: 0, y: y))
-            grid.addLine(to: CGPoint(x: plotWidth, y: y))
+        if let rows = ScenarioPlotGeometry.gridLineRange(from: minY, to: maxY, step: step) {
+            for index in rows {
+                let y = height / 2 - (Double(index) * step - centerY) * scale
+                grid.move(to: CGPoint(x: 0, y: y))
+                grid.addLine(to: CGPoint(x: plotWidth, y: y))
+            }
         }
         context.stroke(grid, with: .color(palette.line), lineWidth: 1)
 
         let inset = Double(LayoutMetrics.contentInset)
         let barY = height - inset
         let barLength = step * scale
+        let labelText = step >= 1 ? Format.number(step, decimals: 0) : Format.number(step, decimals: 1)
+        let label = context.resolve(Text("\(labelText) m").font(TypeScale.caption).foregroundColor(palette.textSecondary))
+        let labelSize = label.measure(in: CGSize(width: plotWidth, height: height))
+        // A surface backing under the bar and its label, so grid lines never run through them.
+        let backing = CGRect(x: inset - Space.xs, y: barY - Space.sm - labelSize.height - Space.xxs,
+                             width: max(barLength, labelSize.width) + 2 * Space.xs,
+                             height: labelSize.height + Space.sm + Space.xxs + Space.xs)
+        context.fill(Path(roundedRect: backing, cornerRadius: Radius.small), with: .color(palette.surface))
         var bar = Path()
         bar.move(to: CGPoint(x: inset, y: barY - Space.xs))
         bar.addLine(to: CGPoint(x: inset, y: barY))
         bar.addLine(to: CGPoint(x: inset + barLength, y: barY))
         bar.addLine(to: CGPoint(x: inset + barLength, y: barY - Space.xs))
         context.stroke(bar, with: .color(palette.textSecondary), lineWidth: 1.5)
-        let label = step >= 1 ? Format.number(step, decimals: 0) : Format.number(step, decimals: 1)
-        context.draw(Text("\(label) m").font(TypeScale.caption).foregroundColor(palette.textSecondary),
-                     at: CGPoint(x: inset + barLength / 2, y: barY - Space.sm), anchor: .bottom)
+        context.draw(label, at: CGPoint(x: inset, y: barY - Space.sm), anchor: .bottomLeading)
     }
 
     private func drawRail(_ context: GraphicsContext, size: CGSize, railSpace: CGFloat) {

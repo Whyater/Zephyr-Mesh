@@ -221,6 +221,8 @@ enum EventText {
         return parts.map { NSRegularExpression.escapedPattern(for: $0) }.joined(separator: "(\\d+)")
     }()
 
+    private static let nameExpression = try? NSRegularExpression(pattern: namePattern)
+
     private static let listExpression: NSRegularExpression? = {
         let name = namePattern
         let pattern = "\\b\(name)(?:, \(name))+\\b(?: \(morePattern))?"
@@ -237,7 +239,7 @@ enum EventText {
         if match.numberOfRanges > 1, let extraRange = Range(match.range(at: 1), in: text) {
             extra = Int(text[extraRange]) ?? 0
         }
-        let names = (try? NSRegularExpression(pattern: namePattern))?
+        let names = nameExpression?
             .matches(in: listText, range: NSRange(listText.startIndex..., in: listText))
             .compactMap { Range($0.range, in: listText).map { String(listText[$0]) } } ?? []
         guard names.count > 1 else { return [text] }

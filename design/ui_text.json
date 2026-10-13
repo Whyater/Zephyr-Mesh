@@ -467,7 +467,7 @@
   "teamFilter": {
     "pinnedLevels": ["caution", "alert"],
     "showing": "Showing {shown} of {total}",
-    "noMatches": "No drones match \"{query}\"",
+    "noMatches": "No drones match “{query}”",
     "clearFilter": "Clear filter",
     "pinnedNote": "Late and lost drones stay listed."
   },

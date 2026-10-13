@@ -173,3 +173,133 @@ final class AuditFixTests: XCTestCase {
         store.close(reopened)
     }
 }
+
+final class RoundTwoTests: XCTestCase {
+    func testADroneWithoutRecordedSpeedReadsNotRecorded() throws {
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: replayURL)) as? [String: Any])
+        var frames = try XCTUnwrap(object["frames"] as? [[String: Any]])
+        var presentation = try XCTUnwrap(frames[0]["presentation"] as? [String: Any])
+        var perDrone = try XCTUnwrap(presentation["per_drone"] as? [[String: Any]])
+        perDrone[0]["speed_mps"] = NSNull()
+        perDrone[0]["heading_deg"] = NSNull()
+        perDrone[0]["altitude_m"] = NSNull()
+        presentation["per_drone"] = perDrone
+        frames[0]["presentation"] = presentation
+        object["frames"] = frames
+        let fixture = try JSONDecoder().decode(Fixture.self, from: JSONSerialization.data(withJSONObject: object))
+        let drone = try XCTUnwrap(fixture.frames[0].presentation.perDrone.first)
+        XCTAssertNil(drone.speedMps)
+        XCTAssertEqual(Format.metersPerSecond(drone.speedMps), "Not recorded", "a missing speed is never shown as 0")
+        XCTAssertEqual(Format.degrees(drone.headingDeg), "Not recorded")
+        XCTAssertNil(drone.altitudeM)
+        XCTAssertEqual(Format.meters(drone.altitudeM), "Not recorded")
+        // A recorded speed still reads normally.
+        XCTAssertEqual(Format.metersPerSecond(fixture.frames[0].presentation.perDrone[1].speedMps), "0.00 m/s")
+    }
+
+    func testTheCommandWrapsOnlyAtSpaces() {
+        let command = "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm"
+        let display = CommandText.display(command)
+        XCTAssertEqual(display.replacingOccurrences(of: CommandText.joiner, with: ""), command, "only invisible joiners are added")
+        XCTAssertEqual(display.split(separator: " ").count, command.split(separator: " ").count)
+        // Every part keeps its slashes and hyphens joined to the next character.
+        XCTAssertTrue(display.contains("s\u{2060}/\u{2060}g"))
+        XCTAssertTrue(display.contains("-\u{2060}-\u{2060}o"))
+    }
+
+    func testGroupHeadersCountListedMembersWhileFiltering() {
+        XCTAssertEqual(TeamColumns.countText(listed: 47, total: 47, noun: true), "47 drones")
+        XCTAssertEqual(TeamColumns.countText(listed: 1, total: 47, noun: true), "1 of 47 drones")
+        XCTAssertEqual(TeamColumns.countText(listed: 1, total: 47, noun: false), "1 of 47")
+        XCTAssertEqual(TeamColumns.countText(listed: 1, total: 1, noun: true), "1 drone")
+    }
+
+    func testUpdateMessagesComeFromTheSharedText() {
+        XCTAssertEqual(UpdateText.text("upToDate", ["tag": "v0.2.3"]), "Up to date: v0.2.3.")
+        XCTAssertEqual(UpdateText.text("failed", ["reason": "offline"]), "Update check failed: offline")
+        XCTAssertEqual(UpdateText.text("keptCurrent"), UIText.update["keptCurrent"])
+    }
+
+    func testOnlyMultiWordTextIsProse() {
+        XCTAssertTrue(JSONValue.string("observed trace summary; not radio tolerance").isProse)
+        XCTAssertFalse(JSONValue.string("fixture").isProse)
+        XCTAssertFalse(JSONValue.number(0.012).isProse)
+        XCTAssertFalse(JSONValue.bool(true).isProse)
+    }
+}
+
+final class CodeCriticFixTests: XCTestCase {
+    private func editedScenario(_ edit: (inout [[String: Any]]) -> Void) throws -> URL {
+        let url = fixturesDirectory.appendingPathComponent("zephyr-s7-moving-scenario-run-1.json")
+        var document = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        var frames = try XCTUnwrap(document["frames"] as? [[String: Any]])
+        edit(&frames)
+        document["frames"] = frames
+        let edited = FileManager.default.temporaryDirectory.appendingPathComponent("scenario-\(UUID().uuidString).json")
+        try JSONSerialization.data(withJSONObject: document).write(to: edited)
+        return edited
+    }
+
+    func testAScenarioWithAHugeFiniteCoordinateIsRejected() throws {
+        let url = try editedScenario { frames in
+            var agents = frames[0]["agents"] as? [[String: Any]] ?? []
+            agents[0]["position_m"] = [1e25, 0.0, 1.5]
+            frames[0]["agents"] = agents
+        }
+        defer { try? FileManager.default.removeItem(at: url) }
+        XCTAssertThrowsError(try ScenarioRunDocument.load(from: url)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("within"), error.localizedDescription)
+        }
+    }
+
+    func testTheScaleBarAlwaysGrowsAndTheGridIsBounded() {
+        // 160 points at 1e-20 points per metre is 1.6e22 m: the step must reach that size.
+        let huge = ScenarioPlotGeometry.scaleBarLength(pointsPerMeter: 1e-20, maxPoints: 160)
+        XCTAssertLessThanOrEqual(huge, 1.6e22)
+        XCTAssertGreaterThan(huge, 1.6e22 / 5)
+        XCTAssertEqual(ScenarioPlotGeometry.scaleBarLength(pointsPerMeter: 1e-3, maxPoints: 160), 100_000)
+        XCTAssertNil(ScenarioPlotGeometry.gridLineRange(from: -1e25, to: 1e25, step: 1), "too many lines: skip the grid")
+        XCTAssertNil(ScenarioPlotGeometry.gridLineRange(from: 0.1, to: 0.4, step: 0.5), "no line inside the span")
+        XCTAssertEqual(ScenarioPlotGeometry.gridLineRange(from: -1.2, to: 1.2, step: 0.5), -2...2)
+    }
+
+    func testAWideSummaryListsAtMostTheLimitAndCountsTheRest() {
+        var object: [String: JSONValue] = [:]
+        for index in 0..<500 { object["extra_\(index)"] = .integer(Int64(index)) }
+        for index in 0..<10 { object["block_\(index)"] = .object(["mean": .number(1), "count": .integer(3)]) }
+        let plan = SummaryRows.plan(object)
+        XCTAssertEqual(plan.scalars.count + plan.groups.count, JSONTree.limit)
+        XCTAssertEqual(plan.hidden, 510 - JSONTree.limit)
+        let small = SummaryRows.plan(["a": .integer(1), "b": .object(["mean": .number(1)])])
+        XCTAssertEqual(small, SummaryRows.Plan(scalars: ["a"], groups: ["b"], hidden: 0))
+    }
+
+    @MainActor
+    func testTwoOpensOfTheSameFileAtOnceMakeOneDocument() async throws {
+        let store = AppStore()
+        let url = fixturesDirectory.appendingPathComponent("zephyr-s7-scenario-run-1.json")
+        async let first = store.loadScenarioRun(url)
+        async let second = store.loadScenarioRun(url)
+        let ids = await [first, second].compactMap { $0 }
+        XCTAssertEqual(store.documents.count, 1, "the second open waits on nothing and adds nothing")
+        XCTAssertEqual(Set(ids).count, 1)
+        ids.forEach(store.close)
+    }
+
+    func testScreenSizerAgreesWithSceneKitsOwnProjection() {
+        // Independent of the sizer's formula: SceneKit's projection matrix gives the vertical
+        // scale, 1 / tan(fov / 2), in m22.
+        let camera = SCNCamera()
+        camera.fieldOfView = 38
+        camera.projectionDirection = .vertical
+        camera.zNear = 0.02
+        camera.zFar = 160
+        let m22 = Float(camera.projectionTransform.m22)
+        let viewHeight: Float = 400
+        let distance: Float = 5
+        let expected = 10 * (2 * distance / m22) / viewHeight
+        let sizer = ScreenSizer(verticalFieldOfView: 38, camera: SCNNode())
+        sizer.viewHeight = viewHeight
+        XCTAssertEqual(sizer.worldSize(points: 10, distance: distance), expected, accuracy: 1e-5)
+    }
+}
