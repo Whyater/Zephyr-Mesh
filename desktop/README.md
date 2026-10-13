@@ -77,6 +77,22 @@ setting when it can be read. On Windows the app uses Segoe UI Variable (or
 Segoe UI) and scales sizes with the display DPI; when Windows animations are
 turned off, the camera moves without easing.
 
+Two token blocks are Windows-only, and the generator writes them to the Python
+module only (the Swift output never sees them):
+
+- `windowsLayout` in `design/horizon_tokens.json` becomes `WIN_LAYOUT`. It holds
+  the fixed sizes the Tk window needs: icon, glyph, and marker sizes, the
+  sidebar and label column widths, viewer window sizes, stroke widths, the
+  scenario plot and scale bar sizes, and three timings (tooltip delay, the
+  title-row notice, and the "Copied" flash). Gaps between controls still come
+  from `spacing`, and the shared control height from `layout.controlHeight`.
+  `layout.sidebarWidthWindows` is no longer read by this app; it stays because
+  the generated Swift file includes it.
+- `windowsText` in `design/ui_text.json` holds copy only this app shows: the
+  group and drone row labels, the list column headings, the dash legend, the
+  Events hint, the open-file error sentences, and the scenario legend. Wording
+  shared with the Mac app stays in the shared sections.
+
 Status so far: this window has only been run on macOS with Tk 9.0. Nothing has
 run on real Windows yet, so the Segoe UI fonts, DPI scaling, the dark title bar,
 the Windows theme and animation settings, and the native menus are untested.

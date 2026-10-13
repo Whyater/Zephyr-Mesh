@@ -577,7 +577,7 @@ def test_landing_on_a_group_header_keeps_the_selected_drone_and_settles():
     app.fleet.open[ok_group["iid"]] = True  # expanded: the selection moves to the drone row, the tag goes away
     app._sync_team_selection()
     assert app.fleet.selection() == (ok_group["members"][0],)
-    assert "holds" not in app.fleet.tags[ok_group["iid"]]
+    assert "holds" not in app.fleet.tags[ok_group["iid"]] and "group" in app.fleet.tags[ok_group["iid"]]
     renders = app.inspector_renders
     assert _drain(app, queue) == 1 and queue == []
     assert app.inspector_renders == renders
@@ -681,11 +681,11 @@ def _run_next_job(app):
 def test_play_button_icon_and_tooltip_follow_playback():
     app = _playback_app()
     app._render_timeline()
-    assert app.play_button.options["image"] == "play" and app.play_tip.text == "Play  (Space)"
+    assert app.play_button.options["image"] == "play" and app.play_tip.text == "Play (Space)"
     app._toggle()
     app._render_timeline()
     assert app.playing and app.play_button.options["image"] == "pause"
-    assert app.play_tip.text == "Pause  (Space)"
+    assert app.play_tip.text == "Pause (Space)"
     app._step()  # stepping pauses
     app._render_timeline()
     assert not app.playing and app.play_button.options["image"] == "play" and app.play_tip.text.startswith("Play")
