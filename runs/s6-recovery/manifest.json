@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "--output",
+    "runs/s6-recovery",
+    "--overwrite"
+  ],
+  "git_revision": "a36fa2523c48203215259ec9ea04bb6bb73b94ca",
+  "git_tree_state": "dirty",
+  "n_cells": 318,
+  "n_processes": 8,
+  "n_runs": 15900,
+  "n_seeds": 50,
+  "numpy": "2.5.1",
+  "outputs": {
+    "per_seed.csv": "ef45a41b8263be67de4b16f8e58d1295f877cead9d8c595d30fbb944534c426a",
+    "summary.json": "a3b04116e93e5e734f0d5f5bfd5e5ebfabb4fe2585110895019d8ff66bbe96eb"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_recovery.py --output runs/s6-recovery --overwrite",
+  "runtime_s": 118.73010641700057,
+  "schema": "zephyr-s6-recovery-manifest-1"
+}
