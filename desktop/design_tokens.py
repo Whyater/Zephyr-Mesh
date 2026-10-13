@@ -72,8 +72,7 @@ MOTION_MS = {
     'reduced': 0,
 }
 LAYOUT = {'windowMinWidth': 1180, 'windowMinHeight': 760, 'sidebarWidth': 260, 'inspectorWidth': 300, 'rowHeight': 28, 'sceneMinWidth': 520, 'windowDefaultWidth': 1440, 'windowDefaultHeight': 900, 'eventListHeight': 128, 'inspectorMaxWidth': 360, 'sidebarIdealWidth': 300, 'eventPaneHeight': 192, 'sidebarWidthWindows': 340, 'contentInset': 16, 'controlHeight': 28, 'iconButtonSize': 28, 'iconGlyphSize': 14, 'speedSegmentWidth': 48, 'viewSegmentWidth': 44, 'stripOneRowMinWidth': 960, 'stripMetricWidth': 136, 'stripMetricMinWidth': 112, 'stripValueHeight': 28, 'stripDividerHeight': 40, 'eventRowHeight': 24, 'eventWordWidth': 60, 'eventTimeWidth': 52, 'eventRowsCompact': 4, 'eventRowsRegular': 6, 'compactDetailHeight': 820, 'teamAgeWidth': 64, 'teamLossWidth': 52, 'teamColumnSpacing': 6, 'scrubberMinWidth': 160, 'scrubberTrackHeight': 4, 'scrubberThumbSize': 14, 'scrubberTickHeight': 6, 'metricTileMinHeight': 56, 'sceneStatusMarkerPoints': 11, 'sceneSelectionRingPoints': 15, 'sceneTargetRingPoints': 9, 'sceneFitMarginPoints': 20, 'hoverLabelOffset': 16, 'viewerContentMaxWidth': 720, 'viewerLabelWidth': 220, 'viewerTwoColumnWidth': 960, 'scenarioSideWidth': 360, 'scenarioPlotHeight': 340, 'scenarioRailWidth': 84, 'plotDroneMark': 9, 'plotTargetMark': 14, 'aboutWindowWidth': 700, 'aboutWindowHeight': 760, 'aboutWindowMinWidth': 480, 'aboutWindowMinHeight': 420, 'evidenceWindowWidth': 720, 'evidenceWindowHeight': 840, 'evidenceWindowMinWidth': 560, 'evidenceWindowMinHeight': 440, 'scenarioWindowWidth': 1000, 'scenarioWindowHeight': 720, 'scenarioWindowMinWidth': 620, 'scenarioWindowMinHeight': 520, 'badgeHeight': 22, 'settingsWidth': 360, 'messageMaxWidth': 520, 'emptyWindowMinWidth': 420, 'emptyWindowMinHeight': 240}
-WIN_LAYOUT = {'controlHeight': 28,
- 'iconSize': 14,
+WIN_LAYOUT = {'iconSize': 14,
  'chevronSize': 12,
  'glyphSize': 10,
  'glyphBox': 16,
@@ -90,7 +89,23 @@ WIN_LAYOUT = {'controlHeight': 28,
  'scenarioPlotHeight': 260,
  'aboutWindow': {'width': 640, 'height': 620, 'minWidth': 520, 'minHeight': 420},
  'scenarioWindow': {'width': 760, 'height': 780, 'minWidth': 620, 'minHeight': 560},
- 'evidenceWindow': {'width': 720, 'height': 780, 'minWidth': 580, 'minHeight': 480}}
+ 'evidenceWindow': {'width': 720, 'height': 780, 'minWidth': 580, 'minHeight': 480},
+ 'detailsLabelWidth': 104,
+ 'stripGlyphSize': 15,
+ 'statusMarkerSize': 9,
+ 'hudAxisLength': 22,
+ 'hitRadius': 14,
+ 'dragThreshold': 3,
+ 'scenarioRailSpace': 72,
+ 'scaleBarMinLength': 48,
+ 'strokeHairline': 1,
+ 'strokeRegular': 1.5,
+ 'strokeStrong': 2,
+ 'strokeRail': 3,
+ 'strokeRangeBar': 5,
+ 'tooltipDelayMs': 550,
+ 'noticeMs': 2400,
+ 'copiedMs': 1200}
 
 @dataclass(frozen=True)
 class Shortcut:
@@ -541,7 +556,11 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
                                    'circles: keep-out volumes.',
                  'gridLabel': 'Grid 1 m, heavy line every 5 m',
                  'timingSingle': '1 sample',
-                 'atRest': 'At rest'}}
+                 'atRest': 'At rest',
+                 'columnDrones': 'Drones',
+                 'columnLoss': 'Loss (%)',
+                 'columnAge': 'Age (s)',
+                 'legendLabel': 'Status markers:'}}
 
 # Transport labels with shortcut labels resolved, so callers never re-derive them.
 TRANSPORT = {'restart': {'label': 'Restart', 'help': 'Go back to the first frame'},

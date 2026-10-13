@@ -15,10 +15,15 @@ What the window shows, top to bottom:
   packet loss, and target age. A value the replay does not contain reads
   "Not recorded"; it is never shown as 0.
 - **Team list (left).** One row per status, word first ("Late · 3 drones"),
-  with Loss and Age columns; Age is a range when the drones differ. Rows that
+  with "Loss (%)" and "Age (s)" columns (units in the headings; loss always has
+  one decimal); Age is a range when the drones differ. The list is as wide as its
+  longest label needs, so on some fonts the window's minimum width grows a
+  little past the 1180-pixel token (1200 measured on macOS Tk 9). Rows that
   are not OK sort first and open by default; open a row to see its drones,
   each with its own status shape and word ("D09 · Late"). Clicking a group row
-  opens or closes it and never changes the selected drone. A dash in a cell
+  opens or closes it and never changes the selected drone; when the selected
+  drone sits in a closed group, that group gets a light tint instead of the
+  selection highlight. A dash in a cell
   means the value was not recorded: hovering it says so, and a line under the
   list explains the dash whenever one is showing. The filter narrows every
   group except late and lost ones, which stay listed; while it is active a
@@ -27,7 +32,9 @@ What the window shows, top to bottom:
   team sits above the list ("50 drones: 47 OK, 3 late").
 - **Scene (center).** A Canvas drawing of the swarm: X-frame drone glyphs in
   one neutral color, the selected drone in the accent color, and drones with a
-  late or lost target drawn faded with a small status-colored dot above them. The target is a ring with a thin stem to the
+  late or lost target drawn faded with a marker above them in the shared status
+  shape and color (triangle for Late, square for Lost), explained by a legend in
+  the top-left corner. The target is a ring with a thin stem to the
   floor, over a 1 m grid with a stronger line every 5 m. Drag to orbit, scroll
   to zoom (both eased and clamped), double-click a drone or press F to focus
   it, R to reset the framing, T for the straight-down Top view. Keep-out
@@ -36,8 +43,8 @@ What the window shows, top to bottom:
   are at rest. Each drone has four translucent rotor discs (Tk has no alpha, so
   the translucency is a blend with the floor color); the rotors do not spin.
   The camera stays within 6x the swarm radius in both views, which is enough to
-  frame the whole ring in a wide, short window. Projection and camera math live in `scene_projection.py` and are unit
-  tested.
+  frame the whole ring in a wide, short window (the Mac app keeps a 3x limit).
+  Projection and camera math live in `scene_projection.py` and are unit tested.
 - **Inspector (right, toggle with I).** The selected drone's status, four
   metric tiles in the same order as the status strip (estimate error, target
   link delay, target packet loss, target age), position and motion, neighbors
@@ -49,12 +56,16 @@ What the window shows, top to bottom:
 - **Timeline and events (bottom).** Four square buttons (restart, step back,
   Play/Pause in the accent color, step forward) with tooltips, a slider with
   tick marks at event frames, the time label, and playback speed (0.1x, 0.25x,
-  1x; 0.25x by default). Every control in the title row and the timeline is the
-  same height (`windowsLayout.controlHeight` in `design/horizon_tokens.json`),
-  with rounded corners drawn from `RADIUS.small`. The event list below uses the
-  shared presentation rules, newest at the bottom; events from the current
-  frame are in full text color and earlier ones are dimmer. Click an event (or
-  press Enter on it) to jump to it, even if it is already selected.
+  1x; 0.25x by default). The controls in the title row and the timeline are
+  styled to one height (`layout.controlHeight` in `design/horizon_tokens.json`)
+  with rounded corners drawn from `RADIUS.small`; that was measured on macOS
+  Tk 9 only, not yet on Windows or at 125% or 150% scaling. The event list below
+  uses the shared presentation rules, newest at the bottom; events from the
+  current frame are in full text color and earlier ones are dimmer. Clicking an
+  event (or pressing Enter on it) jumps to the clicked row, even if it is
+  already selected; the jump happens on the press, so it still lands on the
+  right row when the list scrolls. Behavior described here was checked on macOS
+  Tk 9.
 
 Every number comes from `desktop/presentation.py` through `ReplaySession`, and
 every color, font size, and label comes from the generated

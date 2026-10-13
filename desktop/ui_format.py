@@ -24,7 +24,10 @@ EN_DASH = "–"
 _KINDS = {
     "ms": (0, " ms"),
     "pct": (None, "%"),
-    "pct1": (1, "%"),  # table cells: always one decimal, so a column of percentages lines up
+    "pct1": (1, "%"),  # packet loss: always one decimal, the same in the strip, tiles, list, and reports
+    # Table cells carry the unit in the column heading ("Loss (%)", "Age (s)"), so values stay narrow.
+    "pct1_cell": (1, ""),
+    "s_cell": (2, ""),
     "s": (2, " s"),
     "m": (2, " m"),
     "mps": (2, " m/s"),
@@ -397,7 +400,7 @@ def report_view(summary: Mapping[str, Any]) -> dict[str, Any]:
         elif isinstance(value, list) and value and all(isinstance(item, Mapping) for item in value):
             rows.append((label, f"{len(value)} rows, listed under Details"))
         elif str(key).endswith("loss_rate") and isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value <= 1:
-            rows.append((label, format_value(float(value) * 100.0, "pct") or NOT_RECORDED))
+            rows.append((label, format_value(float(value) * 100.0, "pct1") or NOT_RECORDED))
         else:
             rows.append((label, format_scalar(value)))
 

@@ -470,6 +470,7 @@ class _QueuedTree:
         self.open = {}
         self.focused = ""
         self.set_calls = 0
+        self.tags = {}
 
     def selection(self):
         return self.selected
@@ -487,7 +488,12 @@ class _QueuedTree:
     def exists(self, iid):
         return iid in self.open
 
-    def item(self, iid, option):
+    def item(self, iid, option=None, **options):
+        if options:
+            self.tags.update({iid: tuple(options["tags"])} if "tags" in options else {})
+            return None
+        if option == "tags":
+            return self.tags.get(iid, ())
         assert option == "open"
         return self.open.get(iid, False)
 
@@ -526,6 +532,8 @@ def _drain(app, queue, limit=50):
 def test_queued_treeview_select_events_settle_without_rendering():
     queue = []
     app = _selection_app(queue)
+    late = next(row for row in app._team_plan if row["level"] != "ok")
+    app.session.selected_drone_id = late["members"][0]  # in an open group, so a row really gets selected
     app._sync_team_selection()  # what _render_fleet does on startup
     assert queue == ["<<TreeviewSelect>>"]
     assert _drain(app, queue) == 1
@@ -562,12 +570,14 @@ def test_landing_on_a_group_header_keeps_the_selected_drone_and_settles():
     assert app.session.selected_drone_id == before, "a header never picks a drone by itself"
     assert app.inspector_renders == 0 and queue == []
     app.session.selected_drone_id = ok_group["members"][0]
-    app._sync_team_selection()  # drone in a closed group: the group row shows the selection
-    assert app.fleet.selection() == (ok_group["iid"],)
+    app._sync_team_selection()  # drone in a closed group: no selection, the group gets the quiet "holds" tag
+    assert app.fleet.selection() == ()
+    assert "holds" in app.fleet.tags[ok_group["iid"]] and app.fleet.focused == ok_group["iid"]
     _drain(app, queue)
-    app.fleet.open[ok_group["iid"]] = True  # expanded: the selection moves to the drone row
+    app.fleet.open[ok_group["iid"]] = True  # expanded: the selection moves to the drone row, the tag goes away
     app._sync_team_selection()
     assert app.fleet.selection() == (ok_group["members"][0],)
+    assert "holds" not in app.fleet.tags[ok_group["iid"]]
     renders = app.inspector_renders
     assert _drain(app, queue) == 1 and queue == []
     assert app.inspector_renders == renders
@@ -607,7 +617,7 @@ def test_team_rows_group_drones_and_filter_never_hides_non_ok():
     ok_full = next(row for row in rows if row["level"] == "ok")
     assert ok_row["label"] == f"OK · {len(ok_row['children'])} of {len(ok_full['members'])}"
     first = rows[0]
-    assert desired_team_selection(rows, first["members"][0], set()) == first["iid"]
+    assert desired_team_selection(rows, first["members"][0], set()) is None, "a closed group is never selected"
     assert desired_team_selection(rows, first["members"][0], {first["iid"]}) == first["members"][0]
     assert drone_for_team_row(rows, first["iid"], "nobody") is None, "a header never picks a drone"
     assert drone_for_team_row(rows, first["iid"], first["members"][-1]) == first["members"][-1]
@@ -615,6 +625,9 @@ def test_team_rows_group_drones_and_filter_never_hides_non_ok():
     waiting = team_rows(ReplaySession(RUN).presentation["groups"], ReplaySession(RUN).presentation["per_drone"])
     assert waiting[0]["values"] == ("–", "–"), "missing values are never shown as 0"
     assert all(child["values"] == ("–", "–") for child in waiting[0]["children"])
+    late = rows[0]["children"][0]["values"]
+    assert late[0].count(".") == 1 and not late[0].endswith("%"), "loss: one decimal, the % lives in the heading"
+    assert not late[1].endswith("s"), "age: the unit lives in the heading"
 
 
 class _FakeRoot:

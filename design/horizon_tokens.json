@@ -272,8 +272,7 @@
     ]
   },
   "windowsLayout": {
-    "comment": "Windows Tk sizes in device-independent pixels, scaled by DPI. Gaps between controls come from spacing; these are control, column, and window sizes.",
-    "controlHeight": 28,
+    "comment": "Windows Tk sizes in device-independent pixels (scaled by DPI) and Windows-only timings in ms. Gaps between controls come from spacing and the control height from layout.controlHeight.",
     "iconSize": 14,
     "chevronSize": 12,
     "glyphSize": 10,
@@ -306,6 +305,22 @@
       "height": 780,
       "minWidth": 580,
       "minHeight": 480
-    }
+    },
+    "detailsLabelWidth": 104,
+    "stripGlyphSize": 15,
+    "statusMarkerSize": 9,
+    "hudAxisLength": 22,
+    "hitRadius": 14,
+    "dragThreshold": 3,
+    "scenarioRailSpace": 72,
+    "scaleBarMinLength": 48,
+    "strokeHairline": 1,
+    "strokeRegular": 1.5,
+    "strokeStrong": 2,
+    "strokeRail": 3,
+    "strokeRangeBar": 5,
+    "tooltipDelayMs": 550,
+    "noticeMs": 2400,
+    "copiedMs": 1200
   }
 }

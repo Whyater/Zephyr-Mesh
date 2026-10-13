@@ -60,6 +60,7 @@ class Theme:
             "accentHover": mix(p.accent, p.text, 0.88),
             "accentPressed": mix(p.accent, p.surface, 0.75),
             "badgeFill": mix(p.lineStrong, p.surface, 0.22),
+            "holdFill": mix(p.selectionFill, p.surface, 0.45),  # a closed group that holds the selected drone
         }
         return derived[token] if token in derived else str(getattr(p, token))
 
@@ -304,7 +305,8 @@ def rounded_elements(style: Any, scale: float) -> RoundedElements:
     """One set per Tk interpreter (elements and images belong to it), kept on the root window itself."""
     master = style.master
     bank = getattr(master, "_zephyr_rounded", None)
-    if bank is None or bank.scale != scale:
+    if bank is None:
+        # Created once: the ttk elements keep pointing at these images, so they are recolored, never replaced.
         bank = RoundedElements(style, scale)
         master._zephyr_rounded = bank
     return bank
@@ -344,7 +346,7 @@ def control_padding(fonts: Fonts, scale: float) -> dict[str, tuple[int, int, int
         return max(1, int(round(value * scale)))
 
     border = px(WIN_LAYOUT["hairline"])
-    height = px(WIN_LAYOUT["controlHeight"])
+    height = px(LAYOUT["controlHeight"])
     text_top, text_bottom = _fill(height, int(fonts["body"].metrics("linespace")), border)
     icon_top, icon_bottom = _fill(height, px(WIN_LAYOUT["iconSize"]), border)
     side = icon_top  # square icon buttons
@@ -460,8 +462,13 @@ def configure_styles(style: Any, theme: Theme, fonts: Fonts, scale: float) -> No
         ("Treeitem.image", {"side": "left", "sticky": ""}),
         ("Treeitem.text", {"side": "left", "sticky": ""}),
     ]})]
+    # The Events list has no groups, so its rows drop the disclosure-arrow slot and start at the inset.
+    flat_item_layout = [("Treeitem.padding", {"sticky": "nswe", "children": [
+        ("Treeitem.image", {"side": "left", "sticky": ""}),
+        ("Treeitem.text", {"side": "left", "sticky": ""}),
+    ]})]
     for name in ("Zephyr.Treeview", "Events.Treeview"):
-        style.layout(f"{name}.Item", item_layout)
+        style.layout(f"{name}.Item", item_layout if name == "Zephyr.Treeview" else flat_item_layout)
         style.configure(f"{name}.Item", foreground=p.textSecondary, indicatorsize=px(SPACE["sm"]))
         style.configure(
             name, background=p.surface, fieldbackground=p.surface, foreground=p.text, bordercolor=p.surface,
