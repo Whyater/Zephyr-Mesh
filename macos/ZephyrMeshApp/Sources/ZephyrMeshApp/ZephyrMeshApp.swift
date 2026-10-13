@@ -173,6 +173,8 @@ private struct LoadFailureView: View {
 
 /// Hosts a scenario run or evidence report that was validated before its window opened.
 private struct ViewerWindowRoot: View {
+    private static let notOpenTitle = Format.label("file_not_open")
+    private static let notOpenHint = Format.label("file_not_open_hint")
     @ObservedObject var store: AppStore
     let id: UUID?
     @Environment(\.palette) private var palette
@@ -189,9 +191,9 @@ private struct ViewerWindowRoot: View {
                 // Only reachable if a window outlives its document; it fills the window in the
                 // app background and closes itself.
                 VStack(spacing: Space.sm) {
-                    Text("This file is no longer open")
+                    Text(Self.notOpenTitle)
                         .font(TypeScale.headline)
-                    Text("Open it again from the File menu.")
+                    Text(Self.notOpenHint)
                         .font(TypeScale.body)
                         .foregroundStyle(palette.textSecondary)
                 }

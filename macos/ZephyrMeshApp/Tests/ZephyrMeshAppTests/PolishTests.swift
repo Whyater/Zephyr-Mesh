@@ -269,10 +269,26 @@ final class CodeCriticFixTests: XCTestCase {
         for index in 0..<500 { object["extra_\(index)"] = .integer(Int64(index)) }
         for index in 0..<10 { object["block_\(index)"] = .object(["mean": .number(1), "count": .integer(3)]) }
         let plan = SummaryRows.plan(object)
-        XCTAssertEqual(plan.scalars.count + plan.groups.count, JSONTree.limit)
-        XCTAssertEqual(plan.hidden, 510 - JSONTree.limit)
+        XCTAssertEqual(plan.scalars.count, JSONTree.limit)
+        XCTAssertTrue(plan.groups.isEmpty, "the budget is spent on plain values")
+        XCTAssertEqual(plan.hidden, 400 + 10 * 2, "400 values and 10 groups of 2 rows are counted, not drawn")
         let small = SummaryRows.plan(["a": .integer(1), "b": .object(["mean": .number(1)])])
-        XCTAssertEqual(small, SummaryRows.Plan(scalars: ["a"], groups: ["b"], hidden: 0))
+        XCTAssertEqual(small, SummaryRows.Plan(scalars: ["a"], groups: [.init(key: "b", rows: 1, total: 1)], hidden: 0))
+    }
+
+    func testOneRowBudgetCoversManyGroupsOfManyValues() {
+        // 100 groups x 100 values: 10,000 rows in the file, at most JSONTree.limit drawn in all.
+        var object: [String: JSONValue] = [:]
+        for group in 0..<100 {
+            var values: [String: JSONValue] = [:]
+            for value in 0..<100 { values["v\(value)"] = .string("text \(value)") }
+            object["group_\(group)"] = .object(values)
+        }
+        let plan = SummaryRows.plan(object)
+        XCTAssertLessThanOrEqual(plan.drawnRows, JSONTree.limit)
+        let drawnValues = plan.groups.reduce(0) { $0 + $1.rows }
+        let notShownInGroups = plan.groups.reduce(0) { $0 + $1.total - $1.rows }
+        XCTAssertEqual(drawnValues + notShownInGroups + plan.hidden, 100 * 100, "every value is drawn or counted")
     }
 
     @MainActor
@@ -302,5 +318,68 @@ final class CodeCriticFixTests: XCTestCase {
         let sizer = ScreenSizer(verticalFieldOfView: 38, camera: SCNNode())
         sizer.viewHeight = viewHeight
         XCTAssertEqual(sizer.worldSize(points: 10, distance: distance), expected, accuracy: 1e-5)
+    }
+}
+
+final class RereviewFixTests: XCTestCase {
+    func testALongGeneratedRunLoads() throws {
+        // Made by: python3 tools/run_scenario.py with sim/scenario_example.json changed to
+        // agent_count 1, steps 800, dt_s 1.0, target_velocity_mps [20, 0, 0]. The target ends at
+        // x = 15,980 m, which the old 10 km bound wrongly rejected.
+        let run = try ScenarioRunDocument.load(from: fixturesDirectory.appendingPathComponent("zephyr-s7-long-run-800.json"))
+        XCTAssertEqual(run.frames.count, 800)
+        XCTAssertEqual(run.frames.last?.target[0] ?? 0, 15_980, accuracy: 1e-6)
+        let geometry = ScenarioPlotGeometry.make(frame: run.frames[799])
+        let projected = ScenarioPlotGeometry.project(geometry.target, bounds: geometry.bounds, width: 640, height: 340)
+        XCTAssertTrue(projected.x.isFinite && projected.y.isFinite)
+    }
+
+    func testAMissingAgentVectorIsReportedAsAnInvalidAgent() throws {
+        let url = fixturesDirectory.appendingPathComponent("zephyr-s7-moving-scenario-run-1.json")
+        var document = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        var frames = try XCTUnwrap(document["frames"] as? [[String: Any]])
+        var agents = try XCTUnwrap(frames[0]["agents"] as? [[String: Any]])
+        agents[0].removeValue(forKey: "position_m")
+        frames[0]["agents"] = agents
+        document["frames"] = frames
+        let edited = FileManager.default.temporaryDirectory.appendingPathComponent("missing-\(UUID().uuidString).json")
+        try JSONSerialization.data(withJSONObject: document).write(to: edited)
+        defer { try? FileManager.default.removeItem(at: edited) }
+        XCTAssertThrowsError(try ScenarioRunDocument.load(from: edited)) { error in
+            XCTAssertEqual(error.localizedDescription, "agent is invalid")
+        }
+    }
+
+    func testGridIndexesNeverReachTheIntConversionWhenHuge() {
+        XCTAssertNil(ScenarioPlotGeometry.gridLineRange(from: 1e20, to: 1e20 + 50, step: 100), "index far beyond 1e15")
+        XCTAssertNil(ScenarioPlotGeometry.gridLineRange(from: -1e300, to: -1e300, step: 1e-3))
+        XCTAssertNotNil(ScenarioPlotGeometry.gridLineRange(from: 999_000, to: 1_000_000, step: 500))
+    }
+
+    @MainActor
+    func testAScenarioFileOpenedAsEvidenceIsCheckedAsEvidence() async throws {
+        let store = AppStore(presentsAlerts: false)
+        let url = fixturesDirectory.appendingPathComponent("zephyr-s7-scenario-run-1.json")
+        let scenarioID = await store.loadScenarioRun(url)
+        let scenario = try XCTUnwrap(scenarioID)
+        let asEvidence = await store.loadEvidenceReport(url)
+        XCTAssertNil(asEvidence, "validated as an evidence report, which it is not")
+        XCTAssertNotNil(store.openError, "and it fails with a clear error")
+        XCTAssertEqual(store.documents.count, 1, "the scenario is never shown in an evidence window")
+        if case .scenarioRun? = store.document(scenario) {} else { XCTFail("the scenario document is untouched") }
+        store.close(scenario)
+    }
+
+    func testHeadingFollowsTheSharedRule() {
+        XCTAssertEqual(Format.heading(90, speed: 2), "90\u{00B0}")
+        XCTAssertEqual(Format.heading(nil, speed: 0), "At rest", "a recorded speed too small for a heading")
+        XCTAssertEqual(Format.heading(nil, speed: nil), "Not recorded", "no velocity recorded")
+    }
+
+    func testMovedStringsComeFromTheSharedText() {
+        XCTAssertEqual(UIText.fieldLabels["events_pending"], "Later events appear here as the replay plays.")
+        XCTAssertEqual(UIText.fieldLabels["file_not_open"], "This file is no longer open")
+        XCTAssertEqual(UIText.fieldLabels["file_not_open_hint"], "Open it again from the File menu.")
+        XCTAssertEqual(UIText.fieldLabels["at_rest"], "At rest")
     }
 }

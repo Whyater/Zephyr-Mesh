@@ -67,17 +67,21 @@ filter is being edited, so typing there never moves the replay.
 
 Evidence reports and scenario runs open in their own windows after the same strict validation
 as before (schema, size, key set, and hash checks). Files are read, hashed and decoded off the
-main thread, and the summary and raw tree list at most 100 entries per level (the rest are
-counted, not drawn), so a large file does not stall the window. Scenario positions must lie
-within 10 km of the origin. Opening a file that is already open brings its window forward, and
-closing a window releases the file; viewer windows are not reopened at the next launch. Each window shows its verdict or plot
+main thread. The evidence summary draws at most 100 rows in all (plain values, group headers
+and group rows together; the rest is counted as "N more in Details"), and each branch of the
+raw tree is built only when opened and lists at most 100 entries. Every scenario coordinate
+must be within 1,000,000 m of the origin on each axis, twice the largest the scenario runner can
+produce. Opening a file that is already open as the same kind (scenario run or evidence report)
+brings its window forward, and closing a window releases the file; viewer windows are not
+reopened at the next launch. Each window shows its verdict or plot
 first, then a plain summary with labels in one column and values beside them, then a collapsed
 Details section with hashes, provenance, and the raw data as a collapsed tree (the raw summary
 for an evidence report; the raw parameters and provenance for a scenario run). The scenario run
 window states the run status above its plot, centres the plot on the data, draws a grid with a
 scale bar and an altitude rail with its end values, and puts the summary in a second column
 when the window is wide. Update results and file errors appear as alerts even when the main
-window is closed. A drone with no recorded speed, heading or altitude reads "Not recorded".
+window is closed. A drone with no recorded speed, heading or altitude reads "Not recorded";
+a heading reads "At rest" when a speed was recorded but is too small for a heading.
 
 Colors, type sizes, spacing and layout sizes come only from the generated
 `Sources/ZephyrMeshApp/DesignSystem.swift`; `tests/test_macos_ui_hygiene.py` checks this.

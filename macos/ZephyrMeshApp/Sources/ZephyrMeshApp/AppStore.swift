@@ -30,7 +30,9 @@ final class AppStore: ObservableObject {
     private var forwarding: AnyCancellable?
     private var alerts: Set<AnyCancellable> = []
 
-    init() {
+    /// `presentsAlerts` false leaves open errors and update notices in place instead of showing
+    /// them, for tests that must not put up a modal alert.
+    init(presentsAlerts: Bool = true) {
         switch FixtureLoader.loadBundled() {
         case .success(let fixture):
             let setup = ScreenshotSetup.current
@@ -43,7 +45,7 @@ final class AppStore: ObservableObject {
             loadError = error.localizedDescription
         }
         forwardCommandState()
-        presentAlerts()
+        if presentsAlerts { presentAlerts() }
     }
 
     /// Update results and file-open errors are shown by the app, not by the main window, so
@@ -103,7 +105,7 @@ final class AppStore: ObservableObject {
     /// Reads, scans, hashes and decodes off the main actor (a run may be up to 64 MiB), then
     /// registers the document here. A file that is already open returns its existing window ID.
     func loadScenarioRun(_ url: URL) async -> UUID? {
-        await load(url, errorTitle: "Could not open scenario run") { url in
+        await load(url, kind: "scenario", errorTitle: "Could not open scenario run") { url in
             .scenarioRun(try ScenarioRunDocument.load(from: url), filename: url.lastPathComponent)
         }
     }
@@ -117,14 +119,16 @@ final class AppStore: ObservableObject {
     }
 
     func loadEvidenceReport(_ url: URL) async -> UUID? {
-        await load(url, errorTitle: "Could not open evidence report") { url in
+        await load(url, kind: "evidence", errorTitle: "Could not open evidence report") { url in
             .evidenceReport(try EvidenceReport.load(from: url), filename: url.lastPathComponent)
         }
     }
 
-    private func load(_ url: URL, errorTitle: String,
+    /// Open documents are tracked by kind and path, so the same file opened as a scenario run
+    /// and as an evidence report is validated by each loader on its own and never shares a window.
+    private func load(_ url: URL, kind: String, errorTitle: String,
                       decode: @escaping @Sendable (URL) throws -> ViewerDocument) async -> UUID? {
-        let key = url.standardizedFileURL.path
+        let key = "\(kind):\(url.standardizedFileURL.resolvingSymlinksInPath().path)"
         if let existing = openURLs[key], documents[existing] != nil { return existing }
         guard !pendingURLs.contains(key) else { return nil }
         pendingURLs.insert(key)

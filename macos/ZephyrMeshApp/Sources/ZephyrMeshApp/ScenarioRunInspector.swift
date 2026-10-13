@@ -128,8 +128,17 @@ struct ScenarioRunDocument: Identifiable, Decodable {
             }
         }
         let agentCount = parameters["agent_count"]?.intValue ?? 0
-        // Every position must be within fixtureCoordinateLimitM, like the replay fixture, so the
-        // plot's scale, grid and integer conversions stay small and finite.
+        for frame in frames {
+            for agent in frame.agents { try validateAgent(agent) }
+            try validateKeepOutSnapshots(frame.keepOutSpheres)
+            // Counts must agree with the agents listed, so the window never shows "999 of 1".
+            let activeFlags = frame.agents.filter { $0["active"]?.boolValue == true }.count
+            guard Int64(frame.agentCount) == agentCount, frame.activeCount <= frame.agentCount, frame.activeCount == activeFlags else {
+                throw ScenarioRunError.invalid("frame active_count or agent list does not match agent_count and the active flags")
+            }
+        }
+        // Every coordinate must be within scenarioCoordinateLimitM on each axis. Checked after
+        // validateAgent, so a missing vector reports "agent is invalid" rather than the bound.
         if case .array(let spheres)? = parameters["keep_out_spheres"] {
             for case .object(let sphere) in spheres {
                 try requireBoundedVector(sphere["center_m"]?.vector, field: "keep_out_spheres center")
@@ -143,15 +152,6 @@ struct ScenarioRunDocument: Identifiable, Decodable {
                 }
             }
             for sphere in frame.keepOutSpheres { try requireBoundedVector(sphere["center_m"]?.vector, field: "frame keep-out center") }
-        }
-        for frame in frames {
-            for agent in frame.agents { try validateAgent(agent) }
-            try validateKeepOutSnapshots(frame.keepOutSpheres)
-            // Counts must agree with the agents listed, so the window never shows "999 of 1".
-            let activeFlags = frame.agents.filter { $0["active"]?.boolValue == true }.count
-            guard Int64(frame.agentCount) == agentCount, frame.activeCount <= frame.agentCount, frame.activeCount == activeFlags else {
-                throw ScenarioRunError.invalid("frame active_count or agent list does not match agent_count and the active flags")
-            }
         }
         let dt = parameters["dt_s"]?.numberValue ?? 0
         for (index, frame) in frames.enumerated() {
@@ -180,10 +180,17 @@ struct ScenarioRunDocument: Identifiable, Decodable {
         guard payloadDigest == payloadSHA256 else { throw ScenarioRunError.invalid("payload_sha256 does not match payload") }
     }
 
+    /// Largest accepted coordinate on any axis, in metres. Derived from sim/scenario_runner.py:
+    /// at most 10,000 steps of at most 1 s with a target speed of at most 50 m/s per axis gives
+    /// 500 km, and keep-out centres start within 100 m; twice that leaves margin. The plot's
+    /// grid and scale bar guard their own arithmetic, so this is a sanity bound, not the crash
+    /// guard.
+    static let scenarioCoordinateLimitM: Double = 1_000_000
+
     private static func requireBoundedVector(_ vector: [Double]?, field: String) throws {
-        let limit = Double(fixtureCoordinateLimitM)
+        let limit = scenarioCoordinateLimitM
         guard let vector, vector.allSatisfy({ $0.isFinite && abs($0) <= limit }) else {
-            throw ScenarioRunError.invalid("\(field) must be within \(Int(limit)) m of the origin")
+            throw ScenarioRunError.invalid("\(field) must be within \(Int(limit)) m of the origin on each axis")
         }
     }
 
@@ -489,7 +496,10 @@ struct ScenarioPlotGeometry: Equatable {
     static let maxGridLines = 200
 
     static func gridLineRange(from low: Double, to high: Double, step: Double) -> ClosedRange<Int>? {
-        guard step > 0, low.isFinite, high.isFinite, high >= low, (high - low) / step <= Double(maxGridLines) else { return nil }
+        // The last condition keeps both indexes far inside Int's range, so the conversion below
+        // can never trap, whatever the coordinates.
+        guard step > 0, low.isFinite, high.isFinite, high >= low, (high - low) / step <= Double(maxGridLines),
+              abs(low / step) < 1e15, abs(high / step) < 1e15 else { return nil }
         let first = Int((low / step).rounded(.up))
         let last = Int((high / step).rounded(.down))
         return first <= last ? first...last : nil

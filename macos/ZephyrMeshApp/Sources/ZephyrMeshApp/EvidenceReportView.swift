@@ -91,11 +91,12 @@ struct SummaryRows: View {
                         }
                     }
                 }
-                ForEach(plan.groups, id: \.self) { key in
+                ForEach(plan.groups, id: \.key) { group in
                     VStack(alignment: .leading, spacing: Space.xs) {
-                        Text(Format.label(key))
+                        Text(Format.label(group.key))
                             .font(TypeScale.bodyStrong)
-                        nested(object[key] ?? .null)
+                        nested(object[group.key] ?? .null, rows: group.rows)
+                        moreNote(group.total - group.rows)
                     }
                 }
                 moreNote(plan.hidden)
@@ -106,23 +107,54 @@ struct SummaryRows: View {
         }
     }
 
-    /// What the summary lists: plain values first, then groups, at most `JSONTree.limit` in
-    /// all; the rest is counted and left to the Details raw tree, so a huge shallow report
-    /// cannot build thousands of rows.
+    /// What the summary draws. One budget of `JSONTree.limit` rows covers the whole summary:
+    /// plain values, each group's header, and each group's rows all count. When it runs out,
+    /// the rest is counted ("N more in Details") and left to the Details raw tree, so a huge
+    /// report (wide, or many groups of many values) never builds more than the budget.
     struct Plan: Equatable {
+        struct Group: Equatable {
+            let key: String
+            /// Rows drawn for this group.
+            let rows: Int
+            /// Rows this group has in all.
+            let total: Int
+        }
         let scalars: [String]
-        let groups: [String]
+        let groups: [Group]
+        /// Plain values and whole groups (counted as their rows) that were not drawn at all.
         let hidden: Int
+
+        /// Everything the plan draws: plain values, group headers and group rows.
+        var drawnRows: Int { scalars.count + groups.reduce(0) { $0 + 1 + $1.rows } }
     }
 
-    static func plan(_ object: [String: JSONValue]) -> Plan {
+    static func plan(_ object: [String: JSONValue], budget: Int = JSONTree.limit) -> Plan {
         let keys = object.keys.filter { !detailsOnlyKeys.contains($0) }.sorted { order($0) < order($1) }
         let scalars = keys.filter { !(object[$0]?.isBranch ?? false) }
-        let groups = keys.filter { object[$0]?.hasPlainSummary ?? false }
-        let shownScalars = Array(scalars.prefix(JSONTree.limit))
-        let shownGroups = Array(groups.prefix(max(JSONTree.limit - shownScalars.count, 0)))
-        let hidden = scalars.count + groups.count - shownScalars.count - shownGroups.count
-        return Plan(scalars: shownScalars, groups: shownGroups, hidden: hidden)
+        let shownScalars = Array(scalars.prefix(budget))
+        var remaining = budget - shownScalars.count
+        var hidden = scalars.count - shownScalars.count
+        var groups: [Plan.Group] = []
+        for key in keys where object[key]?.hasPlainSummary ?? false {
+            let total = rowKeys(object[key] ?? .null).count
+            // A group needs room for its header and at least one row.
+            guard remaining >= 2 else {
+                hidden += total
+                continue
+            }
+            let rows = min(total, remaining - 1)
+            groups.append(Plan.Group(key: key, rows: rows, total: total))
+            remaining -= 1 + rows
+        }
+        return Plan(scalars: shownScalars, groups: groups, hidden: hidden)
+    }
+
+    /// The keys a group lists, in reading order; a non-object group is one "Items" row.
+    static func rowKeys(_ value: JSONValue) -> [String] {
+        guard case .object(let object) = value else { return [""] }
+        // Rows that cannot be put in plain words (for example one block per drone) are left out
+        // here; they stay complete in the Details raw tree.
+        return orderedKeys(object).filter { object[$0]?.summaryText() != nil }
     }
 
     @ViewBuilder private func moreNote(_ hidden: Int) -> some View {
@@ -133,20 +165,16 @@ struct SummaryRows: View {
         }
     }
 
-    @ViewBuilder private func nested(_ value: JSONValue) -> some View {
+    @ViewBuilder private func nested(_ value: JSONValue, rows: Int) -> some View {
         switch value {
         case .object(let object):
-            // Rows that cannot be put in plain words (for example one block per drone) are left out
-            // here; they stay complete in the Details raw tree.
             let unit = object["unit"]?.isBranch == false ? object["unit"]?.plainText : nil
-            let rows = Self.orderedKeys(object).filter { object[$0]?.summaryText() != nil }
-            ForEach(rows.prefix(JSONTree.limit), id: \.self) { key in
+            ForEach(Self.rowKeys(value).prefix(rows), id: \.self) { key in
                 let child = object[key] ?? .null
                 let label = Format.label(key)
                 let text = child.summaryText(includeUnit: !label.hasSuffix(")")) ?? ""
                 SummaryLine(label: label, value: Self.withUnit(text, key: key, value: child, unit: unit), isProse: child.isProse)
             }
-            moreNote(rows.count - min(rows.count, JSONTree.limit))
         default:
             ValueRow(label: "Items", value: value.branchSummary)
         }

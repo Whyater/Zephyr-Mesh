@@ -60,7 +60,7 @@ struct InspectorView: View {
             SectionHeader(title: UIText.Inspector.positionAndMotion)
             ValueRow(label: UIText.Inspector.altitude, value: Format.meters(drone.altitudeM))
             ValueRow(label: Format.label("speed_mps"), value: Format.metersPerSecond(drone.speedMps))
-            ValueRow(label: Format.label("heading_deg"), value: Format.degrees(drone.headingDeg))
+            ValueRow(label: Format.label("heading_deg"), value: Format.heading(drone.headingDeg, speed: drone.speedMps))
         }
     }
 

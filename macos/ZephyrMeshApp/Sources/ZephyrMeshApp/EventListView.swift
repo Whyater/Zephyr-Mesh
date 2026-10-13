@@ -5,6 +5,7 @@ import SwiftUI
 /// The pane shows `eventRowsRegular` rows, or `eventRowsCompact` when the window is short, so
 /// the scene keeps most of the height. Text and row edges sit on the content inset.
 struct EventListView: View {
+    private static let pendingText = Format.label("events_pending")
     @ObservedObject var model: CockpitModel
     let isCompact: Bool
     @Environment(\.palette) private var palette
@@ -38,7 +39,7 @@ struct EventListView: View {
                             .id(event.id)
                         }
                         if CGFloat(events.count) < visibleRows && !model.isAtEnd {
-                            Text("Later events appear here as the replay plays.")
+                            Text(Self.pendingText)
                                 .font(TypeScale.caption)
                                 .foregroundStyle(palette.textSecondary)
                                 .padding(.horizontal, Space.sm)

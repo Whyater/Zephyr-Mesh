@@ -35,6 +35,14 @@ enum Format {
         value.map { "\(number($0, decimals: 0))\u{00B0}" } ?? notRecorded
     }
 
+    /// Mirrors `heading_text` in desktop/ui_format.py: the heading when there is one; "At rest"
+    /// when a speed was recorded but is too small for a heading; otherwise "Not recorded".
+    static func heading(_ degrees: Double?, speed: Double?) -> String {
+        if let degrees, degrees.isFinite { return self.degrees(degrees) }
+        if let speed, speed.isFinite { return label("at_rest") }
+        return notRecorded
+    }
+
     /// A recorded count, or "Not recorded" when the run did not carry it (never 0).
     static func integer(_ value: Int?) -> String {
         value.map { "\($0)" } ?? notRecorded
