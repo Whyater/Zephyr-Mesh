@@ -103,7 +103,8 @@ final class TeamFilterPolishTests: XCTestCase {
         XCTAssertEqual(rows[0].members.map(\.droneID), ["drone-007", "drone-008"], "kept in its group order")
         XCTAssertEqual(rows[0].keptSelectionID, "drone-007")
         let counts = TeamPresentation.filterCounts(rows: rows, drones: waiting.perDrone, query: "d08")
-        XCTAssertEqual(counts.shown, 1, "the kept selection is not counted as a filter match")
+        XCTAssertEqual(counts.shown, 2, "the caption counts every listed row, the kept selection included")
+        XCTAssertEqual(counts.matched, 1, "but only real matches count as matched")
 
         // A selection that matches is not marked.
         let matching = TeamPresentation.rows(groups: waiting.groups, drones: waiting.perDrone, query: "d07", keeping: "drone-007")

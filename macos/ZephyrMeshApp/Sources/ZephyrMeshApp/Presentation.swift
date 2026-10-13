@@ -185,8 +185,9 @@ enum TeamPresentation {
 
     static func filterCounts(rows: [Row], drones: [PresentationDrone], query: String) -> FilterCounts {
         let needle = query.trimmingCharacters(in: .whitespaces)
-        // A selected drone kept only because it is selected is not counted as shown by the filter.
-        let shown = rows.reduce(0) { $0 + $1.members.count - ($1.keptSelectionID == nil ? 0 : 1) }
+        // Counts every listed row, including a selected drone kept only because it is selected,
+        // so the caption always matches what the list shows.
+        let shown = rows.reduce(0) { $0 + $1.members.count }
         guard !needle.isEmpty else {
             return FilterCounts(shown: shown, matched: drones.count, total: drones.count, caption: nil, emptyText: nil)
         }
