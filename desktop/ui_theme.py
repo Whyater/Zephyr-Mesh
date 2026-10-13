@@ -60,7 +60,6 @@ class Theme:
             "accentHover": mix(p.accent, p.text, 0.88),
             "accentPressed": mix(p.accent, p.surface, 0.75),
             "badgeFill": mix(p.lineStrong, p.surface, 0.22),
-            "holdFill": mix(p.selectionFill, p.surface, 0.45),  # a closed group that holds the selected drone
         }
         return derived[token] if token in derived else str(getattr(p, token))
 
@@ -360,6 +359,11 @@ def control_padding(fonts: Fonts, scale: float) -> dict[str, tuple[int, int, int
     }
 
 
+def _same_in_every_state(color: str) -> list[tuple[str, str]]:
+    """A style map that keeps one color for every state clam would otherwise change."""
+    return [(state, color) for state in ("disabled", "pressed", "selected", "active", "focus", "alternate")]
+
+
 def configure_styles(style: Any, theme: Theme, fonts: Fonts, scale: float) -> None:
     """Restyle every ttk element the app uses, for one palette."""
     p = theme.p
@@ -416,7 +420,9 @@ def configure_styles(style: Any, theme: Theme, fonts: Fonts, scale: float) -> No
         style.layout(name, RoundedElements.layout(element, "Button", "Button.label"))
         style.configure(name, background=p.surface, foreground=p.text, padding=padding, width=0, anchor="center",
                         font=fonts["body"], focuscolor=p.surface)
-        style.map(name, foreground=[("disabled", p.textSecondary)])
+        # The rounded image draws the fill. The widget background only shows in the transparent corners, so it
+        # must stay the panel color in every state (clam's TButton map would turn it light on hover).
+        style.map(name, foreground=[("disabled", p.textSecondary)], background=_same_in_every_state(p.surface))
     style.layout("Link.TButton", [("Button.border", {"sticky": "nswe", "border": "1", "children": [
         ("Button.padding", {"sticky": "nswe", "children": [("Button.label", {"sticky": "nswe"})]}),
     ]})])
@@ -445,7 +451,7 @@ def configure_styles(style: Any, theme: Theme, fonts: Fonts, scale: float) -> No
     )
     style.map(
         "Segment.Toolbutton",
-        background=[("selected", p.selectionFill), ("active", p.hoverFill)],
+        background=_same_in_every_state(p.surface),  # the image draws the selected and hover fills
         foreground=[("selected", p.text), ("active", p.text)],
     )
 

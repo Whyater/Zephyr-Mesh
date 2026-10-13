@@ -133,6 +133,7 @@ class SceneView:
         self._grid = grid_lines(self._home.target, math.ceil(radius * 1.6 + 2.0))
         canvas = self.canvas
         canvas.bind("<Configure>", lambda _event: self.request_draw())
+        canvas.bind("<Destroy>", self._on_destroy, add="+")
         canvas.bind("<ButtonPress-1>", self._on_press)
         canvas.bind("<B1-Motion>", self._on_drag)
         canvas.bind("<ButtonRelease-1>", self._on_release)
@@ -327,6 +328,19 @@ class SceneView:
         return None
 
     # ---- drawing -----------------------------------------------------------
+    def _on_destroy(self, event: Any) -> None:
+        """Cancel the pending draw and animation jobs, so neither fires into a destroyed canvas."""
+        if event.widget is not self.canvas:
+            return
+        for name in ("_draw_job", "_anim_job"):
+            job = getattr(self, name)
+            if job is not None:
+                try:
+                    self.canvas.after_cancel(job)
+                except Exception:
+                    pass
+                setattr(self, name, None)
+
     def request_draw(self) -> None:
         if self._draw_job is None and self._anim_job is None:
             self._draw_job = self.canvas.after_idle(self._draw_now)

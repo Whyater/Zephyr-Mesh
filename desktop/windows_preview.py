@@ -159,6 +159,21 @@ def show_startup_failure(exc: BaseException, log_path: Path) -> None:
         pass
 
 
+def show_plain_startup_error(message: str) -> None:
+    """Report a bad input file before any window exists: stderr, plus a message box on Windows (no console there)."""
+    try:
+        print(message, file=sys.stderr)
+    except Exception:
+        pass
+    if sys.platform.startswith("win"):
+        try:
+            import ctypes
+
+            ctypes.windll.user32.MessageBoxW(None, message, "Zephyr Mesh", 0x30)
+        except Exception:
+            pass
+
+
 def _take_previous_update_failure() -> str | None:
     try:
         try:
@@ -754,7 +769,7 @@ class WindowsReplayApp:
                                  "Field.Placeholder.TLabel", inset=text_inset + glyph + self.px(SPACE["xs"]))
         self.clear_button = ttk.Button(field, style="FieldIcon.TButton", takefocus=False, command=self._clear_filter,
                                        image=self.images.glyph("clear", "textSecondary", WIN_LAYOUT["iconSize"]))
-        self.widgets.Tooltip(self.clear_button, f"{UI_TEXT['teamFilter']['clearFilter']}  (Esc)", lambda: self.theme,
+        self.widgets.Tooltip(self.clear_button, f"{UI_TEXT['teamFilter']['clearFilter']} (Esc)", lambda: self.theme,
                              self.fonts["caption"], scale=self.scale)
         self.filter_var.trace_add("write", lambda *_args: self._on_filter())
         self.filter_entry.bind("<Escape>", self._clear_filter)
@@ -889,11 +904,9 @@ class WindowsReplayApp:
             body, UI_TEXT["inspector"]["details"], self.images, pad=self.px(SPACE["xs"]),
             on_toggle=lambda opened: opened and self.root.after_idle(lambda: self.inspector_scroll.reveal(self.details.frame)))
         self.details.frame.grid(row=8, column=0, sticky="ew")
-        # Details holds long ids and part names, so its label column is narrower and its values get more room.
-        details_label = self.px(WIN_LAYOUT["detailsLabelWidth"])
-        self.details_grid = self.widgets.KeyValueGrid(
-            self.details.body, label_width=details_label, wrap=content - details_label - self.px(SPACE["md"]), scale=self.scale,
-            label_wrap=details_label - self.px(SPACE["md"]))
+        # Details holds long ids and part names: each label sits above its value, so a value gets the full
+        # panel width and an id like "drone-009-synthetic-profile" stays on one line.
+        self.details_grid = self.widgets.KeyValueGrid(self.details.body, wrap=content, scale=self.scale, stacked=True)
         self.details_grid.frame.pack(fill="x")
         self._inspector_sections = (tiles, self.motion_heading, self.motion_grid.frame, self.neighbor_heading,
                                     self.neighbor_grid.frame, self.inspector_rule, self.details.frame)
@@ -949,7 +962,7 @@ class WindowsReplayApp:
     def _transport_tip(action: str) -> str:
         spec = TRANSPORT[action]
         shortcut = "playPause" if action in ("play", "pause") else action
-        return f"{spec['label']}  ({fmt.accelerator(shortcut)})"
+        return f"{spec['label']} ({fmt.accelerator(shortcut)})"
 
     def _build_events(self, parent: Any) -> Any:
         ttk = self.ttk
@@ -966,7 +979,7 @@ class WindowsReplayApp:
                             height=WIN_LAYOUT["eventRows"], style="Events.Treeview", takefocus=True)
         body = self.fonts["body"]
         pad = self.px(SPACE["md"])
-        glyph = self.px(WIN_LAYOUT["glyphBox"]) + self.px(SPACE["sm"])
+        glyph = self.px(WIN_LAYOUT["glyphSize"]) + self.px(SPACE["md"])
         word = max(body.measure(fmt.status_word(level)) for level in fmt.LEVELS) + pad
         time_width = body.measure("00.00 s") + pad
         tree.column("#0", width=glyph, minwidth=glyph, stretch=False)
@@ -1087,7 +1100,8 @@ class WindowsReplayApp:
         self.events_tree.tag_configure("past", foreground=p.textSecondary)
         self.events_tree.tag_configure("current", foreground=p.text)
         self.fleet.tag_configure("group", font=self.fonts["bodyStrong"], foreground=p.text)
-        self.fleet.tag_configure("holds", background=theme.color("holdFill"))
+        # A closed group holding the selected drone: accent-colored text, no fill, so it never reads as selected.
+        self.fleet.tag_configure("holds", foreground=p.accent, font=self.fonts["bodyStrong"])
         self.scene.apply_theme(theme)
         alive = []
         for hook in self._theme_hooks:
@@ -1285,8 +1299,9 @@ class WindowsReplayApp:
         tree = self.fleet
         for row, add in ((previous, False), (iid, True)):
             if row and tree.exists(row):
-                tags = [tag for tag in tree.item(row, "tags") if tag != "holds"]
-                tree.item(row, tags=tuple(tags + (["holds"] if add else [])))
+                # "holds" replaces "group" (same bold font, accent color), so no two tags compete for the color.
+                tags = [tag for tag in tree.item(row, "tags") if tag not in ("holds", "group")]
+                tree.item(row, tags=tuple(tags + ["holds" if add else "group"]))
         self._holding_group = iid
         if iid and not tree.selection():
             tree.focus(iid)  # arrow keys continue from the row that holds the drone
@@ -1528,7 +1543,8 @@ class WindowsReplayApp:
                     if self.__dict__.get("_event_selected") == iid:
                         # The row is gone; a later row with the same id is a different event.
                         self._event_selected = None
-            box = WIN_LAYOUT["glyphBox"]
+            # No padding box around the glyph: its ink starts at the row edge, in line with the "Events" header.
+            box = WIN_LAYOUT["glyphSize"]
             for index in range(keep, len(events)):
                 frame, event = events[index]
                 level, word, time_text, text = fmt.event_row(event)
@@ -2036,6 +2052,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     try:
         try:
+            model = ReplayModel.from_path(args.run)
+        except (ValueError, OSError, RecursionError) as exc:
+            # Checked before Tk loads. A missing or broken --run file is the user's input, not a crash: one plain sentence, exit 2.
+            run_path = Path(args.run)
+            show_plain_startup_error(open_error_text(run_path, exc if run_path.is_file() else None, "replay"))
+            return 2
+        try:
             import tkinter as tk
         except ImportError as exc:
             raise RuntimeError("Tkinter is required. Install Python with Tcl/Tk support on Windows.") from exc
@@ -2045,7 +2068,6 @@ def main(argv: list[str] | None = None) -> int:
                 ctypes.windll.shcore.SetProcessDpiAwareness(2)
             except (AttributeError, OSError):
                 pass
-        model = ReplayModel.from_path(args.run)
         root = tk.Tk()
         set_window_icon(root)
         root.withdraw()

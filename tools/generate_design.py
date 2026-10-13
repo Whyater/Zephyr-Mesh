@@ -313,6 +313,8 @@ def generate_swift(tokens: dict[str, Any], ui: dict[str, Any]) -> str:
             "enum LayoutMetrics {",
         ]
     )
+    # Every shared layout key is emitted, including sidebarWidthWindows, which the Windows app no longer
+    # reads (it uses windowsLayout.sidebarWidth); it stays so the generated Swift file keeps its shape.
     for key, number in tokens["layout"].items():
         lines.append(f"    static let {identifier(key)}: CGFloat = {number}")
     lines.extend(

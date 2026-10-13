@@ -546,3 +546,48 @@ def test_the_events_list_is_as_wide_as_its_longest_event(shown_app):
         _settle(app)
         longest = max(app.fonts["body"].measure(str(tree.item(iid, "values")[2])) for iid in tree.get_children(""))
         assert tree.winfo_width() >= app._events_fixed + longest, "no event text is cut off (ttk must really resize)"
+
+
+def test_a_missing_run_file_is_one_plain_sentence(tmp_path, capsys):
+    from desktop.windows_preview import main
+
+    missing = tmp_path / "gone.json"
+    assert main(["--run", str(missing)]) == 2
+    err = capsys.readouterr().err.strip()
+    assert err == WIN_TEXT["openMissing"].format(name="gone.json")
+    broken = tmp_path / "broken.json"
+    broken.write_text("{", encoding="utf-8")
+    assert main(["--run", str(broken)]) == 2
+    err = capsys.readouterr().err
+    assert "not valid JSON" in err and "Traceback" not in err and "ReplayFormatError" not in err
+
+
+def test_destroying_the_scene_cancels_its_pending_draw(shown_app):
+    scene = shown_app.scene
+    scene.request_draw()
+    assert scene._draw_job is not None
+    scene.canvas.destroy()
+    assert scene._draw_job is None and scene._anim_job is None
+
+
+def test_rounded_controls_keep_the_panel_color_behind_their_corners(app):
+    """clam turns a hovered button's background light; it would show as square white corners around the rounded image."""
+    surface = app.theme.p.surface
+    for style in ("Tool.TButton", "Icon.TButton", "Primary.Icon.TButton", "Segment.Toolbutton"):
+        for state in ("active", "pressed", "disabled", "selected", "focus"):
+            assert app.style.lookup(style, "background", [state]) == surface, (style, state)
+
+
+def test_a_group_holding_the_selection_is_marked_without_the_selection_fill(app):
+    options = app.fleet.tag_configure("holds")
+    assert options["background"] in ("", None) and options["foreground"] == app.theme.p.accent
+
+
+def test_only_the_holds_tag_colors_a_group_that_hides_the_selected_drone(app):
+    app._seek_frame(3)
+    ok = next(row for row in app._team_plan if row["level"] == "ok")
+    app.fleet.item(ok["iid"], open=False)
+    app._open_groups.discard(ok["iid"])
+    app._select_drone(ok["members"][0])
+    tags = app.fleet.item(ok["iid"], "tags")
+    assert "holds" in tags and "group" not in tags and app.fleet.selection() == ()
