@@ -6,6 +6,19 @@ Zephyr Mesh is an offline-first drone tracking and swarm simulation workspace. I
 
 The simulator is intentionally transparent. Python owns the dynamics and replay data; the desktop apps provide operator views over the same checked-in fixtures. Current runs are synthetic and read-only. They do not control a drone or claim flight performance.
 
+## Result so far
+
+![Tracking error against link delay for a naive tracker and a capture-time recovery tracker, on a straight line and on a turn](runs/s6-recovery/s6_recovery.png)
+
+In simulation (target at 1 m/s, 10 Hz measurements, 5 cm noise, 50 seeds), the naive tracker's p95 error (the error it stays under 95 % of the time) grows by about speed x delay and crosses the 0.25 m failure line at 200 ms with no loss. Stamping each measurement with its capture time and predicting forward cuts the 300 ms error with no loss from 0.36 m to 0.16 m on a straight line (no failing cell up to 300 ms and 50 % random loss) and from 0.38 m to 0.29 m on a 1 m radius turn (the first failure moves from 200 ms to 300 ms). On the turn, loss takes over: at 30 % random loss it fails from 150 ms just like naive, at 50 % both fail at every delay and recovery is up to 2 cm worse, and with bursty loss it can be up to 13 cm worse.
+
+Limits: simulated link and sensor, not measured; the tracker is given each measurement's exact capture time (perfectly synced clocks); one constant-velocity filter with one fixed tuning; a 1 m/s target and one 1 m turn; 10 Hz; the 0.25 m line is a research criterion, not a safety limit.
+
+```bash
+PYTHONPATH=. python tools/run_s6_recovery.py --output runs/s6-recovery --overwrite
+PYTHONPATH=. python tools/make_s6_figure.py runs/s6-recovery/summary.json --output-dir runs/s6-recovery
+```
+
 ## Download
 
 ### macOS
@@ -58,7 +71,7 @@ The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\Zeph
 - Strict SI-unit hardware-profile documents with custom motor and propeller part IDs, status/source/calibration provenance, JSON Schema validation, round-trip loading, and a normalization CLI.
 - Versioned bench trace schema and summary CLI for RPM, thrust, voltage, current, temperature, test conditions, incomplete readings, and transparent electrical input power summaries without curve fitting.
 - Portable evidence reports for the macOS and Windows inspectors, preserving source hashes, declared status, nested values, and limitations.
-- S6 investigation reports for latency, loss probability, sensing noise, target acceleration, estimator error, and scenario-specific failure labels. The estimator is a naive receive-time tracker (its error grows like speed x delay by construction) and is given the true noise level (oracle tuning), which flatters it; no recovery arm, multi-seed intervals, or burst-loss sweep exists yet. These are deterministic research fixtures, not tolerance or flight-performance results.
+- S6 recovery sweep in `runs/s6-recovery`: a naive arm (fuses each packet at arrival time) against a recovery arm (fuses at capture time, then predicts forward), 50 seeds per cell with intervals, over delay, independent and burst loss, noise, delay jitter, and an oracle-tuning slice. The older single-seed, naive-only sweep (`sim/investigation.py`, `sim/investigation_example.json`) is kept and still regenerates, but is superseded by `runs/s6-recovery`. These are simulated research results, not tolerance or flight-performance results.
 - S7 replay analysis for per-route outcomes, abstract packet age, estimator coverage and age, bracketed reacquisition intervals, constraint flags, and observed separation. These metrics describe the checked-in replay and do not establish radio tolerance or flight safety.
 - Typed drone adapter, authority arbitration, and replayable link or battery failsafe contracts.
 - Native macOS SwiftUI and SceneKit cockpit plus a Windows Tkinter desktop surface built from the same canonical replay, including compact mission-event history and replay-only authority or failsafe context.
@@ -111,8 +124,9 @@ The published v0.2.2 binaries are the replay baseline. The scenario-run CLI and 
 ## Known Bugs/Limitations
 
 - The checked-in event logs and desktop views are synthetic replays. They do not represent a measured radio link, camera, motor, controller, or flight test.
+- The recovery tracker drops late, out-of-order packets instead of re-filtering them. Its results come from a simulated link and sensor; no measured ESP-NOW or camera data feeds them yet.
 - The single-drone controller has no heading setpoint and no integral action, and the simulator has no ground plane. Default rigid-body inertia is a fixed estimate for a 450 g frame; hardware-profile vehicles use a geometry estimate. Neither is measured. The full list is `known_issues` in `runs/s0-baseline/manifest.json`.
-- No measured ESP-NOW or camera trace is included yet. The versioned schemas are ready for documented hardware captures, but no radio tolerance, camera calibration, tracker, or flight-performance result is claimed.
+- No measured ESP-NOW or camera trace is included yet. The versioned schemas are ready for documented hardware captures, but no measured radio tolerance, camera calibration, tracker, or flight-performance result is claimed.
 - Motor, propeller, battery, drag, and airflow values are scenario inputs or calibration placeholders. The profile document loader validates units, provenance fields, and schema structure, but it does not calibrate coefficients. Its thrust field is a declared-coefficient estimate at the lower motor/propeller RPM limit and does not apply torque or electrical power limits. Downwash, ground effect, propeller wake interaction, and venue airflow still need measured models.
 - The bench trace boundary and electrical input power summary are synthetic until a documented run records instruments, part identity, calibration, units, clock conditions, and repeatable test settings. No fitted motor map is included.
 - The release workflow runs the Python suite, builds, and smoke-tests the Windows package, but physical Windows install, updater relaunch, accessibility, and frame-time measurements remain open. Linux packaging is later work.
