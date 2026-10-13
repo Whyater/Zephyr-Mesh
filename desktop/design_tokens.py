@@ -38,7 +38,7 @@ class ScenePalette:
 
 DARK = Palette('#0F1522', '#172033', '#2B3A55', '#5B6B88', '#EEF2F7', '#9AA8C0', '#7CC4FF', '#FFB38A', '#B4A7FF', '#5FD39B', '#FFC857', '#FF5C5C', '#7CC4FF', '#0F1522', '#273A54', '#242D3F')
 LIGHT = Palette('#F6F8FB', '#FFFFFF', '#D5DCE6', '#7D8AA1', '#1B2433', '#56627A', '#1F6FD1', '#A8501C', '#5E4BC4', '#1E7F4F', '#8A5A00', '#C62828', '#1F6FD1', '#FFFFFF', '#E0EBF9', '#F4F4F5')
-DARK_SCENE3D = ScenePalette(SceneColor('#9AA8C0', 1.0), SceneColor('#9AA8C0', 1.0), SceneColor('#9AA8C0', 1.0), SceneColor('#FFB38A', 1.0), SceneColor('#B4A7FF', 0.18), SceneColor('#2B3A55', 1.0), SceneColor('#0F1522', 1.0))
+DARK_SCENE3D = ScenePalette(SceneColor('#9AA8C0', 1.0), SceneColor('#9AA8C0', 1.0), SceneColor('#9AA8C0', 1.0), SceneColor('#FFB38A', 1.0), SceneColor('#B4A7FF', 0.12), SceneColor('#2B3A55', 1.0), SceneColor('#0F1522', 1.0))
 LIGHT_SCENE3D = ScenePalette(SceneColor('#56627A', 1.0), SceneColor('#56627A', 1.0), SceneColor('#56627A', 1.0), SceneColor('#A8501C', 1.0), SceneColor('#5E4BC4', 0.18), SceneColor('#D5DCE6', 1.0), SceneColor('#F6F8FB', 1.0))
 
 def palette(theme: str = 'dark') -> Palette:
@@ -71,7 +71,7 @@ MOTION_MS = {
     'curve': 'ease-out',
     'reduced': 0,
 }
-LAYOUT = {'windowMinWidth': 1180, 'windowMinHeight': 760, 'sidebarWidth': 260, 'inspectorWidth': 300, 'rowHeight': 28, 'sceneMinWidth': 520, 'windowDefaultWidth': 1440, 'windowDefaultHeight': 900, 'eventListHeight': 128, 'inspectorMaxWidth': 360, 'sidebarIdealWidth': 300, 'eventPaneHeight': 192, 'sidebarWidthWindows': 340}
+LAYOUT = {'windowMinWidth': 1180, 'windowMinHeight': 760, 'sidebarWidth': 260, 'inspectorWidth': 300, 'rowHeight': 28, 'sceneMinWidth': 520, 'windowDefaultWidth': 1440, 'windowDefaultHeight': 900, 'eventListHeight': 128, 'inspectorMaxWidth': 360, 'sidebarIdealWidth': 300, 'eventPaneHeight': 192, 'sidebarWidthWindows': 340, 'contentInset': 16, 'controlHeight': 28, 'iconButtonSize': 28, 'iconGlyphSize': 14, 'speedSegmentWidth': 48, 'viewSegmentWidth': 44, 'stripOneRowMinWidth': 960, 'stripMetricWidth': 136, 'stripValueHeight': 28, 'stripDividerHeight': 40, 'eventRowHeight': 24, 'eventWordWidth': 60, 'eventTimeWidth': 52, 'eventRowsCompact': 4, 'eventRowsRegular': 6, 'compactDetailHeight': 820, 'teamAgeWidth': 64, 'teamLossWidth': 52, 'teamColumnSpacing': 6, 'scrubberMinWidth': 160, 'scrubberTrackHeight': 4, 'scrubberThumbSize': 14, 'scrubberTickHeight': 6, 'metricTileMinHeight': 56, 'sceneStatusMarkerPoints': 11, 'sceneSelectionRingPoints': 15, 'sceneTargetRingPoints': 9, 'sceneFitMarginPoints': 20, 'hoverLabelOffset': 16, 'viewerContentMaxWidth': 720, 'viewerLabelWidth': 220, 'viewerTwoColumnWidth': 960, 'scenarioSideWidth': 360, 'scenarioPlotHeight': 340, 'scenarioRailWidth': 84, 'plotDroneMark': 9, 'plotTargetMark': 14, 'aboutWindowWidth': 560, 'aboutWindowHeight': 680, 'aboutWindowMinWidth': 480, 'aboutWindowMinHeight': 420, 'evidenceWindowWidth': 720, 'evidenceWindowHeight': 840, 'evidenceWindowMinWidth': 560, 'evidenceWindowMinHeight': 440, 'scenarioWindowWidth': 1000, 'scenarioWindowHeight': 720, 'scenarioWindowMinWidth': 620, 'scenarioWindowMinHeight': 520, 'badgeHeight': 22, 'settingsWidth': 360, 'messageMaxWidth': 520, 'emptyWindowMinWidth': 420, 'emptyWindowMinHeight': 240, 'jsonTreeMaxChildren': 100}
 
 @dataclass(frozen=True)
 class Shortcut:
@@ -377,7 +377,20 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
                  'neighbor_packet_loss_pct': 'Neighbor packet loss',
                  'target_link_delay_ms': 'Target link delay',
                  'target_packet_loss_pct': 'Target packet loss',
-                 'propeller_diameter_mm': 'Propeller diameter (mm)'},
+                 'propeller_diameter_mm': 'Propeller diameter (mm)',
+                 'age_s': 'Age (s)',
+                 'loss_pct': 'Loss (%)',
+                 'status_column': 'Status',
+                 'scene_target': 'Target',
+                 'scene_keep_out': 'Keep-out',
+                 'scene_selected': 'Selected',
+                 'raw_parameters': 'Raw parameters',
+                 'raw_provenance': 'Raw provenance',
+                 'raw_summary': 'Raw summary',
+                 'copy_command': 'Copy command',
+                 'copied': 'Copied',
+                 'single_frame': 'Single frame',
+                 'run_status': 'Run status'},
  'droneNaming': {'compact': 'D{number:02d}', 'heading': 'Drone {number:02d}'},
  'shortcuts': {'playPause': {'label': 'Play/Pause',
                              'key': 'space',

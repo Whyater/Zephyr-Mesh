@@ -12,6 +12,20 @@ enum WindowID {
 struct ZephyrMeshApp: App {
     @StateObject private var store = AppStore()
 
+    init() {
+        if ScreenshotSetup.current.isActive {
+            // A capture launched from a background shell can start hidden, and SwiftUI then never
+            // builds the window. Unhide and activate as soon as the run loop starts.
+            // Repeated because an unhide sent before launch finishes is ignored.
+            for delay in [0.0, 0.4, 1.0, 2.0] {
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    NSApp.unhide(nil)
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+            }
+        }
+    }
+
     var body: some Scene {
         Window("Zephyr Mesh", id: WindowID.main) {
             AppearanceRoot {
@@ -21,14 +35,14 @@ struct ZephyrMeshApp: App {
         .defaultSize(width: LayoutMetrics.windowDefaultWidth, height: LayoutMetrics.windowDefaultHeight)
         .commands { CockpitCommands(store: store) }
 
-        Window(UIText.aboutButton.capitalized, id: WindowID.about) {
+        Window(UIText.Menus.aboutReplay, id: WindowID.about) {
             AppearanceRoot {
                 if let fixture = store.cockpit?.fixture {
                     AboutReplayView(fixture: fixture)
                 }
             }
         }
-        .defaultSize(width: 560, height: 680)
+        .defaultSize(width: LayoutMetrics.aboutWindowWidth, height: LayoutMetrics.aboutWindowHeight)
         .windowResizability(.contentMinSize)
 
         WindowGroup("Scenario Run", id: WindowID.scenarioRun, for: UUID.self) { $id in
@@ -36,14 +50,14 @@ struct ZephyrMeshApp: App {
                 ViewerWindowRoot(store: store, id: id)
             }
         }
-        .defaultSize(width: 820, height: 760)
+        .defaultSize(width: LayoutMetrics.scenarioWindowWidth, height: LayoutMetrics.scenarioWindowHeight)
 
         WindowGroup("Evidence Report", id: WindowID.evidenceReport, for: UUID.self) { $id in
             AppearanceRoot {
                 ViewerWindowRoot(store: store, id: id)
             }
         }
-        .defaultSize(width: 720, height: 720)
+        .defaultSize(width: LayoutMetrics.evidenceWindowWidth, height: LayoutMetrics.evidenceWindowHeight)
 
         Settings {
             AppearanceRoot {
@@ -92,9 +106,6 @@ private struct MainWindowRoot: View {
             }
         }
         .frame(minWidth: LayoutMetrics.windowMinWidth, minHeight: LayoutMetrics.windowMinHeight)
-        .alert(item: $store.openError) { error in
-            Alert(title: Text(error.title), message: Text(error.message), dismissButton: .default(Text("OK")))
-        }
         .onAppear(perform: runScreenshotSetup)
     }
 
@@ -110,10 +121,16 @@ private struct MainWindowRoot: View {
         guard let request = ScreenshotSetup.current.open else { return }
         if request == "about" {
             openWindow(id: WindowID.about)
-        } else if request.hasPrefix("scenario:"), let id = store.loadScenarioRun(URL(fileURLWithPath: String(request.dropFirst(9)))) {
-            openWindow(id: WindowID.scenarioRun, value: id)
-        } else if request.hasPrefix("evidence:"), let id = store.loadEvidenceReport(URL(fileURLWithPath: String(request.dropFirst(9)))) {
-            openWindow(id: WindowID.evidenceReport, value: id)
+            return
+        }
+        Task {
+            if request.hasPrefix("scenario:"),
+               let id = await store.loadScenarioRun(URL(fileURLWithPath: String(request.dropFirst("scenario:".count)))) {
+                openWindow(id: WindowID.scenarioRun, value: id)
+            } else if request.hasPrefix("evidence:"),
+                      let id = await store.loadEvidenceReport(URL(fileURLWithPath: String(request.dropFirst("evidence:".count)))) {
+                openWindow(id: WindowID.evidenceReport, value: id)
+            }
         }
     }
 }
@@ -132,7 +149,7 @@ private struct LoadFailureView: View {
                 .foregroundStyle(palette.textSecondary)
                 .multilineTextAlignment(.center)
                 .textSelection(.enabled)
-                .frame(maxWidth: 520)
+                .frame(maxWidth: LayoutMetrics.messageMaxWidth)
             Text("Rebuild the replay fixture and the app, then open it again.")
                 .font(TypeScale.caption)
                 .foregroundStyle(palette.textSecondary)
@@ -164,9 +181,11 @@ private struct ViewerWindowRoot: View {
                         .font(TypeScale.body)
                         .foregroundStyle(palette.textSecondary)
                 }
-                .frame(minWidth: 420, minHeight: 240)
+                .frame(minWidth: LayoutMetrics.emptyWindowMinWidth, minHeight: LayoutMetrics.emptyWindowMinHeight)
             }
         }
+        // Closing the window releases its parsed document.
+        .onDisappear { if let id { store.close(id) } }
         .background(palette.background)
         .toolbarBackground(palette.background, for: .windowToolbar)
         .toolbarBackground(.visible, for: .windowToolbar)

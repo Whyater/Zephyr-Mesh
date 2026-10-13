@@ -114,8 +114,9 @@ struct StatusStyle: Equatable {
         self.init(level: group.level, word: group.word, shape: group.shape, color: group.color)
     }
 
-    /// Late and lost drones fade in the scene; they keep their shape.
-    var fadesInScene: Bool { level == "caution" || level == "alert" }
+    /// Late and lost drones carry a status marker in the scene (their shape in the alert colors),
+    /// so status never depends on opacity alone.
+    var hasSceneMarker: Bool { level == "caution" || level == "alert" }
 
     func color(in palette: Theme.Palette) -> Color {
         switch colorToken {
@@ -144,13 +145,18 @@ enum TeamPresentation {
         let group: PresentationGroup
         let members: [PresentationDrone]
         let isFilteredMatch: Bool
+        /// The selected drone, when it is listed only because it is selected (it does not match).
+        var keptSelectionID: String?
         var id: String { group.id }
     }
 
     /// Mirrors `filter_group_rows` in desktop/presentation.py: a pinned (late or lost) group is
     /// never hidden and keeps every member; any other group stays only when a member matches,
-    /// and then lists only the matching members.
-    static func rows(groups: [PresentationGroup], drones: [PresentationDrone], query: String) -> [Row] {
+    /// and then lists only the matching members. The selected drone is the one addition (macOS
+    /// only so far): it stays listed in its group, marked, even when it does not match, so the
+    /// selection the scene and inspector show always has a row and arrow keys start from it.
+    static func rows(groups: [PresentationGroup], drones: [PresentationDrone], query: String,
+                     keeping selectedID: String? = nil) -> [Row] {
         let byID = Dictionary(uniqueKeysWithValues: drones.map { ($0.droneID, $0) })
         let filtering = !query.trimmingCharacters(in: .whitespaces).isEmpty
         return groups.compactMap { group in
@@ -158,8 +164,11 @@ enum TeamPresentation {
             guard !pinnedLevels.contains(group.level), filtering else {
                 return Row(group: group, members: members, isFilteredMatch: false)
             }
-            let matching = members.filter { matches($0, query: query) }
-            return matching.isEmpty ? nil : Row(group: group, members: matching, isFilteredMatch: true)
+            let keep = selectedID.flatMap { id in group.droneIDs.contains(id) ? id : nil }
+            let listed = members.filter { matches($0, query: query) || $0.droneID == keep }
+            guard !listed.isEmpty else { return nil }
+            let kept = keep.flatMap { id in listed.contains { $0.droneID == id && !matches($0, query: query) } ? id : nil }
+            return Row(group: group, members: listed, isFilteredMatch: true, keptSelectionID: kept)
         }
     }
 
@@ -176,7 +185,8 @@ enum TeamPresentation {
 
     static func filterCounts(rows: [Row], drones: [PresentationDrone], query: String) -> FilterCounts {
         let needle = query.trimmingCharacters(in: .whitespaces)
-        let shown = rows.reduce(0) { $0 + $1.members.count }
+        // A selected drone kept only because it is selected is not counted as shown by the filter.
+        let shown = rows.reduce(0) { $0 + $1.members.count - ($1.keptSelectionID == nil ? 0 : 1) }
         guard !needle.isEmpty else {
             return FilterCounts(shown: shown, matched: drones.count, total: drones.count, caption: nil, emptyText: nil)
         }
@@ -184,6 +194,60 @@ enum TeamPresentation {
         let caption = Format.fill(UIText.TeamFilter.showing, ["shown": "\(shown)", "total": "\(drones.count)"])
         let empty = matched == 0 ? Format.fill(UIText.TeamFilter.noMatches, ["query": needle]) : nil
         return FilterCounts(shown: shown, matched: matched, total: drones.count, caption: caption, emptyText: empty)
+    }
+}
+
+extension TeamPresentation {
+    /// The line under the filter field: "Showing N of M", plus the pinned note when late or
+    /// lost drones are listed even though they do not match. Nil when not filtering.
+    static func filterCaption(counts: FilterCounts, rows: [Row]) -> String? {
+        guard let caption = counts.caption else { return nil }
+        let pinnedListed = rows.contains { !$0.isFilteredMatch && pinnedLevels.contains($0.group.level) }
+        return pinnedListed ? "\(caption). \(UIText.TeamFilter.pinnedNote)" : caption
+    }
+}
+
+/// Shorter forms of an event text for narrow rows. The presentation already caps a drone list
+/// at `EventDroneList.limit` names plus "+N more"; when even that does not fit, each shorter
+/// variant keeps one name fewer and counts the rest, so a row is never cut inside a name.
+enum EventText {
+    private static let namePattern: String = {
+        let prefix = UIText.droneCompactName.components(separatedBy: "{").first ?? ""
+        return NSRegularExpression.escapedPattern(for: prefix) + "\\d{2,}"
+    }()
+
+    private static let morePattern: String = {
+        let parts = UIText.EventDroneList.more.components(separatedBy: "{count}")
+        return parts.map { NSRegularExpression.escapedPattern(for: $0) }.joined(separator: "(\\d+)")
+    }()
+
+    private static let listExpression: NSRegularExpression? = {
+        let name = namePattern
+        let pattern = "\\b\(name)(?:, \(name))+\\b(?: \(morePattern))?"
+        return try? NSRegularExpression(pattern: pattern)
+    }()
+
+    /// The full text first, then one variant per name dropped, down to a single name.
+    static func variants(_ text: String) -> [String] {
+        let whole = NSRange(text.startIndex..., in: text)
+        guard let expression = listExpression, let match = expression.firstMatch(in: text, range: whole),
+              let range = Range(match.range, in: text) else { return [text] }
+        let listText = String(text[range])
+        var extra = 0
+        if match.numberOfRanges > 1, let extraRange = Range(match.range(at: 1), in: text) {
+            extra = Int(text[extraRange]) ?? 0
+        }
+        let names = (try? NSRegularExpression(pattern: namePattern))?
+            .matches(in: listText, range: NSRange(listText.startIndex..., in: listText))
+            .compactMap { Range($0.range, in: listText).map { String(listText[$0]) } } ?? []
+        guard names.count > 1 else { return [text] }
+        var result = [text]
+        for keep in stride(from: names.count - 1, through: 1, by: -1) {
+            let more = Format.fill(UIText.EventDroneList.more, ["count": "\(names.count - keep + extra)"])
+            let list = names.prefix(keep).joined(separator: ", ") + " " + more
+            result.append(text.replacingCharacters(in: range, with: list))
+        }
+        return result
     }
 }
 

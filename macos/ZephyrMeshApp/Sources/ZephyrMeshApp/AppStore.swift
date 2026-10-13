@@ -22,7 +22,12 @@ final class AppStore: ObservableObject {
     let loadError: String?
     @Published private(set) var documents: [UUID: ViewerDocument] = [:]
     @Published var openError: OpenError?
+    /// True while a chosen file is being validated; the Open commands wait for it.
+    @Published private(set) var isOpeningFile = false
+    /// Open documents by file path, so opening the same file again brings its window forward.
+    private var openURLs: [String: UUID] = [:]
     private var forwarding: AnyCancellable?
+    private var alerts: Set<AnyCancellable> = []
 
     init() {
         switch FixtureLoader.loadBundled() {
@@ -37,6 +42,27 @@ final class AppStore: ObservableObject {
             loadError = error.localizedDescription
         }
         forwardCommandState()
+        presentAlerts()
+    }
+
+    /// Update results and file-open errors are shown by the app, not by the main window, so
+    /// they appear even when the main window is closed: as a sheet on the key window when there
+    /// is one, otherwise as an app-modal alert. Each notice is cleared once it is shown.
+    private func presentAlerts() {
+        $openError.compactMap { $0 }
+            .receive(on: RunLoop.main)
+            .sink { [weak self] error in
+                self?.openError = nil
+                AlertPresenter.show(title: error.title, message: error.message)
+            }
+            .store(in: &alerts)
+        cockpit?.$updateNotice.compactMap { $0 }
+            .receive(on: RunLoop.main)
+            .sink { [weak self] notice in
+                self?.cockpit?.updateNotice = nil
+                AlertPresenter.show(title: notice.title, message: notice.message)
+            }
+            .store(in: &alerts)
     }
 
     /// Menus depend on a handful of model values; forward only those so the menu bar does not
@@ -61,38 +87,54 @@ final class AppStore: ObservableObject {
 
     func document(_ id: UUID) -> ViewerDocument? { documents[id] }
 
-    func close(_ id: UUID) { documents[id] = nil }
-
-    /// Shows an open panel, validates the chosen scenario run, and returns its window ID.
-    func chooseScenarioRun() -> UUID? {
-        guard let url = choose(title: "Open Scenario Run", message: "Choose a generated scenario run JSON file") else { return nil }
-        return loadScenarioRun(url)
+    /// Called when a viewer window closes, so its parsed document is released.
+    func close(_ id: UUID) {
+        documents[id] = nil
+        openURLs = openURLs.filter { $0.value != id }
     }
 
-    func loadScenarioRun(_ url: URL) -> UUID? {
-        do {
-            let run = try ScenarioRunDocument.load(from: url)
-            return register(.scenarioRun(run, filename: url.lastPathComponent))
-        } catch {
-            openError = OpenError(title: "Could not open scenario run", message: error.localizedDescription)
-            return nil
+    /// Shows an open panel, validates the chosen scenario run, and returns its window ID.
+    func chooseScenarioRun() async -> UUID? {
+        guard let url = choose(title: "Open Scenario Run", message: "Choose a generated scenario run JSON file") else { return nil }
+        return await loadScenarioRun(url)
+    }
+
+    /// Reads, scans, hashes and decodes off the main actor (a run may be up to 64 MiB), then
+    /// registers the document here. A file that is already open returns its existing window ID.
+    func loadScenarioRun(_ url: URL) async -> UUID? {
+        await load(url, errorTitle: "Could not open scenario run") { url in
+            .scenarioRun(try ScenarioRunDocument.load(from: url), filename: url.lastPathComponent)
         }
     }
 
     /// Shows an open panel, validates the chosen evidence report, and returns its window ID.
-    func chooseEvidenceReport() -> UUID? {
+    func chooseEvidenceReport() async -> UUID? {
         guard let url = choose(title: "Open Evidence Report", message: "Choose a Zephyr Mesh evidence report JSON file") else {
             return nil
         }
-        return loadEvidenceReport(url)
+        return await loadEvidenceReport(url)
     }
 
-    func loadEvidenceReport(_ url: URL) -> UUID? {
-        do {
-            let report = try EvidenceReport.load(from: url)
-            return register(.evidenceReport(report, filename: url.lastPathComponent))
-        } catch {
-            openError = OpenError(title: "Could not open evidence report", message: error.localizedDescription)
+    func loadEvidenceReport(_ url: URL) async -> UUID? {
+        await load(url, errorTitle: "Could not open evidence report") { url in
+            .evidenceReport(try EvidenceReport.load(from: url), filename: url.lastPathComponent)
+        }
+    }
+
+    private func load(_ url: URL, errorTitle: String,
+                      decode: @escaping @Sendable (URL) throws -> ViewerDocument) async -> UUID? {
+        let key = url.standardizedFileURL.path
+        if let existing = openURLs[key], documents[existing] != nil { return existing }
+        isOpeningFile = true
+        defer { isOpeningFile = false }
+        let result = await Task.detached(priority: .userInitiated) { Result { try decode(url) } }.value
+        switch result {
+        case .success(let document):
+            let id = register(document)
+            openURLs[key] = id
+            return id
+        case .failure(let error):
+            openError = OpenError(title: errorTitle, message: error.localizedDescription)
             return nil
         }
     }
@@ -114,5 +156,29 @@ final class AppStore: ObservableObject {
         panel.allowedContentTypes = [.json]
         guard panel.runModal() == .OK else { return nil }
         return panel.url
+    }
+}
+
+@MainActor
+enum AlertPresenter {
+    /// At launch the main window may not be on screen yet; wait briefly for it before falling
+    /// back to an app-modal alert.
+    static func show(title: String, message: String, retries: Int = 3) {
+        let window = NSApp.keyWindow ?? NSApp.mainWindow ?? NSApp.windows.first { $0.isVisible && $0.canBecomeMain }
+        if window == nil, retries > 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Motion.standard * 2) {
+                show(title: title, message: message, retries: retries - 1)
+            }
+            return
+        }
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.addButton(withTitle: "OK")
+        if let window, window.isVisible, window.attachedSheet == nil {
+            alert.beginSheetModal(for: window)
+        } else {
+            alert.runModal()
+        }
     }
 }

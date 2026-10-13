@@ -76,7 +76,7 @@ enum Theme {
         droneArms: Color(hex: "9AA8C0", opacity: 1),
         rotorDisc: Color(hex: "9AA8C0", opacity: 1),
         targetRing: Color(hex: "FFB38A", opacity: 1),
-        keepOutVolume: Color(hex: "B4A7FF", opacity: 0.18),
+        keepOutVolume: Color(hex: "B4A7FF", opacity: 0.12),
         grid: Color(hex: "2B3A55", opacity: 1),
         floor: Color(hex: "0F1522", opacity: 1),
     )
@@ -154,6 +154,61 @@ enum LayoutMetrics {
     static let sidebarIdealWidth: CGFloat = 300
     static let eventPaneHeight: CGFloat = 192
     static let sidebarWidthWindows: CGFloat = 340
+    static let contentInset: CGFloat = 16
+    static let controlHeight: CGFloat = 28
+    static let iconButtonSize: CGFloat = 28
+    static let iconGlyphSize: CGFloat = 14
+    static let speedSegmentWidth: CGFloat = 48
+    static let viewSegmentWidth: CGFloat = 44
+    static let stripOneRowMinWidth: CGFloat = 960
+    static let stripMetricWidth: CGFloat = 136
+    static let stripValueHeight: CGFloat = 28
+    static let stripDividerHeight: CGFloat = 40
+    static let eventRowHeight: CGFloat = 24
+    static let eventWordWidth: CGFloat = 60
+    static let eventTimeWidth: CGFloat = 52
+    static let eventRowsCompact: CGFloat = 4
+    static let eventRowsRegular: CGFloat = 6
+    static let compactDetailHeight: CGFloat = 820
+    static let teamAgeWidth: CGFloat = 64
+    static let teamLossWidth: CGFloat = 52
+    static let teamColumnSpacing: CGFloat = 6
+    static let scrubberMinWidth: CGFloat = 160
+    static let scrubberTrackHeight: CGFloat = 4
+    static let scrubberThumbSize: CGFloat = 14
+    static let scrubberTickHeight: CGFloat = 6
+    static let metricTileMinHeight: CGFloat = 56
+    static let sceneStatusMarkerPoints: CGFloat = 11
+    static let sceneSelectionRingPoints: CGFloat = 15
+    static let sceneTargetRingPoints: CGFloat = 9
+    static let sceneFitMarginPoints: CGFloat = 20
+    static let hoverLabelOffset: CGFloat = 16
+    static let viewerContentMaxWidth: CGFloat = 720
+    static let viewerLabelWidth: CGFloat = 220
+    static let viewerTwoColumnWidth: CGFloat = 960
+    static let scenarioSideWidth: CGFloat = 360
+    static let scenarioPlotHeight: CGFloat = 340
+    static let scenarioRailWidth: CGFloat = 84
+    static let plotDroneMark: CGFloat = 9
+    static let plotTargetMark: CGFloat = 14
+    static let aboutWindowWidth: CGFloat = 560
+    static let aboutWindowHeight: CGFloat = 680
+    static let aboutWindowMinWidth: CGFloat = 480
+    static let aboutWindowMinHeight: CGFloat = 420
+    static let evidenceWindowWidth: CGFloat = 720
+    static let evidenceWindowHeight: CGFloat = 840
+    static let evidenceWindowMinWidth: CGFloat = 560
+    static let evidenceWindowMinHeight: CGFloat = 440
+    static let scenarioWindowWidth: CGFloat = 1000
+    static let scenarioWindowHeight: CGFloat = 720
+    static let scenarioWindowMinWidth: CGFloat = 620
+    static let scenarioWindowMinHeight: CGFloat = 520
+    static let badgeHeight: CGFloat = 22
+    static let settingsWidth: CGFloat = 360
+    static let messageMaxWidth: CGFloat = 520
+    static let emptyWindowMinWidth: CGFloat = 420
+    static let emptyWindowMinHeight: CGFloat = 240
+    static let jsonTreeMaxChildren: CGFloat = 100
 }
 
 enum UIText {
@@ -201,6 +256,7 @@ enum UIText {
         "active": "Active",
         "active_agent_observations": "Active agent observations",
         "active_count": "Active drones",
+        "age_s": "Age (s)",
         "agent_count": "Drone count",
         "agent_id": "Drone ID",
         "agent_profiles": "Agent profiles",
@@ -236,6 +292,8 @@ enum UIText {
         "constraint_flags": "Constraint flags",
         "constraints": "Constraints",
         "contention_mode": "Contention mode",
+        "copied": "Copied",
+        "copy_command": "Copy command",
         "count": "Count",
         "criterion": "Criterion",
         "criterion_note": "Criterion note",
@@ -293,6 +351,7 @@ enum UIText {
         "link_loss_pct": "Link packet loss (%)",
         "logical_identity_count": "Logical identity count",
         "loss_model": "Loss model",
+        "loss_pct": "Loss (%)",
         "loss_probability": "Loss probability",
         "loss_rate": "Loss rate",
         "loss_rate_bounds": "Loss rate bounds",
@@ -359,6 +418,9 @@ enum UIText {
         "python": "Python version",
         "quantile_method": "Quantile method",
         "radius_m": "Radius (m)",
+        "raw_parameters": "Raw parameters",
+        "raw_provenance": "Raw provenance",
+        "raw_summary": "Raw summary",
         "receive_time": "Receive time",
         "received": "Received",
         "receiver": "Receiver",
@@ -374,9 +436,13 @@ enum UIText {
         "run_name": "Run",
         "run_schema": "Run schema",
         "run_sha256": "Run file SHA-256",
+        "run_status": "Run status",
         "sample_count": "Sample count",
         "scenario_hash": "Scenario hash",
         "scenario_id": "Scenario ID",
+        "scene_keep_out": "Keep-out",
+        "scene_selected": "Selected",
+        "scene_target": "Target",
         "schema": "Schema",
         "seed": "Random seed",
         "send_time": "Send time",
@@ -386,12 +452,14 @@ enum UIText {
         "serialized": "Serialized",
         "sha256": "SHA-256",
         "sim": "Sim",
+        "single_frame": "Single frame",
         "source": "Source",
         "source_schema": "Source schema",
         "source_status": "Source status",
         "speed_mps": "Speed",
         "state": "State",
         "status": "Status",
+        "status_column": "Status",
         "step_index": "Frame",
         "steps": "Frames",
         "summary": "Summary",

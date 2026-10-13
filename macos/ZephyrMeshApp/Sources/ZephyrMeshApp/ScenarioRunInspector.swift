@@ -127,9 +127,15 @@ struct ScenarioRunDocument: Identifiable, Decodable {
                 throw ScenarioRunError.invalid("keep_out_spheres velocity is invalid")
             }
         }
+        let agentCount = parameters["agent_count"]?.intValue ?? 0
         for frame in frames {
             for agent in frame.agents { try validateAgent(agent) }
             try validateKeepOutSnapshots(frame.keepOutSpheres)
+            // Counts must agree with the agents listed, so the window never shows "999 of 1".
+            let activeFlags = frame.agents.filter { $0["active"]?.boolValue == true }.count
+            guard Int64(frame.agentCount) == agentCount, frame.activeCount <= frame.agentCount, frame.activeCount == activeFlags else {
+                throw ScenarioRunError.invalid("frame active_count or agent list does not match agent_count and the active flags")
+            }
         }
         let dt = parameters["dt_s"]?.numberValue ?? 0
         for (index, frame) in frames.enumerated() {
@@ -425,34 +431,53 @@ struct ScenarioPlotGeometry: Equatable {
         )
     }
 
+    /// Maps a plan position into the canvas. The scale clamps each span to at least 1 m so a
+    /// tiny run is not over-zoomed, and the mapping is centred on the bounds centre, so data
+    /// spanning under 1 m (for example one drone and one target on a line) sits in the middle.
     static func project(_ point: ScenarioPlotPoint, bounds: ScenarioPlotBounds, width: Double, height: Double, inset: Double = 18) -> ScenarioPlotPoint {
         let width = max(width, 1)
         let height = max(height, 1)
+        let scale = planScale(bounds: bounds, width: width, height: height, inset: inset)
+        let centerX = (bounds.minX + bounds.maxX) / 2
+        let centerY = (bounds.minY + bounds.maxY) / 2
+        return ScenarioPlotPoint(x: width / 2 + (point.x - centerX) * scale, y: height / 2 - (point.y - centerY) * scale)
+    }
+
+    /// Points per metre in the plan view.
+    static func planScale(bounds: ScenarioPlotBounds, width: Double, height: Double, inset: Double = 18) -> Double {
         let inset = max(inset, 0)
         let spanX = max(bounds.maxX - bounds.minX, 1)
         let spanY = max(bounds.maxY - bounds.minY, 1)
-        let scale = min(max(width - 2 * inset, 1) / spanX, max(height - 2 * inset, 1) / spanY)
-        let offsetX = (width - spanX * scale) / 2
-        let offsetY = (height - spanY * scale) / 2
-        return ScenarioPlotPoint(x: offsetX + (point.x - bounds.minX) * scale, y: height - offsetY - (point.y - bounds.minY) * scale)
+        return min(max(max(width, 1) - 2 * inset, 1) / spanX, max(max(height, 1) - 2 * inset, 1) / spanY)
+    }
+
+    /// The largest of 0.1, 0.2, 0.5, 1, 2, 5, 10... metres that draws no longer than
+    /// `maxPoints`, for the scale bar.
+    static func scaleBarLength(pointsPerMeter: Double, maxPoints: Double) -> Double {
+        guard pointsPerMeter > 0, maxPoints > 0 else { return 1 }
+        let limit = maxPoints / pointsPerMeter
+        var best = 0.1
+        var decade = 0.1
+        while decade <= 1000 {
+            for step in [1.0, 2.0, 5.0] where step * decade <= limit { best = step * decade }
+            decade *= 10
+        }
+        return best
     }
 
     static func projectRadius(_ radius: Double, bounds: ScenarioPlotBounds, width: Double, height: Double, inset: Double = 18) -> Double {
-        let width = max(width, 1)
-        let height = max(height, 1)
-        let inset = max(inset, 0)
-        let spanX = max(bounds.maxX - bounds.minX, 1)
-        let spanY = max(bounds.maxY - bounds.minY, 1)
-        let scale = min(max(width - 2 * inset, 1) / spanX, max(height - 2 * inset, 1) / spanY)
-        return max(radius, 0) * scale
+        max(radius, 0) * planScale(bounds: bounds, width: width, height: height, inset: inset)
     }
 
+    /// Altitude to a y on the rail, centred on the bounds' middle altitude (same reason as
+    /// `project`: a span under 1 m stays in the middle of the rail).
     static func projectAltitude(_ altitude: Double, bounds: ScenarioAltitudeBounds, height: Double, inset: Double = 18) -> Double {
         let height = max(height, 1)
         let inset = min(max(inset, 0), height / 2)
         let span = max(bounds.maxZ - bounds.minZ, 1)
         let usable = max(height - 2 * inset, 0)
-        return min(max(height - inset - (altitude - bounds.minZ) * usable / span, 0), height)
+        let center = (bounds.minZ + bounds.maxZ) / 2
+        return min(max(height / 2 - (altitude - center) * usable / span, 0), height)
     }
 
     static func projectAltitudeRadius(_ radius: Double, bounds: ScenarioAltitudeBounds, height: Double, inset: Double = 18) -> Double {

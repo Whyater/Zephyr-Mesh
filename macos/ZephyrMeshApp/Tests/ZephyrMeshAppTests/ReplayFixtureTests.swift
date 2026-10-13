@@ -160,8 +160,10 @@ final class PresentationFormattingTests: XCTestCase {
         XCTAssertEqual(StatusStyle(level: "caution").symbol, "triangle.fill")
         XCTAssertEqual(StatusStyle(level: "caution").word, "Late")
         XCTAssertEqual(StatusStyle(level: "info").symbol, "info.circle")
-        XCTAssertTrue(StatusStyle(level: "alert").fadesInScene)
-        XCTAssertFalse(StatusStyle(level: "waiting").fadesInScene)
+        XCTAssertTrue(StatusStyle(level: "alert").hasSceneMarker)
+        XCTAssertTrue(StatusStyle(level: "caution").hasSceneMarker)
+        XCTAssertFalse(StatusStyle(level: "waiting").hasSceneMarker)
+        XCTAssertFalse(StatusStyle(level: "ok").hasSceneMarker)
     }
 }
 
@@ -465,13 +467,13 @@ final class RepairRoundTests: XCTestCase {
 
 @MainActor
 final class SceneGeometryTests: XCTestCase {
-    private func state(_ fixture: Fixture, frame: Int, selected: String?) -> SceneState {
+    private func state(_ fixture: Fixture, frame: Int, selected: String?, command: CameraCommand? = nil) -> SceneState {
         let presentation = fixture.frames[frame].presentation
         return SceneState(
             frame: fixture.frames[frame],
             styles: Dictionary(uniqueKeysWithValues: presentation.perDrone.map { ($0.droneID, StatusStyle(drone: $0)) }),
             headings: [:], selectedID: selected, hoveredID: nil, showKeepOut: true, viewMode: .threeD,
-            palette: Theme.dark, scenePalette: Theme.darkScene3D, isDark: true, reduceMotion: true, cameraCommand: nil)
+            palette: Theme.dark, scenePalette: Theme.darkScene3D, isDark: true, reduceMotion: true, cameraCommand: command)
     }
 
     func testEachDroneIsSizedFromItsOwnProfile() throws {
@@ -494,14 +496,48 @@ final class SceneGeometryTests: XCTestCase {
         XCTAssertEqual(radii.count, 5, "the fixture has five propeller sizes")
     }
 
-    func testSelectedLateDroneStaysFaded() throws {
+    func testLateDronesCarryAStatusMarkerInsteadOfFading() throws {
+        // Golden frame 3: D09, D39 and D44 are late (caution); the other 47 are OK.
         let fixture = try loadFixture()
         let controller = SceneController(fixture: fixture)
         controller.apply(state(fixture, frame: 3, selected: "drone-009"))
-        let late = try XCTUnwrap(controller.scene.rootNode.childNode(withName: "drone-009", recursively: false))
-        let fresh = try XCTUnwrap(controller.scene.rootNode.childNode(withName: "drone-001", recursively: false))
-        XCTAssertLessThan(late.opacity, 1, "selection must not hide staleness")
-        XCTAssertEqual(fresh.opacity, 1)
+        let root = controller.scene.rootNode
+        func marker(_ id: String) throws -> SCNNode {
+            let drone = try XCTUnwrap(root.childNode(withName: id, recursively: false))
+            return try XCTUnwrap(drone.childNode(withName: "status-marker", recursively: false))
+        }
+        for id in ["drone-009", "drone-039", "drone-044"] {
+            XCTAssertFalse(try marker(id).isHidden, "\(id) is late and must show its marker")
+            XCTAssertEqual(try XCTUnwrap(root.childNode(withName: id, recursively: false)).opacity, 1,
+                           "status is a marker, never opacity alone")
+        }
+        XCTAssertTrue(try marker("drone-001").isHidden)
+        let late = fixture.frames[3].presentation.perDrone.filter { $0.level == "caution" || $0.level == "alert" }.count
+        let shown = fixture.drones.filter { (try? marker($0.id).isHidden) == false }.count
+        XCTAssertEqual(shown, late)
+    }
+
+    func testSelectionRingShowsFarAwayAndStepsAsideWhenFocused() throws {
+        let fixture = try loadFixture()
+        let controller = SceneController(fixture: fixture)
+        controller.viewDidResize(CGSize(width: 640, height: 400))
+        controller.apply(state(fixture, frame: 3, selected: "drone-009"))
+        let ring = try XCTUnwrap(controller.scene.rootNode.childNode(withName: "selection-ring", recursively: false))
+        XCTAssertFalse(ring.isHidden, "at the home framing the drone is a few points wide, so the ring marks it")
+        // The ring sits at drone altitude (1.5 m plus half the propeller height), not on the floor.
+        XCTAssertGreaterThan(ring.simdPosition.y, 1.5)
+        let focused = state(fixture, frame: 3, selected: "drone-009",
+                            command: CameraCommand(kind: .focus(droneID: "drone-009"), serial: 1))
+        controller.apply(focused)
+        XCTAssertTrue(ring.isHidden, "close up the drone is wider than the ring, so the ring steps aside")
+    }
+
+    func testScreenSizerWorldSizeMatchesTheProjection() {
+        // Independent check: at distance d the view height spans 2 d tan(fov / 2) metres.
+        let sizer = ScreenSizer(verticalFieldOfView: 38, camera: SCNNode())
+        sizer.viewHeight = 400
+        let expected = Float(10.0 * 5.0 * 2 * tan(19.0 * Double.pi / 180) / 400)
+        XCTAssertEqual(sizer.worldSize(points: 10, distance: 5), expected, accuracy: 1e-6)
     }
 }
 

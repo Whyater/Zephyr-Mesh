@@ -2,29 +2,28 @@ import SwiftUI
 
 /// Events from the presentation rules, oldest at the top and newest at the bottom.
 /// Events of the current frame use the text color; earlier ones step back to secondary.
+/// The pane shows `eventRowsRegular` rows, or `eventRowsCompact` when the window is short, so
+/// the scene keeps most of the height. Text and row edges sit on the content inset.
 struct EventListView: View {
-    /// Six full rows fit in the pane; the bottom padding keeps the last one off the window edge.
-    static let visibleRows = 6
     @ObservedObject var model: CockpitModel
+    let isCompact: Bool
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var visibleRows: CGFloat {
+        isCompact ? LayoutMetrics.eventRowsCompact : LayoutMetrics.eventRowsRegular
+    }
 
     var body: some View {
         let events = model.eventsSoFar
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Text("Events")
-                    .font(TypeScale.caption)
-                    .foregroundStyle(palette.textSecondary)
-                Spacer()
-                Text("Click an event to jump to it")
-                    .font(TypeScale.caption)
-                    .foregroundStyle(palette.textSecondary)
-            }
-            .padding(.horizontal, Space.md)
-            .padding(.top, Space.sm)
-            .padding(.bottom, Space.xxs)
-            Spacer(minLength: 0)
+            Text("Events")
+                .font(TypeScale.caption)
+                .foregroundStyle(palette.textSecondary)
+                .padding(.horizontal, LayoutMetrics.contentInset)
+                .padding(.top, Space.sm)
+                .padding(.bottom, Space.xxs)
+                .accessibilityAddTraits(.isHeader)
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 0) {
@@ -36,10 +35,11 @@ struct EventListView: View {
                             .id(event.id)
                         }
                     }
-                    .padding(.horizontal, Space.sm)
+                    // Row padding (Space.sm) plus this lands the row content on the content inset.
+                    .padding(.horizontal, LayoutMetrics.contentInset - Space.sm)
                 }
-                .frame(height: EventRow.height * CGFloat(Self.visibleRows))
-                .padding(.bottom, Space.md)
+                .frame(height: LayoutMetrics.eventRowHeight * visibleRows)
+                .padding(.bottom, Space.sm)
                 .onAppear {
                     DispatchQueue.main.async { proxy.scrollTo(events.last?.id, anchor: .bottom) }
                 }
@@ -49,16 +49,18 @@ struct EventListView: View {
                         proxy.scrollTo(last, anchor: .bottom)
                     }
                 }
+                .onChange(of: isCompact) { _, _ in
+                    DispatchQueue.main.async { proxy.scrollTo(events.last?.id, anchor: .bottom) }
+                }
             }
         }
-        .frame(height: LayoutMetrics.eventPaneHeight)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(palette.surface)
         .overlay(alignment: .top) { HairlineDivider() }
     }
 }
 
 private struct EventRow: View {
-    static let height: CGFloat = 24
     let event: PresentationEvent
     let isCurrent: Bool
     let action: () -> Void
@@ -72,26 +74,37 @@ private struct EventRow: View {
                 StatusShape(style: style)
                 Text(style.word)
                     .font(TypeScale.bodyStrong)
-                    .frame(width: 44, alignment: .leading)
+                    .lineLimit(1)
+                    .frame(width: LayoutMetrics.eventWordWidth, alignment: .leading)
                 Text(Format.seconds(event.timeS))
                     .font(TypeScale.body.monospacedDigit())
                     .foregroundStyle(palette.textSecondary)
-                    .frame(width: 52, alignment: .trailing)
-                Text(event.text)
-                    .font(TypeScale.body)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
+                    .frame(width: LayoutMetrics.eventTimeWidth, alignment: .trailing)
+                // The longest variant that fits; shorter ones drop drone IDs at a name boundary
+                // and count them in "+N more", so a row never ends in half a drone name.
+                ViewThatFits(in: .horizontal) {
+                    ForEach(EventText.variants(event.text), id: \.self) { variant in
+                        Text(variant)
+                            .font(TypeScale.body)
+                            .lineLimit(1)
+                            .fixedSize()
+                    }
+                    Text(event.text)
+                        .font(TypeScale.body)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
                 Spacer(minLength: 0)
             }
             .foregroundStyle(isCurrent ? palette.text : palette.textSecondary)
             .padding(.horizontal, Space.sm)
-            .frame(height: Self.height)
+            .frame(height: LayoutMetrics.eventRowHeight)
             .background(RowBackground(isSelected: false, isHovered: hovering))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
-        .help(event.text)
+        .help("\(event.text)\nClick to jump to this event.")
         .accessibilityLabel("\(style.word) at \(Format.seconds(event.timeS)): \(event.text)")
         .accessibilityHint("Jumps the replay to this event")
     }

@@ -80,3 +80,40 @@ def test_scene_never_uses_default_camera_control() -> None:
         text = path.read_text(encoding="utf-8")
         assert "allowsCameraControl = true" not in text, path.name
         assert "defaultCameraController" not in text, path.name
+
+
+# A non-zero number written straight into a padding, frame, spacing, minimum length or corner
+# radius. Those sizes come from the generated tokens (Space, Radius, LayoutMetrics); 0 is allowed.
+RAW_LAYOUT_NUMBER = re.compile(
+    r"(?:\.padding\((?:\.[a-zA-Z]+(?:, )?|\[[^\]]*\], )?-?"
+    r"|\.frame\([^)]*?\b(?:min|max|ideal)?(?:[wW]idth|[hH]eight): "
+    r"|\bspacing: |\bminLength: |\bcornerRadius: )"
+    r"(?:[1-9][0-9]*(?:\.[0-9]+)?|0\.[0-9]*[1-9])\b"
+)
+# Generated tokens, and files owned by other work (the updater and the resource loader).
+RAW_LAYOUT_EXEMPT = {"DesignSystem.swift", "ReleaseUpdater.swift", "ResourceLocator.swift"}
+
+
+def test_layout_sizes_come_from_tokens() -> None:
+    violations = []
+    for path in source_files():
+        if path.name in RAW_LAYOUT_EXEMPT:
+            continue
+        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if RAW_LAYOUT_NUMBER.search(line):
+                violations.append(f"{path.relative_to(ROOT)}:{line_number}: {line.strip()}")
+    assert not violations, "raw layout number, use a design token:\n" + "\n".join(violations)
+
+
+def test_raw_layout_number_rule_catches_literals() -> None:
+    """The rule must flag real literals, or the test above proves nothing."""
+    assert RAW_LAYOUT_NUMBER.search(".padding(12)")
+    assert RAW_LAYOUT_NUMBER.search(".padding(.horizontal, 8)")
+    assert RAW_LAYOUT_NUMBER.search(".frame(width: 136, alignment: .leading)")
+    assert RAW_LAYOUT_NUMBER.search(".frame(maxWidth: .infinity, minHeight: 56)")
+    assert not RAW_LAYOUT_NUMBER.search("SCNCylinder(radius: 0.005, height: 1)"), "scene geometry is metres, not layout"
+    assert RAW_LAYOUT_NUMBER.search("HStack(spacing: 6)")
+    assert RAW_LAYOUT_NUMBER.search("RoundedRectangle(cornerRadius: 4)")
+    assert not RAW_LAYOUT_NUMBER.search("VStack(spacing: 0)")
+    assert not RAW_LAYOUT_NUMBER.search(".padding(Space.md)")
+    assert not RAW_LAYOUT_NUMBER.search(".frame(width: LayoutMetrics.eventWordWidth)")

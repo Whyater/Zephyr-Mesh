@@ -12,7 +12,7 @@ struct EvidenceReportView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Space.xl) {
                 verdict
-                section("Limitations") {
+                SectionBlock(title: "Limitations") {
                     VStack(alignment: .leading, spacing: Space.sm) {
                         ForEach(Array(report.limitations.enumerated()), id: \.offset) { _, limitation in
                             HStack(alignment: .firstTextBaseline, spacing: Space.sm) {
@@ -24,31 +24,37 @@ struct EvidenceReportView: View {
                         }
                     }
                 }
-                section("Summary") {
+                SectionBlock(title: "Summary") {
                     SummaryRows(value: report.summary)
                 }
-                details
+                DetailsSection(isExpanded: $showDetails) {
+                    ValueRow(label: "File", value: filename)
+                    ValueRow(label: Format.label("schema"), value: report.schema, style: .identifier)
+                    ValueRow(label: Format.label("source"), value: report.source.name)
+                    ValueRow(label: Format.label("source_schema"), value: report.source.schema, style: .identifier)
+                    StackedValue(label: "Source SHA-256 (declared)", value: report.source.sha256, style: .identifier)
+                    if case .object(let summary) = report.summary, case .string(let schema)? = summary["schema"] {
+                        ValueRow(label: "Summary schema", value: schema, style: .identifier)
+                    }
+                    RawTreeBlock(title: Format.label("raw_summary"), value: report.summary)
+                }
             }
-            .padding(Space.xl)
-            .frame(maxWidth: 720, alignment: .leading)
-            .frame(maxWidth: .infinity)
+            .modifier(ViewerContent())
         }
-        .frame(minWidth: 560, minHeight: 440)
+        .frame(minWidth: LayoutMetrics.evidenceWindowMinWidth, minHeight: LayoutMetrics.evidenceWindowMinHeight)
         .background(palette.background)
         .navigationTitle(report.kind.label)
         .navigationSubtitle(filename)
     }
 
+    /// Kind and declared status as shape plus word (info, never an alert color), then the boundary.
     private var verdict: some View {
         VStack(alignment: .leading, spacing: Space.sm) {
-            Text(report.kind.label)
-                .font(TypeScale.title)
             HStack(alignment: .firstTextBaseline, spacing: Space.sm) {
                 Text("Declared status")
                     .font(TypeScale.body)
                     .foregroundStyle(palette.textSecondary)
-                Text(Format.label(report.status.rawValue))
-                    .font(TypeScale.metricSmall)
+                StatusLabel(style: StatusStyle(level: "info", word: Format.label(report.status.rawValue)), font: TypeScale.headline)
             }
             Text("A valid report and a matching source digest show which file this summarizes. "
                  + "They do not establish hardware performance; check the underlying evidence and calibration first.")
@@ -56,48 +62,17 @@ struct EvidenceReportView: View {
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(Space.lg)
+        .padding(LayoutMetrics.contentInset)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(palette.surface, in: RoundedRectangle(cornerRadius: Radius.small))
         .overlay { RoundedRectangle(cornerRadius: Radius.small).strokeBorder(palette.line, lineWidth: 1) }
-    }
-
-    private var details: some View {
-        DisclosureGroup(isExpanded: $showDetails) {
-            VStack(alignment: .leading, spacing: Space.sm) {
-                ValueRow(label: "File", value: filename)
-                ValueRow(label: Format.label("schema"), value: report.schema, style: .identifier)
-                ValueRow(label: Format.label("source"), value: report.source.name)
-                ValueRow(label: Format.label("source_schema"), value: report.source.schema, style: .identifier)
-                StackedValue(label: "Source SHA-256 (declared)", value: report.source.sha256, style: .identifier)
-                if case .object(let summary) = report.summary, case .string(let schema)? = summary["schema"] {
-                    ValueRow(label: "Summary schema", value: schema, style: .identifier)
-                }
-                Text("Raw summary")
-                    .font(TypeScale.caption)
-                    .foregroundStyle(palette.textSecondary)
-                    .padding(.top, Space.sm)
-                JSONTree(value: report.summary)
-            }
-            .padding(.top, Space.sm)
-        } label: {
-            Text("Details").font(TypeScale.headline)
-        }
-    }
-
-    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: Space.sm) {
-            Text(title)
-                .font(TypeScale.headline)
-                .accessibilityAddTraits(.isHeader)
-            content()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
 /// Plain summary: top-level values as labeled rows, one level of nested objects as labeled
 /// groups, anything deeper summarized with a pointer to Details. Keys use shared labels.
+/// Groups are `Space.lg` apart and rows inside a group `Space.xs`, so each label clearly
+/// belongs to its own value.
 struct SummaryRows: View {
     let value: JSONValue
     @Environment(\.palette) private var palette
@@ -105,17 +80,17 @@ struct SummaryRows: View {
     var body: some View {
         if case .object(let object) = value {
             let keys = object.keys.filter { !Self.detailsOnlyKeys.contains($0) }.sorted { order($0) < order($1) }
-            VStack(alignment: .leading, spacing: Space.md) {
+            VStack(alignment: .leading, spacing: Space.lg) {
                 let scalars = keys.filter { !(object[$0]?.isBranch ?? false) }
                 if !scalars.isEmpty {
-                    VStack(alignment: .leading, spacing: Space.xxs) {
+                    VStack(alignment: .leading, spacing: Space.xs) {
                         ForEach(scalars, id: \.self) { key in
                             SummaryLine(label: Format.label(key), value: object[key]?.plainText ?? Format.notRecorded)
                         }
                     }
                 }
                 ForEach(keys.filter { object[$0]?.hasPlainSummary ?? false }, id: \.self) { key in
-                    VStack(alignment: .leading, spacing: Space.xxs) {
+                    VStack(alignment: .leading, spacing: Space.xs) {
                         Text(Format.label(key))
                             .font(TypeScale.bodyStrong)
                         nested(object[key] ?? .null)
@@ -133,10 +108,12 @@ struct SummaryRows: View {
         case .object(let object):
             // Rows that cannot be put in plain words (for example one block per drone) are left out
             // here; they stay complete in the Details raw tree.
-            ForEach(object.keys.sorted().filter { object[$0]?.summaryText() != nil }, id: \.self) { key in
+            let unit = object["unit"]?.isBranch == false ? object["unit"]?.plainText : nil
+            ForEach(Self.orderedKeys(object).filter { object[$0]?.summaryText() != nil }, id: \.self) { key in
                 let child = object[key] ?? .null
                 let label = Format.label(key)
-                SummaryLine(label: label, value: child.summaryText(includeUnit: !label.hasSuffix(")")) ?? "")
+                let text = child.summaryText(includeUnit: !label.hasSuffix(")")) ?? ""
+                SummaryLine(label: label, value: Self.withUnit(text, key: key, value: child, unit: unit))
             }
         default:
             ValueRow(label: "Items", value: value.branchSummary)
@@ -146,75 +123,53 @@ struct SummaryRows: View {
     /// Schema ids are identifiers, not findings; they are listed under Details instead.
     static let detailsOnlyKeys: Set<String> = ["schema"]
 
+    /// Statistics in reading order (count, then min to max); the unit is appended to the values,
+    /// not listed as a row. Everything else alphabetical.
+    static let statisticOrder = ["available", "count", "min", "mean", "p50", "p95", "max"]
+
+    static func orderedKeys(_ object: [String: JSONValue]) -> [String] {
+        object.keys.filter { $0 != "unit" || object[$0]?.isBranch == true }.sorted { left, right in
+            let l = statisticOrder.firstIndex(of: left) ?? statisticOrder.count
+            let r = statisticOrder.firstIndex(of: right) ?? statisticOrder.count
+            return l == r ? left < right : l < r
+        }
+    }
+
+    /// "0.012" becomes "0.012 s" for a statistic in a block that declares its unit.
+    static func withUnit(_ text: String, key: String, value: JSONValue, unit: String?) -> String {
+        guard let unit, ["min", "mean", "p50", "p95", "max"].contains(key), value.isNumber else { return text }
+        return "\(text) \(unit)"
+    }
+
     /// Provenance reads last; everything else alphabetical.
     private func order(_ key: String) -> String { key == "provenance" ? "~" : key }
 }
 
-/// A label and value; long text stacks under its label instead of sitting right-aligned.
+/// A label and value; when the pair does not fit on one line the value stacks under its label.
 struct SummaryLine: View {
     let label: String
     let value: String
 
     var body: some View {
-        if value.count > 36 {
-            StackedValue(label: label, value: value.prefix(1).uppercased() + value.dropFirst())
-                .padding(.vertical, Space.xxs)
-        } else {
-            ValueRow(label: label, value: value)
-        }
-    }
-}
-
-/// Full raw tree with every key labeled, collapsed by default.
-struct JSONTree: View {
-    let value: JSONValue
-
-    var body: some View {
-        switch value {
-        case .object(let object):
-            VStack(alignment: .leading, spacing: Space.xxs) {
-                ForEach(object.keys.sorted(), id: \.self) { key in
-                    JSONTreeEntry(label: Format.label(key), value: object[key] ?? .null)
-                }
-            }
-        case .array(let items):
-            VStack(alignment: .leading, spacing: Space.xxs) {
-                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                    JSONTreeEntry(label: "Item \(index + 1)", value: item)
-                }
-            }
-        default:
-            Text(value.plainText).font(TypeScale.mono)
-        }
-    }
-}
-
-private struct JSONTreeEntry: View {
-    let label: String
-    let value: JSONValue
-    @Environment(\.palette) private var palette
-
-    var body: some View {
-        if value.isBranch {
-            DisclosureGroup {
-                JSONTree(value: value)
-                    .padding(.leading, Space.sm)
-            } label: {
-                HStack {
-                    Text(label).font(TypeScale.body)
-                    Spacer()
-                    Text(value.branchSummary)
-                        .font(TypeScale.caption)
-                        .foregroundStyle(palette.textSecondary)
-                }
-            }
-        } else {
-            ValueRow(label: label, value: value.plainText)
+        let sentence = value.prefix(1).uppercased() + value.dropFirst()
+        ViewThatFits(in: .horizontal) {
+            ValueRow(label: label, value: sentence)
+                .fixedSize(horizontal: true, vertical: false)
+            // The gap under a stacked pair is larger than the one inside it.
+            StackedValue(label: label, value: sentence)
+                .padding(.bottom, Space.xs)
         }
     }
 }
 
 extension JSONValue {
+    var isNumber: Bool {
+        switch self {
+        case .integer, .number: return true
+        default: return false
+        }
+    }
+
     var isBranch: Bool {
         switch self {
         case .object, .array: return true

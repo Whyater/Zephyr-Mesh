@@ -79,15 +79,65 @@ private final class DroneNode {
     let root: SCNNode
     let body: SCNNode
     let blades: [SCNNode]
+    let marker: SCNNode
     let dimensions: DroneDimensions
     var look: DroneLook = .normal
+    var markerLevel: String?
     var spinning = false
 
-    init(root: SCNNode, body: SCNNode, blades: [SCNNode], dimensions: DroneDimensions) {
+    init(root: SCNNode, body: SCNNode, blades: [SCNNode], marker: SCNNode, dimensions: DroneDimensions) {
         self.root = root
         self.body = body
         self.blades = blades
+        self.marker = marker
         self.dimensions = dimensions
+    }
+}
+
+/// Keeps overlay marks (status markers, the selection ring, the target ring) at a fixed size in
+/// points, whatever the camera distance. SceneKit evaluates the constraints on its render
+/// thread after the camera driver has moved the camera, so the size is right on every frame.
+final class ScreenSizer: @unchecked Sendable {
+    private let lock = NSLock()
+    private var height: Float = 400
+    private let tanHalfFOV: Float
+    private let camera: SCNNode
+
+    init(verticalFieldOfView: CGFloat, camera: SCNNode) {
+        tanHalfFOV = Float(tan(verticalFieldOfView / 2 * .pi / 180))
+        self.camera = camera
+    }
+
+    var viewHeight: Float {
+        get { lock.lock(); defer { lock.unlock() }; return height }
+        set { lock.lock(); height = max(newValue, 1); lock.unlock() }
+    }
+
+    /// World size that projects to `points` at `distance` from the camera.
+    func worldSize(points: CGFloat, distance: Float) -> Float {
+        Float(points) * distance * 2 * tanHalfFOV / viewHeight
+    }
+
+    /// Scales the node so a mark `baseSize` metres across appears `points` across. With
+    /// `allowsShrink` false the mark never gets smaller than its true size when close up.
+    /// The block only computes a transform; it never touches the scene graph, because SceneKit
+    /// evaluates it on the render thread.
+    func constraint(points: CGFloat, baseSize: CGFloat, allowsShrink: Bool) -> SCNTransformConstraint {
+        SCNTransformConstraint(inWorldSpace: true) { [weak self] _, transform in
+            guard let self else { return transform }
+            let world = simd_float4x4(transform)
+            let position = SIMD3(world.columns.3.x, world.columns.3.y, world.columns.3.z)
+            let distance = simd_distance(position, self.camera.presentation.simdWorldPosition)
+            var scale = self.worldSize(points: points, distance: distance) / Float(baseSize)
+            if !allowsShrink { scale = max(scale, 1) }
+            guard scale.isFinite, scale > 0 else { return transform }
+            var result = matrix_identity_float4x4
+            result.columns.0.x = scale
+            result.columns.1.y = scale
+            result.columns.2.z = scale
+            result.columns.3 = world.columns.3
+            return SCNMatrix4(result)
+        }
     }
 }
 
@@ -118,8 +168,15 @@ final class SceneController {
     private let keepOutRoot = SCNNode()
     private let gridNode = SCNNode()
     private let floorNode = SCNNode()
+    /// Positioned on the selected drone and sized in points; its child faces the camera.
     private let selectionRing = SCNNode()
-    private let selectionStem = SCNNode()
+    private let selectionRingShape = SCNNode()
+    private let sizer: ScreenSizer
+    private var selectedScenePosition: SIMD3<Float>?
+    private var markerGeometry: [String: SCNGeometry] = [:]
+    /// Swarm center and unpadded radius from the home framing, for the fog band.
+    private var swarmCenter: SIMD3<Float> = .zero
+    private var swarmRawRadius: Float = 1
     private let keyLight = SCNNode()
     private var keepOutVolumes: [KeepOutVolume] = []
     private var themeKey: Bool?
@@ -141,35 +198,64 @@ final class SceneController {
         factories = Dictionary(Set(byDrone.values).map { ($0, DroneModelFactory(dimensions: $0)) }, uniquingKeysWith: { first, _ in first })
         let points = fixture.frames.first?.drones.map(\.position) ?? []
         let home = OrbitCamera.framed(points: points)
-        gridHalfExtent = max(10, Int((home.swarmRadius * 1.5).rounded(.up)))
+        // The decoder bounds coordinates; the clamp keeps the Int conversion safe regardless.
+        let extent = home.swarmRadius.isFinite ? min(home.swarmRadius * 1.5, fixtureCoordinateLimitM) : 10
+        gridHalfExtent = max(10, Int(extent.rounded(.up)))
         let camera = SCNCamera()
         camera.fieldOfView = Self.verticalFieldOfView
         camera.zNear = 0.02
         camera.zFar = 160
         cameraNode.camera = camera
         driver = CameraDriver(camera: home, cameraNode: cameraNode)
+        sizer = ScreenSizer(verticalFieldOfView: Self.verticalFieldOfView, camera: cameraNode)
         buildStaticScene()
     }
 
     /// Fits the whole swarm to the current view: centered on the swarm, home yaw and pitch, and
-    /// the closest distance at which every drone projects inside the viewport.
+    /// the closest distance at which every drone projects inside the viewport, keeping a margin
+    /// of `sceneFitMarginPoints` on every side so the selection ring and the status markers of
+    /// the outermost drones stay in frame.
     var homeCamera: OrbitCamera {
         var camera = OrbitCamera.framed(points: currentPositions)
-        camera.distance = camera.fitDistance(points: currentPositions, aspect: viewAspect, verticalFOV: Float(Self.verticalFieldOfView))
+        let margin = Float(LayoutMetrics.sceneFitMarginPoints) * 2
+        let fillY = max(0.5, 1 - margin / viewSize.y)
+        let fillX = max(0.5, 1 - margin / viewSize.x)
+        camera.distance = camera.fitDistance(points: currentPositions, aspect: viewSize.x / viewSize.y,
+                                             verticalFOV: Float(Self.verticalFieldOfView), fill: fillY, horizontalFill: fillX)
         camera.clamp()
         return camera
     }
 
-    private var viewAspect: Float = 1.6
+    private var viewSize = SIMD2<Float>(640, 400)
     private var userMovedCamera = false
 
     /// Keeps the home framing matched to the view until the user orbits, zooms or focuses.
     func viewDidResize(_ size: CGSize) {
         guard size.width > 1, size.height > 1 else { return }
-        viewAspect = Float(size.width / size.height)
+        viewSize = SIMD2(Float(size.width), Float(size.height))
+        sizer.viewHeight = Float(size.height)
+        updateRingVisibility()
         guard !userMovedCamera, lastViewMode == .threeD else { return }
         let home = homeCamera
-        driver.update { $0 = home }
+        setGoal { $0 = home }
+    }
+
+    /// Moves the camera goal and keeps the fog band matched to it.
+    private func setGoal(_ change: (inout OrbitCamera) -> Void) {
+        driver.update(change)
+        updateFog(for: driver.goal)
+        updateRingVisibility()
+    }
+
+    /// Linear fog that starts just past the far side of the swarm and is nearly opaque at the
+    /// far grid edge, so the grid fades into the floor instead of ending in a hard line. It is
+    /// measured from the swarm center, so focusing a near drone never fogs the far side.
+    private func updateFog(for camera: OrbitCamera) {
+        let centerDistance = simd_distance(camera.sceneEye, OrbitCamera.sceneVector(swarmCenter))
+        let start = centerDistance + swarmRawRadius
+        let end = max(start + 1, centerDistance + Float(gridHalfExtent) * 0.8)
+        scene.fogStartDistance = CGFloat(start)
+        scene.fogEndDistance = CGFloat(end)
     }
 
     private var currentPositions: [SIMD3<Float>] = []
@@ -199,7 +285,8 @@ final class SceneController {
         key.automaticallyAdjustsShadowProjection = true
         key.maximumShadowDistance = 40
         keyLight.light = key
-        keyLight.eulerAngles = SCNVector3(-CGFloat.pi / 2.8, CGFloat.pi / 5, 0)
+        // Nearly overhead, so each shadow sits under its drone instead of reading as a ghost drone.
+        keyLight.eulerAngles = SCNVector3(-CGFloat.pi / 2.2, CGFloat.pi / 5, 0)
         scene.rootNode.addChildNode(keyLight)
 
         let ambient = SCNNode()
@@ -212,26 +299,40 @@ final class SceneController {
         buildTarget()
         scene.rootNode.addChildNode(keepOutRoot)
 
-        let ring = SCNTorus(ringRadius: 0.2, pipeRadius: 0.006)
+        // The selection ring circles the drone at its altitude and faces the camera, so it reads
+        // as part of the drone, never as a mark on the floor.
+        let ring = SCNTorus(ringRadius: 1, pipeRadius: 0.09)
         ring.ringSegmentCount = 64
-        selectionRing.geometry = ring
-        selectionRing.castsShadow = false
+        ring.pipeSegmentCount = 8
+        selectionRingShape.geometry = ring
+        selectionRingShape.eulerAngles.x = .pi / 2
+        selectionRingShape.castsShadow = false
+        selectionRingShape.renderingOrder = 30
+        let ringFacing = SCNNode()
+        ringFacing.constraints = [SCNBillboardConstraint()]
+        ringFacing.addChildNode(selectionRingShape)
+        selectionRing.addChildNode(ringFacing)
+        selectionRing.name = "selection-ring"
+        selectionRing.constraints = [sizer.constraint(points: LayoutMetrics.sceneSelectionRingPoints * 2, baseSize: 2,
+                                                      allowsShrink: true)]
         selectionRing.isHidden = true
         scene.rootNode.addChildNode(selectionRing)
-        selectionStem.geometry = SCNCylinder(radius: 0.0015, height: 1)
-        selectionStem.castsShadow = false
-        selectionStem.isHidden = true
-        scene.rootNode.addChildNode(selectionStem)
 
         buildDrones()
     }
 
+    private static let targetRingRadius: CGFloat = 0.14
+
     private func buildTarget() {
-        let ring = SCNTorus(ringRadius: 0.12, pipeRadius: 0.007)
+        let ring = SCNTorus(ringRadius: Self.targetRingRadius, pipeRadius: 0.012)
         ring.ringSegmentCount = 64
         let ringNode = SCNNode(geometry: ring)
         ringNode.name = "target-ring"
-        let stem = SCNCylinder(radius: 0.0035, height: 1)
+        // Never smaller on screen than `sceneTargetRingPoints` in radius, so the target stays
+        // findable next to the keep-out sphere when the whole swarm is in view.
+        ringNode.constraints = [sizer.constraint(points: LayoutMetrics.sceneTargetRingPoints * 2,
+                                                 baseSize: Self.targetRingRadius * 2, allowsShrink: false)]
+        let stem = SCNCylinder(radius: 0.005, height: 1)
         let stemNode = SCNNode(geometry: stem)
         stemNode.name = "target-stem"
         let foot = SCNTorus(ringRadius: 0.07, pipeRadius: 0.004)
@@ -271,9 +372,66 @@ final class SceneController {
             hit.castsShadow = false
             hit.position = SCNVector3(0, dimensions.propHeight / 2, 0)
             root.addChildNode(hit)
+            // Lifted clear of the propellers, so close up the marker floats above the drone.
+            let marker = statusMarker(height: dimensions.propHeight + dimensions.hitRadius * 0.5)
+            root.addChildNode(marker)
             scene.rootNode.addChildNode(root)
-            drones[telemetry.id] = DroneNode(root: root, body: body, blades: blades, dimensions: dimensions)
+            drones[telemetry.id] = DroneNode(root: root, body: body, blades: blades, marker: marker, dimensions: dimensions)
         }
+    }
+
+    /// A late or lost marker above the drone: the status shape (triangle or square) in the alert
+    /// color with a floor-colored outline, a fixed size in points, facing the camera and drawn
+    /// over everything so it survives zoom-out, the keep-out sphere and the top view.
+    /// Hierarchy: sized holder at the drone top, billboard, then the shape one marker up.
+    private func statusMarker(height: CGFloat) -> SCNNode {
+        let holder = SCNNode()
+        holder.name = "status-marker"
+        holder.position = SCNVector3(0, height, 0)
+        holder.constraints = [sizer.constraint(points: LayoutMetrics.sceneStatusMarkerPoints, baseSize: 1, allowsShrink: true)]
+        let facing = SCNNode()
+        facing.constraints = [SCNBillboardConstraint()]
+        holder.addChildNode(facing)
+        let outline = SCNNode()
+        outline.name = "status-marker-outline"
+        outline.position = SCNVector3(0, 1.05, 0)
+        outline.scale = SCNVector3(1.45, 1.45, 1)
+        outline.renderingOrder = 40
+        let shape = SCNNode()
+        shape.name = "status-marker-shape"
+        shape.position = SCNVector3(0, 1.05, 0.001)
+        shape.renderingOrder = 41
+        facing.addChildNode(outline)
+        facing.addChildNode(shape)
+        holder.isHidden = true
+        holder.castsShadow = false
+        outline.castsShadow = false
+        shape.castsShadow = false
+        return holder
+    }
+
+    /// Unit-size status shape centred on its origin: a triangle for caution, a square for alert.
+    private static func markerPath(level: String) -> NSBezierPath {
+        let path = NSBezierPath()
+        if level == "caution" {
+            path.move(to: NSPoint(x: 0, y: 0.5))
+            path.line(to: NSPoint(x: 0.56, y: -0.45))
+            path.line(to: NSPoint(x: -0.56, y: -0.45))
+            path.close()
+        } else {
+            path.appendRect(NSRect(x: -0.42, y: -0.42, width: 0.84, height: 0.84))
+        }
+        return path
+    }
+
+    private func markerShape(level: String, color: NSColor) -> SCNGeometry {
+        let shape = SCNShape(path: Self.markerPath(level: level), extrusionDepth: 0)
+        let material = constant(color)
+        material.readsFromDepthBuffer = false
+        material.writesToDepthBuffer = false
+        material.isDoubleSided = true
+        shape.materials = [material]
+        return shape
     }
 
     private func hitProxy(for dimensions: DroneDimensions) -> SCNGeometry {
@@ -298,13 +456,12 @@ final class SceneController {
         let scenePalette = state.scenePalette
         scene.background.contents = scenePalette.floorNS
         scene.fogColor = scenePalette.floorNS
-        scene.fogStartDistance = 30
-        scene.fogEndDistance = 70
+        updateFog(for: driver.goal)
         scene.lightingEnvironment.contents = palette.textSecondaryNS
         scene.lightingEnvironment.intensity = state.isDark ? 0.9 : 1.3
         scene.rootNode.childNode(withName: "ambient", recursively: false)?.light?.intensity = state.isDark ? 220 : 380
         keyLight.light?.shadowColor = (scenePalette.floorNS.shadow(withLevel: state.isDark ? 0.75 : 0.35) ?? scenePalette.floorNS)
-            .withAlphaComponent(state.isDark ? 0.8 : 0.3)
+            .withAlphaComponent(state.isDark ? 0.7 : 0.2)
 
         for (dimensions, factory) in factories {
             var looks: [DroneLook: SCNGeometry] = [:]
@@ -321,8 +478,8 @@ final class SceneController {
         }
         gridNode.geometry = nil
         gridNode.childNodes.forEach { $0.removeFromParentNode() }
-        gridNode.addChildNode(gridLines(step: 1, skipEvery: 5, color: palette.lineStrongNS.withAlphaComponent(state.isDark ? 0.28 : 0.3)))
-        gridNode.addChildNode(gridLines(step: 5, skipEvery: 0, color: palette.lineStrongNS.withAlphaComponent(state.isDark ? 0.6 : 0.6)))
+        gridNode.addChildNode(gridLines(step: 1, skipEvery: 5, color: palette.lineStrongNS.withAlphaComponent(state.isDark ? 0.28 : 0.42)))
+        gridNode.addChildNode(gridLines(step: 5, skipEvery: 0, color: palette.lineStrongNS.withAlphaComponent(state.isDark ? 0.6 : 0.72)))
 
         let targetColor = scenePalette.targetRingNS
         let targetParts: [(String, CGFloat)] = [("target-ring", 1), ("target-stem", 0.55), ("target-foot", 0.7)]
@@ -330,8 +487,19 @@ final class SceneController {
             let color = alpha < 1 ? targetColor.withAlphaComponent(alpha) : targetColor
             targetNode.childNode(withName: name, recursively: false)?.geometry?.materials = [constant(color)]
         }
-        selectionRing.geometry?.materials = [constant(palette.accentNS)]
-        selectionStem.geometry?.materials = [constant(palette.accentNS.withAlphaComponent(0.35))]
+        let ringMaterial = constant(palette.accentNS)
+        ringMaterial.readsFromDepthBuffer = false
+        selectionRingShape.geometry?.materials = [ringMaterial]
+        // Red and amber appear only here, as alerts: caution for late, alert for lost.
+        markerGeometry = [
+            "caution": markerShape(level: "caution", color: palette.cautionNS),
+            "alert": markerShape(level: "alert", color: palette.alertNS),
+            "caution-outline": markerShape(level: "caution", color: scenePalette.floorNS),
+            "alert-outline": markerShape(level: "alert", color: scenePalette.floorNS)
+        ]
+        for drone in drones.values {
+            drone.markerLevel = nil
+        }
         keepOutVolumes = []
     }
 
@@ -381,8 +549,11 @@ final class SceneController {
         currentPositions = state.frame.drones.map(\.position)
         if !didFrameInitially {
             didFrameInitially = true
+            let framed = OrbitCamera.framed(points: currentPositions, padding: 1)
+            swarmCenter = framed.target
+            swarmRawRadius = framed.swarmRadius
             let home = homeCamera
-            driver.update { $0 = home }
+            setGoal { $0 = home }
         }
         updateDrones(state)
         updateTarget(state.frame.targetPosition)
@@ -404,9 +575,19 @@ final class SceneController {
                 drone.look = look
                 drone.body.geometry = bodyGeometry[drone.dimensions]?[look]
             }
-            let faded = state.styles[telemetry.id]?.fadesInScene ?? false
-            // Selection never hides staleness: a selected late or lost drone stays faded.
-            drone.root.opacity = faded ? 0.38 : 1
+            // Status is a marker, never opacity: a selected late or lost drone keeps its marker.
+            let style = state.styles[telemetry.id]
+            let level = style?.hasSceneMarker == true ? style?.level : nil
+            if drone.markerLevel != level || drone.marker.isHidden != (level == nil) {
+                drone.markerLevel = level
+                drone.marker.isHidden = level == nil
+                if let level {
+                    drone.marker.childNodes.first?.childNode(withName: "status-marker-shape", recursively: false)?
+                        .geometry = markerGeometry[level]
+                    drone.marker.childNodes.first?.childNode(withName: "status-marker-outline", recursively: false)?
+                        .geometry = markerGeometry["\(level)-outline"]
+                }
+            }
             let shouldSpin = telemetry.active && !state.reduceMotion
             if shouldSpin != drone.spinning {
                 drone.spinning = shouldSpin
@@ -487,22 +668,31 @@ final class SceneController {
     private func updateSelectionRing(_ state: SceneState) {
         guard let id = state.selectedID, let telemetry = state.frame.drones.first(where: { $0.id == id }) else {
             selectionRing.isHidden = true
-            selectionStem.isHidden = true
+            selectedScenePosition = nil
             return
         }
         let position = OrbitCamera.sceneVector(telemetry.position)
         if let dimensions = dimensionsByDrone[id], dimensions != ringDimensions {
             ringDimensions = dimensions
-            (selectionRing.geometry as? SCNTorus)?.ringRadius = dimensions.hitRadius * 1.1
         }
-        selectionRing.isHidden = false
-        // In top view the ring sits at drone height so it does not drift by parallax.
-        let ringHeight: Float = state.viewMode == .top ? position.y + 0.01 : 0.004
-        selectionRing.simdPosition = SIMD3(position.x, ringHeight, position.z)
-        let height = max(CGFloat(position.y) - 0.02, 0.001)
-        (selectionStem.geometry as? SCNCylinder)?.height = height
-        selectionStem.simdPosition = SIMD3(position.x, Float(height / 2), position.z)
-        selectionStem.isHidden = height < 0.05 || state.viewMode == .top
+        let lift = Float((ringDimensions?.propHeight ?? 0) / 2)
+        let center = SIMD3(position.x, position.y + lift, position.z)
+        selectedScenePosition = center
+        selectionRing.simdPosition = center
+        updateRingVisibility()
+    }
+
+    /// The ring is a fixed `sceneSelectionRingPoints` on screen. Once the camera is close enough
+    /// that the drone itself is wider than the ring, it hides: the drone's accent shell marks
+    /// the selection, and a ring would only sit on top of the model.
+    private func updateRingVisibility() {
+        guard let position = selectedScenePosition, let dimensions = ringDimensions else {
+            selectionRing.isHidden = true
+            return
+        }
+        let distance = simd_distance(driver.goal.sceneEye, position)
+        let pointsPerMeter = 1 / sizer.worldSize(points: 1, distance: distance)
+        selectionRing.isHidden = Float(dimensions.hitRadius) * pointsPerMeter > Float(LayoutMetrics.sceneSelectionRingPoints)
     }
 
     // MARK: Camera
@@ -513,7 +703,7 @@ final class SceneController {
         if mode == .top {
             savedOrbit = driver.goal
             let home = homeCamera
-            driver.update { camera in
+            setGoal { camera in
                 camera.target = home.target
                 camera.swarmRadius = home.swarmRadius
                 camera.distance = self.topDistance(for: home.swarmRadius)
@@ -521,7 +711,7 @@ final class SceneController {
             }
         } else {
             let restore = savedOrbit ?? homeCamera
-            driver.update { camera in
+            setGoal { camera in
                 camera = restore
                 camera.orbitView(pitch: restore.isTopView ? OrbitCamera.homePitch : restore.pitch)
             }
@@ -535,7 +725,7 @@ final class SceneController {
         case .reset:
             userMovedCamera = false
             let home = homeCamera
-            driver.update { camera in
+            setGoal { camera in
                 let wasTop = camera.isTopView
                 camera = home
                 if wasTop {
@@ -546,7 +736,7 @@ final class SceneController {
         case .focus(let droneID):
             userMovedCamera = true
             guard let telemetry = state.frame.drones.first(where: { $0.id == droneID }) else { return }
-            driver.update { camera in
+            setGoal { camera in
                 camera.focus(point: telemetry.position)
                 camera.distance = camera.isTopView ? 2.5 : 0.9
             }
@@ -555,11 +745,11 @@ final class SceneController {
 
     func orbit(deltaX: CGFloat, deltaY: CGFloat) {
         userMovedCamera = true
-        driver.update { $0.applyDrag(deltaX: Float(-deltaX) * 0.3, deltaY: Float(deltaY) * 0.25) }
+        setGoal { $0.applyDrag(deltaX: Float(-deltaX) * 0.3, deltaY: Float(deltaY) * 0.25) }
     }
 
     func zoom(factor: CGFloat) {
         userMovedCamera = true
-        driver.update { $0.applyZoom(factor: Float(factor)) }
+        setGoal { $0.applyZoom(factor: Float(factor)) }
     }
 }

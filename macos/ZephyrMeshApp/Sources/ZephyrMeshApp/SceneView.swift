@@ -2,39 +2,82 @@ import AppKit
 import SceneKit
 import SwiftUI
 
-/// The 3D view plus its only overlays: a hover label and a small grid scale hint.
+/// The 3D view plus its only overlays: a hover label and one backed chip in the top-leading
+/// corner with the color legend and the grid scale. That corner is empty in both the 3D home
+/// framing (above the far side of the ring) and the top view (outside the ring).
 struct SceneContainer: View {
     @ObservedObject var model: CockpitModel
     @Environment(\.palette) private var palette
     @State private var hover: SceneHover?
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
+        ZStack(alignment: .topLeading) {
             SceneRepresentable(model: model, hover: $hover)
             if let hover, let drone = model.presentationDrone(id: hover.droneID) {
                 HoverLabel(drone: drone)
-                    .position(x: hover.location.x + 14, y: hover.location.y - 18)
-                    .allowsHitTesting(false)
                     .fixedSize()
+                    // Up and to the right of the pointer, so it never covers the drone under it.
+                    .offset(x: hover.location.x + LayoutMetrics.hoverLabelOffset,
+                            y: hover.location.y - 2 * LayoutMetrics.hoverLabelOffset)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .allowsHitTesting(false)
             }
-            scaleHint
+            SceneLegend(viewMode: model.viewMode)
+                .padding(LayoutMetrics.contentInset)
+                .allowsHitTesting(false)
         }
         .frame(minWidth: LayoutMetrics.sceneMinWidth, maxWidth: .infinity, maxHeight: .infinity)
         .background(palette.background)
         .clipped()
     }
+}
 
-    private var scaleHint: some View {
-        HStack(spacing: Space.xs) {
-            Image(systemName: "square.grid.3x3")
-                .font(TypeScale.caption)
-            Text(model.viewMode == .top ? "Top view, grid 1 m" : "Grid 1 m, heavy line every 5 m")
-                .font(TypeScale.caption)
+/// What each scene color means, plus the grid scale, on a solid surface chip so grid lines
+/// and drones never run through the text. Late and lost use the status shapes and alert colors.
+private struct SceneLegend: View {
+    let viewMode: CockpitViewMode
+    @Environment(\.palette) private var palette
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Space.xs) {
+            ring(palette.target, Format.label("scene_target"))
+            ring(palette.keepOut, Format.label("scene_keep_out"))
+            ring(palette.accent, Format.label("scene_selected"))
+            status("caution")
+            status("alert")
+            HStack(spacing: Space.xs) {
+                Image(systemName: "square.grid.3x3")
+                    .frame(width: Space.md)
+                Text("Grid 1 m")
+            }
+            .help(viewMode == .top ? "Top view, grid 1 m" : "Grid 1 m, heavy line every 5 m")
         }
+        .font(TypeScale.caption)
         .foregroundStyle(palette.textSecondary)
-        .padding(Space.md)
-        .allowsHitTesting(false)
+        .padding(.horizontal, Space.sm)
+        .padding(.vertical, Space.xs + Space.xxs)
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: Radius.small))
+        .overlay { RoundedRectangle(cornerRadius: Radius.small).strokeBorder(palette.line, lineWidth: 1) }
+        .fixedSize()
         .accessibilityElement(children: .combine)
+    }
+
+    private func ring(_ color: Color, _ title: String) -> some View {
+        HStack(spacing: Space.xs) {
+            Circle()
+                .strokeBorder(color, lineWidth: Space.xxs)
+                .frame(width: Space.md, height: Space.md)
+            Text(title)
+        }
+    }
+
+    private func status(_ level: String) -> some View {
+        let style = StatusStyle(level: level)
+        return HStack(spacing: Space.xs) {
+            StatusShape(style: style)
+                .frame(width: Space.md)
+            Text(style.word)
+        }
     }
 }
 

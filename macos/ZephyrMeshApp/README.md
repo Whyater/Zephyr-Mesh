@@ -14,34 +14,50 @@ recorded". Where the numbers come from:
   Details, and the scene geometry (drone and target positions, keep-out spheres, and each drone's
   arm length and propeller size), come from fixture fields that `tools/build_native_fixture.py`
   projects from `run.json` and its `manifest.json`. They are copied, not recomputed.
-- Two small display steps happen in Swift: the team summary line ("50 drones: 44 OK, 6 late")
-  adds up the presentation's group counts, and the propeller diameter is shown in millimetres.
+- The team summary line ("50 drones: 44 OK, 6 late") comes from the presentation too. A few
+  small display steps happen in Swift: the propeller diameter is shown in millimetres, the filter
+  caption counts the listed rows, and a long drone list in a narrow event row keeps fewer names
+  and counts the rest in "+N more".
 
 ## What the window shows
 
 - Title bar: the app name, the run named in plain words (for example "50-drone ring, seed 17"),
-  one "Simulation replay" badge, and toolbar buttons for play or pause, step forward, 3D or Top
-  view, About this replay, and the inspector.
-- Status strip at the top of the detail area: tracking state (shape, color and word), estimate
-  error p95, target link delay, target packet loss, and target age. It drops to two rows when
-  the window is narrow.
-- Team list (sidebar): a one-line team summary, a filter field, and one row per group of drones
-  whose displayed values are identical, with groups that need attention first. Groups expand to
-  their drones. The filter never hides a drone that is not OK. Right-click a row to focus the
-  camera on it, show it in the inspector, or copy its ID.
+  and one "Simulation replay" badge. The toolbar holds view controls only, in one evenly spaced
+  group: the 3D or Top choice, About this replay, and the inspector toggle. Playback lives in one
+  place, the timeline under the scene.
+- Status strip at the top of the detail area: the tracking headline (shape, color and words,
+  the largest text on screen), then estimate error p95, target link delay, target packet loss,
+  and target age, in the same order as the inspector tiles. The layout depends on the column
+  width only: one row when the column is at least 960 points wide, otherwise the headline sits
+  above the four numbers. It never changes height while the replay plays.
+- Team list (sidebar): a one-line team summary, a filter field, and one row per status group
+  with the group's age range, groups that need attention first. The Age (s) and Loss (%) column
+  headers carry the units. Groups expand to their drones. While filtering, a caption reads
+  "Showing N of 50", and adds "Late and lost drones stay listed." when those are shown without
+  matching; when nothing matches, the list says so and offers Clear filter. The selected drone
+  stays listed, marked with a pin, even when the filter would hide it. Right-click a row to focus
+  the camera on it, show it in the inspector, or copy its ID.
 - 3D view: a procedural quadcopter at true scale from the hardware profile (0.10 m arms, 78 mm
   propellers), the target ring with a stem to the floor, the target keep-out sphere the simulator
   enforces (0.75 m radius from the scenario constraints), and a floor grid with 1 m squares and
-  heavier lines every 5 m. Drag to orbit, scroll or pinch to zoom; both ease out and stay within
-  limits (pitch 10 to 85 degrees, distance up to 3 times the swarm radius, no roll or panning).
-  Click a drone to select it, double-click or press F to focus it, press R to reset, and T for a
-  straight-down top view. Hovering a drone shows its name and status. Late or lost drones fade.
+  heavier lines every 5 m that fades out before its edge. Late drones carry an amber triangle and
+  lost drones a red square above them; these markers keep a fixed size on screen, so status stays
+  visible when the whole swarm is in view and in the top view. Drones keep full opacity. The
+  selection ring circles the selected drone at its altitude, also at a fixed size on screen, and
+  steps aside once the camera is close enough that the drone itself is larger. A small legend in
+  the top-left corner names the colors and the grid. Drag to orbit, scroll or pinch to zoom; both
+  ease out and stay within limits (pitch 10 to 85 degrees, distance up to 3 times the swarm
+  radius, no roll or panning). Click a drone to select it, double-click or press F to focus it,
+  press R to reset, and T for a straight-down top view. Hovering a drone shows its name and
+  status.
 - Inspector (right): the selected drone's status, its four key numbers, position and motion,
   neighbors, and a collapsed Details section with raw vectors, constraint flags, and hardware
   profile parts.
-- Timeline and events (bottom): restart, step back, play or pause, step forward, a scrubber with
-  marks at frames that have events, the replay time, and a speed choice (0.1x, 0.25x default,
-  1x). The event list grows as the replay advances; click an event to jump to it.
+- Timeline and events (bottom): restart, step back, play or pause (the larger button), step
+  forward, a scrubber with marks at frames that have events, the replay time, and a speed choice
+  (0.1x, 0.25x default, 1x). The event list grows as the replay advances (six rows, or four when
+  the window is short); click an event to jump to it. A long list of drone names is shortened at
+  a name boundary ("D06, D13 +7 more") when the row is narrow; the tooltip has the full text.
 
 Menus follow the usual places: Check for Updates in the app menu; Open Evidence Report and Open
 Scenario Run in File; view and camera commands in View; a Playback menu; and About This Replay
@@ -50,8 +66,16 @@ shortcuts come from `design/ui_text.json`. Single-key shortcuts are disabled whi
 filter is being edited, so typing there never moves the replay.
 
 Evidence reports and scenario runs open in their own windows after the same strict validation
-as before (schema, size, key set, and hash checks). Each shows its verdict or plot first, then a
-plain summary, then a collapsed Details section with hashes and provenance.
+as before (schema, size, key set, and hash checks). Files are read and checked off the main
+thread, so a large file does not freeze the app; opening a file that is already open brings its
+window forward, and closing a window releases the file. Each window shows its verdict or plot
+first, then a plain summary with labels in one column and values beside them, then a collapsed
+Details section with hashes, provenance, and the raw data as a collapsed tree (the raw summary
+for an evidence report; the raw parameters and provenance for a scenario run). The scenario run
+window states the run status above its plot, centres the plot on the data, draws a grid with a
+scale bar and an altitude rail with its end values, and puts the summary in a second column
+when the window is wide. Update results and file errors appear as alerts even when the main
+window is closed.
 
 Colors, type sizes, spacing and layout sizes come only from the generated
 `Sources/ZephyrMeshApp/DesignSystem.swift`; `tests/test_macos_ui_hygiene.py` checks this.
