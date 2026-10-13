@@ -347,6 +347,7 @@ enum UIText {
         "hardware": "Hardware",
         "hardware_profile": "Hardware profile",
         "heading_deg": "Heading",
+        "heading_vertical": "Straight up or down",
         "held_last_max_error_m": "Held last max error (m)",
         "held_last_p95_error_m": "Held last p95 error (m)",
         "identity_fields": "Identity fields",

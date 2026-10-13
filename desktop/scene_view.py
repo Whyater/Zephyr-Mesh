@@ -186,12 +186,10 @@ class SceneView:
 
     @staticmethod
     def _top_limit(camera: OrbitCamera) -> float:
-        """Farthest top-view distance: 6x the swarm radius.
+        """Farthest top-view distance: 6x the swarm radius, the same far limit as the orbit view.
 
-        The orbit view's 3x limit works because an oblique view foreshortens
-        the swarm by sin(pitch). Looking straight down, the full swarm diameter
-        lands on the short screen axis, so a wide, short canvas needs up to
-        about twice the distance to show every drone. It stays bounded.
+        Looking straight down puts the full swarm diameter on the short screen axis, so a
+        wide, short canvas needs about twice the distance a 3x limit allows. It stays bounded.
         """
         return max(camera.swarm_radius * FAR_LIMIT_RADII, camera.near_limit)
 

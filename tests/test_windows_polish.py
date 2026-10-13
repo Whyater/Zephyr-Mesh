@@ -244,7 +244,8 @@ def test_missing_velocity_is_not_recorded_and_never_at_rest():
     record = next(item for item in per_drone_records(run, frame) if item["drone_id"] == agent["agent_id"])
     assert record["speed_mps"] is None and record["heading_deg"] is None and record["altitude_m"] is None
     assert fmt.heading_text(record["heading_deg"], record["speed_mps"]) is None  # shows "Not recorded"
-    assert fmt.heading_text(None, 0.0) == WIN_TEXT["atRest"], "a recorded zero speed is at rest"
+    assert fmt.heading_text(None, 0.0) == "At rest", "a recorded zero speed is at rest"
+    assert fmt.heading_text(None, 0.5) == "Straight up or down", "moving with no horizontal motion is not at rest"
     assert fmt.heading_text(90.0, 1.0) == "90°"
 
 

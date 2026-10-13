@@ -36,11 +36,14 @@ enum Format {
     }
 
     /// Mirrors `heading_text` in desktop/ui_format.py: the heading when there is one; "At rest"
-    /// when a speed was recorded but is too small for a heading; otherwise "Not recorded".
+    /// when a recorded speed is below 0.01 m/s; "Straight up or down" when the drone moves with
+    /// no horizontal motion; otherwise "Not recorded".
+    static let atRestMps = 0.01
+
     static func heading(_ degrees: Double?, speed: Double?) -> String {
         if let degrees, degrees.isFinite { return self.degrees(degrees) }
-        if let speed, speed.isFinite { return label("at_rest") }
-        return notRecorded
+        guard let speed, speed.isFinite else { return notRecorded }
+        return label(speed < atRestMps ? "at_rest" : "heading_vertical")
     }
 
     /// A recorded count, or "Not recorded" when the run did not carry it (never 0).

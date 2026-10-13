@@ -85,15 +85,24 @@ def format_value(value: Any, kind: str) -> str | None:
     return None if number is None else f"{_number(number, digits)}{unit}"
 
 
-def heading_text(heading_deg: Any, speed_mps: Any) -> str | None:
-    """Heading in degrees; "At rest" only when a speed was recorded and is too small for a heading.
+AT_REST_MPS = 0.01  # same threshold presentation.py uses for a heading
 
-    With no recorded velocity both are ``None`` and the row reads "Not recorded".
+
+def heading_text(heading_deg: Any, speed_mps: Any) -> str | None:
+    """Heading in degrees, or a plain reason when there is none.
+
+    "At rest" only when a recorded speed is below 0.01 m/s; "Straight up or down" when the drone
+    moves but has no horizontal motion (so no heading). With no recorded velocity both are
+    ``None`` and the row reads "Not recorded".
     """
     text = format_value(heading_deg, "deg")
     if text is not None:
         return text
-    return UI_TEXT["windowsText"]["atRest"] if finite_number(speed_mps) is not None else None
+    speed = finite_number(speed_mps)
+    if speed is None:
+        return None
+    labels = UI_TEXT["fieldLabels"]
+    return labels["at_rest"] if speed < AT_REST_MPS else labels["heading_vertical"]
 
 
 def display(value: Any, kind: str) -> str:

@@ -95,7 +95,11 @@ final class CockpitModel: ObservableObject {
         self.fixture = fixture
         self.selectedID = fixture.drones.first?.id
         if let failure = ReleaseUpdater.takeLastResult() {
-            updateNotice = UpdateNotice(title: UpdateText.text("keptCurrent"), message: failure)
+            // The helper's note already opens with the title sentence; show only the reason.
+            let title = UpdateText.text("keptCurrent")
+            let reason = failure.hasPrefix(title)
+                ? String(failure.dropFirst(title.count)).trimmingCharacters(in: .whitespacesAndNewlines) : failure
+            updateNotice = UpdateNotice(title: title, message: reason)
         }
         if automaticallyPlay { play() }
     }

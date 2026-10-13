@@ -374,6 +374,7 @@ final class RereviewFixTests: XCTestCase {
         XCTAssertEqual(Format.heading(90, speed: 2), "90\u{00B0}")
         XCTAssertEqual(Format.heading(nil, speed: 0), "At rest", "a recorded speed too small for a heading")
         XCTAssertEqual(Format.heading(nil, speed: nil), "Not recorded", "no velocity recorded")
+        XCTAssertEqual(Format.heading(nil, speed: 0.5), "Straight up or down", "moving with no horizontal motion")
     }
 
     func testMovedStringsComeFromTheSharedText() {
