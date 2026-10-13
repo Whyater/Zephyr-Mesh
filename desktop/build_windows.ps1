@@ -1,16 +1,39 @@
 param(
     [string]$Python = "py",
     [string]$Output = "dist",
-    [string]$Version = "0.1.0",
+    [string]$Version = "",
     [switch]$Package
 )
 
 # Run this on Windows from the repository root. PyInstaller produces a
 # self-contained GUI executable and a small detached updater beside it.
+$repoRoot = (Get-Location).Path
+if ([string]::IsNullOrWhiteSpace($Version)) {
+    $versionFile = Join-Path $repoRoot "VERSION"
+    if (Test-Path $versionFile) {
+        $Version = (Get-Content -Raw $versionFile).Trim() + "-dev"
+    } else {
+        $Version = "0.2.3-dev"
+    }
+}
 & $Python -m pip install --requirement requirements-windows.txt
 New-Item -ItemType Directory -Force -Path $Output | Out-Null
+$iconArgs = @()
+$iconPath = Join-Path $repoRoot "design\icon\ZephyrMesh.ico"
+if (Test-Path $iconPath) {
+    $iconArgs = @("--icon", $iconPath)
+} else {
+    Write-Warning "Windows icon is missing; continuing without --icon"
+}
+$pngArgs = @()
+$pngPath = Join-Path $repoRoot "design\icon\ZephyrMesh-256.png"
+if (Test-Path $pngPath) {
+    $pngArgs = @("--add-data", "$pngPath;design\icon")
+} else {
+    Write-Warning "Windows icon PNG is missing; continuing without bundled PNG"
+}
 & $Python -m PyInstaller --noconfirm --clean --windowed --name ZephyrMeshWindows `
-    --paths "." --hidden-import tools.release_updater --hidden-import desktop.replay --hidden-import desktop.scenario_run --hidden-import desktop.design_tokens --hidden-import desktop.evidence --hidden-import desktop.scene_projection --hidden-import desktop.ui_settings --hidden-import desktop.replay_session --hidden-import desktop.presentation --hidden-import desktop.ui_format --hidden-import desktop.ui_icons --hidden-import desktop.ui_theme --hidden-import desktop.ui_widgets --hidden-import desktop.scene_view --hidden-import desktop.ui_viewers --add-data "runs\s7-swarm\run.json;runs\s7-swarm" --add-data "desktop\evidence_report_example.json;desktop" --add-data "desktop\investigation_report_example.json;desktop" --add-data "desktop\s7_report_example.json;desktop" --distpath "$Output" desktop\windows_preview.py
+    --paths "." @iconArgs @pngArgs --hidden-import tools.release_updater --hidden-import desktop.replay --hidden-import desktop.scenario_run --hidden-import desktop.design_tokens --hidden-import desktop.evidence --hidden-import desktop.scene_projection --hidden-import desktop.ui_settings --hidden-import desktop.replay_session --hidden-import desktop.presentation --hidden-import desktop.ui_format --hidden-import desktop.ui_icons --hidden-import desktop.ui_theme --hidden-import desktop.ui_widgets --hidden-import desktop.scene_view --hidden-import desktop.ui_viewers --add-data "runs\s7-swarm\run.json;runs\s7-swarm" --add-data "desktop\evidence_report_example.json;desktop" --add-data "desktop\investigation_report_example.json;desktop" --add-data "desktop\s7_report_example.json;desktop" --distpath "$Output" desktop\windows_preview.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & $Python -m PyInstaller --noconfirm --clean --console --onefile --name ZephyrMeshUpdater `
     --paths "." --distpath "$Output" --workpath "$Output\build-updater" desktop\windows_updater.py

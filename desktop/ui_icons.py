@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import base64
 import math
+from pathlib import Path
 import struct
 import zlib
 from typing import Iterable, Sequence
@@ -164,4 +165,23 @@ def photo_data(png: bytes) -> str:
     return base64.b64encode(png).decode("ascii")
 
 
-__all__ = ["ICONS", "STATUS_SHAPES", "coverage", "icon_png", "photo_data", "png_bytes", "render_png", "status_png"]
+def set_window_icon(window: object, resource_root: Path | None = None) -> None:
+    """Set the packaged PNG as a Tk window icon when it is available."""
+    try:
+        root = Path(resource_root) if resource_root is not None else Path(__file__).resolve().parents[1]
+        candidates = (
+            root / "design" / "icon" / "ZephyrMesh-256.png",
+            root / "_internal" / "design" / "icon" / "ZephyrMesh-256.png",
+        )
+        source = next((path for path in candidates if path.is_file()), None)
+        if source is None:
+            return
+        import tkinter as tk
+        image = tk.PhotoImage(file=str(source))
+        window.iconphoto(True, image)
+        setattr(window, "_zephyr_mesh_icon", image)
+    except Exception:
+        return
+
+
+__all__ = ["ICONS", "STATUS_SHAPES", "coverage", "icon_png", "photo_data", "png_bytes", "render_png", "set_window_icon", "status_png"]

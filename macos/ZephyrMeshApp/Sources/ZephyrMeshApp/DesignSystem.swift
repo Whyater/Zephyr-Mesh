@@ -159,6 +159,16 @@ enum LayoutMetrics {
 enum UIText {
     static let honestyBadge = "Simulation replay"
     static let aboutButton = "About this replay"
+    static let update: [String: String] = [
+        "check": "Check for updates...",
+        "checking": "Checking for updates...",
+        "upToDate": "Up to date: {tag}.",
+        "available": "Update available: {tag}.",
+        "downloading": "Downloading update...",
+        "installing": "Installing update...",
+        "failed": "Update check failed: {reason}",
+        "keptCurrent": "The update could not start, so the current version was kept.",
+    ]
     static let tracking = "Tracking"
     static let estimateErrorP95 = "Estimate error p95"
     static let targetLinkDelay = "Target link delay"

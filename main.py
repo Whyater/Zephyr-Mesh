@@ -43,9 +43,28 @@ def run_mission(output_dir=None, plot=True):
     
     plt.show()
 
+
+def run_self_test() -> int:
+    """Validate the bundled simulation path without opening a plot window."""
+    try:
+        telemetry = run_baseline(BaselineConfig())
+        required = {"time", "z", "vz"}
+        if not required.issubset(telemetry):
+            raise RuntimeError("baseline telemetry is incomplete")
+        if len(telemetry["time"]) == 0:
+            raise RuntimeError("baseline telemetry is empty")
+    except Exception as exc:
+        print(f"self-test failed: {exc}")
+        return 1
+    print("self-test ok")
+    return 0
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the Zephyr S0 hover baseline")
     parser.add_argument("--output", help="directory for telemetry.csv and manifest.json")
     parser.add_argument("--no-plot", action="store_true", help="skip the Matplotlib window")
+    parser.add_argument("--self-test", action="store_true", help="validate startup dependencies and exit")
     args = parser.parse_args()
+    if args.self_test:
+        raise SystemExit(run_self_test())
     run_mission(output_dir=args.output, plot=not args.no_plot)

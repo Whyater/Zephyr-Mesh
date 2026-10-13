@@ -128,7 +128,7 @@ def package(source: Path, output_dir: Path, *, platform: str, version: str) -> d
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path, required=True, help="built application directory")
+    parser.add_argument("--source", type=Path, required=True, help="built application bundle or directory")
     parser.add_argument("--output", type=Path, required=True, help="directory for ZIP and SHA-256 sidecar")
     parser.add_argument("--platform", required=True, help="macos, windows, or an explicit platform key")
     parser.add_argument("--version", required=True, help="release version, with or without a leading v")

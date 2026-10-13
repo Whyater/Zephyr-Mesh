@@ -19,8 +19,11 @@ Unzip the download and open `ZephyrMesh.app`. SHA-256 sidecars are attached to t
 
 ```bash
 python3 macos/build_app.py
-open macos/ZephyrMesh.app
+open "Zephyr Mesh.app"
 ```
+
+Local builds use `VERSION` with a `-dev` suffix. Add `--install` to copy the
+bundle into `~/Applications`; release builds pass `--version` explicitly.
 
 The app does not require a server or network connection to show the bundled replay.
 

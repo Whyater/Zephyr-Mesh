@@ -584,7 +584,7 @@ enum FixtureLoader {
     /// Loads the bundled replay. A decode failure is returned to the caller so the window can
     /// show it; the app never substitutes invented drones for a fixture it could not read.
     static func loadBundled() -> Result<Fixture, Error> {
-        guard let url = Bundle.module.url(forResource: "demo_swarm", withExtension: "json") else {
+        guard let url = ResourceLocator.url(forResource: "demo_swarm", withExtension: "json") else {
             return .failure(FixtureDecodeError(message: "The bundled replay file is missing from the app."))
         }
         return Result { try JSONDecoder().decode(Fixture.self, from: Data(contentsOf: url)) }

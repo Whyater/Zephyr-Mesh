@@ -16,7 +16,7 @@ struct CockpitCommands: Commands {
 
     var body: some Commands {
         CommandGroup(after: .appInfo) {
-            Button("Check for Updates...") { model?.checkForUpdates() }
+            Button(UIText.update["check"] ?? "Check for Updates...") { model?.checkForUpdates() }
                 .disabled(unavailable || model?.isCheckingForUpdates == true)
         }
         CommandGroup(replacing: .newItem) {

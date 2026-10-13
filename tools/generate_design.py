@@ -278,8 +278,12 @@ def generate_swift(tokens: dict[str, Any], ui: dict[str, Any]) -> str:
             "enum UIText {",
             f"    static let honestyBadge = {swift_string(ui['honesty']['badge'])}",
             f"    static let aboutButton = {swift_string(ui['honesty']['aboutButton'])}",
+            "    static let update: [String: String] = [",
         ]
     )
+    for key, item in ui.get("update", {}).items():
+        lines.append(f"        {swift_string(key)}: {swift_string(str(item))},")
+    lines.append("    ]")
     strip_ids = identifiers(list(ui["statusStrip"]))
     for label in ui["statusStrip"]:
         lines.append(f"    static let {strip_ids[label]} = {swift_string(label)}")

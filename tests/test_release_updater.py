@@ -20,11 +20,22 @@ from tools.release_updater import (
 
 
 class _Response:
-    def __init__(self, body: bytes):
-        self.body = body
+    """Stands in for a urllib response: chunked reads, optional headers, close()."""
 
-    def read(self) -> bytes:
-        return self.body
+    def __init__(self, body: bytes, headers: dict | None = None):
+        self.body = body
+        self.offset = 0
+        self.headers = headers or {}
+        self.closed = False
+
+    def read(self, size: int = -1) -> bytes:
+        end = len(self.body) if size is None or size < 0 else self.offset + size
+        block = self.body[self.offset:end]
+        self.offset += len(block)
+        return block
+
+    def close(self) -> None:
+        self.closed = True
 
 
 def _release_fixture(*, digest: str | None = None, archive: bytes = b"") -> tuple[dict, bytes]:
@@ -144,7 +155,7 @@ def test_apply_staged_update_keeps_rollback_backup(tmp_path):
     install = tmp_path / "installed" / "ZephyrMesh.app"
     install.mkdir(parents=True)
     (install / "version.txt").write_text("old", encoding="utf-8")
-    backup = apply_staged_update(staged, install)
+    backup = apply_staged_update(staged, install, backup_dir=tmp_path / "rollback-cache")
     assert (install / "version.txt").read_text(encoding="utf-8") == "new"
     assert (backup / "version.txt").read_text(encoding="utf-8") == "old"
 
@@ -229,6 +240,12 @@ def test_version_ordering_matches_shared_cases(case):
     assert _sign(case["a"], case["b"]) == case["expect"]
 
 
+def test_local_dev_build_is_older_than_matching_release():
+    from tools.release_updater import version_key
+
+    assert version_key("0.2.3") > version_key("0.2.3-dev")
+
+
 @pytest.mark.parametrize("value", CASES["ordering"]["invalid"], ids=repr)
 def test_unparseable_versions_are_rejected_not_guessed(value):
     from tools.release_updater import version_key
@@ -288,3 +305,141 @@ def test_download_refuses_a_foreign_url_before_any_request(tmp_path):
         GitHubReleaseClient(opener=opener).download_and_stage(asset, staging_parent=tmp_path)
     assert calls == []
     assert list(tmp_path.iterdir()) == []
+
+
+# ---- streaming download, size limits, and staging hygiene ------------------
+
+
+def _asset_for(archive: bytes):
+    from tools.release_updater import ReleaseInfo
+    release, _ = _release_fixture(archive=archive)
+    return ReleaseInfo.from_json(release).assets[0]
+
+
+def test_download_streams_in_chunks_writes_a_record_and_drops_the_archive(tmp_path):
+    from tools.release_updater import STAGED_RECORD, payload_digest, verify_staged_payload
+    release, archive = _release_fixture()
+    responses = []
+
+    def opener(request, timeout):
+        responses.append(_Response(archive))
+        return responses[-1]
+
+    asset = _asset_for(archive)
+    staged = GitHubReleaseClient(opener=opener).download_and_stage(asset, staging_parent=tmp_path)
+    assert responses[0].closed, "the HTTP response is closed"
+    record = json.loads((staged.root / STAGED_RECORD).read_text(encoding="utf-8"))
+    assert record["tree_sha256"] == payload_digest(staged.payload)
+    assert record["archive_sha256"] == sha256(archive).hexdigest()
+    assert not (staged.root / asset.name).exists(), "the verified archive is not kept twice"
+    verify_staged_payload(staged.payload)
+
+
+def test_download_refuses_a_declared_size_over_the_limit_before_writing(tmp_path):
+    asset = _asset_for(b"")
+    client = GitHubReleaseClient(opener=lambda request, timeout: _Response(b"x", headers={"Content-Length": str(10**12)}))
+    with pytest.raises(UpdateError, match="larger than"):
+        client.download_and_stage(asset, staging_parent=tmp_path)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_download_stops_when_the_body_passes_the_limit(tmp_path, monkeypatch):
+    import tools.release_updater as updater
+    monkeypatch.setattr(updater, "MAX_ARCHIVE_BYTES", 1024)
+    body = b"z" * 4096
+    asset = _asset_for(body)
+    client = GitHubReleaseClient(opener=lambda request, timeout: _Response(body))
+    with pytest.raises(UpdateError, match="larger than"):
+        client._download(asset.url, tmp_path / "x.zip", limit=updater.MAX_ARCHIVE_BYTES)
+    (tmp_path / "staging").mkdir()
+    with pytest.raises(UpdateError, match="larger than"):
+        client.download_and_stage(asset, staging_parent=tmp_path / "staging")
+    assert list((tmp_path / "staging").iterdir()) == [], "the partial download is removed"
+
+
+def test_release_json_is_size_limited_too():
+    client = GitHubReleaseClient(opener=lambda request, timeout: _Response(b"{" + b" " * (6 * 1024 * 1024) + b"}"))
+    with pytest.raises(UpdateError, match="larger than"):
+        client.latest_release()
+
+
+@pytest.mark.parametrize("limit_name, value, pattern", [("MAX_ARCHIVE_MEMBERS", 2, "entries"), ("MAX_EXTRACTED_BYTES", 100, "expands")])
+def test_extraction_is_bounded(tmp_path, monkeypatch, limit_name, value, pattern):
+    import tools.release_updater as updater
+    payload = BytesIO()
+    with ZipFile(payload, "w", ZIP_DEFLATED) as bundle:
+        for index in range(3):
+            bundle.writestr(f"ZephyrMesh.app/file{index}", b"0" * 1000)  # compresses to almost nothing
+    monkeypatch.setattr(updater, limit_name, value)
+    asset = _asset_for(payload.getvalue())
+    client = GitHubReleaseClient(opener=lambda request, timeout: _Response(payload.getvalue()))
+    with pytest.raises(UpdateError, match=pattern):
+        client.download_and_stage(asset, staging_parent=tmp_path)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_update_errors_are_short_and_plain():
+    from email.message import Message
+    from urllib.error import HTTPError, URLError
+    import socket
+    from tools.release_updater import describe_update_error
+
+    forbidden = HTTPError("https://api.github.com/x", 403, "rate limit exceeded " * 40, Message(), BytesIO(b"x" * 664))
+    assert describe_update_error(forbidden).startswith("GitHub refused the request (HTTP 403)")
+    offline = URLError(socket.gaierror(8, "nodename nor servname provided, or not known"))
+    assert describe_update_error(offline) == "Could not reach GitHub. Check the internet connection."
+    assert "Errno" not in describe_update_error(offline)
+    assert describe_update_error(KeyError("tag_name")) == "unexpected KeyError"
+    assert len(describe_update_error(UpdateError("x" * 1000))) <= 160
+
+
+def test_sweep_removes_only_old_update_leftovers(tmp_path):
+    import os
+    from tools.release_updater import sweep_stale_update_files
+    old_root = tmp_path / "zephyr-update-old"
+    old_root.mkdir()
+    new_root = tmp_path / "zephyr-update-new"
+    new_root.mkdir()
+    old_helper = tmp_path / "ZephyrMeshUpdater-99.exe"
+    old_helper.write_bytes(b"helper")
+    unrelated = tmp_path / "someone-elses-file.txt"
+    unrelated.write_text("keep", encoding="utf-8")
+    for path in (old_root, old_helper, unrelated):
+        os.utime(path, (1, 1))
+    sweep_stale_update_files(tmp_path)
+    assert sorted(path.name for path in tmp_path.iterdir()) == ["someone-elses-file.txt", "zephyr-update-new"]
+
+
+def test_swap_works_across_disks_and_keeps_the_backup_outside_the_install_folder(tmp_path, monkeypatch):
+    import errno
+    import os
+    import tools.release_updater as updater
+    real_replace = os.replace
+
+    def replace(source, destination):
+        raise OSError(errno.EXDEV, "Invalid cross-device link")
+
+    staged = tmp_path / "staged" / "ZephyrMeshWindows"
+    staged.mkdir(parents=True)
+    (staged / "version.txt").write_text("new", encoding="utf-8")
+    install = tmp_path / "disk-d" / "ZephyrMeshWindows"
+    install.mkdir(parents=True)
+    (install / "version.txt").write_text("old", encoding="utf-8")
+    monkeypatch.setattr(updater.os, "replace", replace)
+    try:
+        backup = apply_staged_update(staged, install, backup_dir=tmp_path / "disk-c" / "backup")
+    finally:
+        monkeypatch.setattr(updater.os, "replace", real_replace)
+    assert (install / "version.txt").read_text(encoding="utf-8") == "new"
+    assert (backup / "version.txt").read_text(encoding="utf-8") == "old"
+    assert sorted(path.name for path in install.parent.iterdir()) == ["ZephyrMeshWindows"]
+
+
+def test_self_test_runner_reports_a_build_that_does_not_pass(tmp_path):
+    import sys
+    from tools.release_updater import run_self_test
+    # The Python interpreter does not know --self-test, exits 2, and prints usage: a real failing process.
+    with pytest.raises(UpdateError, match="self-test failed"):
+        run_self_test(Path(sys.executable))
+    with pytest.raises(UpdateError, match="missing"):
+        run_self_test(tmp_path / "nothing.exe")

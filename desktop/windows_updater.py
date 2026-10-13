@@ -1,45 +1,29 @@
 """Detached helper for the packaged Windows preview.
 
 The preview starts this executable and exits. The helper waits for the old
-process to release its files, swaps the verified staged application directory,
-and launches the replacement. It contains no network client and therefore
-cannot install an artifact that was not staged and digest-checked first.
+process to release its files, checks the staged folder again, runs the new
+build's ``--self-test``, swaps the folders (the old one goes to a backup in
+``%LOCALAPPDATA%``), starts the replacement and watches it briefly, then
+deletes the backup. It contains no network client and therefore cannot
+install an artifact that was not staged and digest-checked first. The steps
+live in ``tools.release_updater.run_update_helper`` so they are tested once.
 """
 from __future__ import annotations
 
 import argparse
-import csv
 from pathlib import Path
-import subprocess
-import time
 
-from tools.release_updater import apply_staged_update, clear_update_result, write_update_result
+from tools.release_updater import pid_listed_in_tasklist, run_update_helper, wait_for_exit
 
-
-def _pid_is_listed(output: str, pid: int) -> bool:
-    """Parse tasklist CSV so PID 12 cannot match PID 112."""
-    for row in csv.reader(output.splitlines()):
-        if len(row) >= 2 and row[1].strip() == str(pid):
-            return True
-    return False
+# Kept for callers and tests that use the old names.
+_pid_is_listed = pid_listed_in_tasklist
 
 
 def wait_for_process(pid: int, timeout_s: float = 45.0) -> None:
-    """Wait for a Windows PID to exit, raising on timeout."""
+    """Wait for a Windows PID to exit, raising TimeoutError on timeout."""
     if pid <= 0:
         raise ValueError("pid must be positive")
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        result = subprocess.run(
-            ["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if not _pid_is_listed(result.stdout, pid):
-            return
-        time.sleep(0.25)
-    raise TimeoutError(f"timed out waiting for process {pid}")
+    wait_for_exit(pid, timeout_s=timeout_s)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -49,24 +33,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--install-dir", type=Path, required=True, help="current application directory")
     parser.add_argument("--launch", type=Path, required=True, help="replacement executable")
     args = parser.parse_args(argv)
-    try:
-        wait_for_process(args.pid)
-        apply_staged_update(args.staged, args.install_dir)
-    except Exception as exc:
-        # This process has no console and the app has exited, so record the
-        # failure where the app can show it next time. apply_staged_update puts
-        # the old folder back when the move fails, so start that copy again,
-        # except after a timeout, when the old app is still running.
-        write_update_result(f"The last update did not install: {type(exc).__name__}: {exc}")
-        if not isinstance(exc, TimeoutError):
-            try:
-                subprocess.Popen([str(args.launch)], close_fds=True)
-            except OSError:
-                pass
-        return 1
-    clear_update_result()
-    subprocess.Popen([str(args.launch)], close_fds=True)
-    return 0
+    return run_update_helper(args.pid, args.staged, args.install_dir, args.launch, wait=lambda pid: wait_for_process(pid))
 
 
 if __name__ == "__main__":
