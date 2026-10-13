@@ -7,7 +7,7 @@ This folder is the single design source for the two desktop replay apps:
 
 Both apps replay a recorded simulation. Neither one talks to a radio, camera, motor, or drone. The design system keeps them looking and wording things the same way, and keeps them honest about what the data contains.
 
-The Windows descriptions here come from the source and from running the Windows app on macOS (Tk 9, plus some checks on Tk 8.6). It has not yet been run on a Windows machine, so treat Windows fonts, scaling and exact rendering as unverified.
+The Windows descriptions here come from the source and from running the Windows app on macOS (Tk 9; a few regression tests also on Tk 8.6, see `desktop/README.md`). It has not yet been run on a Windows machine, so treat Windows fonts, scaling and exact rendering as unverified.
 
 A visual version of the tokens (swatches, contrast ratios, type, spacing, status levels, icon) is in `design/reference.html`. Open it in any browser; it needs no network.
 

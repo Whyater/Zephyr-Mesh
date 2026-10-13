@@ -93,8 +93,9 @@ module only (the Swift output never sees them):
   Events hint, the open-file error sentences, and the scenario legend. Wording
   shared with the Mac app stays in the shared sections.
 
-Status so far: this window has only been run on macOS with Tk 9.0. Nothing has
-run on real Windows yet, so the Segoe UI fonts, DPI scaling, the dark title bar,
+Status so far: this window has been run on macOS with Tk 9.0. The event-click,
+group-toggle and heading-click regression tests were also run once on macOS with
+Tk 8.6.12 (the Tk version Windows Python ships). Nothing has run on real Windows yet, so the Segoe UI fonts, DPI scaling, the dark title bar,
 the Windows theme and animation settings, and the native menus are untested.
 On macOS Tk, one frame of the 0.25 s replay takes about 42 to 44 ms on average
 to render (worst seen about 89 ms), which is borderline for 1x playback (50 ms
