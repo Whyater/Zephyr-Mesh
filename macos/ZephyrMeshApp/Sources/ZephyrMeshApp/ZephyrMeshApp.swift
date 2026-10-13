@@ -12,6 +12,18 @@ enum WindowID {
 struct ZephyrMeshApp: App {
     @StateObject private var store = AppStore()
 
+    init() {
+        guard CommandLine.arguments.contains("--self-test") else { return }
+        switch FixtureLoader.loadBundled() {
+        case .success:
+            print("self-test ok")
+            exit(0)
+        case .failure(let error):
+            print("self-test failed: \(error.localizedDescription)")
+            exit(1)
+        }
+    }
+
     var body: some Scene {
         Window("Zephyr Mesh", id: WindowID.main) {
             AppearanceRoot {

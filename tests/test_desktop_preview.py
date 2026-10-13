@@ -324,6 +324,30 @@ def test_windows_runtime_version_prefers_frozen_internal_resource(tmp_path, monk
     assert preview._runtime_version() == "0.2.0"
 
 
+def test_windows_runtime_version_reads_the_file_beside_the_frozen_exe(tmp_path, monkeypatch):
+    # PyInstaller 6 layout: _MEIPASS is <app>/_internal, VERSION.txt sits beside the exe.
+    import desktop.windows_preview as preview
+
+    app = tmp_path / "ZephyrMeshWindows"
+    internal = app / "_internal"
+    internal.mkdir(parents=True)
+    (app / "ZephyrMeshWindows.exe").write_bytes(b"")
+    (app / "VERSION.txt").write_text("0.2.3", encoding="utf-8")
+    monkeypatch.setattr(preview, "RESOURCE_ROOT", internal)
+    monkeypatch.setattr(preview, "RESOURCE_ROOTS", (internal / "_internal", internal))
+    monkeypatch.setattr(preview.sys, "frozen", True, raising=False)
+    monkeypatch.setattr(preview.sys, "executable", str(app / "ZephyrMeshWindows.exe"))
+
+    assert preview._runtime_version() == "0.2.3"
+
+
+def test_windows_source_checkout_version_is_the_dev_version():
+    import desktop.windows_preview as preview
+
+    expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip() + "-dev"
+    assert preview._runtime_version() == expected
+
+
 def test_windows_build_writes_utf8_version_without_bom():
     script = (ROOT / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
     assert "UTF8Encoding" in script

@@ -41,6 +41,10 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
         raise FileNotFoundError(f"missing preview executable: {executable}")
     if not updater.is_file():
         raise FileNotFoundError(f"missing sibling updater: {updater}")
+    version_file = bundle_dir / "VERSION.txt"
+    if not version_file.is_file() or not version_file.read_text(encoding="utf-8").strip():
+        # Without it the app reports a fallback version and the updater misjudges what is installed.
+        raise FileNotFoundError(f"missing embedded version: {version_file}")
     readme = bundle_dir / "README-Windows.txt"
     if not readme.is_file():
         raise FileNotFoundError(f"missing Windows extraction guidance: {readme}")
@@ -119,6 +123,17 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
             marker.unlink(missing_ok=True)
             health.unlink(missing_ok=True)
         result["gui"] = "frozen executable initialized and stepped"
+        # The update helper refuses any build whose --self-test fails, so a
+        # release whose frozen exe cannot pass it could never be installed.
+        # Only the exit code counts: a windowed build has no reliable stdout.
+        try:
+            self_test = subprocess.run([str(executable), "--self-test"], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+                                       text=True, timeout=30.0, check=False)
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError("frozen --self-test did not exit within 30 s") from exc
+        if self_test.returncode != 0:
+            raise RuntimeError(f"frozen --self-test failed (exit={self_test.returncode}); stderr={(self_test.stderr or '').strip()[-2000:]}")
+        result["self_test"] = "passed"
     return result
 
 

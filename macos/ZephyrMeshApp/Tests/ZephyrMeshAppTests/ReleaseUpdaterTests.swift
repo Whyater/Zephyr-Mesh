@@ -52,6 +52,26 @@ final class ReleaseUpdaterTests: XCTestCase {
         XCTAssertFalse(ReleaseUpdater.isNewer(rc, than: final))
     }
 
+    func testLocalDevelopmentVersionIsOlderThanRelease() throws {
+        let release = try XCTUnwrap(ReleaseUpdater.versionKey("0.2.3"))
+        let development = try XCTUnwrap(ReleaseUpdater.versionKey("0.2.3-dev"))
+        XCTAssertTrue(ReleaseUpdater.isNewer(release, than: development))
+        XCTAssertFalse(ReleaseUpdater.isNewer(development, than: release))
+    }
+
+    func testFreshLocalBuildIsNotOfferedAnOlderOrEqualRelease() throws {
+        // build_app.py stamps local builds as <VERSION>-dev, so a fresh 0.2.3-dev
+        // build must never be "updated" to the published v0.2.2 or to itself.
+        let local = try XCTUnwrap(ReleaseUpdater.versionKey("0.2.3-dev"))
+        for older in ["v0.2.2", "0.2.2", "v0.1.0", "v0.2.3-dev"] {
+            let release = try XCTUnwrap(ReleaseUpdater.versionKey(older))
+            XCTAssertFalse(ReleaseUpdater.isNewer(release, than: local), older)
+        }
+        for malformed in ["", "v", "-rc1", "-dev", "v-dev"] {
+            XCTAssertNil(ReleaseUpdater.versionKey(malformed), malformed.debugDescription)
+        }
+    }
+
     func testAssetSelectionMatchesSharedCases() throws {
         let cases = Self.cases["select"] as! [[String: Any]]
         XCTAssertGreaterThan(cases.count, 5)
@@ -126,7 +146,7 @@ final class ReleaseUpdaterTests: XCTestCase {
         let base: URL
         var applications: URL { base.appendingPathComponent("Applications") }
         var install: URL { applications.appendingPathComponent("ZephyrMesh.app") }
-        var backup: URL { applications.appendingPathComponent("ZephyrMesh.app.previous") }
+        var backupDirectory: URL { base.appendingPathComponent("Library/Caches/org.zephyrmesh.cockpit") }
         var root: URL { base.appendingPathComponent("update-root") }
         var extract: URL { root.appendingPathComponent("payload") }
         var result: URL { base.appendingPathComponent("logs/last-update.txt") }
@@ -149,12 +169,12 @@ final class ReleaseUpdaterTests: XCTestCase {
     }
 
     /// A minimal app bundle. `sign` gives it an ad hoc signature, which is what the real releases carry.
-    private func writeApp(at app: URL, marker: String, sign: Bool) throws {
+    private func writeApp(at app: URL, marker: String, sign: Bool, executableBody: String = "exit 0") throws {
         let manager = FileManager.default
         let macOS = app.appendingPathComponent("Contents/MacOS", isDirectory: true)
         try manager.createDirectory(at: macOS, withIntermediateDirectories: true)
         let executable = macOS.appendingPathComponent("ZephyrMeshApp")
-        try "#!/bin/sh\nexit 0\n".write(to: executable, atomically: true, encoding: .utf8)
+        try "#!/bin/sh\n\(executableBody)\n".write(to: executable, atomically: true, encoding: .utf8)
         try manager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
         let plist = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -206,42 +226,58 @@ final class ReleaseUpdaterTests: XCTestCase {
         try (body + central + end).write(to: archive)
     }
 
-    /// Runs the real generated script. `shimMove` replaces `mv` with one that refuses to put the new app in place.
-    private func runUpdate(_ box: Sandbox, archive: URL, failFinalMove: Bool = false, failFind: Bool = false) throws -> Int32 {
-        let script = ReleaseUpdater.helperScript(root: box.root, archive: archive, extract: box.extract, install: box.install, resultFile: box.result, openTool: box.openStub.path)
+    enum MoveFailure { case none, clean, halfway }
+
+    /// Runs the real generated script with shims on PATH. `move` makes moving the new
+    /// app into place fail (`halfway` first leaves a partial copy, like a full disk
+    /// during a cross-disk copy). Only that move fails; restoring the backup works.
+    /// `ps` is always shimmed: by default it reports the new app as running, and
+    /// `newAppCrashes` makes it report nothing, as if the app died at launch.
+    private func runUpdate(_ box: Sandbox, archive: URL, move: MoveFailure = .none, failFind: Bool = false,
+                           newAppCrashes: Bool = false, archiveSHA256: String? = nil) throws -> Int32 {
+        let script = ReleaseUpdater.helperScript(root: box.root, archive: archive, extract: box.extract, install: box.install,
+                                                 resultFile: box.result, archiveSHA256: archiveSHA256,
+                                                 openTool: box.openStub.path, startupCheckSeconds: 1)
         let scriptURL = box.base.appendingPathComponent("apply-update.sh")
         try script.write(to: scriptURL, atomically: true, encoding: .utf8)
-        var path = "/usr/bin:/bin"
-        if failFinalMove {
-            let shim = """
-            #!/bin/sh
-            if [ "$2" = '\(box.install.path)' ] && [ "$1" != '\(box.backup.path)' ]; then echo "simulated disk full" >&2; exit 1; fi
+        func shim(_ name: String, _ body: String) throws {
+            let url = box.shim.appendingPathComponent(name)
+            try "#!/bin/sh\n\(body)\n".write(to: url, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
+        }
+        switch move {
+        case .none: break
+        case .clean:
+            try shim("mv", """
+            case "$1" in '\(box.extract.path)'/*) echo "simulated disk full" >&2; exit 1 ;; esac
             exec /bin/mv "$@"
-            """
-            let shimURL = box.shim.appendingPathComponent("mv")
-            try shim.write(to: shimURL, atomically: true, encoding: .utf8)
-            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: shimURL.path)
-            path = box.shim.path + ":" + path
+            """)
+        case .halfway:
+            try shim("mv", """
+            case "$1" in '\(box.extract.path)'/*) /bin/mkdir -p "$2/Contents"; echo partial > "$2/Contents/marker.txt"; echo "simulated disk full" >&2; exit 1 ;; esac
+            exec /bin/mv "$@"
+            """)
         }
-        if failFind {
-            let shimURL = box.shim.appendingPathComponent("find")
-            try "#!/bin/sh\necho \"simulated find failure\" >&2\nexit 1\n".write(to: shimURL, atomically: true, encoding: .utf8)
-            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: shimURL.path)
-            path = box.shim.path + ":" + path
-        }
+        if failFind { try shim("find", "echo \"simulated find failure\" >&2\nexit 1") }
+        try shim("ps", newAppCrashes ? "exit 0" : "cd '\(box.install.path)/Contents/MacOS' 2>/dev/null && echo \"$(pwd -P)/ZephyrMeshApp\"")
         // PID 99999999 does not exist, so the script's wait loop ends at once.
-        return try run("/bin/sh", [scriptURL.path, "99999999"], environment: ["PATH": path, "HOME": box.base.path])
+        return try run("/bin/sh", [scriptURL.path, "99999999"], environment: ["PATH": box.shim.path + ":/usr/bin:/bin", "HOME": box.base.path])
+    }
+
+    private func leftoverBackups(_ box: Sandbox) -> [URL] {
+        ((try? FileManager.default.contentsOfDirectory(at: box.backupDirectory, includingPropertiesForKeys: nil)) ?? [])
+            .filter { $0.lastPathComponent.hasPrefix("ZephyrMesh.app.previous.") }
     }
 
     private func marker(_ app: URL) -> String? {
         try? String(contentsOf: app.appendingPathComponent("Contents/marker.txt"), encoding: .utf8)
     }
 
-    private func buildSignedUpdateArchive(_ box: Sandbox) throws -> URL {
+    private func buildSignedUpdateArchive(_ box: Sandbox, executableBody: String = "exit 0") throws -> URL {
         let staging = box.base.appendingPathComponent("new-staging", isDirectory: true)
         try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: true)
         let app = staging.appendingPathComponent("ZephyrMesh.app")
-        try writeApp(at: app, marker: "new", sign: true)
+        try writeApp(at: app, marker: "new", sign: true, executableBody: executableBody)
         let archive = box.base.appendingPathComponent("update.zip")
         try zipDirectory(app, into: archive)
         return archive
@@ -250,7 +286,7 @@ final class ReleaseUpdaterTests: XCTestCase {
     private func assertOldAppStillInPlaceAndRelaunched(_ box: Sandbox, reason: String, file: StaticString = #filePath, line: UInt = #line) throws {
         XCTAssertEqual(marker(box.install), "old", "the installed app must be untouched", file: file, line: line)
         let note = try String(contentsOf: box.result, encoding: .utf8)
-        XCTAssertTrue(note.contains("did not install"), note, file: file, line: line)
+        XCTAssertTrue(note.contains("current version was kept"), note, file: file, line: line)
         XCTAssertTrue(note.contains(reason), "expected '\(reason)' in: \(note)", file: file, line: line)
         let opened = (try? String(contentsOf: box.openLog, encoding: .utf8)) ?? ""
         XCTAssertTrue(opened.contains(box.install.path), "the old app should be reopened: \(opened)", file: file, line: line)
@@ -261,24 +297,71 @@ final class ReleaseUpdaterTests: XCTestCase {
         FileManager.default.fileExists(atPath: root.path) ? "update folder was not cleaned up" : nil
     }
 
-    func testScriptInstallsASignedUpdateKeepsTheBackupAndClearsAnyOldFailure() throws {
+    func testScriptInstallsASignedUpdateDeletesTheBackupAndClearsAnyOldFailure() throws {
         let box = try makeSandbox()
         let archive = try buildSignedUpdateArchive(box)
         try FileManager.default.createDirectory(at: box.result.deletingLastPathComponent(), withIntermediateDirectories: true)
         try "stale failure".write(to: box.result, atomically: true, encoding: .utf8)
         XCTAssertEqual(try runUpdate(box, archive: archive), 0)
         XCTAssertEqual(marker(box.install), "new")
-        XCTAssertEqual(marker(box.backup), "old")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: box.backupDirectory.path), "the backup folder is the cache, not the install folder")
+        XCTAssertTrue(leftoverBackups(box).isEmpty, "the backup is deleted once the new app is running")
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: box.applications.path), ["ZephyrMesh.app"], "nothing is left beside the app")
         XCTAssertFalse(FileManager.default.fileExists(atPath: box.result.path))
         XCTAssertTrue(((try? String(contentsOf: box.openLog, encoding: .utf8)) ?? "").contains(box.install.path))
+        XCTAssertNil(takeNothing(box.root))
     }
 
     func testScriptRestoresTheBackupWhenTheFinalMoveFails() throws {
         let box = try makeSandbox()
         let archive = try buildSignedUpdateArchive(box)
-        XCTAssertEqual(try runUpdate(box, archive: archive, failFinalMove: true), 1)
+        XCTAssertEqual(try runUpdate(box, archive: archive, move: .clean), 1)
         try assertOldAppStillInPlaceAndRelaunched(box, reason: "could not move the new app into place")
-        XCTAssertFalse(FileManager.default.fileExists(atPath: box.backup.path), "backup should have been moved back")
+        XCTAssertTrue(leftoverBackups(box).isEmpty, "backup should have been moved back")
+    }
+
+    func testScriptRestoresTheBackupWhenTheFinalMoveFailsHalfway() throws {
+        // The old script skipped the restore here because something existed at the
+        // install path, then reopened the half-copied app and left the old one in Caches.
+        let box = try makeSandbox()
+        let archive = try buildSignedUpdateArchive(box)
+        XCTAssertEqual(try runUpdate(box, archive: archive, move: .halfway), 1)
+        try assertOldAppStillInPlaceAndRelaunched(box, reason: "could not move the new app into place")
+        XCTAssertTrue(leftoverBackups(box).isEmpty, "backup should have been moved back")
+    }
+
+    func testScriptRefusesAPayloadWhoseSelfTestFails() throws {
+        // A stand-in for the v0.2.2 build that crashed at launch: it exits 1 from --self-test.
+        let box = try makeSandbox()
+        let archive = try buildSignedUpdateArchive(box, executableBody: "echo 'self-test failed: The bundled replay file is missing from the app.'; exit 1")
+        XCTAssertEqual(try runUpdate(box, archive: archive), 1)
+        try assertOldAppStillInPlaceAndRelaunched(box, reason: "self-test failed: The bundled replay file is missing")
+        XCTAssertTrue(leftoverBackups(box).isEmpty, "nothing was moved, so there is no backup")
+    }
+
+    func testScriptPutsTheOldAppBackWhenTheNewOneQuitsAtLaunch() throws {
+        let box = try makeSandbox()
+        let archive = try buildSignedUpdateArchive(box)
+        XCTAssertEqual(try runUpdate(box, archive: archive, newAppCrashes: true), 1)
+        XCTAssertEqual(marker(box.install), "old")
+        let note = try String(contentsOf: box.result, encoding: .utf8)
+        XCTAssertTrue(note.contains("current version was kept") && note.contains("did not start"), note)
+        let opened = try String(contentsOf: box.openLog, encoding: .utf8).split(separator: "\n")
+        XCTAssertEqual(opened.count, 2, "opens the new app, then the restored old one: \(opened)")
+        XCTAssertTrue(leftoverBackups(box).isEmpty)
+    }
+
+    func testScriptChecksTheArchiveDigestAgainBeforeExtracting() throws {
+        let box = try makeSandbox()
+        let archive = try buildSignedUpdateArchive(box)
+        XCTAssertEqual(try runUpdate(box, archive: archive, archiveSHA256: String(repeating: "0", count: 64)), 1)
+        try assertOldAppStillInPlaceAndRelaunched(box, reason: "changed after it was checked")
+        let digest = SHA256.hash(data: try Data(contentsOf: archive)).map { String(format: "%02x", $0) }.joined()
+        let second = try makeSandbox()
+        let secondArchive = second.base.appendingPathComponent("update.zip")
+        try FileManager.default.copyItem(at: archive, to: secondArchive)
+        XCTAssertEqual(try runUpdate(second, archive: secondArchive, archiveSHA256: digest), 0)
+        XCTAssertEqual(marker(second.install), "new")
     }
 
     func testScriptFailsClosedWhenTheArchiveScanCannotRun() throws {

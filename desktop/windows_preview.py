@@ -29,6 +29,7 @@ if __package__ in (None, ""):
     from desktop.replay import ReplayModel
     from desktop.replay_session import SPEEDS, ReplaySession
     from desktop.scenario_run import load_scenario_run
+    from desktop.ui_icons import set_window_icon
     from desktop import ui_format as fmt
     from desktop.ui_settings import load_appearance, resolve_theme, save_appearance, system_prefers_dark, system_reduced_motion
 else:
@@ -37,6 +38,7 @@ else:
     from .replay import ReplayModel
     from .replay_session import SPEEDS, ReplaySession
     from .scenario_run import load_scenario_run
+    from .ui_icons import set_window_icon
     from . import ui_format as fmt
     from .ui_settings import load_appearance, resolve_theme, save_appearance, system_prefers_dark, system_reduced_motion
 
@@ -57,13 +59,29 @@ DEFAULT_RUN = _resource_path("runs", "s7-swarm", "run.json")
 
 
 def _runtime_version() -> str:
-    """Read the version embedded by the Windows release build."""
-    version_file = _resource_path("VERSION.txt")
+    """Read the version embedded by the Windows release build.
+
+    ``build_windows.ps1`` writes ``VERSION.txt`` beside the exe. In PyInstaller 6
+    ``_MEIPASS`` is the ``_internal`` folder below it, so the exe folder is checked
+    first. A source checkout uses the repository ``VERSION`` plus ``-dev``, the
+    same rule as ``macos/build_app.py``.
+    """
+    candidates: list[Path] = []
+    if getattr(sys, "frozen", False):
+        candidates.append(Path(sys.executable).resolve().parent / "VERSION.txt")
+    candidates.append(_resource_path("VERSION.txt"))
+    for version_file in candidates:
+        try:
+            version = version_file.read_text(encoding="utf-8").strip().removeprefix("v")
+        except OSError:
+            continue
+        if version:
+            return version
     try:
-        version = version_file.read_text(encoding="utf-8").strip().removeprefix("v")
+        checkout = (RESOURCE_ROOT / "VERSION").read_text(encoding="utf-8").strip().removeprefix("v")
     except OSError:
-        version = ""
-    return version or "0.1.0"
+        checkout = ""
+    return f"{checkout}-dev" if checkout else "0.2.3-dev"
 
 
 CURRENT_VERSION = _runtime_version()
@@ -1260,33 +1278,75 @@ class WindowsReplayApp:
         ]
 
     def _check_update(self) -> None:
-        self.notice.configure(text="Checking for updates...")
+        """Check GitHub in a worker thread and show the result on the Tk thread.
 
-        def report(message: str, error: bool = False) -> None:
+        The worker never touches Tk. With a Tcl built without threads (Tk 9 on
+        macOS), ``root.after`` from another thread silently never runs, so the
+        worker posts to a queue and the Tk thread polls it. A second click while
+        a check is running does nothing.
+        """
+        import queue
+
+        if getattr(self, "_update_in_flight", False):
+            return
+        self._update_in_flight = True
+        update_text = UI_TEXT["update"]
+        self.notice.configure(text=update_text["checking"])
+        results: queue.Queue[tuple[str, Any]] = queue.Queue()
+
+        def report(message: str, error: bool) -> None:
             from tkinter import messagebox
 
+            self._update_in_flight = False
             self.notice.configure(text="")
             if error:
                 messagebox.showwarning("Check for Updates", message, parent=self.root)
             else:
                 messagebox.showinfo("Check for Updates", message, parent=self.root)
 
+        def poll() -> None:
+            try:
+                while True:
+                    kind, value = results.get_nowait()
+                    if kind == "notice":
+                        self.notice.configure(text=value)
+                    elif kind == "quit":
+                        self.notice.configure(text=update_text["installing"])
+                        self.root.after(700, self.root.destroy)
+                        return
+                    else:
+                        report(*value)
+                        return
+            except queue.Empty:
+                pass
+            except Exception:
+                return  # the window is already gone
+            try:
+                self.root.after(100, poll)
+            except Exception:
+                pass  # the window was closed while the check ran
+
         def worker() -> None:
             error = False
+            staged = None
             try:
                 try:
-                    from tools.release_updater import GitHubReleaseClient
+                    from tools.release_updater import GitHubReleaseClient, describe_update_error
                 except ModuleNotFoundError:
                     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-                    from tools.release_updater import GitHubReleaseClient
+                    from tools.release_updater import GitHubReleaseClient, describe_update_error
+            except Exception as exc:
+                results.put(("done", (update_text["failed"].format(reason=f"the updater is missing ({type(exc).__name__})"), True)))
+                return
+            try:
                 client = GitHubReleaseClient()
                 release, asset, newer = client.check(CURRENT_VERSION, platform=client.platform_name())
                 if not newer:
-                    message = f"Zephyr Mesh is up to date ({release.tag})."
+                    message = update_text["upToDate"].format(tag=release.tag)
                 elif not getattr(sys, "frozen", False):
-                    message = f"Update available: {release.tag}. Installing needs the packaged app."
+                    message = update_text["available"].format(tag=release.tag)
                 else:
-                    self.root.after(0, lambda: self.notice.configure(text=f"Downloading {release.tag}..."))
+                    results.put(("notice", update_text["downloading"]))
                     staged = client.download_and_stage(asset)
                     install_dir = Path(sys.executable).resolve().parent
                     updater_candidates = (
@@ -1295,8 +1355,11 @@ class WindowsReplayApp:
                     )
                     updater = next((candidate for candidate in updater_candidates if candidate.is_file()), updater_candidates[0])
                     launch = install_dir / "ZephyrMeshWindows.exe"
-                    if not updater.is_file():
-                        message = "The update was downloaded, but ZephyrMeshUpdater.exe is missing."
+                    if not os.access(install_dir.parent, os.W_OK):
+                        message = update_text["failed"].format(reason="the application folder is read-only")
+                        error = True
+                    elif not updater.is_file():
+                        message = update_text["failed"].format(reason="the update helper is missing")
                         error = True
                     else:
                         updater = updater_launch_path(updater, install_dir, pid=os.getpid())
@@ -1307,15 +1370,18 @@ class WindowsReplayApp:
                             creationflags=flags,
                             close_fds=True,
                         )
-                        self.root.after(0, lambda: self.notice.configure(text=f"Installing {release.tag}..."))
-                        self.root.after(700, self.root.destroy)
+                        results.put(("quit", None))
                         return
+                    shutil.rmtree(staged.root, ignore_errors=True)
             except Exception as exc:
-                message = f"The update check could not finish: {exc}"
+                if staged is not None:
+                    shutil.rmtree(staged.root, ignore_errors=True)
+                message = update_text["failed"].format(reason=describe_update_error(exc))
                 error = True
-            self.root.after(0, lambda: report(message, error))
+            results.put(("done", (message, error)))
 
         threading.Thread(target=worker, daemon=True).start()
+        self.root.after(100, poll)
 
     @staticmethod
     def _evidence_loader() -> tuple[Any, type[ValueError]]:
@@ -1358,8 +1424,6 @@ class WindowsReplayApp:
     def _show_scenario_run(self, path: Path) -> bool:
         """Decode a scenario run strictly, then show it without touching replay state."""
 
-        from tkinter import messagebox
-
         if __package__ in (None, ""):
             from desktop.scenario_run import ScenarioRunFormatError
             from desktop.ui_viewers import scenario_window
@@ -1368,11 +1432,8 @@ class WindowsReplayApp:
             from .ui_viewers import scenario_window
         try:
             run = load_scenario_run(path)
-        except ScenarioRunFormatError as exc:
-            messagebox.showerror("Scenario run", str(exc), parent=self.root)
-            return False
-        except (OSError, TypeError, ValueError) as exc:
-            messagebox.showerror("Scenario run", f"Could not open run: {exc}", parent=self.root)
+        except (ScenarioRunFormatError, OSError, TypeError, ValueError) as exc:
+            self._report_open_failure("Scenario run", self._plain_open_error(exc, Path(path), "scenario run"))
             return False
         self._replace_window("_scenario_window")
         self._scenario_window = scenario_window(self._viewer_context(), run, Path(path))
@@ -1381,24 +1442,54 @@ class WindowsReplayApp:
     def _show_evidence_report(self, path: Path) -> bool:
         """Decode and display an evidence envelope without touching replay state."""
 
-        from tkinter import messagebox
-
         loader, evidence_error = self._evidence_loader()
         try:
             report = loader(Path(path))
-        except evidence_error as exc:
-            messagebox.showerror("Evidence report", str(exc), parent=self.root)
-            return False
-        except (OSError, TypeError, ValueError) as exc:
-            messagebox.showerror("Evidence report", f"Could not open report: {exc}", parent=self.root)
+        except (evidence_error, OSError, TypeError, ValueError) as exc:
+            self._report_open_failure("Evidence report", self._plain_open_error(exc, Path(path), "evidence report"))
             return False
         if not isinstance(report, dict):
-            messagebox.showerror("Evidence report", "The report decoder returned an invalid object.", parent=self.root)
+            self._report_open_failure("Evidence report", "The report decoder returned an invalid object.")
             return False
         self._evidence_report = report
         self._evidence_path = Path(path)
         self._render_evidence_report(report, self._evidence_path)
         return True
+
+    @staticmethod
+    def _plain_open_error(exc: BaseException, path: Path, kind: str) -> str:
+        """One short sentence for a file that could not be opened, the same for every viewer."""
+        name = path.name or str(path)
+        a_kind = ("an " if kind[:1] in "aeiou" else "a ") + kind
+        # The decoders wrap the real cause (`raise FormatError(...) from exc`); prefer it.
+        cause = exc.__cause__
+        if isinstance(cause, (OSError, UnicodeDecodeError, json.JSONDecodeError)):
+            exc = cause
+        if isinstance(exc, FileNotFoundError) or (not isinstance(exc, OSError) and not path.exists()):
+            return f"The file {name} was not found."
+        if isinstance(exc, IsADirectoryError) or path.is_dir():
+            return f"{name} is a folder, not {a_kind} file."
+        if isinstance(exc, PermissionError):
+            return f"The file {name} could not be read (permission denied)."
+        if isinstance(exc, UnicodeDecodeError):
+            return f"The file {name} is not UTF-8 text, so it is not {a_kind}."
+        if isinstance(exc, json.JSONDecodeError):
+            return f"The file {name} is not valid JSON, so it is not {a_kind}."
+        if isinstance(exc, OSError):
+            return f"The file {name} could not be read ({exc.strerror or type(exc).__name__})."
+        detail = " ".join(str(exc).split())
+        if len(detail) > 200:
+            detail = detail[:197].rstrip() + "..."
+        return f"{name} is not a valid {kind}: {detail}" if detail else f"{name} is not a valid {kind}."
+
+    def _report_open_failure(self, title: str, message: str) -> None:
+        """Show an open-file error, or print it during a --smoke-* run, where a dialog would hang."""
+        if getattr(self, "_smoke_mode", False):
+            print(f"{title}: {message}", file=sys.stderr)
+            return
+        from tkinter import messagebox
+
+        messagebox.showerror(title, message, parent=self.root)
 
     def _render_evidence_report(self, report: dict[str, Any], path: Path) -> None:
         if __package__ in (None, ""):
@@ -1415,11 +1506,30 @@ def _initial_geometry(root: Any, scale: float) -> str:
     return f"{width}x{height}"
 
 
+def run_self_test() -> int:
+    """Validate the bundled replay and the Tcl/Tk runtime without creating a window."""
+    try:
+        model = ReplayModel.from_path(DEFAULT_RUN)
+        if model.frame_count < 1 or not model.frame.agents:
+            raise RuntimeError("bundled replay is empty")
+        # A frozen build without its Tcl/Tk library files fails here, not at the
+        # first window. tkinter.Tcl() starts an interpreter and opens nothing.
+        import tkinter
+
+        tkinter.Tcl().eval("info patchlevel")
+    except Exception as exc:
+        print(f"self-test failed: {exc}")
+        return 1
+    print("self-test ok")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run", type=Path, default=DEFAULT_RUN, help="canonical S7 run.json")
     parser.add_argument("--scenario-run", type=Path, help="open a generated zephyr-s7-scenario-run-1 JSON in the read-only viewer")
     parser.add_argument("--headless", action="store_true", help="print the replay summary without opening Tk")
+    parser.add_argument("--self-test", action="store_true", help="validate startup dependencies and exit")
     parser.add_argument("--appearance", choices=("system", "dark", "light"), help="use this appearance for this session only")
     parser.add_argument("--smoke-ready", type=Path, help="write a readiness marker after the GUI is constructed")
     parser.add_argument("--smoke-step", action="store_true", help="step one replay frame before writing the readiness marker")
@@ -1428,11 +1538,19 @@ def main(argv: list[str] | None = None) -> int:
             help="open and validate an evidence report during frozen GUI smoke; repeat for parity checks")
     parser.add_argument("--smoke-idle", type=Path, help="run the real event loop, then write whether the idle window stopped rendering")
     args = parser.parse_args(argv)
+    if args.self_test:
+        return run_self_test()
+    smoke_mode = any((args.smoke_ready, args.smoke_step, args.smoke_health, args.smoke_evidence, args.smoke_idle))
     if args.headless:
-        if args.scenario_run:
-            print(json.dumps(load_scenario_run(args.scenario_run).summary(), indent=2, sort_keys=True))
-        else:
-            print(json.dumps(ReplayModel.from_path(args.run).summary(), indent=2, sort_keys=True))
+        try:
+            if args.scenario_run:
+                print(json.dumps(load_scenario_run(args.scenario_run).summary(), indent=2, sort_keys=True))
+            else:
+                print(json.dumps(ReplayModel.from_path(args.run).summary(), indent=2, sort_keys=True))
+        except Exception as exc:
+            target = Path(args.scenario_run or args.run)
+            print(WindowsReplayApp._plain_open_error(exc, target, "scenario run" if args.scenario_run else "replay"), file=sys.stderr)
+            return 2
         return 0
     try:
         try:
@@ -1447,8 +1565,11 @@ def main(argv: list[str] | None = None) -> int:
                 pass
         model = ReplayModel.from_path(args.run)
         root = tk.Tk()
+        set_window_icon(root)
         root.withdraw()
         app = WindowsReplayApp(root, model, appearance=args.appearance, persist_appearance=args.appearance is None)
+        # In a --smoke-* run nobody can click a dialog, so errors go to stderr.
+        app._smoke_mode = smoke_mode
         root.geometry(_initial_geometry(root, app.scale))
         root.deiconify()
         app._apply_title_bar(root, app.theme.dark)
@@ -1528,7 +1649,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     except Exception as exc:
         log_path = write_startup_diagnostic(exc)
-        show_startup_failure(exc, log_path)
+        if smoke_mode:
+            print(f"startup failed: {type(exc).__name__}: {exc} (log: {log_path})", file=sys.stderr)
+        else:
+            show_startup_failure(exc, log_path)
         return 1
 
 

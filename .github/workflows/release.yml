@@ -67,11 +67,19 @@ jobs:
         run: |
           platform_key="macos-${ARCHITECTURE}"
           python3 tools/package_release.py \
-            --source macos/ZephyrMesh.app \
+            --source "Zephyr Mesh.app" \
             --output release \
             --platform "$platform_key" \
             --version "$RELEASE_VERSION"
-          unzip -t "release/ZephyrMesh-${platform_key}-v${RELEASE_VERSION}.zip"
+          archive="release/ZephyrMesh-${platform_key}-v${RELEASE_VERSION}.zip"
+          unzip -t "$archive"
+          smoke_dir="$(mktemp -d)"
+          unzip -q "$archive" -d "$smoke_dir"
+          if [ -d macos/ZephyrMeshApp/.build ]; then
+            mv macos/ZephyrMeshApp/.build "${smoke_dir}/swift-build-hidden"
+            trap 'mv "${smoke_dir}/swift-build-hidden" macos/ZephyrMeshApp/.build' EXIT
+          fi
+          "$smoke_dir/Zephyr Mesh.app/Contents/MacOS/ZephyrMeshApp" --self-test
       - uses: actions/upload-artifact@v4
         with:
           name: macos-release-${{ matrix.architecture }}

@@ -99,6 +99,14 @@ SHORTCUTS = (
 )
 
 UI_TEXT = {'$schema': 'zephyr-ui-text-1',
+ 'update': {'check': 'Check for updates...',
+            'checking': 'Checking for updates...',
+            'upToDate': 'Up to date: {tag}.',
+            'available': 'Update available: {tag}.',
+            'downloading': 'Downloading update...',
+            'installing': 'Installing update...',
+            'failed': 'Update check failed: {reason}',
+            'keptCurrent': 'The update could not start, so the current version was kept.'},
  'honesty': {'badge': 'Simulation replay',
              'aboutButton': 'About this replay',
              'aboutBodyFields': ['status',

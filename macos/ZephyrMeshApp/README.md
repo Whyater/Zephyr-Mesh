@@ -66,18 +66,21 @@ swift build
 swift run
 ```
 
-To assemble a Finder-launchable application bundle in the repository's
-`macos/` folder, run this from the repository root:
+To assemble a Finder-launchable application bundle in the repository root, run this from the repository root:
 
 ```bash
 python3 macos/build_app.py
-open macos/ZephyrMesh.app
+open "Zephyr Mesh.app"
 ```
 
-The generated `ZephyrMesh.app` is a local release artifact and is ignored by
+The generated `Zephyr Mesh.app` is a local development artifact and is ignored by
 git. Re-run the builder after pulling a code or fixture change. It embeds the
 same checked-in demo fixture that `swift run` uses, so opening the bundle does
 not start a server or require network access.
+
+Local bundles use the repository `VERSION` with a `-dev` suffix. Release builds
+pass an explicit version. Add `--install` to copy the finished bundle into
+`~/Applications`.
 
 For a development loop that rebuilds and opens a fresh bundle when SwiftUI or
 fixture files change, run `python3 macos/watch_app.py` from the repository
@@ -89,13 +92,17 @@ The **Check for Updates...** command in the app menu queries the latest GitHub r
 When a newer architecture-matched macOS ZIP exists (exactly
 `ZephyrMesh-macos-<arch>-v<version>.zip`, downloaded only from
 `https://github.com/Whyater/Zephyr-Mesh/releases/download/`), the app verifies
-its SHA-256 digest and archive entries, checks the bundle signature, starts a
-detached helper, exits, swaps the bundle, retains the previous bundle for
-rollback, and relaunches. If the helper cannot finish, it moves the previous
+its SHA-256 digest while streaming it to disk (at most 512 MB), starts a
+detached helper, and exits. The helper checks the digest again, screens the
+archive entries, checks the bundle signature, and runs the new build's
+`--self-test`; a build that fails any of these is never installed. It then
+moves the current bundle to `~/Library/Caches/org.zephyrmesh.cockpit`, moves
+the new one into place, opens it, and deletes the backup once the new app has
+stayed running for a few seconds. If the helper cannot finish, it moves the previous
 bundle back if needed, writes the reason to
 `~/Library/Logs/ZephyrMesh/last-update.txt`, and reopens the old app, which
 shows that message once. `swift run` reports that it has no installable app
-bundle; a Finder-launched `ZephyrMesh.app` is required.
+bundle; a Finder-launched `Zephyr Mesh.app` is required.
 
 The digest check is an integrity check only, not publisher authentication: it
 shows the file matches what GitHub reported for that release asset, not who
