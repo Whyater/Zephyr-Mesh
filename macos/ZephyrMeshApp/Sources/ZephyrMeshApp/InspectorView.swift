@@ -18,7 +18,10 @@ struct InspectorView: View {
                         neighbors(drone)
                         details(drone)
                     }
-                    .padding(Space.lg)
+                    // Top edge matches the sidebar summary and the status strip (Space.md).
+                    .padding(.horizontal, Space.lg)
+                    .padding(.top, Space.md)
+                    .padding(.bottom, Space.lg)
                 }
             } else {
                 emptyState
@@ -38,15 +41,16 @@ struct InspectorView: View {
         .accessibilityElement(children: .combine)
     }
 
+    /// Same order as the status strip: error, delay, loss, age.
     private func tiles(_ drone: PresentationDrone) -> some View {
         Grid(horizontalSpacing: Space.sm, verticalSpacing: Space.sm) {
             GridRow {
-                MetricTile(label: UIText.targetAge, value: Format.seconds(drone.targetAgeS))
                 MetricTile(label: Self.estimateErrorLabel, value: Format.meters(drone.estimateErrorM))
+                MetricTile(label: UIText.targetLinkDelay, value: Format.milliseconds(drone.targetLinkDelayMs))
             }
             GridRow {
-                MetricTile(label: UIText.targetLinkDelay, value: Format.milliseconds(drone.targetLinkDelayMs))
                 MetricTile(label: UIText.targetPacketLoss, value: Format.percent(drone.targetPacketLossPct))
+                MetricTile(label: UIText.targetAge, value: Format.seconds(drone.targetAgeS))
             }
         }
     }
@@ -71,8 +75,7 @@ struct InspectorView: View {
     }
 
     private func details(_ drone: PresentationDrone) -> some View {
-        DisclosureGroup(isExpanded: $showDetails) {
-            VStack(alignment: .leading, spacing: Space.sm) {
+        DetailsSection(isExpanded: $showDetails) {
                 if let telemetry = model.selectedTelemetry {
                     StackedValue(label: Format.label("position_m"), value: Format.vector(telemetry.position))
                     StackedValue(label: Format.label("velocity_mps"), value: Format.vector(telemetry.velocity))
@@ -84,12 +87,6 @@ struct InspectorView: View {
                     ProfileParts(profile: profile)
                 }
                 StackedValue(label: Format.label("agent_id"), value: drone.droneID, style: .identifier)
-            }
-            .padding(.top, Space.sm)
-        } label: {
-            Text(UIText.Inspector.details)
-                .font(TypeScale.bodyStrong)
-                .foregroundStyle(palette.text)
         }
     }
 

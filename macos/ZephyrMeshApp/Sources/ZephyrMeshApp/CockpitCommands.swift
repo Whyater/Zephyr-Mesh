@@ -21,11 +21,11 @@ struct CockpitCommands: Commands {
         }
         CommandGroup(replacing: .newItem) {
             Button(UIText.Menus.openEvidenceReport) {
-                if let id = store.chooseEvidenceReport() { openWindow(id: WindowID.evidenceReport, value: id) }
+                Task { if let id = await store.chooseEvidenceReport() { openWindow(id: WindowID.evidenceReport, value: id) } }
             }
             .shortcut("openEvidenceReport")
             Button(UIText.Menus.openScenarioRun) {
-                if let id = store.chooseScenarioRun() { openWindow(id: WindowID.scenarioRun, value: id) }
+                Task { if let id = await store.chooseScenarioRun() { openWindow(id: WindowID.scenarioRun, value: id) } }
             }
             .shortcut("openScenarioRun")
         }

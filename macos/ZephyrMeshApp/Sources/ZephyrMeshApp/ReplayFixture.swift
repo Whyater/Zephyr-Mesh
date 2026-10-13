@@ -37,6 +37,20 @@ private func requireFinite(_ vector: SIMD3<Float>, field: String) throws {
     }
 }
 
+/// Largest accepted coordinate magnitude in metres. The indoor scenarios are tens of metres
+/// across; a bound keeps every distance and grid size the scene derives finite and small
+/// enough to convert to an integer.
+let fixtureCoordinateLimitM: Float = 10_000
+
+/// A position: finite and within `fixtureCoordinateLimitM` on every axis.
+private func requirePosition(_ vector: SIMD3<Float>, field: String) throws {
+    try requireFinite(vector, field: field)
+    guard abs(vector.x) <= fixtureCoordinateLimitM, abs(vector.y) <= fixtureCoordinateLimitM,
+          abs(vector.z) <= fixtureCoordinateLimitM else {
+        throw FixtureDecodeError(message: "\(field) must be within \(Int(fixtureCoordinateLimitM)) m of the origin")
+    }
+}
+
 /// One drone's raw state in one frame, projected from the canonical run. Used for the scene
 /// geometry and the raw vectors under the inspector Details; every displayed metric comes
 /// from `PresentationDrone` instead.
@@ -85,7 +99,7 @@ struct DroneTelemetry: Identifiable, Decodable, Equatable {
         guard !id.isEmpty, !profileID.isEmpty, (neighborCount ?? 0) >= 0 else {
             throw FixtureDecodeError(message: "drone identity or neighbor count is invalid")
         }
-        try requireFinite(position, field: "drone.position")
+        try requirePosition(position, field: "drone.position")
         try requireFinite(velocity, field: "drone.velocity")
         if let minNeighborDistance { try requireFinite(minNeighborDistance, field: "drone.min_neighbor_distance_m", minimum: 0) }
     }
@@ -109,8 +123,9 @@ struct KeepOutVolume: Decodable, Equatable {
         center = try values.decode(SIMD3<Float>.self, forKey: .center)
         radiusM = try values.decode(Double.self, forKey: .radiusM)
         label = try values.decode(String.self, forKey: .label)
-        try requireFinite(center, field: "keep-out center")
+        try requirePosition(center, field: "keep-out center")
         try requireFinite(radiusM, field: "keep-out radius", minimum: 0)
+        guard radiusM <= Double(fixtureCoordinateLimitM) else { throw FixtureDecodeError(message: "keep-out radius is too large") }
         guard !label.isEmpty else { throw FixtureDecodeError(message: "keep-out label must not be empty") }
     }
 }
@@ -190,7 +205,9 @@ struct PresentationEvent: Codable, Equatable, Identifiable {
     let level: String
     let text: String
     let timeS: Double
-    var id: String { "\(timeS)-\(level)-\(text)" }
+    /// Includes the drone IDs, so two events with the same time, level and words but different
+    /// drones stay two rows.
+    var id: String { "\(timeS)-\(level)-\(text)-\(droneIDs.joined(separator: ","))" }
 
     enum CodingKeys: String, CodingKey, CaseIterable { case droneIDs = "drone_ids", level, text, timeS = "time_s" }
     init(from decoder: Decoder) throws {
@@ -496,7 +513,7 @@ struct FixtureFrame: Decodable, Equatable {
             throw FixtureDecodeError(message: "frame index or active count is invalid")
         }
         try requireFinite(time, field: "frame time", minimum: 0)
-        if let targetPosition { try requireFinite(targetPosition, field: "frame target position") }
+        if let targetPosition { try requirePosition(targetPosition, field: "frame target position") }
         guard keepOutVolumes.count <= 64 else { throw FixtureDecodeError(message: "frame keep-out volumes are unbounded") }
         guard presentation.perDrone.map(\.droneID) == drones.map(\.id) else {
             throw FixtureDecodeError(message: "presentation per_drone does not match frame drones")
