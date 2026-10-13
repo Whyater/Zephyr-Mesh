@@ -148,3 +148,43 @@ def test_documented_way_to_look_ahead_leaves_the_filter_clock_alone():
     assert ahead.position_m[0] > tracker.snapshot().position_m[0]
     assert tracker.timestamp_s == 0.2
     assert tracker.update((0.3, 0.0, 0.0), 0.4)  # still accepts the next capture
+
+
+# ---------------------------------------------------------------------------
+# predict_at: look ahead without moving the filter clock (S6 recovery arm)
+# ---------------------------------------------------------------------------
+
+def test_predict_at_looks_ahead_without_changing_the_filter():
+    tracker = ConstantVelocityTracker(velocity_mps=(1.0, 0.0, 0.0), measurement_std_m=0.1)
+    tracker.update((0.0, 0.0, 0.0), 0.2)
+    before = tracker.snapshot()
+    ahead = tracker.predict_at(1.0)
+    # Hand check: a constant-velocity estimate moves v x dt. The filter's
+    # velocity after one update is still close to 1 m/s, so 0.8 s ahead the
+    # x position grows by v_hat x 0.8 from the updated position.
+    assert ahead.timestamp_s == 1.0
+    assert ahead.position_m[0] == pytest.approx(before.position_m[0] + before.velocity_mps[0] * 0.8)
+    assert tracker.snapshot() == before  # nothing in the filter moved
+    assert tracker.update((0.3, 0.0, 0.0), 0.4)  # still accepts the next capture
+
+
+def test_predict_at_equals_the_documented_deepcopy_look_ahead():
+    import copy
+
+    tracker = ConstantVelocityTracker(velocity_mps=(0.5, -0.2, 0.1), measurement_std_m=0.05)
+    tracker.update((0.01, 0.0, 0.0), 0.1)
+    tracker.update((0.06, -0.02, 0.01), 0.2)
+    reference = copy.deepcopy(tracker).predict(0.55)
+    ahead = tracker.predict_at(0.55)
+    assert np.allclose(ahead.position_m, reference.position_m, atol=1e-12)
+    assert np.allclose(ahead.velocity_mps, reference.velocity_mps, atol=1e-12)
+    assert np.allclose(ahead.covariance, reference.covariance, atol=1e-12)
+
+
+def test_predict_at_rejects_the_past():
+    tracker = ConstantVelocityTracker(measurement_std_m=0.1)
+    tracker.update((0.0, 0.0, 0.0), 0.5)
+    with pytest.raises(ValueError):
+        tracker.predict_at(0.4)
+    with pytest.raises(ValueError):
+        tracker.predict_at(float("nan"))

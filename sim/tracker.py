@@ -7,13 +7,17 @@ time earlier than the filter's current time, and there is no retrodiction, so
 a measurement stamped at its capture time is rejected once the filter has
 already been advanced past that time (for example by ``predict`` to a later
 receive time). Feed measurements in capture-time order. To show an estimate
-at a later display time without advancing the filter, call ``predict`` on a
-``copy.deepcopy`` of the tracker and read that copy's state.
+at a later display time without advancing the filter, call ``predict_at``,
+which returns the predicted state and leaves the filter unchanged (the same
+result as calling ``predict`` on a ``copy.deepcopy`` of the tracker).
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 import numpy as np
+
+_EYE3 = np.eye(3)
+_EYE3.setflags(write=False)
 
 
 @dataclass(frozen=True)
@@ -78,14 +82,17 @@ class ConstantVelocityTracker:
         self.R = np.eye(3) * self.measurement_variance
 
     def _transition(self, dt: float) -> tuple[np.ndarray, np.ndarray]:
+        # The 3x3 identity is reused because rebuilding it dominated the cost
+        # of the multi-seed sweep; the arithmetic is unchanged.
+        I3 = _EYE3
         F = np.eye(6)
-        F[:3, 3:] = np.eye(3) * dt
+        F[:3, 3:] = I3 * dt
         q = self.q_acc
         Q = np.zeros((6, 6))
-        Q[:3, :3] = np.eye(3) * (dt**3 / 3.0) * q
-        Q[:3, 3:] = np.eye(3) * (dt**2 / 2.0) * q
+        Q[:3, :3] = I3 * (dt**3 / 3.0) * q
+        Q[:3, 3:] = I3 * (dt**2 / 2.0) * q
         Q[3:, :3] = Q[:3, 3:].T
-        Q[3:, 3:] = np.eye(3) * dt * q
+        Q[3:, 3:] = I3 * dt * q
         return F, Q
 
     def predict(self, timestamp_s: float) -> TrackerState:
@@ -101,6 +108,29 @@ class ConstantVelocityTracker:
         if dt > 0:
             self.prediction_count += 1
         return self.snapshot()
+
+    def predict_at(self, timestamp_s: float) -> TrackerState:
+        """Return the state predicted forward to ``timestamp_s`` without changing the filter.
+
+        This is "predict forward": the filter keeps its own clock at the last
+        fused measurement, so a later measurement stamped with its capture time
+        can still be fused. Only the returned state moves to the query time.
+        """
+        t = float(timestamp_s)
+        if not np.isfinite(t) or t < self.timestamp_s:
+            raise ValueError("prediction timestamp must be finite and nondecreasing")
+        F, Q = self._transition(t - self.timestamp_s)
+        x = F @ self.x
+        P = F @ self.P @ F.T + Q
+        P = (P + P.T) / 2.0
+        return TrackerState(
+            t,
+            tuple(x[:3].tolist()),
+            tuple(x[3:].tolist()),
+            tuple(tuple(row) for row in P.tolist()),
+            self.update_count,
+            self.prediction_count,
+        )
 
     def update(self, measurement_m, timestamp_s: float) -> bool:
         z = np.asarray(measurement_m, dtype=float)
