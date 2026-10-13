@@ -61,6 +61,7 @@ jobs:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
         run: python3 macos/build_app.py --version "$RELEASE_VERSION"
       - name: Package the macOS asset
+        timeout-minutes: 10
         env:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
           ARCHITECTURE: ${{ matrix.architecture }}
@@ -79,7 +80,11 @@ jobs:
             mv macos/ZephyrMeshApp/.build "${smoke_dir}/swift-build-hidden"
             trap 'mv "${smoke_dir}/swift-build-hidden" macos/ZephyrMeshApp/.build' EXIT
           fi
-          "$smoke_dir/Zephyr Mesh.app/Contents/MacOS/ZephyrMeshApp" --self-test
+          # The same two checks the in-app updater runs before installing a release:
+          # a release that fails either one could never be installed by it.
+          codesign --verify --deep --strict "$smoke_dir/Zephyr Mesh.app"
+          # perl's alarm survives exec, so a self-test that hangs (or opens a window) is killed after 60 s.
+          perl -e 'alarm 60; exec @ARGV' "$smoke_dir/Zephyr Mesh.app/Contents/MacOS/ZephyrMeshApp" --self-test
       - uses: actions/upload-artifact@v4
         with:
           name: macos-release-${{ matrix.architecture }}

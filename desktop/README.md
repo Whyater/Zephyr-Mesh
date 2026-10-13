@@ -177,7 +177,7 @@ tagged build:
 ```bash
 python3 macos/build_app.py --version 0.1.5
 python3 tools/package_release.py \
-  --source macos/ZephyrMesh.app \
+  --source "Zephyr Mesh.app" \
   --output release \
   --platform macos-arm64 \
   --version 0.1.5

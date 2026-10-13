@@ -16,7 +16,10 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / "macos" / "ZephyrMeshApp"
-BUNDLE = ROOT / "macos" / "ZephyrMesh.app"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from build_app import DEFAULT_OUTPUT  # noqa: E402  (one source for where the bundle is built)
+
+BUNDLE = DEFAULT_OUTPUT
 
 
 def snapshot() -> dict[Path, int]:

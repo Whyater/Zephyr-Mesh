@@ -64,6 +64,16 @@ final class ResourceLocatorTests: XCTestCase {
         )
     }
 
+    func testNeverLooksInTheFolderThatHoldsTheApp() throws {
+        // A stray bundle or file beside the app (for example in ~/Applications) must not be used.
+        let app = try makeDirectory("Applications/Zephyr Mesh.app")
+        let strayBundle = try makeDirectory("Applications/Resources/ZephyrMeshApp_ZephyrMeshApp.bundle")
+        try Data("stray".utf8).write(to: strayBundle.appendingPathComponent("demo_swarm.json"))
+        try Data("stray".utf8).write(to: strayBundle.deletingLastPathComponent().appendingPathComponent("demo_swarm.json"))
+
+        XCTAssertNil(ResourceLocator.url(forResource: "demo_swarm", withExtension: "json", searchRoots: [app]))
+    }
+
     func testSearchesRootsInOrder() throws {
         let firstRoot = try makeDirectory("first/ZephyrMeshApp_ZephyrMeshApp.bundle")
         let secondRoot = try makeDirectory("second/ZephyrMeshApp_ZephyrMeshApp.bundle")

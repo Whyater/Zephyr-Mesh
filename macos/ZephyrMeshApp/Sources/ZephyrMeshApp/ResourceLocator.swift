@@ -21,14 +21,21 @@ enum ResourceLocator {
             let normalizedRoot = root.standardizedFileURL
             guard visited.insert(normalizedRoot.path).inserted else { continue }
 
-            let resourceDirectories = [
+            // `<app>/Contents/Resources`, reached from the executable folder
+            // `<app>/Contents/MacOS`. Only for that folder: for any other root, such as
+            // the app bundle itself, the parent is the folder that holds the app.
+            let siblingResources: URL? = normalizedRoot.lastPathComponent == "MacOS"
+                ? normalizedRoot.deletingLastPathComponent().appendingPathComponent("Resources", isDirectory: true)
+                : nil
+
+            var resourceDirectories = [
                 normalizedRoot.appendingPathComponent(resourceBundleName, isDirectory: true),
                 normalizedRoot.appendingPathComponent("Contents/Resources", isDirectory: true)
-                    .appendingPathComponent(resourceBundleName, isDirectory: true),
-                normalizedRoot.deletingLastPathComponent()
-                    .appendingPathComponent("Resources", isDirectory: true)
                     .appendingPathComponent(resourceBundleName, isDirectory: true)
             ]
+            if let siblingResources {
+                resourceDirectories.append(siblingResources.appendingPathComponent(resourceBundleName, isDirectory: true))
+            }
             for directory in resourceDirectories {
                 if let url = existingFile(named: filename, in: directory) {
                     return url
@@ -42,10 +49,8 @@ enum ResourceLocator {
             // executable rather than inside the generated bundle.
             for directory in [
                 normalizedRoot,
-                normalizedRoot.appendingPathComponent("Contents/Resources", isDirectory: true),
-                normalizedRoot.deletingLastPathComponent()
-                    .appendingPathComponent("Resources", isDirectory: true)
-            ] {
+                normalizedRoot.appendingPathComponent("Contents/Resources", isDirectory: true)
+            ] + (siblingResources.map { [$0] } ?? []) {
                 if let url = existingFile(named: filename, in: directory) {
                     return url
                 }

@@ -1692,8 +1692,8 @@ class WindowsReplayApp:
                 elif not getattr(sys, "frozen", False):
                     message = update_text["available"].format(tag=release.tag)
                 else:
-                    results.put(("notice", update_text["downloading"]))
-                    staged = client.download_and_stage(asset)
+                    # Everything that would make the install fail is checked before
+                    # the download, so nobody waits for a file that cannot be used.
                     install_dir = Path(sys.executable).resolve().parent
                     updater_candidates = (
                         install_dir / "ZephyrMeshUpdater.exe",
@@ -1701,13 +1701,21 @@ class WindowsReplayApp:
                     )
                     updater = next((candidate for candidate in updater_candidates if candidate.is_file()), updater_candidates[0])
                     launch = install_dir / "ZephyrMeshWindows.exe"
-                    if not os.access(install_dir.parent, os.W_OK):
+                    try:
+                        # A real write, because os.access ignores Windows folder permissions.
+                        with tempfile.TemporaryFile(dir=install_dir.parent, prefix=".zephyr-write-check-"):
+                            writable = True
+                    except OSError:
+                        writable = False
+                    if not writable:
                         message = update_text["failed"].format(reason="the application folder is read-only")
                         error = True
                     elif not updater.is_file():
                         message = update_text["failed"].format(reason="the update helper is missing")
                         error = True
                     else:
+                        results.put(("notice", update_text["downloading"]))
+                        staged = client.download_and_stage(asset)
                         updater = updater_launch_path(updater, install_dir, pid=os.getpid())
                         flags = getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
                         subprocess.Popen(
@@ -1718,7 +1726,6 @@ class WindowsReplayApp:
                         )
                         results.put(("quit", None))
                         return
-                    shutil.rmtree(staged.root, ignore_errors=True)
             except Exception as exc:
                 if staged is not None:
                     shutil.rmtree(staged.root, ignore_errors=True)

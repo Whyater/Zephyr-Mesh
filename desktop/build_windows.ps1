@@ -9,12 +9,14 @@ param(
 # self-contained GUI executable and a small detached updater beside it.
 $repoRoot = (Get-Location).Path
 if ([string]::IsNullOrWhiteSpace($Version)) {
+    # Local builds are <VERSION>-dev, the same rule as macos/build_app.py.
+    # VERSION is the only source; without it the build stops instead of guessing.
     $versionFile = Join-Path $repoRoot "VERSION"
-    if (Test-Path $versionFile) {
-        $Version = (Get-Content -Raw $versionFile).Trim() + "-dev"
-    } else {
-        $Version = "0.2.3-dev"
+    if (-not (Test-Path $versionFile)) {
+        Write-Error "VERSION is missing. Run this script from the repository root, or pass -Version."
+        exit 1
     }
+    $Version = (Get-Content -Raw $versionFile).Trim() + "-dev"
 }
 & $Python -m pip install --requirement requirements-windows.txt
 New-Item -ItemType Directory -Force -Path $Output | Out-Null

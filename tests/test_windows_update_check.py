@@ -174,3 +174,50 @@ def test_headless_missing_scenario_is_a_message_not_a_traceback(tmp_path, capsys
     assert main(["--headless", "--scenario-run", str(tmp_path / "missing.json")]) == 2
     err = capsys.readouterr().err
     assert "missing.json" in err and "no longer exists" in err and "Traceback" not in err
+
+
+def test_read_only_app_folder_is_reported_before_anything_is_downloaded(harness, tmp_path, monkeypatch):
+    import os
+    import tools.release_updater as updater
+    import desktop.windows_preview as preview
+
+    app, dialogs, install, _calls = harness
+    install(lambda: (SimpleNamespace(tag="v9.9.9"), object(), True))
+    downloads = []
+    monkeypatch.setattr(updater.GitHubReleaseClient, "download_and_stage", lambda self, asset: downloads.append(asset), raising=False)
+    apps = tmp_path / "apps"
+    bundle = apps / "ZephyrMeshWindows"
+    bundle.mkdir(parents=True)
+    (bundle / "ZephyrMeshWindows.exe").write_bytes(b"")
+    (bundle / "ZephyrMeshUpdater.exe").write_bytes(b"")
+    monkeypatch.setattr(preview.sys, "frozen", True, raising=False)
+    monkeypatch.setattr(preview.sys, "executable", str(bundle / "ZephyrMeshWindows.exe"))
+    apps.chmod(0o555)
+    try:
+        if os.access(apps, os.W_OK) and os.name != "nt" and os.geteuid() == 0:
+            pytest.skip("root can write to a read-only folder")
+        WindowsReplayApp._check_update(app)
+        (kind, message), = _drive(app, dialogs)
+    finally:
+        apps.chmod(0o755)
+    assert kind == "warning"
+    assert message == "Update check failed: the application folder is read-only"
+    assert downloads == [], "nothing is downloaded for an install that cannot happen"
+    assert list(apps.iterdir()) == [bundle], "the write check leaves nothing behind"
+
+
+def test_self_test_reason_is_said_once(tmp_path, monkeypatch):
+    import subprocess
+    import tools.release_updater as updater
+
+    class Done:
+        returncode = 1
+        stdout = "self-test failed: The bundled replay file is missing from the app.\n"
+        stderr = ""
+
+    exe = tmp_path / "ZephyrMeshWindows.exe"
+    exe.write_bytes(b"")
+    monkeypatch.setattr(updater.subprocess, "run", lambda *a, **k: Done())
+    with pytest.raises(updater.UpdateError) as caught:
+        updater.run_self_test(exe)
+    assert str(caught.value) == "self-test failed: The bundled replay file is missing from the app."

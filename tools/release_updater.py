@@ -620,7 +620,8 @@ def run_self_test(executable: Path, *, timeout_s: float = 20.0) -> None:
         raise UpdateError(f"self-test could not start: {exc}") from exc
     output = " ".join((result.stdout or "").split() + (result.stderr or "").split()).strip()
     if result.returncode != 0:
-        detail = output[:400] or f"exit code {result.returncode}"
+        # The apps print "self-test failed: <reason>"; keep only the reason so it is not said twice.
+        detail = output.removeprefix("self-test failed:").strip()[:400] or f"exit code {result.returncode}"
         raise UpdateError(f"self-test failed: {detail}")
 
 

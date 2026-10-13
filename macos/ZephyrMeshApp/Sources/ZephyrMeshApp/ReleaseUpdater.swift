@@ -165,6 +165,11 @@ enum ReleaseUpdater {
 
     /// The largest update archive the app will download. Real releases are a few MB.
     static let maximumArchiveBytes: Int64 = 512 * 1_048_576
+    /// Limits on what an archive may unpack to, checked from its directory before
+    /// extracting. The same numbers as `MAX_EXTRACTED_BYTES` and
+    /// `MAX_ARCHIVE_MEMBERS` in `tools/release_updater.py`.
+    static let maximumExtractedBytes: Int64 = 2 * 1024 * 1_048_576
+    static let maximumArchiveEntries = 50_000
 
     /// Streams a download into `destination` (never holding the whole file in memory),
     /// hashing it on the way, and stops once more than `maximumBytes` arrive.
@@ -411,9 +416,11 @@ enum ReleaseUpdater {
     /// The current app is then moved to a backup in
     /// `~/Library/Caches/org.zephyrmesh.cockpit/`. If moving the new app into
     /// place fails, even halfway, whatever landed at `install` is deleted and the
-    /// backup is moved back. The backup is deleted only after the new app has been
-    /// running for `startupCheckSeconds`; if it never shows up or quits in that
-    /// time, the old app is put back. Every failure writes the reason to
+    /// backup is moved back. The new app is then opened and watched for
+    /// `startupCheckSeconds`. If it crashes in that time (a new
+    /// `ZephyrMeshApp*.ips` crash report appears) or never shows up, and it is
+    /// still not running at that moment, the old app is put back. Quitting it
+    /// normally counts as a successful start. Every failure writes the reason to
     /// `resultFile` and reopens the old app.
     ///
     /// `openTool` and `startupCheckSeconds` are parameters only so tests do not
@@ -476,6 +483,15 @@ enum ReleaseUpdater {
         fi
         entries_file="$root/entries.txt"
         /usr/bin/unzip -Z1 "$archive" > "$entries_file" || fail "could not list the archive"
+        # Totals line: "<entries> files, <bytes> bytes uncompressed, ...". Checked before
+        # anything is written, so a small archive cannot unpack into a full disk.
+        totals=$(/usr/bin/unzip -Zt "$archive" 2>/dev/null) || fail "could not read the archive size"
+        entry_count=$(printf '%s\n' "$totals" | /usr/bin/awk '{ print $1 }')
+        unpacked=$(printf '%s\n' "$totals" | /usr/bin/awk '{ print $3 }')
+        case "$entry_count" in ''|*[!0-9]*) fail "could not read the archive size" ;; esac
+        case "$unpacked" in ''|*[!0-9]*) fail "could not read the archive size" ;; esac
+        [ "$entry_count" -le \(maximumArchiveEntries) ] || fail "the archive has more than \(maximumArchiveEntries) entries"
+        [ "$unpacked" -le \(maximumExtractedBytes) ] || fail "the archive expands to more than \(maximumExtractedBytes / 1_073_741_824) GB"
         while IFS= read -r entry; do
             case "$entry" in /*|../*|*/../*|*/..|..|*'\\'*) fail "unsafe path in archive: $entry" ;; esac
         done < "$entries_file"
@@ -505,6 +521,8 @@ enum ReleaseUpdater {
         selftest_status=$?
         if [ "$selftest_status" -ne 0 ]; then
             reason=$(/usr/bin/tr '\\n' ' ' < "$root/self-test.log" | /usr/bin/cut -c 1-400)
+            # The app prints "self-test failed: <reason>"; say "self-test failed" once.
+            reason=${reason#self-test failed: }
             [ -n "$reason" ] || reason="exit status $selftest_status"
             fail "self-test failed: $reason"
         fi
@@ -524,20 +542,43 @@ enum ReleaseUpdater {
         fi
         mv "$payload" "$install" || fail "could not move the new app into place"
         rm -f "$result"
+        crash_dir="$HOME/Library/Logs/DiagnosticReports"
+        : > "$root/launch-marker"
         "$open_tool" "$launch" || fail "the updated app could not be opened"
         if [ "$startup_wait" -gt 0 ]; then
             exe="$(cd "$install/Contents/MacOS" 2>/dev/null && pwd -P)/ZephyrMeshApp"
             app_running() { ps -axo comm= 2>/dev/null | /usr/bin/grep -Fxq -- "$exe"; }
+            new_crash() { /usr/bin/find "$crash_dir" -maxdepth 1 -name 'ZephyrMeshApp*.ips' -newer "$root/launch-marker" 2>/dev/null | /usr/bin/grep -q .; }
+            # Roll back only if the new app is not running right now, so a slow start
+            # is never deleted from under itself.
+            launch_failed() { app_running && return 0; fail "$1"; }
             seen=0
             looked=0
             while [ "$looked" -lt $((startup_wait * 3)) ]; do
                 if app_running; then seen=1; break; fi
+                new_crash && break
                 sleep 1
                 looked=$((looked + 1))
             done
-            [ "$seen" = "1" ] || fail "the updated app did not start"
-            sleep "$startup_wait"
-            app_running || fail "the updated app quit right after it started"
+            if [ "$seen" = "1" ]; then
+                alive=0
+                while [ "$alive" -lt "$startup_wait" ] && app_running; do
+                    sleep 1
+                    alive=$((alive + 1))
+                done
+            fi
+            if ! app_running; then
+                # Give ReportCrash a moment to write its report before deciding.
+                settle=2
+                [ "$startup_wait" -lt 2 ] && settle="$startup_wait"
+                sleep "$settle"
+                if new_crash; then
+                    launch_failed "the updated app crashed when it started"
+                elif [ "$seen" != "1" ]; then
+                    launch_failed "the updated app did not start"
+                fi
+                # Seen running, then gone with no crash report: it was quit normally.
+            fi
         fi
         moved_aside=0
         rm -rf "$cache"/ZephyrMesh.app.previous.*
