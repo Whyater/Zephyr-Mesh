@@ -14,6 +14,7 @@ from typing import Any, Callable, Mapping, Sequence
 
 from .design_tokens import MOTION_MS, SPACE, UI_TEXT, WIN_LAYOUT
 from .scene_projection import (
+    FAR_LIMIT_RADII,
     CameraAnimator,
     finite_point,
     fit_distance,
@@ -29,22 +30,34 @@ from .scene_projection import (
     top_pose,
     xframe_glyph,
 )
-from .ui_theme import Theme, mix
+from .ui_icons import STATUS_SHAPES
+from .ui_theme import LEVELS, Theme, mix
 
 
 FADED_LEVELS = {"caution", "alert"}
-# Late and lost drones also get a small status-colored marker above them: fading alone is easy to miss.
-MARKED_LEVELS = FADED_LEVELS
-MARKER_PX = SPACE["xxs"] + 1.5
+# Late and lost drones also get a marker above them in their shared status shape (triangle for Late,
+# square for Lost) and color, the same shapes the list and the Mac app use; fading alone is easy to miss.
+MARKED_LEVELS = ("caution", "alert")
 FOCUS_DISTANCE_M = 4.0
 FIT_MARGIN_PX = 34
-TOP_LIMIT_RADII = 6.0
 ARM_M = 0.2
 ROTOR_M = 0.1
 FRAME_MS = 16
 
 
-HUD_AXIS = SPACE["lg"] + SPACE["sm"] - SPACE["xxs"]  # axis arrow length; the HUD sits SPACE["lg"] from the corner
+
+
+def status_points(level: str, cx: float, cy: float, size: float) -> list[float]:
+    """Canvas polygon points for a level's shared status shape (from ``STATUS_SHAPES``), centered on (cx, cy).
+
+    Polygon shapes keep their exact outline; a round shape becomes a 12-sided polygon,
+    so one canvas item type can show any level.
+    """
+    shapes = STATUS_SHAPES.get(LEVELS.get(level, LEVELS["unavailable"])["shape"], ())
+    poly = next((shape[1] for shape in shapes if shape[0] == "poly"), None)
+    if poly is None:
+        poly = [(0.5 + 0.36 * math.cos(2 * math.pi * k / 12), 0.5 + 0.36 * math.sin(2 * math.pi * k / 12)) for k in range(12)]
+    return [value for u, v in poly for value in (cx + (u - 0.5) * size, cy + (v - 0.5) * size)]
 
 
 def _agents(frame: Mapping[str, Any]) -> list[Mapping[str, Any]]:
@@ -180,7 +193,7 @@ class SceneView:
         lands on the short screen axis, so a wide, short canvas needs up to
         about twice the distance to show every drone. It stays bounded.
         """
-        return max(camera.swarm_radius * TOP_LIMIT_RADII, camera.near_limit)
+        return max(camera.swarm_radius * FAR_LIMIT_RADII, camera.near_limit)
 
     def _animate_to(self, goal: ViewPose, duration_ms: float) -> None:
         now = time.monotonic() * 1000.0
@@ -256,7 +269,7 @@ class SceneView:
 
     # ---- input -------------------------------------------------------------
     def _drone_at(self, x: float, y: float) -> str | None:
-        index = hit_test(self._screen_points, x, y, 14 * self.scale)
+        index = hit_test(self._screen_points, x, y, WIN_LAYOUT["hitRadius"] * self.scale)
         return self.order[index] if index is not None and index < len(self.order) else None
 
     def _on_press(self, event: Any) -> None:
@@ -268,7 +281,7 @@ class SceneView:
         if self._press is None:
             return
         dx, dy = event.x - self._press[0], event.y - self._press[1]
-        if not self._dragging and math.hypot(dx, dy) < 3 * self.scale:
+        if not self._dragging and math.hypot(dx, dy) < WIN_LAYOUT["dragThreshold"] * self.scale:
             return
         self._dragging = True
         self._press = (event.x, event.y)
@@ -341,6 +354,10 @@ class SceneView:
             self._static["grid_label"] = canvas.create_text(0, 0, text=UI_TEXT["windowsText"]["gridLabel"], anchor="w",
                                                             tags=("hud",))
             self._static["label"] = canvas.create_text(0, 0, text="", anchor="w", tags=("hud",))
+            # Legend for the status markers, top left: shape, then the shared status word.
+            self._legend = [(level, canvas.create_polygon(0, 0, 0, 0, 0, 0, width=0, tags=("hud",)),
+                             canvas.create_text(0, 0, text=LEVELS[level]["word"], anchor="w", tags=("hud",)))
+                            for level in MARKED_LEVELS]
             self._recolor_static()
         while len(self._drone_items) < len(self.order):
             index = len(self._drone_items)
@@ -352,7 +369,8 @@ class SceneView:
                 "body": canvas.create_oval(0, 0, 0, 0, tags=(tag,)),
                 "motors": [canvas.create_oval(0, 0, 0, 0, width=0, tags=(tag,)) for _ in range(4)],
                 "nose": canvas.create_polygon(0, 0, 0, 0, 0, 0, width=0, tags=(tag,)),
-                "marker": canvas.create_oval(0, 0, 0, 0, width=0, tags=(tag,)),
+                # Own tag, not the drone's: showing the drone must not also show an unused marker.
+                "marker": canvas.create_polygon(0, 0, 0, 0, 0, 0, width=0, state="hidden", tags=("marker",)),
                 "tag": tag,
                 "style": None,
             }
@@ -369,16 +387,16 @@ class SceneView:
             major = mix(p.lineStrong, scene.grid.hex, 0.45)
         else:
             # On the light floor the token grid reads as heavy rules through the ring; keep both quieter.
-            minor = mix(scene.grid.hex, floor, 0.55)
-            major = mix(p.lineStrong, floor, 0.35)
+            minor = mix(scene.grid.hex, floor, 0.5)
+            major = mix(p.lineStrong, floor, 0.28)
         for item, is_major, _ends in self._grid_items:
             self.canvas.itemconfigure(item, fill=major if is_major else minor, width=1)
         ring = scene.target_ring.hex
-        self.canvas.itemconfigure(self._static["target_ring"], outline=ring, fill="", width=max(2, int(round(2 * self.scale))))
+        self.canvas.itemconfigure(self._static["target_ring"], outline=ring, fill="", width=self._stroke("strokeStrong", 2))
         self.canvas.itemconfigure(self._static["target_stem"], fill=mix(ring, floor, 0.55), width=1)
         self.canvas.itemconfigure(self._static["target_foot"], outline=mix(ring, floor, 0.55), fill="", width=1)
         for name in ("axis_x", "axis_y"):
-            self.canvas.itemconfigure(self._static[name], fill=p.textSecondary, width=max(1, int(round(1.5 * self.scale))), arrow="last",
+            self.canvas.itemconfigure(self._static[name], fill=p.textSecondary, width=self._stroke("strokeRegular"), arrow="last",
                                       arrowshape=(6 * self.scale, 7 * self.scale, 2.5 * self.scale))
         for name in ("axis_x_label", "axis_y_label", "grid_label"):
             self.canvas.itemconfigure(self._static[name], fill=p.textSecondary, font=self.fonts["caption"])
@@ -462,6 +480,7 @@ class SceneView:
                 glyph = xframe_glyph(projector, position, _heading(agent.get("velocity_mps")), ARM_M, ROTOR_M)
             if glyph is None:
                 screen_points.append(None)
+                canvas.itemconfigure(items["marker"], state="hidden")
                 canvas.itemconfigure(items["tag"], state="hidden")
                 canvas.itemconfigure(items["foot"], state="hidden")
                 continue
@@ -474,13 +493,14 @@ class SceneView:
                 for disc in items["discs"]:
                     canvas.itemconfigure(disc, fill=disc_fill, outline=disc_line, width=1)
                 for arm in items["arms"]:
-                    canvas.itemconfigure(arm, fill=arms, width=max(2, int(round(2.2 * self.scale))))
+                    canvas.itemconfigure(arm, fill=arms, width=self._stroke("strokeStrong", 2))
                 canvas.itemconfigure(items["body"], fill=body, outline=body)
                 for motor in items["motors"]:
                     canvas.itemconfigure(motor, fill=arms)
                 canvas.itemconfigure(items["nose"], fill=body)
                 canvas.itemconfigure(items["foot"], fill=foot)
-                canvas.itemconfigure(items["marker"], fill=marker or "", state="normal" if marker else "hidden")
+                canvas.itemconfigure(items["marker"], fill=marker or "")
+                items["level"] = str((self.records.get(drone_id) or {}).get("level", ""))
                 items["style"] = style
             tips = glyph.arm_tips
             for disc, (cx, cy, rx, ry) in zip(items["discs"], glyph.rotors):
@@ -496,12 +516,12 @@ class SceneView:
                 canvas.coords(items["nose"], *hidden[:2], *hidden[:2], *hidden[:2])
             else:
                 canvas.coords(items["nose"], *[value for point in glyph.heading for value in point])
+            canvas.itemconfigure(items["marker"], state="normal" if style[-1] else "hidden")
             if style[-1]:
                 lowest_top = min(cy - ry for cx, cy, rx, ry in glyph.rotors)
-                marker_r = MARKER_PX * self.scale
-                marker_y = lowest_top - marker_r - SPACE["xs"] * self.scale
-                canvas.coords(items["marker"], glyph.center.x - marker_r, marker_y - marker_r, glyph.center.x + marker_r,
-                              marker_y + marker_r)
+                size = WIN_LAYOUT["statusMarkerSize"] * self.scale
+                marker_y = lowest_top - size / 2 - SPACE["xs"] * self.scale
+                canvas.coords(items["marker"], *status_points(items.get("level", ""), glyph.center.x, marker_y, size))
             foot = projector.project((position[0], position[1], 0.0))
             foot_r = 0.07 * projector.scale_at(max(foot.depth, 0.2))
             canvas.coords(items["foot"], foot.x - foot_r, foot.y - foot_r * projector.ellipse_ratio,
@@ -512,6 +532,7 @@ class SceneView:
                 label_at = (glyph.rotors[0][0] + glyph.rotors[0][2] + SPACE["xs"] * self.scale, glyph.center.y,
                             self.records.get(drone_id, {}).get("compact_name", drone_id))
         for index in range(len(self.order), len(self._drone_items)):
+            canvas.itemconfigure(self._drone_items[index]["marker"], state="hidden")
             canvas.itemconfigure(self._drone_items[index]["tag"], state="hidden")
             canvas.itemconfigure(self._drone_items[index]["foot"], state="hidden")
         self._screen_points = screen_points
@@ -526,12 +547,14 @@ class SceneView:
             elif kind == "keepout":
                 for item in handle:
                     canvas.tag_raise(item)
+        canvas.tag_raise("marker")  # markers sit above every drone body so they are never covered
         if label_at is not None:
             canvas.coords(self._static["label"], label_at[0], label_at[1])
             canvas.itemconfigure(self._static["label"], text=label_at[2], state="normal")
         else:
             canvas.itemconfigure(self._static["label"], state="hidden")
         self._draw_hud(pose, height)
+        self._draw_legend()
         canvas.tag_raise("hud")
 
     def _draw_keepout(self, projector: Projector, entities: list[tuple[float, str, Any]]) -> None:
@@ -561,17 +584,36 @@ class SceneView:
             fill = mix(color.hex, floor, color.alpha)
             items = [
                 canvas.create_oval(center.x - r, center.y - r, center.x + r, center.y + r, fill=fill, outline=color.hex,
-                                   width=max(1, int(round(1.5 * self.scale)))),
+                                   width=self._stroke("strokeRegular")),
                 canvas.create_oval(center.x - r, center.y - ry, center.x + r, center.y + ry, outline=mix(color.hex, floor, 0.6), width=1),
             ]
             self._keepout_items.extend(items)
             entities.append((center.depth, "keepout", items))
 
+    def _stroke(self, token: str, minimum: int = 1) -> int:
+        """A line width from the stroke tokens, scaled for DPI and never thinner than ``minimum`` pixels."""
+        return max(minimum, int(round(WIN_LAYOUT[token] * self.scale)))
+
+    def _draw_legend(self) -> None:
+        """Marker legend in the top-left corner: the Late triangle and the Lost square with their words."""
+        if self.theme is None:
+            return
+        size = WIN_LAYOUT["statusMarkerSize"] * self.scale
+        x = SPACE["lg"] * self.scale
+        y = SPACE["lg"] * self.scale + size / 2
+        for level, shape, label in self._legend:
+            self.canvas.coords(shape, *status_points(level, x + size / 2, y, size))
+            self.canvas.itemconfigure(shape, fill=self.theme.status_color(level))
+            self.canvas.coords(label, x + size + SPACE["xs"] * self.scale, y)
+            self.canvas.itemconfigure(label, fill=self.theme.p.textSecondary, font=self.fonts["caption"])
+            box = self.canvas.bbox(label)
+            x = (box[2] if box else x + size) + SPACE["md"] * self.scale
+
     def _draw_hud(self, pose: ViewPose, height: int) -> None:
         canvas = self.canvas
         origin_x = (SPACE["lg"] + SPACE["md"]) * self.scale
         origin_y = height - (SPACE["lg"] + SPACE["md"]) * self.scale
-        length = HUD_AXIS * self.scale
+        length = WIN_LAYOUT["hudAxisLength"] * self.scale
         yaw = math.radians(pose.yaw)
         pitch_factor = max(0.25, math.sin(math.radians(pose.pitch)))
         right = (-math.sin(yaw), math.cos(yaw))

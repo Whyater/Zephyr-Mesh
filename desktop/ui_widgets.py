@@ -142,6 +142,8 @@ class ScrollFrame:
     """Vertical scrolling container; the scrollbar appears only when content overflows."""
 
     def __init__(self, parent: Any, *, bg: str = "Surface", scale: float = 1.0) -> None:
+        """The scrollbar's column is always reserved (an empty spacer stands in when it is hidden), so the
+        content width, and with it the right inset, never changes when scrolling becomes possible."""
         import tkinter as tk
         from tkinter import ttk
 
@@ -152,6 +154,9 @@ class ScrollFrame:
         self.inner = ttk.Frame(self.canvas, style=f"{bg}.TFrame")
         self._window = self.canvas.create_window(0, 0, window=self.inner, anchor="nw")
         self.canvas.configure(yscrollcommand=self._on_scroll)
+        self.reserve = max(1, self.scrollbar.winfo_reqwidth())
+        self.spacer = ttk.Frame(self.outer, style=f"{bg}.TFrame", width=self.reserve)
+        self.spacer.pack(side="right", fill="y")
         self.canvas.pack(side="left", fill="both", expand=True)
         self.inner.bind("<Configure>", lambda _event: self._sync())
         self.canvas.bind("<Configure>", self._on_resize)
@@ -169,10 +174,12 @@ class ScrollFrame:
         self.scrollbar.set(first, last)
         needed = float(first) > 0.0 or float(last) < 1.0
         if needed and not self._shown:
+            self.spacer.pack_forget()
             self.scrollbar.pack(side="right", fill="y", before=self.canvas)
             self._shown = True
         elif not needed and self._shown:
             self.scrollbar.pack_forget()
+            self.spacer.pack(side="right", fill="y", before=self.canvas)
             self._shown = False
             self.canvas.yview_moveto(0)
 
@@ -182,7 +189,8 @@ class ScrollFrame:
         total = max(self.inner.winfo_height(), 1)
         top = widget.winfo_rooty() - self.inner.winfo_rooty()
         if total > self.canvas.winfo_height():
-            self.canvas.yview_moveto(max(0.0, (top - SPACE["sm"] * self.scale) / total))
+            # Land the top edge in the blank gap above the widget, so no line of text is sliced in half.
+            self.canvas.yview_moveto(max(0.0, round(top - SPACE["sm"] * self.scale) / total))
 
     def contains(self, widget: Any) -> bool:
         """True when ``widget`` sits inside this scroll area (used by the app's wheel router)."""
@@ -307,11 +315,13 @@ class TimelineSlider:
             x = self._x_for(frame, width)
             gap = SPACE["xxs"] * self.scale
             canvas.create_line(x, middle + track + gap, x, middle + track + gap + tick_height,
-                               fill=p.textSecondary, width=max(1, int(round(self.scale))), tags=("tick",))
+                               fill=p.textSecondary, width=max(1, int(round(WIN_LAYOUT["strokeHairline"] * self.scale))),
+                               tags=("tick",))
         radius = (self.THUMB_HOVER if self._hover else self.THUMB) * self.scale
         canvas.coords(self._items["thumb"], current - radius, middle - radius, current + radius, middle + radius)
         ring = p.text if self._focused else p.surface
-        canvas.itemconfigure(self._items["thumb"], fill=p.accent, outline=ring, width=max(1, int(round(SPACE["xxs"] * self.scale))))
+        canvas.itemconfigure(self._items["thumb"], fill=p.accent, outline=ring,
+                             width=max(1, int(round(WIN_LAYOUT["strokeStrong"] * self.scale))))
         canvas.tag_raise(self._items["thumb"])
 
 
@@ -414,7 +424,7 @@ class Tooltip:
         if not text:
             return
         self._shown_text = text
-        self._job = self.widget.after(550, self._show)
+        self._job = self.widget.after(WIN_LAYOUT["tooltipDelayMs"], self._show)
 
     def _cancel(self) -> None:
         if self._job is not None:
@@ -430,6 +440,7 @@ class Tooltip:
         self._job = None
         if not self._shown_text:
             return
+        window = None
         try:
             theme = self.theme_source()
             window = tk.Toplevel(self.widget)
@@ -456,6 +467,11 @@ class Tooltip:
                 y = above if top > self.widget.winfo_screenheight() / 2 and above > 0 else below
             window.wm_geometry(f"+{x}+{y}")
         except tk.TclError:
+            if window is not None:  # created but not finished: never leave an empty window behind
+                try:
+                    window.destroy()
+                except tk.TclError:
+                    pass
             return
         self._window = window
 

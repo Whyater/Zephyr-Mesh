@@ -14,7 +14,7 @@ import types
 import pytest
 
 from desktop import ui_format as fmt
-from desktop.design_tokens import UI_TEXT, WIN_LAYOUT
+from desktop.design_tokens import LAYOUT, UI_TEXT, WIN_LAYOUT
 from desktop.replay import ReplayModel
 from desktop.replay_session import ReplaySession
 from desktop.ui_settings import load_appearance, settings_path
@@ -35,8 +35,20 @@ class _EventsTree:
     def identify_row(self, y):
         return self.rows_by_y.get(y, "")
 
+    def identify_region(self, _x, y):
+        return "cell" if y in self.rows_by_y else "nothing"
+
     def selection(self):
         return self.selected
+
+    def selection_set(self, row):
+        self.selected = (row,)
+
+    def focus(self, _row=None):
+        return ""
+
+    def focus_set(self):
+        pass
 
 
 def _events_app():
@@ -58,8 +70,8 @@ def _events_app():
 
 def test_clicking_the_same_event_row_twice_seeks_twice():
     app = _events_app()
-    click = types.SimpleNamespace(y=10)
-    app._on_event_click(click)
+    click = types.SimpleNamespace(x=40, y=10)
+    assert app._on_event_click(click) == "break", "Tk's own press handling must not run after the seek"
     assert app.session.frame_index == 2
     app.events_tree.selected = ("event3",)  # Tk keeps the row selected
     app.session.seek_frame(4)  # the user moves away with the slider
@@ -72,7 +84,7 @@ def test_return_and_keyboard_selection_in_the_events_list_seek():
     app.events_tree.selected = ("event3",)
     app._on_event_select(force=True)
     assert app.session.frame_index == 2
-    app._on_event_click(types.SimpleNamespace(y=999))  # a click on empty space does nothing
+    assert app._on_event_click(types.SimpleNamespace(x=40, y=999)) is None  # a click on empty space does nothing
     assert app.seeks == [2]
 
 
@@ -91,7 +103,6 @@ def test_left_right_home_and_space_from_the_events_list_reach_the_replay():
     from desktop.windows_preview import WindowsReplayApp
 
     app = object.__new__(WindowsReplayApp)
-    events = types.SimpleNamespace(winfo_class=lambda: "Treeview", __str__=lambda self: ".events")
     events = type("Tree", (), {"winfo_class": lambda self: "Treeview", "__str__": lambda self: ".!frame.events"})()
     team = type("Tree", (), {"winfo_class": lambda self: "Treeview", "__str__": lambda self: ".!frame.team"})()
     app.events_tree = events
@@ -275,7 +286,8 @@ def test_team_rows_mark_when_the_dash_legend_is_needed():
     rows = team_rows(later.presentation["groups"], later.presentation["per_drone"])
     assert not rows_have_missing(rows, {row["iid"] for row in rows})
     loss = [child["values"][0] for row in rows for child in row["children"]]
-    assert all(value.endswith("%") and "." in value for value in loss), "single loss values share one decimal"
+    assert all(value.count(".") == 1 for value in loss), "loss has one decimal everywhere"
+    assert fmt.format_value(50, "pct1") == "50.0%" and fmt.format_value({"min": 25, "max": 66.67}, "pct1_cell") == "25.0–66.7"
 
 
 @pytest.mark.parametrize("make,expected", [
@@ -334,7 +346,7 @@ def _walk(widget):
 
 
 def test_every_title_and_timeline_control_is_one_height(app):
-    height = app.px(WIN_LAYOUT["controlHeight"])
+    height = app.px(LAYOUT["controlHeight"])
     controls = [widget for widget in _walk(app.root) if widget.winfo_class() in ("TButton", "TRadiobutton")
                 and str(widget.cget("style")) in ("Tool.TButton", "Icon.TButton", "Primary.Icon.TButton", "Segment.Toolbutton")]
     assert len(controls) >= 10
@@ -386,3 +398,150 @@ def test_timing_plot_labels_sit_past_the_last_grid_line(app):
     ring, dot = canvas.coords(rings[1]), canvas.coords(dots[1])
     assert ring[0] < dot[0] and ring[2] > dot[2], "a p95 equal to the median shows as a halo around the dot"
     assert canvas.find_all().index(rings[1]) > canvas.find_all().index(dots[1]), "and is drawn on top of it"
+
+
+# ---- round 2 regressions (real Tk, window shown) ---------------------------------------------------
+@pytest.fixture
+def shown_app():
+    tk = pytest.importorskip("tkinter")
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("no desktop display in this test environment")
+    from desktop.windows_preview import WindowsReplayApp
+
+    application = WindowsReplayApp(root, ReplayModel.from_path(RUN), appearance="dark", persist_appearance=False)
+    root.geometry("1440x900")
+    root.update()
+    yield application
+    root.destroy()
+
+
+def _settle(app, rounds=5):
+    for _ in range(rounds):
+        app.root.update()
+
+
+def test_clicking_an_earlier_event_while_the_list_is_scrolled_lands_on_that_event(shown_app):
+    app = shown_app
+    app._seek_frame(app.session.frame_count - 1)  # the list now holds every event and is scrolled to the newest
+    _settle(app)
+    tree = app.events_tree
+    visible = [iid for iid in tree.get_children("") if tree.bbox(iid)]
+    target = visible[0]  # the oldest row on screen: a seek re-renders, so a release-time lookup would hit another row
+    want = app._event_frames[target]
+    assert want != app.session.frame_index
+    x, y, _w, h = tree.bbox(target)
+    tree.event_generate("<ButtonPress-1>", x=x + 40, y=y + h // 2)
+    _settle(app)
+    tree.event_generate("<ButtonRelease-1>", x=x + 40, y=y + h // 2)
+    _settle(app)
+    assert app.session.frame_index == want, "the click jumps to the event that was under the pointer"
+
+
+def test_double_clicking_a_group_header_toggles_it_once(shown_app):
+    app = shown_app
+    app._seek_frame(3)
+    _settle(app)
+    tree = app.fleet
+    group = next(row["iid"] for row in app._team_plan if row["level"] == "ok")
+    before = bool(tree.item(group, "open"))
+    x, y, _w, h = tree.bbox(group)
+    # Two presses 40 ms apart at the same spot: Tk turns the second into <Double-Button-1>.
+    for stamp in (10_000, 10_020, 10_040, 10_060):
+        kind = "<ButtonPress-1>" if stamp % 40 == 0 else "<ButtonRelease-1>"
+        tree.event_generate(kind, x=x + 60, y=y + h // 2, time=stamp)
+    _settle(app)
+    assert bool(tree.item(group, "open")) is (not before), "a double-click opens a closed group (once)"
+
+
+def _text_start(tree, iid):
+    """Where ttk starts drawing the row text inside #0, found by asking Tk which element is under each x."""
+    x0, y, w, h = tree.bbox(iid, "#0")
+    return next(x for x in range(x0, x0 + w) if tree.identify_element(x, y + h // 2).endswith("text")), x0 + w
+
+
+@pytest.mark.parametrize("frame", [0, 5])
+def test_no_team_label_is_cut_off(shown_app, frame):
+    app = shown_app
+    app._seek_frame(frame)
+    for row in app._team_plan:
+        app.fleet.item(row["iid"], open=True)
+    _settle(app)
+    strong, body = app.fonts["bodyStrong"], app.fonts["body"]
+    checked = 0
+    for row in app._team_plan:
+        for iid, text, font in [(row["iid"], row["label"], strong)] + [(child["iid"], child["label"], body) for child in row["children"]]:
+            app.fleet.see(iid)
+            app.root.update()
+            if not app.fleet.bbox(iid, "#0"):
+                continue
+            start, end = _text_start(app.fleet, iid)
+            assert start + font.measure(text) <= end, f"{text!r} is clipped"
+            checked += 1
+    assert checked >= 3
+
+
+def test_late_and_lost_markers_use_the_shared_status_shapes(shown_app):
+    from desktop.scene_view import status_points
+
+    assert len(status_points("caution", 0, 0, 10)) == 6, "Late is a triangle"
+    assert len(status_points("alert", 0, 0, 10)) == 8, "Lost is a square"
+    app = shown_app
+    app._seek_frame(3)
+    _settle(app)
+    scene = app.scene
+    late = [items for items, drone in zip(scene._drone_items, scene.order)
+            if (scene.records.get(drone) or {}).get("level") == "caution"]
+    assert late and all(scene.canvas.itemcget(items["marker"], "state") != "hidden" for items in late)
+    assert all(len(scene.canvas.coords(items["marker"])) == 6 for items in late)
+    words = [scene.canvas.itemcget(label, "text") for _level, _shape, label in scene._legend]
+    assert words == [UI_TEXT["statusLevels"]["caution"]["word"], UI_TEXT["statusLevels"]["alert"]["word"]]
+
+
+def test_a_deleted_event_row_clears_the_remembered_selection(shown_app):
+    app = shown_app
+    app._seek_frame(app.session.frame_count - 1)
+    _settle(app)
+    last = app.events_tree.get_children("")[-1]
+    app._event_selected = last
+    app._restart()  # frame 0: later event rows are deleted
+    _settle(app)
+    assert app.__dict__.get("_event_selected") is None
+
+
+def test_a_tooltip_that_fails_half_built_leaves_no_window(shown_app, monkeypatch):
+    import tkinter as tk
+
+    from desktop.ui_widgets import Tooltip
+
+    app = shown_app
+    tip = Tooltip(app.play_button, "Play", lambda: app.theme, app.fonts["caption"])
+    before = {str(window) for window in app.play_button.winfo_children()}
+
+    def broken(*_args, **_kwargs):
+        raise tk.TclError("simulated failure after the window exists")
+    monkeypatch.setattr(tk, "Frame", broken)
+    tip._shown_text = "Play"
+    tip._show()
+    app.root.update()
+    after = {str(window) for window in app.play_button.winfo_children()}
+    assert after == before and tip._window is None
+
+
+def test_scale_bar_picks_a_round_length():
+    from desktop.ui_viewers import scale_bar_meters
+
+    assert scale_bar_meters(100.0, 48) == 0.5
+    assert scale_bar_meters(10.0, 48) == 5.0
+    assert scale_bar_meters(0.0, 48) == 100.0
+
+
+def test_the_events_list_is_as_wide_as_its_longest_event(shown_app):
+    app = shown_app
+    tree = app.events_tree
+    for frame in (3, app.session.frame_count - 1):
+        app._seek_frame(frame)
+        _settle(app)
+        longest = max(app.fonts["body"].measure(str(tree.item(iid, "values")[2])) for iid in tree.get_children(""))
+        assert tree.winfo_width() >= app._events_fixed + longest, "no event text is cut off (ttk must really resize)"

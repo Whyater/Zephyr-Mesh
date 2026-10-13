@@ -25,7 +25,7 @@ from typing import Any, Callable, Mapping, Sequence
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from desktop.design_tokens import LAYOUT, SHORTCUTS, SPACE, TRANSPORT, UI_TEXT, WIN_LAYOUT
-    from desktop.presentation import filter_group_rows, pinned_levels, run_name, team_filter
+    from desktop.presentation import compact_name, filter_group_rows, pinned_levels, run_name, team_filter
     from desktop.replay import ReplayModel
     from desktop.replay_session import SPEEDS, ReplaySession
     from desktop.scenario_run import load_scenario_run
@@ -34,7 +34,7 @@ if __package__ in (None, ""):
     from desktop.ui_settings import load_appearance, resolve_theme, save_appearance, system_prefers_dark, system_reduced_motion
 else:
     from .design_tokens import LAYOUT, SHORTCUTS, SPACE, TRANSPORT, UI_TEXT, WIN_LAYOUT
-    from .presentation import filter_group_rows, pinned_levels, run_name, team_filter
+    from .presentation import compact_name, filter_group_rows, pinned_levels, run_name, team_filter
     from .replay import ReplayModel
     from .replay_session import SPEEDS, ReplaySession
     from .scenario_run import load_scenario_run
@@ -288,7 +288,7 @@ def speed_label(speed: float) -> str:
 
 # ---- pure team-list planning (tested without Tk) ------------------------------
 WIN_TEXT: Mapping[str, str] = UI_TEXT["windowsText"]
-TEAM_COLUMNS = ("loss", "age")
+TEAM_COLUMNS = ("loss", "age", "end")  # "end" is an empty gap column, not data
 
 
 def group_key(row: Mapping[str, Any]) -> str:
@@ -302,8 +302,8 @@ def _cell(value: Any, kind: str) -> str:
 
 
 def _loss_cell(value: Any) -> str:
-    """Loss with one decimal for single values, so a column of percentages lines up (ranges stay whole)."""
-    return _cell(value, "pct" if isinstance(value, Mapping) else "pct1")
+    """Loss with one decimal, like everywhere else; the "%" lives in the column heading."""
+    return _cell(value, "pct1_cell")
 
 
 def team_rows(
@@ -337,17 +337,25 @@ def team_rows(
                 "level": level,
                 "label": WIN_TEXT["droneLabel"].format(name=record.get("compact_name", drone),
                                                        word=fmt.status_word(level, record.get("word"))),
-                "values": (_loss_cell(record.get("target_packet_loss_pct")), _cell(record.get("target_age_s"), "s")),
+                "values": (_loss_cell(record.get("target_packet_loss_pct")), _cell(record.get("target_age_s"), "s_cell")),
             })
         rows.append({
             "iid": group_key(group),
             "level": str(group["level"]),
             "label": label,
             "members": members,
-            "values": (_loss_cell(group.get("target_packet_loss_pct")), _cell(group.get("target_age_s"), "s")),
+            "values": (_loss_cell(group.get("target_packet_loss_pct")), _cell(group.get("target_age_s"), "s_cell")),
             "children": children,
         })
     return rows
+
+
+def row_region(tree: Any, x: int, y: int) -> bool:
+    """True when (x, y) is over a Treeview row ("tree" or "cell"), never the headings or blank space."""
+    try:
+        return tree.identify_region(x, y) in ("tree", "cell")
+    except Exception:
+        return False
 
 
 def rows_have_missing(rows: Sequence[Mapping[str, Any]], open_groups: set[str]) -> bool:
@@ -393,10 +401,18 @@ def _sentence(text: str) -> str:
 
 
 def desired_team_selection(rows: Sequence[Mapping[str, Any]], selected: str, open_groups: set[str]) -> str | None:
-    """Which row should look selected: the drone if its group is open, else the group."""
+    """The row to select: the drone when its group is open. A closed group is never selected for it."""
     for row in rows:
         if selected in row["members"]:
-            return selected if row["iid"] in open_groups else str(row["iid"])
+            return selected if row["iid"] in open_groups else None
+    return None
+
+
+def group_holding_selection(rows: Sequence[Mapping[str, Any]], selected: str, open_groups: set[str]) -> str | None:
+    """The closed group that hides the selected drone; it gets a quiet "holds" mark instead of the selection."""
+    for row in rows:
+        if selected in row["members"] and row["iid"] not in open_groups:
+            return str(row["iid"])
     return None
 
 
@@ -511,7 +527,12 @@ class WindowsReplayApp:
     def _build(self, scene_class: Any) -> None:
         tk, ttk, root = self.tk, self.ttk, self.root
         root.title("Zephyr Mesh")
-        root.minsize(self.px(LAYOUT["windowMinWidth"]), self.px(LAYOUT["windowMinHeight"]))
+        self._team_layout = self._measure_team_list()
+        # The token minimum, or wider if this machine's fonts need a wider team list to show every label whole.
+        hairlines = 2 * self.px(WIN_LAYOUT["hairline"])
+        needed = (self._team_layout["sidebar"] + self.px(LAYOUT["inspectorWidth"]) + self.px(LAYOUT["sceneMinWidth"])
+                  + hairlines)
+        root.minsize(max(self.px(LAYOUT["windowMinWidth"]), needed), self.px(LAYOUT["windowMinHeight"]))
         root.columnconfigure(0, weight=1)
         root.rowconfigure(4, weight=1)
         self.keepout_var = tk.BooleanVar(value=self.session.show_keepout)
@@ -667,23 +688,48 @@ class WindowsReplayApp:
 
     def _header_row(self, parent: Any, row: int) -> None:
         """Panel headers share one fixed-height first row, so the sidebar and inspector titles line up."""
-        parent.rowconfigure(row, minsize=self.px(WIN_LAYOUT["controlHeight"]))
+        parent.rowconfigure(row, minsize=self.px(LAYOUT["controlHeight"]))
 
-    def _team_column_widths(self, inner: int) -> dict[str, int]:
-        """Measure columns from their widest real content, so nothing is clipped at any DPI."""
-        strong = self.fonts["bodyStrong"]  # group rows are bold, the widest case
+    def _measure_team_list(self) -> dict[str, Any]:
+        """Column widths from the widest real labels in the bold group font, and the sidebar width they need.
+
+        The sidebar is the token width unless this run's longest group or drone
+        label needs more; then it grows, so a label is never cut off.
+        """
+        strong, caption = self.fonts["bodyStrong"], self.fonts["caption"]
         pad = self.px(SPACE["sm"])
 
         def fit(*samples: str) -> int:
             return max(strong.measure(sample) for sample in samples) + pad
 
-        widths = {"loss": fit("Loss", "100.0%", f"00{fmt.EN_DASH}100%"), "age": fit("Age", f"0.00{fmt.EN_DASH}0.00 s")}
-        widths["#0"] = max(inner - sum(widths.values()), fit("Drones"))
-        return widths
+        dash = fmt.EN_DASH
+        widths = {
+            "loss": max(fit(f"00.0{dash}100.0"), caption.measure(WIN_TEXT["columnLoss"]) + pad),
+            "age": max(fit(f"0.00{dash}0.00"), caption.measure(WIN_TEXT["columnAge"]) + pad),
+            "end": self.px(SPACE["sm"]),  # keeps right-aligned numbers off the edge of the selection highlight
+        }
+        agents = self.run.get("steps", [{}])[0].get("agents", []) if self.run.get("steps") else []
+        count = max(len(agents), 1)
+        # The words a drone row can carry (status_for_agent): OK, Late, Lost or its alternate, Waiting.
+        words = [str(word) for level in ("ok", "caution", "alert", "waiting")
+                 for word in (fmt.LEVELS[level]["word"], fmt.LEVELS[level].get("alternateWord")) if word]
+        names = [compact_name(str(agent.get("agent_id", ""))) for agent in agents] or ["D00"]
+        group_text = max(strong.measure(WIN_TEXT["groupLabel"].format(word=word, count=fmt.group_label(count))) for word in words)
+        drone_text = max(strong.measure(WIN_TEXT["droneLabel"].format(name=name, word=word)) for name in names[:200] for word in words)
+        # Row geometry as ttk draws it (checked with identify_element): the disclosure slot (indicatorsize
+        # plus a SPACE["xs"] margin), the glyph box, then the text; drone rows add one indent first.
+        indicator = self.px(SPACE["sm"]) + self.px(SPACE["xs"])
+        glyph = self.px(WIN_LAYOUT["glyphBox"])
+        indent = self.px(SPACE["lg"])
+        tree_column = max(indicator + glyph + group_text, indent + indicator + glyph + drone_text) + pad
+        scroll = self.px(SPACE["sm"]) + self.px(SPACE["xxs"])
+        sidebar = max(self.px(WIN_LAYOUT["sidebarWidth"]), tree_column + sum(widths.values()) + scroll + 2 * self.px(SPACE["lg"]))
+        widths["#0"] = sidebar - 2 * self.px(SPACE["lg"]) - scroll - sum(widths.values())
+        return {"widths": widths, "sidebar": sidebar, "scroll": scroll}
 
     def _build_team(self, parent: Any) -> Any:
         ttk = self.ttk
-        width = self.px(WIN_LAYOUT["sidebarWidth"])
+        width = self._team_layout["sidebar"]
         pad = self.px(SPACE["lg"])
         frame = ttk.Frame(parent, style="Surface.TFrame", width=width, padding=(pad, self.px(SPACE["md"]), pad, pad))
         frame.grid_propagate(False)
@@ -717,11 +763,10 @@ class WindowsReplayApp:
         self.filter_caption.grid_remove()
         columns = TEAM_COLUMNS
         tree = ttk.Treeview(frame, columns=columns, show="tree headings", selectmode="browse", style="Zephyr.Treeview", takefocus=True)
-        scroll_width = self.px(SPACE["sm"]) + self.px(SPACE["xxs"])
         # Always reserve the scrollbar column, so the columns never jump when it appears.
-        frame.columnconfigure(1, minsize=scroll_width)
-        widths = self._team_column_widths(width - 2 * pad - scroll_width)
-        headings = {"#0": "Drones", "loss": "Loss", "age": "Age"}
+        frame.columnconfigure(1, minsize=self._team_layout["scroll"])
+        widths = self._team_layout["widths"]
+        headings = {"#0": WIN_TEXT["columnDrones"], "loss": WIN_TEXT["columnLoss"], "age": WIN_TEXT["columnAge"], "end": ""}
         for column in ("#0",) + columns:
             anchor = "w" if column == "#0" else "e"
             tree.heading(column, text=headings[column], anchor=anchor)
@@ -751,6 +796,8 @@ class WindowsReplayApp:
     def _team_cell_tip(self, x: int, y: int) -> str | None:
         """Hover text for a dash cell: say plainly that the value was not recorded."""
         tree = self.fleet
+        if not row_region(tree, x, y):
+            return None
         row, column = tree.identify_row(y), tree.identify_column(x)
         if not row or column in ("", "#0"):
             return None
@@ -791,8 +838,11 @@ class WindowsReplayApp:
         self.inspector_scroll = scroll
         self._theme_hooks.append(scroll.apply_theme)
         pad = self.px(SPACE["lg"])
-        scroll_width = self.px(SPACE["sm"])
-        body = ttk.Frame(scroll.inner, style="Surface.TFrame", padding=(pad, self.px(SPACE["md"]), pad, pad))
+        # The scroll area always reserves its scrollbar column, so the right padding is what is left of
+        # SPACE["lg"] after that column; the right inset is the same with or without a scrollbar.
+        right = max(0, pad - scroll.reserve)
+        content = width - pad - scroll.reserve - right
+        body = ttk.Frame(scroll.inner, style="Surface.TFrame", padding=(pad, self.px(SPACE["md"]), right, pad))
         body.pack(fill="both", expand=True)
         body.columnconfigure(0, weight=1)
         self._header_row(body, 0)
@@ -803,7 +853,7 @@ class WindowsReplayApp:
         self.inspector_word = ttk.Label(header, style="Surface.Body.TLabel", compound="left", anchor="e")
         self.inspector_word.pack(side="right")
         self.inspector_hint = ttk.Label(body, text=UI_TEXT["inspector"]["emptyHint"], style="Surface.Secondary.TLabel",
-                                        wraplength=width - 2 * pad - scroll_width, justify="left")
+                                        wraplength=content, justify="left")
         self.inspector_hint.grid(row=1, column=0, sticky="w", pady=(self.px(SPACE["xs"]), 0))
         self.inspector_hint.grid_remove()
         tiles = ttk.Frame(body, style="Surface.TFrame")
@@ -821,7 +871,7 @@ class WindowsReplayApp:
                             padx=(0, gap) if index % 2 == 0 else (0, 0), pady=(0, gap))
             self.tiles[key] = tile
         label_width = self.px(WIN_LAYOUT["inspectorLabelWidth"])
-        wrap = width - 2 * pad - label_width - self.px(SPACE["md"]) - scroll_width
+        wrap = content - label_width - self.px(SPACE["md"])
         section_pad = (self.px(SPACE["md"]), self.px(SPACE["xs"]))
         self.motion_heading = ttk.Label(body, text=UI_TEXT["inspector"]["positionAndMotion"], style="Surface.Strong.TLabel")
         self.motion_heading.grid(row=3, column=0, sticky="w", pady=section_pad)
@@ -839,7 +889,11 @@ class WindowsReplayApp:
             body, UI_TEXT["inspector"]["details"], self.images, pad=self.px(SPACE["xs"]),
             on_toggle=lambda opened: opened and self.root.after_idle(lambda: self.inspector_scroll.reveal(self.details.frame)))
         self.details.frame.grid(row=8, column=0, sticky="ew")
-        self.details_grid = self.widgets.KeyValueGrid(self.details.body, **grid_options)
+        # Details holds long ids and part names, so its label column is narrower and its values get more room.
+        details_label = self.px(WIN_LAYOUT["detailsLabelWidth"])
+        self.details_grid = self.widgets.KeyValueGrid(
+            self.details.body, label_width=details_label, wrap=content - details_label - self.px(SPACE["md"]), scale=self.scale,
+            label_wrap=details_label - self.px(SPACE["md"]))
         self.details_grid.frame.pack(fill="x")
         self._inspector_sections = (tiles, self.motion_heading, self.motion_grid.frame, self.neighbor_heading,
                                     self.neighbor_grid.frame, self.inspector_rule, self.details.frame)
@@ -905,29 +959,54 @@ class WindowsReplayApp:
             row=0, column=0, sticky="w", pady=(0, self.px(SPACE["xs"])))
         ttk.Label(frame, text=WIN_TEXT["eventsHint"], style="Surface.Caption.TLabel").grid(
             row=0, column=0, columnspan=2, sticky="e", pady=(0, self.px(SPACE["xs"])))
-        tree = ttk.Treeview(frame, columns=("word", "time", "text"), show="tree", selectmode="browse",
+        # The list is only as wide as its longest event, so its scrollbar sits right next to the text.
+        holder = ttk.Frame(frame, style="Surface.TFrame")
+        holder.grid(row=1, column=0, columnspan=2, sticky="w")
+        tree = ttk.Treeview(holder, columns=("word", "time", "text"), show="tree", selectmode="browse",
                             height=WIN_LAYOUT["eventRows"], style="Events.Treeview", takefocus=True)
         body = self.fonts["body"]
         pad = self.px(SPACE["md"])
-        glyph = self.px(WIN_LAYOUT["glyphBox"]) + self.px(SPACE["md"])
+        glyph = self.px(WIN_LAYOUT["glyphBox"]) + self.px(SPACE["sm"])
         word = max(body.measure(fmt.status_word(level)) for level in fmt.LEVELS) + pad
         time_width = body.measure("00.00 s") + pad
         tree.column("#0", width=glyph, minwidth=glyph, stretch=False)
         tree.column("word", width=word, minwidth=word, stretch=False, anchor="w")
         tree.column("time", width=time_width, minwidth=time_width, stretch=False, anchor="w")
-        tree.column("text", width=self.px(WIN_LAYOUT["eventTextMinWidth"]), stretch=True, anchor="w")
-        scroll = ttk.Scrollbar(frame, orient="vertical", style="Thin.Vertical.TScrollbar", command=tree.yview)
-        tree.configure(yscrollcommand=self._auto_scroll(scroll, row=1, column=1))
-        frame.columnconfigure(1, minsize=self.px(SPACE["sm"]) + self.px(SPACE["xxs"]))
-        tree.grid(row=1, column=0, sticky="ew")
+        tree.column("text", width=self.px(WIN_LAYOUT["eventTextMinWidth"]), stretch=False, anchor="w")
+        self._events_fixed = glyph + word + time_width
+        scroll = ttk.Scrollbar(holder, orient="vertical", style="Thin.Vertical.TScrollbar", command=tree.yview)
+        tree.configure(yscrollcommand=self._auto_scroll(scroll, row=0, column=1))
+        holder.columnconfigure(1, minsize=self.px(SPACE["sm"]) + self.px(SPACE["xxs"]))
+        tree.grid(row=0, column=0, sticky="w")
+        frame.bind("<Configure>", lambda _event: self._fit_events_width(), add="+")
         tree.bind("<<TreeviewSelect>>", self._on_event_select)
-        tree.bind("<ButtonRelease-1>", self._on_event_click)
+        # Act on the press, not the release: the seek re-renders the list, and by release time
+        # a different row can sit under the pointer.
+        tree.bind("<Button-1>", self._on_event_click)
         tree.bind("<Return>", lambda _event: self._on_event_select(force=True))
         self.events_tree = tree
         self.events_hover = self.widgets.TreeHover(tree)
         self.events_tip = self.widgets.Tooltip(tree, "", lambda: self.theme, self.fonts["caption"], scale=self.scale,
                                                text_for=self._event_tip)
         return frame
+
+    def _fit_events_width(self) -> None:
+        """Size the text column to the longest event, within the pane, so the scrollbar stays beside it."""
+        tree = self.events_tree
+        frame = tree.master.master
+        try:
+            available = int(frame.winfo_width()) - 2 * self.px(SPACE["lg"]) - self._events_fixed - 2 * self.px(SPACE["sm"])
+        except self.tk.TclError:
+            return
+        body = self.fonts["body"]
+        longest = max((body.measure(str(tree.item(iid, "values")[2])) for iid in tree.get_children("")), default=0)
+        wanted = max(self.px(WIN_LAYOUT["eventTextMinWidth"]), longest + self.px(SPACE["xl"]))
+        width = max(self.px(WIN_LAYOUT["eventTextMinWidth"]), min(wanted, available))
+        if int(tree.column("text", "width")) != width:
+            tree.column("text", width=width)
+            # ttk does not recompute a Treeview's requested width when a column changes; re-setting the
+            # displayed columns makes it, so the list (and the scrollbar beside it) actually grows.
+            tree.configure(displaycolumns=tree.cget("displaycolumns"))
 
     def _event_tip(self, _x: int, y: int) -> str | None:
         """Full event text on hover, for a long row the column cuts off."""
@@ -1008,6 +1087,7 @@ class WindowsReplayApp:
         self.events_tree.tag_configure("past", foreground=p.textSecondary)
         self.events_tree.tag_configure("current", foreground=p.text)
         self.fleet.tag_configure("group", font=self.fonts["bodyStrong"], foreground=p.text)
+        self.fleet.tag_configure("holds", background=theme.color("holdFill"))
         self.scene.apply_theme(theme)
         alive = []
         for hook in self._theme_hooks:
@@ -1065,12 +1145,13 @@ class WindowsReplayApp:
     def _render_strip(self, presentation: Mapping[str, Any]) -> None:
         labels = UI_TEXT["statusStrip"]
         headline = presentation["headline"]
-        self._set(self.strip_glyph, image=self.images.status(headline["level"], 15, 16))
+        self._set(self.strip_glyph, image=self.images.status(headline["level"], WIN_LAYOUT["stripGlyphSize"],
+                                                             WIN_LAYOUT["glyphBox"]))
         self._set(self.strip_values[labels[0]], text=headline["text"], style="Base.Metric.TLabel")
         strip = presentation["strip"]
         self._set_metric(labels[1], fmt.format_value(presentation.get("estimate_error_p95_m"), "m"))
         self._set_metric(labels[2], fmt.format_value(strip.get("target_link_delay_ms"), "ms"))
-        self._set_metric(labels[3], fmt.format_value(strip.get("target_packet_loss_pct"), "pct"))
+        self._set_metric(labels[3], fmt.format_value(strip.get("target_packet_loss_pct"), "pct1"))
         self._set_metric(labels[4], fmt.format_age_span(strip.get("newest_target_age_s"), strip.get("oldest_target_age_s")))
 
     def _render_fleet(self) -> None:
@@ -1134,21 +1215,27 @@ class WindowsReplayApp:
                 parts.append(UI_TEXT["teamFilter"]["pinnedNote"])
             text = " ".join(part if part.endswith(".") else f"{part}." for part in parts)
             self._set(self.filter_caption, text=text)
-            self.filter_caption.grid()
-            self.clear_button.place(in_=self.filter_entry, relx=1.0, x=-self.px(SPACE["xs"]), rely=0.5, anchor="e")
-        else:
-            self.filter_caption.grid_remove()
-            self.clear_button.place_forget()
-        if not plan and state["empty_text"]:
+        self._show("caption", bool(caption), lambda: self.filter_caption.grid(),
+                   self.filter_caption.grid_remove)
+        self._show("clear", bool(caption),
+                   lambda: self.clear_button.place(in_=self.filter_entry, relx=1.0, x=-self.px(SPACE["xs"]), rely=0.5, anchor="e"),
+                   self.clear_button.place_forget)
+        empty = not plan and bool(state["empty_text"])
+        if empty:
             self._set(self.team_empty, text=state["empty_text"])
-            self.team_empty.place(relx=0.5, rely=0.3, anchor="center")
-        else:
-            self.team_empty.place_forget()
+        self._show("empty", empty, lambda: self.team_empty.place(relx=0.5, rely=0.3, anchor="center"),
+                   self.team_empty.place_forget)
         open_now = {row["iid"] for row in plan if self.fleet.exists(row["iid"]) and self.fleet.item(row["iid"], "open")}
-        if rows_have_missing(plan, open_now):
-            self.missing_legend.grid()
-        else:
-            self.missing_legend.grid_remove()
+        self._show("legend", rows_have_missing(plan, open_now), lambda: self.missing_legend.grid(),
+                   self.missing_legend.grid_remove)
+
+    def _show(self, key: str, visible: bool, show: Callable[[], Any], hide: Callable[[], Any]) -> None:
+        """Show or hide a widget only when that changes, so a playback frame does no geometry work for it."""
+        shown = self.__dict__.setdefault("_shown_state", {})
+        if shown.get(key) is visible:
+            return
+        shown[key] = visible
+        (show if visible else hide)()
 
     def _tree_item(self, iid: str, **options: Any) -> None:
         """Update a team row only when its text, values, or image changed."""
@@ -1171,18 +1258,38 @@ class WindowsReplayApp:
         return {row["iid"] for row in self._team_plan if self.fleet.exists(row["iid"]) and self.fleet.item(row["iid"], "open")}
 
     def _sync_team_selection(self, reveal: bool = False) -> None:
-        """Make the tree selection match the session. Only calls selection_set when it differs."""
-        desired = desired_team_selection(self._team_plan, self.session.selected_drone_id, self._open_now())
+        """Make the tree selection match the session. Only calls selection_set when it differs.
+
+        A drone hidden inside a closed group leaves the selection empty and marks
+        that group with the quieter "holds" tag, so the highlight never sits on a
+        row the user did not pick.
+        """
+        open_now = self._open_now()
+        selected = self.session.selected_drone_id
+        desired = desired_team_selection(self._team_plan, selected, open_now)
         current = tuple(self.fleet.selection())
         if desired is None:
             if current:
                 self.fleet.selection_set(())
-            return
-        if current != (desired,):
+        elif current != (desired,):
             self.fleet.selection_set(desired)
             self.fleet.focus(desired)
-        if reveal:
+        self._mark_holding_group(group_holding_selection(self._team_plan, selected, open_now))
+        if desired is not None and reveal:
             self.fleet.see(desired)
+
+    def _mark_holding_group(self, iid: str | None) -> None:
+        previous = self.__dict__.get("_holding_group")
+        if previous == iid:
+            return
+        tree = self.fleet
+        for row, add in ((previous, False), (iid, True)):
+            if row and tree.exists(row):
+                tags = [tag for tag in tree.item(row, "tags") if tag != "holds"]
+                tree.item(row, tags=tuple(tags + (["holds"] if add else [])))
+        self._holding_group = iid
+        if iid and not tree.selection():
+            tree.focus(iid)  # arrow keys continue from the row that holds the drone
 
     def _on_select(self, _event: Any = None) -> None:
         """Tree selection changed. Idempotent: a selection that already matches renders nothing.
@@ -1229,6 +1336,8 @@ class WindowsReplayApp:
 
     def _on_team_click(self, event: Any) -> str | None:
         """A click on a group header opens or closes it and leaves the selected drone alone."""
+        if not self._in_rows(self.fleet, event):
+            return None
         row = self.fleet.identify_row(event.y)
         if not row or row not in {plan["iid"] for plan in self._team_plan}:
             return None
@@ -1244,15 +1353,30 @@ class WindowsReplayApp:
         self._render_filter_state(self.session.presentation, self.filter_var.get(), self._team_plan)
         return "break"
 
+    @staticmethod
+    def _in_rows(tree: Any, event: Any) -> bool:
+        """True when the pointer is over a row, not the headings or empty space.
+
+        Tk 8.6 ``identify_row`` reports the row scrolled above the view when the
+        pointer is on the headings, so every row action checks the region first.
+        """
+        return row_region(tree, event.x, event.y)
+
     def _on_team_double(self, event: Any) -> str | None:
+        if not self._in_rows(self.fleet, event):
+            return None
         row = self.fleet.identify_row(event.y)
+        if row in {plan["iid"] for plan in self._team_plan}:
+            # The first click already opened or closed the group; Tk's own double-click
+            # toggle would undo it, so the double-click stops here.
+            return "break"
         if row and row in {child["iid"] for plan in self._team_plan for child in plan["children"]}:
             self._focus_drone(row)
             return "break"
         return None
 
     def _on_team_context(self, event: Any) -> str:
-        row = self.fleet.identify_row(event.y)
+        row = self.fleet.identify_row(event.y) if self._in_rows(self.fleet, event) else ""
         drone = drone_for_team_row(self._team_plan, row, self.session.selected_drone_id) if row else None
         if drone:
             self._show_context_menu(drone, event.x_root, event.y_root)
@@ -1288,7 +1412,7 @@ class WindowsReplayApp:
         self._flash_notice(WIN_TEXT["copied"])
         return True
 
-    def _flash_notice(self, text: str, duration_ms: int = 2400) -> None:
+    def _flash_notice(self, text: str, duration_ms: int = WIN_LAYOUT["noticeMs"]) -> None:
         """Show a short note in the title row, then clear it unless something else replaced it."""
         notice = getattr(self, "notice", None)
         if notice is None:
@@ -1331,11 +1455,12 @@ class WindowsReplayApp:
         self._show_inspector_sections(True)
         glyph = WIN_LAYOUT["glyphSize"]
         self._set(self.inspector_title, text=record["heading_name"])
-        self._set(self.inspector_word, text=f" {record['word']}", image=self.images.status(record["level"], glyph, glyph + 2))
+        self._set(self.inspector_word, text=f" {record['word']}", image=self.images.status(record["level"], glyph,
+                                                                                            WIN_LAYOUT["glyphBox"]))
         self.tiles["target_age"].set(fmt.format_value(record.get("target_age_s"), "s"))
         self.tiles["estimate"].set(fmt.format_value(record.get("estimate_error_m"), "m"))
         self.tiles["delay"].set(fmt.format_value(record.get("target_link_delay_ms"), "ms"))
-        self.tiles["loss"].set(fmt.format_value(record.get("target_packet_loss_pct"), "pct"))
+        self.tiles["loss"].set(fmt.format_value(record.get("target_packet_loss_pct"), "pct1"))
         self.motion_grid.set_rows((
             (UI_TEXT["inspector"]["altitude"], fmt.format_value(record.get("altitude_m"), "m")),
             (fmt.field_label("speed_mps"), fmt.format_value(record.get("speed_mps"), "mps")),
@@ -1346,7 +1471,7 @@ class WindowsReplayApp:
              if record.get("neighbor_count") is not None else None),
             (fmt.field_label("nearest_neighbor_m"), fmt.format_value(record.get("nearest_neighbor_m"), "m")),
             (fmt.field_label("neighbor_link_delay_ms"), fmt.format_value(record.get("neighbor_link_delay_ms"), "ms")),
-            (fmt.field_label("neighbor_packet_loss_pct"), fmt.format_value(record.get("neighbor_packet_loss_pct"), "pct")),
+            (fmt.field_label("neighbor_packet_loss_pct"), fmt.format_value(record.get("neighbor_packet_loss_pct"), "pct1")),
         ))
         agent = next((item for item in self._raw_frame().get("agents", []) if item.get("agent_id") == record["drone_id"]), {})
         profile = self._profile(record.get("profile_id")) or {}
@@ -1400,6 +1525,9 @@ class WindowsReplayApp:
                     self.events_hover.forget(iid)
                     tree.delete(iid)
                     self._event_frames.pop(iid, None)
+                    if self.__dict__.get("_event_selected") == iid:
+                        # The row is gone; a later row with the same id is a different event.
+                        self._event_selected = None
             box = WIN_LAYOUT["glyphBox"]
             for index in range(keep, len(events)):
                 frame, event = events[index]
@@ -1410,6 +1538,7 @@ class WindowsReplayApp:
                             values=(word, time_text, text))
                 self._event_frames[iid] = frame
             self._event_signature = signature
+            self._fit_events_width()
             children = tree.get_children("")
             if children:
                 tree.see(children[-1])
@@ -1433,12 +1562,24 @@ class WindowsReplayApp:
         self._event_selected = selection[0]
         self._activate_event(selection[0])
 
-    def _on_event_click(self, event: Any) -> None:
-        """Every click jumps, even on the row that is already selected (no new <<TreeviewSelect>> then)."""
-        row = self.events_tree.identify_row(event.y)
-        if row:
-            self._event_selected = row
-            self._activate_event(row)
+    def _on_event_click(self, event: Any) -> str | None:
+        """Every click jumps to the row under the pointer at press time, even if it is already selected.
+
+        Returns "break" so Tk's own press handling does not select again after the
+        seek has re-rendered (and possibly scrolled) the list.
+        """
+        tree = self.events_tree
+        if not row_region(tree, event.x, event.y):
+            return None
+        row = tree.identify_row(event.y)
+        if not row:
+            return None
+        tree.focus_set()
+        self._event_selected = row  # the <<TreeviewSelect>> that selection_set queues now matches and is ignored
+        tree.selection_set(row)
+        tree.focus(row)
+        self._activate_event(row)
+        return "break"
 
     def _activate_event(self, iid: str) -> None:
         frame = self._event_frames.get(iid)

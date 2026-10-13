@@ -71,6 +71,7 @@ class Rewrap:
 
     def __init__(self, ctx: ViewerContext, scroll: Any) -> None:
         self.ctx = ctx
+        self.padding = ctx.inset + max(0, ctx.inset - scroll.reserve)  # left plus right padding of the body
         self.width = 0
         self.callbacks: list[Callable[[int], None]] = []
         scroll.canvas.bind("<Configure>", self._resized, add="+")
@@ -81,7 +82,7 @@ class Rewrap:
             callback(self.width)
 
     def _resized(self, event: Any) -> None:
-        width = max(1, int(event.width) - 2 * self.ctx.inset)
+        width = max(1, int(event.width) - self.padding)
         if width == self.width:
             return
         self.width = width
@@ -160,7 +161,9 @@ def _scroll_body(ctx: ViewerContext, window: Any) -> tuple[Any, Any, Rewrap]:
     scroll.outer.pack(fill="both", expand=True)
     scroll.apply_theme(ctx.theme())
     ctx.add_theme_hook(scroll.apply_theme)
-    body = ttk.Frame(scroll.inner, style="Surface.TFrame", padding=(ctx.inset, ctx.px(SPACE["md"]), ctx.inset, ctx.px(SPACE["xl"])))
+    # The scroll area always reserves its scrollbar column; the right padding is what remains of the inset.
+    right = max(0, ctx.inset - scroll.reserve)
+    body = ttk.Frame(scroll.inner, style="Surface.TFrame", padding=(ctx.inset, ctx.px(SPACE["md"]), right, ctx.px(SPACE["xl"])))
     body.pack(fill="both", expand=True)
 
     def wheel(event: Any) -> None:
@@ -208,7 +211,7 @@ def _copy_button(ctx: ViewerContext, parent: Any, window: Any, text: str) -> Any
             except TclError:
                 pass
 
-        button.after(1200, restore)
+        button.after(WIN_LAYOUT["copiedMs"], restore)
 
     button.configure(command=copy)
     return button
@@ -293,7 +296,7 @@ def scenario_window(ctx: ViewerContext, run: Any, path: Path) -> Any:
         geometry = scenario_frame_geometry(run.frames[cursor.index])
         width = max(1.0, float(plot.winfo_width()))
         height = max(1.0, float(plot.winfo_height()))
-        rail_space = (SPACE["xxl"] + SPACE["xl"] + SPACE["lg"]) * ctx.scale
+        rail_space = WIN_LAYOUT["scenarioRailSpace"] * ctx.scale
         top_width = max(width - rail_space, 1.0)
         caption = ctx.fonts["caption"]
         margin = ctx.px(SPACE["md"])
@@ -303,13 +306,13 @@ def scenario_window(ctx: ViewerContext, run: Any, path: Path) -> Any:
             x, y = project_scenario_point((center_x, center_y), geometry.bounds, top_width, height)
             radius_px = project_scenario_radius(radius, geometry.bounds, top_width, height)
             plot.create_oval(x - radius_px, y - radius_px, x + radius_px, y + radius_px, outline=keep_out.hex,
-                             fill=mix(keep_out.hex, floor, keep_out.alpha), width=max(1, ctx.px(1.5)))
+                             fill=mix(keep_out.hex, floor, keep_out.alpha), width=_stroke(ctx, "strokeRegular"))
             plot.create_text(x, y + radius_px + ctx.px(SPACE["xs"]), text=label, fill=p.textSecondary, anchor="n", font=caption)
         target_color = theme.scene.target_ring.hex
         target_x, target_y = project_scenario_point(geometry.target, geometry.bounds, top_width, height)
         ring = target_ring * ctx.scale
         plot.create_oval(target_x - ring, target_y - ring, target_x + ring, target_y + ring, outline=target_color,
-                         width=max(2, ctx.px(SPACE["xxs"])))
+                         width=_stroke(ctx, "strokeStrong", 2))
         for _, agent_x, agent_y, active in geometry.agents:
             x, y = project_scenario_point((agent_x, agent_y), geometry.bounds, top_width, height)
             color = theme.scene.drone_body.hex if active else mix(theme.scene.drone_body.hex, floor, 0.4)
@@ -322,7 +325,7 @@ def scenario_window(ctx: ViewerContext, run: Any, path: Path) -> Any:
         plot.create_text(rail_x, margin, text="Altitude", fill=p.textSecondary, anchor="n", font=caption)
         target_z = project_scenario_altitude(geometry.target_altitude, geometry.altitude_bounds, height, inset=30.0)
         tick = rail_tick * ctx.scale
-        plot.create_line(rail_x - tick, target_z, rail_x + tick, target_z, fill=target_color, width=max(2, ctx.px(SPACE["xxs"])))
+        plot.create_line(rail_x - tick, target_z, rail_x + tick, target_z, fill=target_color, width=_stroke(ctx, "strokeStrong", 2))
         for altitude, (_, _, _, active) in zip(geometry.agent_altitudes, geometry.agents):
             y = project_scenario_altitude(altitude, geometry.altitude_bounds, height, inset=30.0)
             color = theme.scene.drone_body.hex if active else mix(theme.scene.drone_body.hex, floor, 0.4)
@@ -333,7 +336,8 @@ def scenario_window(ctx: ViewerContext, run: Any, path: Path) -> Any:
             radius_y = project_scenario_altitude_radius(radius, geometry.altitude_bounds, height, inset=30.0)
             offset = ctx.px(SPACE["sm"]) + ctx.px(SPACE["xxs"])
             plot.create_line(rail_x + offset, center_y - radius_y, rail_x + offset, center_y + radius_y,
-                             fill=keep_out.hex, width=max(2, ctx.px(3)))
+                             fill=keep_out.hex, width=_stroke(ctx, "strokeRail", 2))
+        _scale_bar(ctx, plot, geometry, top_width, height, p)
 
     def update(index: int) -> None:
         cursor.seek(index)
@@ -400,6 +404,37 @@ def scenario_window(ctx: ViewerContext, run: Any, path: Path) -> Any:
     _raw_text(ctx, disclosure.body, json.dumps(parameters, indent=2, sort_keys=True, ensure_ascii=False), height=12).pack(fill="x")
     update(0)
     return window
+
+
+def _stroke(ctx: ViewerContext, token: str, minimum: int = 1) -> int:
+    """A line width from the stroke tokens, scaled for DPI and never thinner than ``minimum`` pixels."""
+    return max(minimum, int(round(WIN_LAYOUT[token] * ctx.scale)))
+
+
+SCALE_STEPS_M = (0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0)
+
+
+def scale_bar_meters(pixels_per_meter: float, minimum_px: float) -> float:
+    """The shortest round length (1, 2, or 5 times a power of ten) whose bar is at least ``minimum_px`` long."""
+    if pixels_per_meter <= 0:
+        return SCALE_STEPS_M[-1]
+    return next((step for step in SCALE_STEPS_M if step * pixels_per_meter >= minimum_px), SCALE_STEPS_M[-1])
+
+
+def _scale_bar(ctx: ViewerContext, plot: Any, geometry: Any, top_width: float, height: float, p: Any) -> None:
+    """A meter scale bar in the bottom-left corner of the top view."""
+    per_meter = project_scenario_radius(1.0, geometry.bounds, top_width, height)
+    meters = scale_bar_meters(per_meter, WIN_LAYOUT["scaleBarMinLength"] * ctx.scale)
+    length = meters * per_meter
+    x = ctx.px(SPACE["md"])
+    y = height - ctx.px(SPACE["md"])
+    tick = ctx.px(SPACE["xs"])
+    line = _stroke(ctx, "strokeRegular")
+    plot.create_line(x, y, x + length, y, fill=p.textSecondary, width=line)
+    for end in (x, x + length):
+        plot.create_line(end, y - tick, end, y + 1, fill=p.textSecondary, width=line)
+    plot.create_text(x + length + ctx.px(SPACE["xs"]), y, text=f"{meters:g} m", anchor="w", fill=p.textSecondary,
+                     font=ctx.fonts["caption"])
 
 
 def _unitless(label: str) -> str:
@@ -502,13 +537,15 @@ def timing_plot(ctx: ViewerContext, parent: Any, timings: Sequence[tuple[str, Ma
             y = row_height * index + row_height / 2
             canvas.create_text(0, y, text=row["label"], anchor="w", fill=p.textSecondary, font=body)
             if not row["single"]:
-                canvas.create_line(x_of(row["low"]), y, x_of(row["high"]), y, fill=p.lineStrong, width=ctx.px(5), capstyle="round")
+                canvas.create_line(x_of(row["low"]), y, x_of(row["high"]), y, fill=p.lineStrong,
+                                   width=_stroke(ctx, "strokeRangeBar"), capstyle="round")
             if row["median"] is not None:
                 x = x_of(row["median"])
                 canvas.create_oval(x - dot, y - dot, x + dot, y + dot, outline=p.text, fill=p.text)
             if row["p95"] is not None:
                 x = x_of(row["p95"])
-                canvas.create_oval(x - halo, y - halo, x + halo, y + halo, outline=p.text, width=max(1, ctx.px(1.5)), fill="")
+                canvas.create_oval(x - halo, y - halo, x + halo, y + halo, outline=p.text, width=_stroke(ctx, "strokeRegular"),
+                                   fill="")
             canvas.create_text(right + tick_room + ctx.px(SPACE["lg"]), y, anchor="w", fill=p.text, font=caption, text=row["text"])
 
     canvas.bind("<Configure>", draw)
