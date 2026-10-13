@@ -457,8 +457,9 @@ enum ReleaseUpdater {
             moved_aside=0
         }
         fail() {
+            reason=$(printf '%s' "$1" | /usr/bin/awk '{ print toupper(substr($0, 1, 1)) substr($0, 2) }')
             if restore_old; then
-                printf '%s\\n' "The update could not start, so the current version was kept. $1" > "$result"
+                printf '%s\\n' "The update could not start, so the current version was kept. $reason" > "$result"
                 if [ -d "$install" ]; then "$open_tool" "$launch"; fi
                 rm -rf "$root"
             else
@@ -486,8 +487,8 @@ enum ReleaseUpdater {
         # Totals line: "<entries> files, <bytes> bytes uncompressed, ...". Checked before
         # anything is written, so a small archive cannot unpack into a full disk.
         totals=$(/usr/bin/unzip -Zt "$archive" 2>/dev/null) || fail "could not read the archive size"
-        entry_count=$(printf '%s\n' "$totals" | /usr/bin/awk '{ print $1 }')
-        unpacked=$(printf '%s\n' "$totals" | /usr/bin/awk '{ print $3 }')
+        entry_count=$(printf '%s\\n' "$totals" | /usr/bin/awk '{ print $1 }')
+        unpacked=$(printf '%s\\n' "$totals" | /usr/bin/awk '{ print $3 }')
         case "$entry_count" in ''|*[!0-9]*) fail "could not read the archive size" ;; esac
         case "$unpacked" in ''|*[!0-9]*) fail "could not read the archive size" ;; esac
         [ "$entry_count" -le \(maximumArchiveEntries) ] || fail "the archive has more than \(maximumArchiveEntries) entries"
@@ -568,10 +569,14 @@ enum ReleaseUpdater {
                 done
             fi
             if ! app_running; then
-                # Give ReportCrash a moment to write its report before deciding.
-                settle=2
-                [ "$startup_wait" -lt 2 ] && settle="$startup_wait"
-                sleep "$settle"
+                # ReportCrash can take about 3 s to write its report after the app exits, so
+                # poll for it for a bounded time instead of sleeping a fixed 2 s.
+                report_wait=$((startup_wait * 2))
+                waited_report=0
+                while [ "$waited_report" -lt "$report_wait" ] && ! new_crash; do
+                    sleep 1
+                    waited_report=$((waited_report + 1))
+                done
                 if new_crash; then
                     launch_failed "the updated app crashed when it started"
                 elif [ "$seen" != "1" ]; then

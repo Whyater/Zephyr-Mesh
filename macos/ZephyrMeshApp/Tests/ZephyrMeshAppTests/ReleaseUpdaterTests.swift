@@ -238,6 +238,7 @@ final class ReleaseUpdaterTests: XCTestCase {
         case quitsNormally   // shows up once, then is gone with no crash report
         case neverStarts     // never shows up, no crash report
         case startsLate      // shows up only after the helper's waiting loop
+        case crashesLate     // shows up once, then is gone; its crash report is written 3 s later
     }
 
     /// `ps` is always shimmed: it numbers its calls and reports the new app as
@@ -245,20 +246,23 @@ final class ReleaseUpdaterTests: XCTestCase {
     private func runUpdate(_ box: Sandbox, archive: URL, move: MoveFailure = .none, failFind: Bool = false,
                            newApp: NewApp = .runs, archiveSHA256: String? = nil) throws -> Int32 {
         var openTool = box.openStub.path
-        if newApp == .crashes {
+        if newApp == .crashes || newApp == .crashesLate {
+            // ReportCrash writes the report a few seconds after the app dies; .crashesLate
+            // models that delay: 3 s is longer than the old fixed 2 s settle and inside the new 4 s poll.
+            let delay = newApp == .crashesLate ? "/bin/sleep 3; " : ""
             let crashOpen = box.base.appendingPathComponent("open-crash-stub.sh")
             try """
             #!/bin/sh
             echo "$@" >> '\(box.openLog.path)'
             /bin/mkdir -p "$HOME/Library/Logs/DiagnosticReports"
-            : > "$HOME/Library/Logs/DiagnosticReports/ZephyrMeshApp-2026-10-13-120000.ips"
+            ( \(delay): > "$HOME/Library/Logs/DiagnosticReports/ZephyrMeshApp-2026-10-13-120000.ips" ) &
             """.write(to: crashOpen, atomically: true, encoding: .utf8)
             try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: crashOpen.path)
             openTool = crashOpen.path
         }
         let script = ReleaseUpdater.helperScript(root: box.root, archive: archive, extract: box.extract, install: box.install,
                                                  resultFile: box.result, archiveSHA256: archiveSHA256,
-                                                 openTool: openTool, startupCheckSeconds: 1)
+                                                 openTool: openTool, startupCheckSeconds: newApp == .crashesLate ? 2 : 1)
         let scriptURL = box.base.appendingPathComponent("apply-update.sh")
         try script.write(to: scriptURL, atomically: true, encoding: .utf8)
         func shim(_ name: String, _ body: String) throws {
@@ -284,7 +288,7 @@ final class ReleaseUpdaterTests: XCTestCase {
         let (first, last): (Int, Int) = switch newApp {
         case .runs: (1, 1_000_000)
         case .crashes, .neverStarts: (1_000_000, 1_000_000)
-        case .quitsNormally: (1, 2)
+        case .quitsNormally, .crashesLate: (1, 2)
         case .startsLate: (5, 1_000_000)  // calls 1 to 3 are the wait loop, 4 is the final check, 5 the re-check
         }
         let counter = box.base.appendingPathComponent("ps-calls")
@@ -320,7 +324,7 @@ final class ReleaseUpdaterTests: XCTestCase {
         XCTAssertEqual(marker(box.install), "old", "the installed app must be untouched", file: file, line: line)
         let note = try String(contentsOf: box.result, encoding: .utf8)
         XCTAssertTrue(note.contains("current version was kept"), note, file: file, line: line)
-        XCTAssertTrue(note.contains(reason), "expected '\(reason)' in: \(note)", file: file, line: line)
+        XCTAssertTrue(note.localizedCaseInsensitiveContains(reason), "expected '\(reason)' in: \(note)", file: file, line: line)
         let opened = (try? String(contentsOf: box.openLog, encoding: .utf8)) ?? ""
         XCTAssertTrue(opened.contains(box.install.path), "the old app should be reopened: \(opened)", file: file, line: line)
         XCTAssertNil(takeNothing(box.root), file: file, line: line)
@@ -370,7 +374,7 @@ final class ReleaseUpdaterTests: XCTestCase {
         XCTAssertEqual(try runUpdate(box, archive: archive), 1)
         try assertOldAppStillInPlaceAndRelaunched(box, reason: "self-test failed: The bundled replay file is missing")
         let note = try String(contentsOf: box.result, encoding: .utf8)
-        XCTAssertEqual(note.components(separatedBy: "self-test failed").count, 2, "said once: \(note)")
+        XCTAssertEqual(note.lowercased().components(separatedBy: "self-test failed").count, 2, "said once: \(note)")
         XCTAssertTrue(leftoverBackups(box).isEmpty, "nothing was moved, so there is no backup")
     }
 
@@ -392,6 +396,12 @@ final class ReleaseUpdaterTests: XCTestCase {
     func testScriptPutsTheOldAppBackWhenTheNewOneCrashesAtLaunch() throws {
         let box = try makeSandbox()
         XCTAssertEqual(try runUpdate(box, archive: try buildSignedUpdateArchive(box), newApp: .crashes), 1)
+        try assertRolledBack(box, reason: "crashed when it started")
+    }
+
+    func testScriptWaitsForALateCrashReportBeforeKeepingTheNewApp() throws {
+        let box = try makeSandbox()
+        XCTAssertEqual(try runUpdate(box, archive: try buildSignedUpdateArchive(box), newApp: .crashesLate), 1)
         try assertRolledBack(box, reason: "crashed when it started")
     }
 
