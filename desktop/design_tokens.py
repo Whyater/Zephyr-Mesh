@@ -557,11 +557,9 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
                                    'circles: keep-out volumes.',
                  'gridLabel': 'Grid 1 m, heavy line every 5 m',
                  'timingSingle': '1 sample',
-                 'atRest': 'At rest',
                  'columnDrones': 'Drones',
                  'columnLoss': 'Loss (%)',
-                 'columnAge': 'Age (s)',
-                 'legendLabel': 'Status markers:'}}
+                 'columnAge': 'Age (s)'}}
 
 # Transport labels with shortcut labels resolved, so callers never re-derive them.
 TRANSPORT = {'restart': {'label': 'Restart', 'help': 'Go back to the first frame'},

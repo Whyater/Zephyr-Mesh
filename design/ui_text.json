@@ -533,10 +533,8 @@
     "scenarioLegend": "Ring: target.  Dots: drones (dim when inactive).  Shaded circles: keep-out volumes.",
     "gridLabel": "Grid 1 m, heavy line every 5 m",
     "timingSingle": "1 sample",
-    "atRest": "At rest",
     "columnDrones": "Drones",
     "columnLoss": "Loss (%)",
-    "columnAge": "Age (s)",
-    "legendLabel": "Status markers:"
+    "columnAge": "Age (s)"
   }
 }
