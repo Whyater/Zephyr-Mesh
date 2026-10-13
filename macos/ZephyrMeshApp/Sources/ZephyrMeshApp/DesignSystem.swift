@@ -162,6 +162,7 @@ enum LayoutMetrics {
     static let viewSegmentWidth: CGFloat = 44
     static let stripOneRowMinWidth: CGFloat = 960
     static let stripMetricWidth: CGFloat = 136
+    static let stripMetricMinWidth: CGFloat = 112
     static let stripValueHeight: CGFloat = 28
     static let stripDividerHeight: CGFloat = 40
     static let eventRowHeight: CGFloat = 24
@@ -191,8 +192,8 @@ enum LayoutMetrics {
     static let scenarioRailWidth: CGFloat = 84
     static let plotDroneMark: CGFloat = 9
     static let plotTargetMark: CGFloat = 14
-    static let aboutWindowWidth: CGFloat = 560
-    static let aboutWindowHeight: CGFloat = 680
+    static let aboutWindowWidth: CGFloat = 700
+    static let aboutWindowHeight: CGFloat = 760
     static let aboutWindowMinWidth: CGFloat = 480
     static let aboutWindowMinHeight: CGFloat = 420
     static let evidenceWindowWidth: CGFloat = 720
@@ -208,7 +209,6 @@ enum LayoutMetrics {
     static let messageMaxWidth: CGFloat = 520
     static let emptyWindowMinWidth: CGFloat = 420
     static let emptyWindowMinHeight: CGFloat = 240
-    static let jsonTreeMaxChildren: CGFloat = 100
 }
 
 enum UIText {

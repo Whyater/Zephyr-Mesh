@@ -9,7 +9,6 @@ struct CockpitView: View {
     @ObservedObject var store: AppStore
     @Environment(\.openWindow) private var openWindow
     @Environment(\.palette) private var palette
-    @State private var detailSize: CGSize = .zero
 
     var body: some View {
         NavigationSplitView {
@@ -17,13 +16,17 @@ struct CockpitView: View {
                 .navigationSplitViewColumnWidth(min: LayoutMetrics.sidebarWidth, ideal: LayoutMetrics.sidebarIdealWidth,
                                                 max: LayoutMetrics.sidebarIdealWidth + 40)
         } detail: {
-            VStack(spacing: 0) {
-                StatusStripView(model: model, availableWidth: detailSize.width)
-                SceneContainer(model: model)
-                TimelineView(model: model)
-                EventListView(model: model, isCompact: detailSize.height < LayoutMetrics.compactDetailHeight)
+            // Read the column size during layout, so the first frame already has the right strip
+            // and events pane (no one-frame flash from a zero size).
+            GeometryReader { proxy in
+                VStack(spacing: 0) {
+                    StatusStripView(model: model, availableWidth: proxy.size.width)
+                    SceneContainer(model: model)
+                    TimelineView(model: model)
+                    EventListView(model: model, isCompact: proxy.size.height < LayoutMetrics.compactDetailHeight)
+                }
+                .frame(width: proxy.size.width, height: proxy.size.height)
             }
-            .onSizeChange { detailSize = $0 }
             .background(palette.background)
             .inspector(isPresented: $model.showInspector) {
                 InspectorView(model: model)

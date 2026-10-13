@@ -338,3 +338,7 @@ struct DynamicCodingKey: CodingKey, Hashable {
     init?(stringValue: String) { self.stringValue = stringValue }
     init?(intValue: Int) { return nil }
 }
+
+/// Decoded off the main actor and handed back to it, so these values must be Sendable.
+extension EvidenceReport: Sendable {}
+extension JSONValue: Sendable {}

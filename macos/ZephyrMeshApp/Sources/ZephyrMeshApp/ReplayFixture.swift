@@ -308,7 +308,8 @@ struct PresentationHeadline: Codable, Equatable {
 
 struct PresentationDrone: Codable, Equatable, Identifiable {
     let active: Bool
-    let altitudeM: Double
+    /// Nil when the run has no position for the drone; shown as "Not recorded".
+    let altitudeM: Double?
     let color: String
     let compactName: String
     let constraintFlags: [String]
@@ -324,7 +325,8 @@ struct PresentationDrone: Codable, Equatable, Identifiable {
     let neighborPacketLossPct: Double?
     let profileID: String
     let shape: String
-    let speedMps: Double
+    /// Nil when the run has no velocity for the drone; shown as "Not recorded", never 0.
+    let speedMps: Double?
     let targetAgeS: Double?
     let targetLinkDelayMs: Double?
     let targetPacketLossPct: Double?
@@ -358,7 +360,7 @@ struct PresentationDrone: Codable, Equatable, Identifiable {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         try requireKeys(decoder, expected: Set(CodingKeys.allCases.map(\.stringValue)), context: "presentation drone")
         active = try values.decode(Bool.self, forKey: .active)
-        altitudeM = try values.decode(Double.self, forKey: .altitudeM)
+        altitudeM = try values.decodeIfPresent(Double.self, forKey: .altitudeM)
         color = try values.decode(String.self, forKey: .color)
         compactName = try values.decode(String.self, forKey: .compactName)
         constraintFlags = try values.decode([String].self, forKey: .constraintFlags)
@@ -373,7 +375,7 @@ struct PresentationDrone: Codable, Equatable, Identifiable {
         neighborPacketLossPct = try values.decodeIfPresent(Double.self, forKey: .neighborPacketLossPct)
         profileID = try values.decode(String.self, forKey: .profileID)
         shape = try values.decode(String.self, forKey: .shape)
-        speedMps = try values.decode(Double.self, forKey: .speedMps)
+        speedMps = try values.decodeIfPresent(Double.self, forKey: .speedMps)
         targetAgeS = try values.decodeIfPresent(Double.self, forKey: .targetAgeS)
         targetLinkDelayMs = try values.decodeIfPresent(Double.self, forKey: .targetLinkDelayMs)
         targetPacketLossPct = try values.decodeIfPresent(Double.self, forKey: .targetPacketLossPct)
@@ -381,9 +383,9 @@ struct PresentationDrone: Codable, Equatable, Identifiable {
         guard !droneID.isEmpty, (neighborCount ?? 0) >= 0 else {
             throw FixtureDecodeError(message: "presentation drone identity or neighbor count is invalid")
         }
-        try requireFinite(altitudeM, field: "presentation altitude")
+        if let altitudeM { try requireFinite(altitudeM, field: "presentation altitude") }
         if let nearestNeighborM { try requireFinite(nearestNeighborM, field: "presentation nearest neighbor", minimum: 0) }
-        try requireFinite(speedMps, field: "presentation speed", minimum: 0)
+        if let speedMps { try requireFinite(speedMps, field: "presentation speed", minimum: 0) }
     }
 }
 

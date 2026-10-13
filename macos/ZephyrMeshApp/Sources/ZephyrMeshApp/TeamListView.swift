@@ -105,8 +105,7 @@ struct TeamListView: View {
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
             Button(UIText.TeamFilter.clearFilter) { model.teamFilter = "" }
-                .buttonStyle(QuietButtonStyle(font: TypeScale.bodyStrong))
-                .padding(.horizontal, Space.xs)
+                .buttonStyle(QuietButtonStyle(font: TypeScale.body, bordered: true))
         }
         .padding(Space.md)
         .frame(maxWidth: .infinity)
@@ -285,6 +284,12 @@ enum TeamColumns {
 
     static func headerID(_ group: PresentationGroup) -> String { "group-\(group.id)" }
 
+    /// Group size for the header: "47 drones", or "1 of 47 drones" when only some are listed.
+    static func countText(listed: Int, total: Int, noun: Bool) -> String {
+        let whole = noun ? Format.count(total, noun: "drone") : "\(total)"
+        return listed < total ? "\(listed) of \(whole)" : whole
+    }
+
     static func age(_ value: Double?) -> String? {
         value.map { Format.number($0, decimals: 2) }
     }
@@ -365,10 +370,11 @@ private struct GroupRow: View {
                     .font(TypeScale.bodyStrong)
                     .foregroundStyle(palette.text)
                     .fixedSize()
-                // "50 drones", or just "50" when the sidebar is too narrow for the noun.
+                // "50 drones", or "1 of 47 drones" while a filter lists only some members; the
+                // noun drops when the sidebar is too narrow for it.
                 ViewThatFits(in: .horizontal) {
-                    Text(Format.count(group.count, noun: "drone")).fixedSize()
-                    Text("\(group.count)").fixedSize()
+                    Text(TeamColumns.countText(listed: row.members.count, total: group.count, noun: true)).fixedSize()
+                    Text(TeamColumns.countText(listed: row.members.count, total: group.count, noun: false)).fixedSize()
                 }
                 .font(TypeScale.body)
                 .foregroundStyle(palette.textSecondary)
@@ -386,7 +392,7 @@ private struct GroupRow: View {
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
         .contextMenu { TeamContextMenu(droneIDs: group.droneIDs, model: model) }
-        .accessibilityLabel("\(style.word), \(Format.count(group.count, noun: "drone"))")
+        .accessibilityLabel("\(style.word), \(TeamColumns.countText(listed: row.members.count, total: group.count, noun: true))")
         .accessibilityValue("\(UIText.targetAge) \(Format.seconds(group.targetAgeS))")
         .accessibilityHint(isExpanded ? "Collapse the group" : "Expand the group")
     }

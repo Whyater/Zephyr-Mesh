@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 /// windows. Files are validated by the strict loaders before any window opens.
 @MainActor
 final class AppStore: ObservableObject {
-    enum ViewerDocument {
+    enum ViewerDocument: Sendable {
         case scenarioRun(ScenarioRunDocument, filename: String)
         case evidenceReport(EvidenceReport, filename: String)
     }
@@ -22,8 +22,9 @@ final class AppStore: ObservableObject {
     let loadError: String?
     @Published private(set) var documents: [UUID: ViewerDocument] = [:]
     @Published var openError: OpenError?
-    /// True while a chosen file is being validated; the Open commands wait for it.
-    @Published private(set) var isOpeningFile = false
+    /// Files being read and checked right now, so a second open of the same file while the
+    /// first is still running does not create a second document.
+    private var pendingURLs: Set<String> = []
     /// Open documents by file path, so opening the same file again brings its window forward.
     private var openURLs: [String: UUID] = [:]
     private var forwarding: AnyCancellable?
@@ -60,7 +61,7 @@ final class AppStore: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] notice in
                 self?.cockpit?.updateNotice = nil
-                AlertPresenter.show(title: notice.title, message: notice.message)
+                AlertPresenter.show(title: notice.title, message: notice.message, allowsModal: !notice.precedesQuit)
             }
             .store(in: &alerts)
     }
@@ -125,8 +126,9 @@ final class AppStore: ObservableObject {
                       decode: @escaping @Sendable (URL) throws -> ViewerDocument) async -> UUID? {
         let key = url.standardizedFileURL.path
         if let existing = openURLs[key], documents[existing] != nil { return existing }
-        isOpeningFile = true
-        defer { isOpeningFile = false }
+        guard !pendingURLs.contains(key) else { return nil }
+        pendingURLs.insert(key)
+        defer { pendingURLs.remove(key) }
         let result = await Task.detached(priority: .userInitiated) { Result { try decode(url) } }.value
         switch result {
         case .success(let document):
@@ -161,13 +163,19 @@ final class AppStore: ObservableObject {
 
 @MainActor
 enum AlertPresenter {
+    /// Wait between checks for a window at launch.
+    static let retryDelay: TimeInterval = 0.36
+
     /// At launch the main window may not be on screen yet; wait briefly for it before falling
     /// back to an app-modal alert.
-    static func show(title: String, message: String, retries: Int = 3) {
+    /// `allowsModal` false (a notice shown just before the app quits to install an update) never
+    /// falls back to a blocking app-modal alert; with no window it is skipped, since the app is
+    /// about to restart anyway.
+    static func show(title: String, message: String, retries: Int = 3, allowsModal: Bool = true) {
         let window = NSApp.keyWindow ?? NSApp.mainWindow ?? NSApp.windows.first { $0.isVisible && $0.canBecomeMain }
         if window == nil, retries > 0 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Motion.standard * 2) {
-                show(title: title, message: message, retries: retries - 1)
+            DispatchQueue.main.asyncAfter(deadline: .now() + retryDelay) {
+                show(title: title, message: message, retries: retries - 1, allowsModal: allowsModal)
             }
             return
         }
@@ -177,7 +185,7 @@ enum AlertPresenter {
         alert.addButton(withTitle: "OK")
         if let window, window.isVisible, window.attachedSheet == nil {
             alert.beginSheetModal(for: window)
-        } else {
+        } else if allowsModal {
             alert.runModal()
         }
     }

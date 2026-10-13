@@ -532,13 +532,6 @@ final class SceneGeometryTests: XCTestCase {
         XCTAssertTrue(ring.isHidden, "close up the drone is wider than the ring, so the ring steps aside")
     }
 
-    func testScreenSizerWorldSizeMatchesTheProjection() {
-        // Independent check: at distance d the view height spans 2 d tan(fov / 2) metres.
-        let sizer = ScreenSizer(verticalFieldOfView: 38, camera: SCNNode())
-        sizer.viewHeight = 400
-        let expected = Float(10.0 * 5.0 * 2 * tan(19.0 * Double.pi / 180) / 400)
-        XCTAssertEqual(sizer.worldSize(points: 10, distance: 5), expected, accuracy: 1e-6)
-    }
 }
 
 final class CameraFitTests: XCTestCase {

@@ -49,6 +49,7 @@ struct ZephyrMeshApp: App {
             AppearanceRoot {
                 if let fixture = store.cockpit?.fixture {
                     AboutReplayView(fixture: fixture)
+                        .background(NotRestorable())
                 }
             }
         }
@@ -175,6 +176,7 @@ private struct ViewerWindowRoot: View {
     @ObservedObject var store: AppStore
     let id: UUID?
     @Environment(\.palette) private var palette
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         Group {
@@ -184,6 +186,8 @@ private struct ViewerWindowRoot: View {
             case .evidenceReport(let report, let filename):
                 EvidenceReportView(report: report, filename: filename)
             case .none:
+                // Only reachable if a window outlives its document; it fills the window in the
+                // app background and closes itself.
                 VStack(spacing: Space.sm) {
                     Text("This file is no longer open")
                         .font(TypeScale.headline)
@@ -192,12 +196,31 @@ private struct ViewerWindowRoot: View {
                         .foregroundStyle(palette.textSecondary)
                 }
                 .frame(minWidth: LayoutMetrics.emptyWindowMinWidth, minHeight: LayoutMetrics.emptyWindowMinHeight)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .onAppear { dismiss() }
             }
         }
+        // Viewer documents live only in memory, so macOS must not reopen these windows at launch.
+        .background(NotRestorable())
         // Closing the window releases its parsed document.
         .onDisappear { if let id { store.close(id) } }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(palette.background)
         .toolbarBackground(palette.background, for: .windowToolbar)
         .toolbarBackground(.visible, for: .windowToolbar)
+    }
+}
+
+/// Turns off state restoration for the hosting window, so macOS does not reopen it empty at the
+/// next launch. (`restorationBehavior(.disabled)` needs macOS 15; the app supports macOS 14.)
+private struct NotRestorable: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async { view.window?.isRestorable = false }
+        return view
+    }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        view.window?.isRestorable = false
     }
 }

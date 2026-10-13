@@ -71,35 +71,65 @@ struct EvidenceReportView: View {
 
 /// Plain summary: top-level values as labeled rows, one level of nested objects as labeled
 /// groups, anything deeper summarized with a pointer to Details. Keys use shared labels.
-/// Groups are `Space.lg` apart and rows inside a group `Space.xs`, so each label clearly
-/// belongs to its own value.
+/// Groups are `Space.xl` apart, pairs inside a group `Space.sm` or more, and a label sits
+/// `Space.xxs` above its own value, so each label clearly belongs to its value. One rule decides
+/// the layout: prose (a text value with spaces) stacks under its label; everything else sits in
+/// the value column beside it.
 struct SummaryRows: View {
     let value: JSONValue
     @Environment(\.palette) private var palette
 
     var body: some View {
         if case .object(let object) = value {
-            let keys = object.keys.filter { !Self.detailsOnlyKeys.contains($0) }.sorted { order($0) < order($1) }
-            VStack(alignment: .leading, spacing: Space.lg) {
-                let scalars = keys.filter { !(object[$0]?.isBranch ?? false) }
-                if !scalars.isEmpty {
+            let plan = Self.plan(object)
+            VStack(alignment: .leading, spacing: Space.xl) {
+                if !plan.scalars.isEmpty {
                     VStack(alignment: .leading, spacing: Space.xs) {
-                        ForEach(scalars, id: \.self) { key in
-                            SummaryLine(label: Format.label(key), value: object[key]?.plainText ?? Format.notRecorded)
+                        ForEach(plan.scalars, id: \.self) { key in
+                            SummaryLine(label: Format.label(key), value: object[key]?.plainText ?? Format.notRecorded,
+                                        isProse: object[key]?.isProse ?? false)
                         }
                     }
                 }
-                ForEach(keys.filter { object[$0]?.hasPlainSummary ?? false }, id: \.self) { key in
+                ForEach(plan.groups, id: \.self) { key in
                     VStack(alignment: .leading, spacing: Space.xs) {
                         Text(Format.label(key))
                             .font(TypeScale.bodyStrong)
                         nested(object[key] ?? .null)
                     }
                 }
+                moreNote(plan.hidden)
             }
         } else {
             Text(value.plainText)
                 .font(TypeScale.body)
+        }
+    }
+
+    /// What the summary lists: plain values first, then groups, at most `JSONTree.limit` in
+    /// all; the rest is counted and left to the Details raw tree, so a huge shallow report
+    /// cannot build thousands of rows.
+    struct Plan: Equatable {
+        let scalars: [String]
+        let groups: [String]
+        let hidden: Int
+    }
+
+    static func plan(_ object: [String: JSONValue]) -> Plan {
+        let keys = object.keys.filter { !detailsOnlyKeys.contains($0) }.sorted { order($0) < order($1) }
+        let scalars = keys.filter { !(object[$0]?.isBranch ?? false) }
+        let groups = keys.filter { object[$0]?.hasPlainSummary ?? false }
+        let shownScalars = Array(scalars.prefix(JSONTree.limit))
+        let shownGroups = Array(groups.prefix(max(JSONTree.limit - shownScalars.count, 0)))
+        let hidden = scalars.count + groups.count - shownScalars.count - shownGroups.count
+        return Plan(scalars: shownScalars, groups: shownGroups, hidden: hidden)
+    }
+
+    @ViewBuilder private func moreNote(_ hidden: Int) -> some View {
+        if hidden > 0 {
+            Text("\(hidden) more in Details")
+                .font(TypeScale.caption)
+                .foregroundStyle(palette.textSecondary)
         }
     }
 
@@ -109,12 +139,14 @@ struct SummaryRows: View {
             // Rows that cannot be put in plain words (for example one block per drone) are left out
             // here; they stay complete in the Details raw tree.
             let unit = object["unit"]?.isBranch == false ? object["unit"]?.plainText : nil
-            ForEach(Self.orderedKeys(object).filter { object[$0]?.summaryText() != nil }, id: \.self) { key in
+            let rows = Self.orderedKeys(object).filter { object[$0]?.summaryText() != nil }
+            ForEach(rows.prefix(JSONTree.limit), id: \.self) { key in
                 let child = object[key] ?? .null
                 let label = Format.label(key)
                 let text = child.summaryText(includeUnit: !label.hasSuffix(")")) ?? ""
-                SummaryLine(label: label, value: Self.withUnit(text, key: key, value: child, unit: unit))
+                SummaryLine(label: label, value: Self.withUnit(text, key: key, value: child, unit: unit), isProse: child.isProse)
             }
+            moreNote(rows.count - min(rows.count, JSONTree.limit))
         default:
             ValueRow(label: "Items", value: value.branchSummary)
         }
@@ -142,27 +174,43 @@ struct SummaryRows: View {
     }
 
     /// Provenance reads last; everything else alphabetical.
-    private func order(_ key: String) -> String { key == "provenance" ? "~" : key }
+    private static func order(_ key: String) -> String { key == "provenance" ? "~" : key }
 }
 
-/// A label and value; when the pair does not fit on one line the value stacks under its label.
+/// A label and value. Prose stacks under its label; other values sit beside it, and stack only
+/// if they cannot fit the width at all.
 struct SummaryLine: View {
     let label: String
     let value: String
+    var isProse = false
 
     var body: some View {
         let sentence = value.prefix(1).uppercased() + value.dropFirst()
-        ViewThatFits(in: .horizontal) {
-            ValueRow(label: label, value: sentence)
-                .fixedSize(horizontal: true, vertical: false)
-            // The gap under a stacked pair is larger than the one inside it.
-            StackedValue(label: label, value: sentence)
-                .padding(.bottom, Space.xs)
+        if isProse {
+            stacked(sentence)
+        } else {
+            ViewThatFits(in: .horizontal) {
+                ValueRow(label: label, value: sentence)
+                    .fixedSize(horizontal: true, vertical: false)
+                stacked(sentence)
+            }
         }
+    }
+
+    // The gap under a stacked pair is larger than the one inside it.
+    private func stacked(_ sentence: String) -> some View {
+        StackedValue(label: label, value: sentence)
+            .padding(.vertical, Space.xs)
     }
 }
 
 extension JSONValue {
+    /// A text value with more than one word, laid out as a paragraph.
+    var isProse: Bool {
+        if case .string(let text) = self { return text.contains(" ") }
+        return false
+    }
+
     var isNumber: Bool {
         switch self {
         case .integer, .number: return true

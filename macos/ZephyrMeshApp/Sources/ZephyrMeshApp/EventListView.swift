@@ -10,8 +10,11 @@ struct EventListView: View {
     @Environment(\.palette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    /// Never more rows than the whole run has events, so a short log leaves no blank block. The
+    /// height is fixed for the run, so the scene above does not jump as events arrive.
     private var visibleRows: CGFloat {
-        isCompact ? LayoutMetrics.eventRowsCompact : LayoutMetrics.eventRowsRegular
+        let rows = isCompact ? LayoutMetrics.eventRowsCompact : LayoutMetrics.eventRowsRegular
+        return min(rows, CGFloat(max(model.totalEventCount, 1)))
     }
 
     var body: some View {
@@ -33,6 +36,13 @@ struct EventListView: View {
                                 model.seek(toTime: event.timeS)
                             }
                             .id(event.id)
+                        }
+                        if CGFloat(events.count) < visibleRows && !model.isAtEnd {
+                            Text("Later events appear here as the replay plays.")
+                                .font(TypeScale.caption)
+                                .foregroundStyle(palette.textSecondary)
+                                .padding(.horizontal, Space.sm)
+                                .frame(height: LayoutMetrics.eventRowHeight, alignment: .leading)
                         }
                     }
                     // Row padding (Space.sm) plus this lands the row content on the content inset.

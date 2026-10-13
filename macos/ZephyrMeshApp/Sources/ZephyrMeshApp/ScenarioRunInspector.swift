@@ -128,6 +128,22 @@ struct ScenarioRunDocument: Identifiable, Decodable {
             }
         }
         let agentCount = parameters["agent_count"]?.intValue ?? 0
+        // Every position must be within fixtureCoordinateLimitM, like the replay fixture, so the
+        // plot's scale, grid and integer conversions stay small and finite.
+        if case .array(let spheres)? = parameters["keep_out_spheres"] {
+            for case .object(let sphere) in spheres {
+                try requireBoundedVector(sphere["center_m"]?.vector, field: "keep_out_spheres center")
+            }
+        }
+        for frame in frames {
+            try requireBoundedVector(frame.target, field: "frame target")
+            for agent in frame.agents {
+                for key in ["position_m", "target_estimate_m", "fused_target_m"] where agent[key] != .null {
+                    try requireBoundedVector(agent[key]?.vector, field: "agent \(key)")
+                }
+            }
+            for sphere in frame.keepOutSpheres { try requireBoundedVector(sphere["center_m"]?.vector, field: "frame keep-out center") }
+        }
         for frame in frames {
             for agent in frame.agents { try validateAgent(agent) }
             try validateKeepOutSnapshots(frame.keepOutSpheres)
@@ -162,6 +178,13 @@ struct ScenarioRunDocument: Identifiable, Decodable {
         }
         let payloadDigest = SHA256.hash(data: payloadData).map { String(format: "%02x", $0) }.joined()
         guard payloadDigest == payloadSHA256 else { throw ScenarioRunError.invalid("payload_sha256 does not match payload") }
+    }
+
+    private static func requireBoundedVector(_ vector: [Double]?, field: String) throws {
+        let limit = Double(fixtureCoordinateLimitM)
+        guard let vector, vector.allSatisfy({ $0.isFinite && abs($0) <= limit }) else {
+            throw ScenarioRunError.invalid("\(field) must be within \(Int(limit)) m of the origin")
+        }
     }
 
     private static func validateLink(_ value: JSONValue?, field: String) throws {
@@ -452,17 +475,24 @@ struct ScenarioPlotGeometry: Equatable {
     }
 
     /// The largest of 0.1, 0.2, 0.5, 1, 2, 5, 10... metres that draws no longer than
-    /// `maxPoints`, for the scale bar.
+    /// `maxPoints`, for the scale bar. It grows without a ceiling, so the step always fits.
     static func scaleBarLength(pointsPerMeter: Double, maxPoints: Double) -> Double {
         guard pointsPerMeter > 0, maxPoints > 0 else { return 1 }
         let limit = maxPoints / pointsPerMeter
-        var best = 0.1
-        var decade = 0.1
-        while decade <= 1000 {
-            for step in [1.0, 2.0, 5.0] where step * decade <= limit { best = step * decade }
-            decade *= 10
-        }
-        return best
+        guard limit.isFinite, limit > 0.1 else { return 0.1 }
+        let decade = pow(10, (log10(limit)).rounded(.down))
+        return [5.0, 2.0, 1.0].map { $0 * decade }.first { $0 <= limit } ?? decade
+    }
+
+    /// Grid lines across `span` metres at `step`; nil when there would be more than
+    /// `maxGridLines`, so a huge or degenerate span never builds an unbounded path.
+    static let maxGridLines = 200
+
+    static func gridLineRange(from low: Double, to high: Double, step: Double) -> ClosedRange<Int>? {
+        guard step > 0, low.isFinite, high.isFinite, high >= low, (high - low) / step <= Double(maxGridLines) else { return nil }
+        let first = Int((low / step).rounded(.up))
+        let last = Int((high / step).rounded(.down))
+        return first <= last ? first...last : nil
     }
 
     static func projectRadius(_ radius: Double, bounds: ScenarioPlotBounds, width: Double, height: Double, inset: Double = 18) -> Double {
@@ -502,3 +532,7 @@ struct ScenarioPlotGeometry: Equatable {
         return (top, bottom)
     }
 }
+
+/// Decoded off the main actor and handed back to it, so these values must be Sendable.
+extension ScenarioRunDocument: Sendable {}
+extension ScenarioRunFrame: Sendable {}
