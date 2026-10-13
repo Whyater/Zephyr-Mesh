@@ -53,8 +53,8 @@ struct InspectorView: View {
 
     private func motion(_ drone: PresentationDrone) -> some View {
         VStack(alignment: .leading, spacing: Space.xxs) {
-            SectionHeader(title: "Position and motion")
-            ValueRow(label: "Altitude", value: Format.meters(drone.altitudeM))
+            SectionHeader(title: UIText.Inspector.positionAndMotion)
+            ValueRow(label: UIText.Inspector.altitude, value: Format.meters(drone.altitudeM))
             ValueRow(label: Format.label("speed_mps"), value: Format.metersPerSecond(drone.speedMps))
             ValueRow(label: Format.label("heading_deg"), value: Format.degrees(drone.headingDeg))
         }
@@ -62,8 +62,8 @@ struct InspectorView: View {
 
     private func neighbors(_ drone: PresentationDrone) -> some View {
         VStack(alignment: .leading, spacing: Space.xxs) {
-            SectionHeader(title: "Neighbors")
-            ValueRow(label: Format.label("neighbor_count"), value: "\(drone.neighborCount)")
+            SectionHeader(title: UIText.Inspector.neighbors)
+            ValueRow(label: Format.label("neighbor_count"), value: Format.integer(drone.neighborCount))
             ValueRow(label: Format.label("nearest_neighbor_m"), value: Format.meters(drone.nearestNeighborM))
             ValueRow(label: Format.label("neighbor_link_delay_ms"), value: Format.milliseconds(drone.neighborLinkDelayMs))
             ValueRow(label: Format.label("neighbor_packet_loss_pct"), value: Format.percent(drone.neighborPacketLossPct))
@@ -87,7 +87,7 @@ struct InspectorView: View {
             }
             .padding(.top, Space.sm)
         } label: {
-            Text("Details")
+            Text(UIText.Inspector.details)
                 .font(TypeScale.bodyStrong)
                 .foregroundStyle(palette.text)
         }
@@ -102,9 +102,9 @@ struct InspectorView: View {
             Image(systemName: "scope")
                 .font(TypeScale.title)
                 .foregroundStyle(palette.textSecondary)
-            Text("No drone selected")
+            Text(UIText.Inspector.emptyTitle)
                 .font(TypeScale.bodyStrong)
-            Text("Click a drone in the team list or the scene.")
+            Text(UIText.Inspector.emptyHint)
                 .font(TypeScale.body)
                 .foregroundStyle(palette.textSecondary)
                 .multilineTextAlignment(.center)
@@ -131,7 +131,7 @@ private struct ProfileParts: View {
             }
             ValueRow(label: Format.label("motor_part_id"), value: profile.motorPartID, style: .identifier)
             ValueRow(label: Format.label("propeller_part_id"), value: profile.propellerPartID, style: .identifier)
-            ValueRow(label: Format.label("motor_count"), value: "\(profile.motorCount)")
+            ValueRow(label: Format.label("motor_count"), value: Format.integer(profile.motorCount))
             ValueRow(label: Format.label("arm_length_m"), value: Format.number(profile.armLengthM, decimals: 2))
             // Shown in millimetres: at 2 decimals in metres the five profile diameters would all read 0.08.
             ValueRow(label: Self.diameterLabel, value: Format.number(profile.propellerDiameterM * 1000, decimals: 1))

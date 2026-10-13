@@ -145,6 +145,50 @@ def shortcut_rows(ui: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
+def transport_rows(ui: dict[str, Any]) -> dict[str, dict[str, str]]:
+    """Resolve transport labels, reusing a shortcut label when the entry names one."""
+    shortcuts = ui.get("shortcuts", {})
+    rows: dict[str, dict[str, str]] = {}
+    for key, spec in ui.get("transport", {}).items():
+        if "label" in spec:
+            label = spec["label"]
+        elif spec.get("shortcut") in shortcuts:
+            label = shortcuts[spec["shortcut"]]["label"]
+        else:
+            raise ValueError(f"transport {key!r} needs a label or a known shortcut")
+        rows[key] = {"label": str(label), "help": str(spec["help"])}
+    return rows
+
+
+def validate_ui(ui: dict[str, Any]) -> None:
+    """Fail when two shared keys that must agree have drifted apart."""
+    unavailable = ui["statusLevels"]["unavailable"]["word"]
+    if "notRecorded" in ui and ui["notRecorded"] != unavailable:
+        raise ValueError("notRecorded must equal statusLevels.unavailable.word")
+    pinned = ui.get("teamFilter", {}).get("pinnedLevels", [])
+    unknown = [level for level in pinned if level not in ui["statusLevels"]]
+    if unknown:
+        raise ValueError(f"teamFilter.pinnedLevels has unknown levels: {unknown}")
+
+
+def swift_text_enum(name: str, section: dict[str, Any]) -> list[str]:
+    """Render a nested Swift enum of string, string-list, and integer constants."""
+    ids = identifiers(list(section))
+    lines = [f"    enum {name} {{"]
+    for key, item in section.items():
+        if isinstance(item, str):
+            lines.append(f"        static let {ids[key]} = {swift_string(item)}")
+        elif isinstance(item, bool):
+            continue
+        elif isinstance(item, int):
+            lines.append(f"        static let {ids[key]}: Int = {item}")
+        elif isinstance(item, list) and all(isinstance(entry, str) for entry in item):
+            values = ", ".join(swift_string(entry) for entry in item)
+            lines.append(f"        static let {ids[key]}: [String] = [{values}]")
+    lines.append("    }")
+    return lines
+
+
 def swift_weight(spec: dict[str, Any]) -> str:
     """Map a JSON font weight to a SwiftUI weight."""
     return ".semibold" if spec.get("weight") == "semibold" else ".regular"
@@ -342,6 +386,37 @@ def generate_swift(tokens: dict[str, Any], ui: dict[str, Any]) -> str:
     for key, item in ui.get("eventTemplates", {}).items():
         event_name = event_ids[key][:1].upper() + event_ids[key][1:]
         lines.append(f"    static let event{event_name} = {swift_string(item)}")
+    # Shared copy sections. Each one is a nested enum so a merge touches one block.
+    if "notRecorded" in ui:
+        lines.append(f"    static let notRecorded = {swift_string(ui['notRecorded'])}")
+    if "notInReplay" in ui:
+        lines.append(f"    static let notInReplayTitle = {swift_string(ui['notInReplay']['title'])}")
+    for json_key, enum_name in (
+        ("eventDroneList", "EventDroneList"),
+        ("teamFilter", "TeamFilter"),
+        ("menus", "Menus"),
+        ("inspector", "Inspector"),
+    ):
+        if json_key in ui:
+            lines.extend(swift_text_enum(enum_name, ui[json_key]))
+    transport = transport_rows(ui)
+    if transport:
+        transport_ids = identifiers(list(transport))
+        lines.extend(
+            [
+                "    struct TransportControl {",
+                "        let label: String",
+                "        let help: String",
+                "    }",
+                "    enum Transport {",
+            ]
+        )
+        for key, row in transport.items():
+            lines.append(
+                f"        static let {transport_ids[key]} = TransportControl(label: {swift_string(row['label'])}, "
+                f"help: {swift_string(row['help'])})"
+            )
+        lines.append("    }")
     lines.extend(["}", ""])
     return "\n".join(lines)
 
@@ -443,6 +518,15 @@ def generate_python(tokens: dict[str, Any], ui: dict[str, Any]) -> str:
             f"{tuple(row['modifiers'])!r}, {row['tk_binding']!r}, {row['single_key']!r}),"
         )
     lines.extend([")", "", f"UI_TEXT = {pprint.pformat(ui, width=100, sort_dicts=False)}", ""])
+    transport = transport_rows(ui)
+    if transport:
+        lines.extend(
+            [
+                "# Transport labels with shortcut labels resolved, so callers never re-derive them.",
+                f"TRANSPORT = {pprint.pformat(transport, width=100, sort_dicts=False)}",
+                "",
+            ]
+        )
     return "\n".join(lines)
 
 
@@ -454,6 +538,7 @@ def outputs(
     """Return expected generated files."""
     tokens = load(tokens_path)
     ui = load(ui_path)
+    validate_ui(ui)
     swift_output = root / SWIFT_PATH.relative_to(ROOT)
     python_output = root / PY_PATH.relative_to(ROOT)
     return {

@@ -67,8 +67,9 @@ class AgentSnapshot:
     velocity_mps: tuple[float, float, float]
     active: bool
     confidence: float
-    neighbor_count: int
-    min_neighbor_distance_m: float
+    # ``None`` means the run did not record the value; it is never read as zero.
+    neighbor_count: int | None
+    min_neighbor_distance_m: float | None
     constraint_flags: tuple[str, ...]
     profile_id: str
     battery_pct: float | None = None
@@ -311,8 +312,8 @@ def _decode_agent(raw: Any) -> AgentSnapshot:
         velocity_mps=_vector(raw.get("velocity_mps"), "velocity_mps"),
         active=_required_bool(raw, "active"),
         confidence=_required_float(raw, "confidence", default=1.0),
-        neighbor_count=_required_int(raw, "neighbor_count", default=0),
-        min_neighbor_distance_m=_required_float(raw, "min_neighbor_distance_m", default=0.0),
+        neighbor_count=_optional_int(raw, "neighbor_count"),
+        min_neighbor_distance_m=_optional_float(raw, "min_neighbor_distance_m"),
         constraint_flags=tuple(flags),
         profile_id=_required_str(raw, "profile_id", default="unidentified"),
         battery_pct=_optional_float(raw, "battery_pct"),
@@ -349,6 +350,15 @@ def _required_float(raw: Mapping[str, Any], field: str, default: float | None = 
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ReplayFormatError(f"{field} must be numeric")
     return float(value)
+
+
+def _optional_int(raw: Mapping[str, Any], field: str) -> int | None:
+    value = raw.get(field)
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ReplayFormatError(f"{field} must be a non-negative integer when present")
+    return value
 
 
 def _optional_float(raw: Mapping[str, Any], field: str) -> float | None:

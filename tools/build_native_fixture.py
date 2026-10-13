@@ -34,17 +34,6 @@ def agent_projection(agent: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-# Fields a viewer might expect that the S7 run schema does not carry. The native
-# About view lists them so a reader never mistakes a blank for a measured zero.
-UNAVAILABLE = (
-    "Live radio link",
-    "Camera or vision input",
-    "Battery state",
-    "Flight controller commands",
-    "Measured flight performance",
-)
-
-
 def profile_projection(profile: Mapping[str, Any]) -> dict[str, Any]:
     """Keep the hardware profile parts shown under the inspector Details."""
     return {
@@ -78,28 +67,25 @@ def keep_out_volumes(step: Mapping[str, Any], manifest: Mapping[str, Any] | None
     return volumes
 
 
-def run_name(run: Mapping[str, Any], agent_count: int) -> str:
-    """Name the run in plain words, for example ``50-drone ring, seed 17``."""
-    parts = str(run["scenario_id"]).split("-")
-    formation = "ring" if "ring" in parts else "swarm"
-    return f"{agent_count}-drone {formation}, seed {run['seed']}"
-
-
 def build(run: Mapping[str, Any], manifest: Mapping[str, Any] | None = None, run_sha256: str = "") -> dict[str, Any]:
-    """Build the native projection and embed the shared presentation."""
+    """Build the native projection and embed the shared presentation.
+
+    The run name and the "Not in this replay" list come from the presentation,
+    so the native and Windows apps show the same words from one source.
+    """
     presentation = present_run(run)
     steps = run["steps"]
     first = steps[0]
     return {
-        "schema": "zephyr-s7-native-fixture-3",
+        "schema": "zephyr-s7-native-fixture-4",
         "run_id": run["scenario_id"],
-        "run_name": run_name(run, len(first["agents"])),
+        "run_name": presentation["run_name"],
         "source": {
             "run_schema": run["schema"],
             "run_sha256": run_sha256,
             "presentation_schema": presentation["schema"],
         },
-        "unavailable": list(UNAVAILABLE),
+        "not_in_replay": list(presentation["not_in_replay"]),
         "profiles": [profile_projection(profile) for profile in run.get("agent_profiles", [])],
         "seed": run["seed"],
         "command_authority": run["command_authority"],

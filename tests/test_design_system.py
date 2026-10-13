@@ -178,3 +178,39 @@ def test_generated_swift_identifiers_and_braces_are_valid() -> None:
             depth -= 1
         assert depth >= 0
     assert depth == 0
+
+
+def test_shared_copy_sections_are_emitted_and_transport_reuses_shortcut_labels() -> None:
+    """New copy sections reach both outputs; transport labels are not duplicated in the JSON."""
+    import pytest
+
+    from desktop.design_tokens import TRANSPORT, UI_TEXT
+    from tools.generate_design import transport_rows, validate_ui
+
+    ui = json.loads((ROOT / "design" / "ui_text.json").read_text(encoding="utf-8"))
+    assert TRANSPORT == transport_rows(ui)
+    assert TRANSPORT["restart"]["label"] == ui["shortcuts"]["restart"]["label"]
+    assert TRANSPORT["stepBack"]["label"] == ui["shortcuts"]["stepBack"]["label"]
+    assert TRANSPORT["stepForward"]["label"] == ui["shortcuts"]["stepForward"]["label"]
+    assert "label" not in ui["transport"]["restart"]
+    assert all(row["help"] for row in TRANSPORT.values())
+    assert UI_TEXT["notRecorded"] == UI_TEXT["statusLevels"]["unavailable"]["word"] == "Not recorded"
+    swift = (ROOT / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
+    for line in (
+        'static let notRecorded = "Not recorded"',
+        "enum Menus {",
+        "enum Inspector {",
+        "enum TeamFilter {",
+        'static let pinnedLevels: [String] = ["caution", "alert"]',
+        'static let restart = TransportControl(label: "Restart", help:',
+        'static let more = "+{count} more"',
+    ):
+        assert line in swift, line
+    drifted = json.loads(json.dumps(ui))
+    drifted["notRecorded"] = "Unknown"
+    with pytest.raises(ValueError, match="notRecorded"):
+        validate_ui(drifted)
+    drifted = json.loads(json.dumps(ui))
+    drifted["teamFilter"]["pinnedLevels"] = ["late"]
+    with pytest.raises(ValueError, match="pinnedLevels"):
+        validate_ui(drifted)

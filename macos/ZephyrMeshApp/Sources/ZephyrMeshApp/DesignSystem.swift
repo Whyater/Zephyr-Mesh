@@ -466,4 +466,53 @@ enum UIText {
     static let eventBackOnTime = "{count} drones back on time"
     static let eventInactive = "{drone} went inactive"
     static let eventPacketLost = "Target packet lost for {count} drones"
+    static let notRecorded = "Not recorded"
+    static let notInReplayTitle = "Not in this replay"
+    enum EventDroneList {
+        static let limit: Int = 5
+        static let more = "+{count} more"
+    }
+    enum TeamFilter {
+        static let pinnedLevels: [String] = ["caution", "alert"]
+        static let showing = "Showing {shown} of {total}"
+        static let noMatches = "No drones match \"{query}\""
+        static let clearFilter = "Clear filter"
+        static let pinnedNote = "Late and lost drones stay listed."
+    }
+    enum Menus {
+        static let checkForUpdates = "Check for Updates..."
+        static let openEvidenceReport = "Open Evidence Report..."
+        static let openScenarioRun = "Open Scenario Run..."
+        static let show3DView = "Show 3D View"
+        static let showTopView = "Show Top View"
+        static let showKeepOut = "Show Keep-out Volume"
+        static let showInspector = "Show Inspector"
+        static let focusSelected = "Focus Selected Drone"
+        static let resetCamera = "Reset Camera"
+        static let filterDrones = "Filter Drones"
+        static let playback = "Playback"
+        static let stepForward = "Step Forward"
+        static let stepBack = "Step Back"
+        static let speed = "Speed"
+        static let aboutReplay = "About This Replay"
+    }
+    enum Inspector {
+        static let positionAndMotion = "Position and motion"
+        static let neighbors = "Neighbors"
+        static let altitude = "Altitude"
+        static let details = "Details"
+        static let emptyTitle = "No drone selected"
+        static let emptyHint = "Click a drone in the team list or the scene."
+    }
+    struct TransportControl {
+        let label: String
+        let help: String
+    }
+    enum Transport {
+        static let restart = TransportControl(label: "Restart", help: "Go back to the first frame")
+        static let stepBack = TransportControl(label: "Step back", help: "Go back one frame")
+        static let play = TransportControl(label: "Play", help: "Play the replay")
+        static let pause = TransportControl(label: "Pause", help: "Pause the replay")
+        static let stepForward = TransportControl(label: "Step forward", help: "Go forward one frame")
+    }
 }

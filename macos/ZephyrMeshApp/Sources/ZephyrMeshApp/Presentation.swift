@@ -5,7 +5,7 @@ import SwiftUI
 // from the generated UI text, and arrange presentation records for the views.
 
 enum Format {
-    static let notRecorded = UIText.statusLevels["unavailable"]?.word ?? "Not recorded"
+    static let notRecorded = UIText.notRecorded
 
     static func number(_ value: Double, decimals: Int) -> String {
         value.formatted(.number.precision(.fractionLength(decimals)).grouping(.never))
@@ -33,6 +33,25 @@ enum Format {
 
     static func degrees(_ value: Double?) -> String {
         value.map { "\(number($0, decimals: 0))\u{00B0}" } ?? notRecorded
+    }
+
+    /// A recorded count, or "Not recorded" when the run did not carry it (never 0).
+    static func integer(_ value: Int?) -> String {
+        value.map { "\($0)" } ?? notRecorded
+    }
+
+    /// A group age: one value when every member agrees, otherwise a min to max range.
+    static func seconds(_ metric: PresentationMetric?) -> String {
+        switch metric {
+        case .none: return notRecorded
+        case .value(let value): return seconds(value)
+        case .range(let low, let high): return secondsRange(newest: low, oldest: high)
+        }
+    }
+
+    /// Fills a shared UI text template such as "Showing {shown} of {total}".
+    static func fill(_ template: String, _ values: [String: String]) -> String {
+        values.reduce(template) { $0.replacingOccurrences(of: "{\($1.key)}", with: $1.value) }
     }
 
     static func count(_ value: Int, noun: String) -> String {
@@ -111,25 +130,8 @@ struct StatusStyle: Equatable {
 }
 
 enum TeamPresentation {
-    private static let summaryOrder = ["ok", "caution", "alert", "waiting", "unavailable"]
-
-    /// "50 drones: 47 OK, 3 late" from the presentation groups of one frame.
-    static func summary(groups: [PresentationGroup]) -> String {
-        let total = groups.reduce(0) { $0 + $1.count }
-        var counts: [(word: String, count: Int, order: Int)] = []
-        for group in groups {
-            let word = group.word == "OK" ? group.word : group.word.lowercased()
-            if let index = counts.firstIndex(where: { $0.word == word }) {
-                counts[index].count += group.count
-            } else {
-                let order = summaryOrder.firstIndex(of: group.level) ?? summaryOrder.count
-                counts.append((word, group.count, order))
-            }
-        }
-        let parts = counts.sorted { ($0.order, $0.word) < ($1.order, $1.word) }.map { "\($0.count) \($0.word)" }
-        let head = Format.count(total, noun: "drone")
-        return parts.isEmpty ? head : "\(head): \(parts.joined(separator: ", "))"
-    }
+    /// Levels that stay listed whatever the filter says (late and lost), from the shared UI text.
+    static let pinnedLevels = Set(UIText.TeamFilter.pinnedLevels)
 
     /// Names a drone matches in the filter: raw ID, compact name, and heading name.
     static func matches(_ drone: PresentationDrone, query: String) -> Bool {
@@ -145,20 +147,43 @@ enum TeamPresentation {
         var id: String { group.id }
     }
 
-    /// Mirrors `filter_group_rows` in desktop/presentation.py: a non-OK group is never hidden
-    /// and keeps every member; an OK group stays only when a member matches, and then lists
-    /// only the matching members.
+    /// Mirrors `filter_group_rows` in desktop/presentation.py: a pinned (late or lost) group is
+    /// never hidden and keeps every member; any other group stays only when a member matches,
+    /// and then lists only the matching members.
     static func rows(groups: [PresentationGroup], drones: [PresentationDrone], query: String) -> [Row] {
         let byID = Dictionary(uniqueKeysWithValues: drones.map { ($0.droneID, $0) })
         let filtering = !query.trimmingCharacters(in: .whitespaces).isEmpty
         return groups.compactMap { group in
             let members = group.droneIDs.compactMap { byID[$0] }
-            guard group.level == "ok", filtering else {
+            guard !pinnedLevels.contains(group.level), filtering else {
                 return Row(group: group, members: members, isFilteredMatch: false)
             }
             let matching = members.filter { matches($0, query: query) }
             return matching.isEmpty ? nil : Row(group: group, members: matching, isFilteredMatch: true)
         }
+    }
+
+    /// Counts for the filter caption and empty state. Mirrors `team_filter` in
+    /// desktop/presentation.py: `shown` counts listed drones (pinned ones included), `matched`
+    /// counts drones whose names match, `total` counts every drone in the frame.
+    struct FilterCounts: Equatable {
+        let shown: Int
+        let matched: Int
+        let total: Int
+        let caption: String?
+        let emptyText: String?
+    }
+
+    static func filterCounts(rows: [Row], drones: [PresentationDrone], query: String) -> FilterCounts {
+        let needle = query.trimmingCharacters(in: .whitespaces)
+        let shown = rows.reduce(0) { $0 + $1.members.count }
+        guard !needle.isEmpty else {
+            return FilterCounts(shown: shown, matched: drones.count, total: drones.count, caption: nil, emptyText: nil)
+        }
+        let matched = drones.filter { matches($0, query: needle) }.count
+        let caption = Format.fill(UIText.TeamFilter.showing, ["shown": "\(shown)", "total": "\(drones.count)"])
+        let empty = matched == 0 ? Format.fill(UIText.TeamFilter.noMatches, ["query": needle]) : nil
+        return FilterCounts(shown: shown, matched: matched, total: drones.count, caption: caption, emptyText: empty)
     }
 }
 

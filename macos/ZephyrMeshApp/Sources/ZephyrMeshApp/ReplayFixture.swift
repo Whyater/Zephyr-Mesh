@@ -46,7 +46,8 @@ struct DroneTelemetry: Identifiable, Decodable, Equatable {
     let velocity: SIMD3<Float>
     let profileID: String
     let active: Bool
-    let neighborCount: Int
+    /// `nil` when the run did not record it; never read as zero neighbors.
+    let neighborCount: Int?
     let minNeighborDistance: Double?
     let constraintFlags: [String]
     let targetEstimate: SIMD3<Float>?
@@ -74,14 +75,14 @@ struct DroneTelemetry: Identifiable, Decodable, Equatable {
         velocity = try values.decode(SIMD3<Float>.self, forKey: .velocity)
         profileID = try values.decode(String.self, forKey: .profileID)
         active = try values.decode(Bool.self, forKey: .active)
-        neighborCount = try values.decode(Int.self, forKey: .neighborCount)
+        neighborCount = try values.decodeIfPresent(Int.self, forKey: .neighborCount)
         minNeighborDistance = try values.decodeIfPresent(Double.self, forKey: .minNeighborDistance)
         constraintFlags = try values.decode([String].self, forKey: .constraintFlags)
         targetEstimate = try values.decodeIfPresent(SIMD3<Float>.self, forKey: .targetEstimate)
         fusedTarget = try values.decodeIfPresent(SIMD3<Float>.self, forKey: .fusedTarget)
         targetSourceTime = try values.decodeIfPresent(Double.self, forKey: .targetSourceTime)
         targetAge = try values.decodeIfPresent(Double.self, forKey: .targetAge)
-        guard !id.isEmpty, !profileID.isEmpty, neighborCount >= 0 else {
+        guard !id.isEmpty, !profileID.isEmpty, (neighborCount ?? 0) >= 0 else {
             throw FixtureDecodeError(message: "drone identity or neighbor count is invalid")
         }
         try requireFinite(position, field: "drone.position")
@@ -245,8 +246,9 @@ struct PresentationGroup: Codable, Equatable, Identifiable {
     let droneIDs: [String]
     let level: String
     let shape: String
-    let targetAgeS: Double?
-    let targetLinkDelayMs: Double?
+    /// One age when every member agrees, otherwise the members' min to max range.
+    let targetAgeS: PresentationMetric?
+    let targetLinkDelayMs: PresentationMetric?
     let targetPacketLossPct: PresentationMetric?
     let word: String
     var id: String { droneID }
@@ -265,8 +267,8 @@ struct PresentationGroup: Codable, Equatable, Identifiable {
         droneIDs = try values.decode([String].self, forKey: .droneIDs)
         level = try values.decode(String.self, forKey: .level)
         shape = try values.decode(String.self, forKey: .shape)
-        targetAgeS = try values.decodeIfPresent(Double.self, forKey: .targetAgeS)
-        targetLinkDelayMs = try values.decodeIfPresent(Double.self, forKey: .targetLinkDelayMs)
+        targetAgeS = try values.decodeIfPresent(PresentationMetric.self, forKey: .targetAgeS)
+        targetLinkDelayMs = try values.decodeIfPresent(PresentationMetric.self, forKey: .targetLinkDelayMs)
         targetPacketLossPct = try values.decodeIfPresent(PresentationMetric.self, forKey: .targetPacketLossPct)
         word = try values.decode(String.self, forKey: .word)
         guard count >= 0, count == droneIDs.count, !droneID.isEmpty else {
@@ -299,7 +301,8 @@ struct PresentationDrone: Codable, Equatable, Identifiable {
     let headingName: String
     let level: String
     let nearestNeighborM: Double?
-    let neighborCount: Int
+    /// `nil` when the run did not record it; shown as "Not recorded", never 0.
+    let neighborCount: Int?
     let neighborLinkDelayMs: Double?
     let neighborPacketLossPct: Double?
     let profileID: String
@@ -348,7 +351,7 @@ struct PresentationDrone: Codable, Equatable, Identifiable {
         headingName = try values.decode(String.self, forKey: .headingName)
         level = try values.decode(String.self, forKey: .level)
         nearestNeighborM = try values.decodeIfPresent(Double.self, forKey: .nearestNeighborM)
-        neighborCount = try values.decode(Int.self, forKey: .neighborCount)
+        neighborCount = try values.decodeIfPresent(Int.self, forKey: .neighborCount)
         neighborLinkDelayMs = try values.decodeIfPresent(Double.self, forKey: .neighborLinkDelayMs)
         neighborPacketLossPct = try values.decodeIfPresent(Double.self, forKey: .neighborPacketLossPct)
         profileID = try values.decode(String.self, forKey: .profileID)
@@ -358,7 +361,7 @@ struct PresentationDrone: Codable, Equatable, Identifiable {
         targetLinkDelayMs = try values.decodeIfPresent(Double.self, forKey: .targetLinkDelayMs)
         targetPacketLossPct = try values.decodeIfPresent(Double.self, forKey: .targetPacketLossPct)
         word = try values.decode(String.self, forKey: .word)
-        guard !droneID.isEmpty, neighborCount >= 0 else {
+        guard !droneID.isEmpty, (neighborCount ?? 0) >= 0 else {
             throw FixtureDecodeError(message: "presentation drone identity or neighbor count is invalid")
         }
         try requireFinite(altitudeM, field: "presentation altitude")
@@ -402,12 +405,16 @@ struct FixturePresentation: Codable, Equatable {
     let headline: PresentationHeadline
     let perDrone: [PresentationDrone]
     let strip: PresentationStrip
+    /// "50 drones: 47 OK, 3 late", computed once in desktop/presentation.py.
+    let teamSummary: String
     let timeS: Double
     enum CodingKeys: String, CodingKey, CaseIterable {
         case estimateErrorP95M = "estimate_error_p95_m"
         case events, frame, groups, headline
         case perDrone = "per_drone"
-        case strip, timeS = "time_s"
+        case strip
+        case teamSummary = "team_summary"
+        case timeS = "time_s"
     }
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -419,8 +426,11 @@ struct FixturePresentation: Codable, Equatable {
         headline = try values.decode(PresentationHeadline.self, forKey: .headline)
         perDrone = try values.decode([PresentationDrone].self, forKey: .perDrone)
         strip = try values.decode(PresentationStrip.self, forKey: .strip)
+        teamSummary = try values.decode(String.self, forKey: .teamSummary)
         timeS = try values.decode(Double.self, forKey: .timeS)
-        guard frame >= 0 else { throw FixtureDecodeError(message: "presentation frame must be non-negative") }
+        guard frame >= 0, !teamSummary.isEmpty else {
+            throw FixtureDecodeError(message: "presentation frame or team summary is invalid")
+        }
         try requireFinite(timeS, field: "presentation time_s", minimum: 0)
     }
 }
@@ -495,13 +505,14 @@ struct FixtureFrame: Decodable, Equatable {
 }
 
 struct Fixture: Decodable, Equatable {
-    static let schema = "zephyr-s7-native-fixture-3"
+    static let schema = "zephyr-s7-native-fixture-4"
 
     let schema: String
     let runID: String
     let runName: String
     let source: FixtureSource
-    let unavailable: [String]
+    /// What the replay does not contain, from the presentation's `not_in_replay`.
+    let notInReplay: [String]
     let profiles: [HardwareProfile]
     let seed: Int
     let commandAuthority: String
@@ -523,6 +534,7 @@ struct Fixture: Decodable, Equatable {
         case failsafe
         case frames
         case generationCommand = "generation_command"
+        case notInReplay = "not_in_replay"
         case profiles
         case runID = "run_id"
         case runName = "run_name"
@@ -530,7 +542,6 @@ struct Fixture: Decodable, Equatable {
         case seed
         case source
         case status
-        case unavailable
     }
 
     init(from decoder: Decoder) throws {
@@ -540,7 +551,7 @@ struct Fixture: Decodable, Equatable {
         runID = try values.decode(String.self, forKey: .runID)
         runName = try values.decode(String.self, forKey: .runName)
         source = try values.decode(FixtureSource.self, forKey: .source)
-        unavailable = try values.decode([String].self, forKey: .unavailable)
+        notInReplay = try values.decode([String].self, forKey: .notInReplay)
         profiles = try values.decode([HardwareProfile].self, forKey: .profiles)
         seed = try values.decode(Int.self, forKey: .seed)
         commandAuthority = try values.decode(String.self, forKey: .commandAuthority)

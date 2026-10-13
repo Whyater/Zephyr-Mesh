@@ -414,5 +414,70 @@
     "backOnTime": "{count} drones back on time",
     "inactive": "{drone} went inactive",
     "packetLost": "Target packet lost for {count} drones"
+  },
+  "eventDroneList": {
+    "limit": 5,
+    "more": "+{count} more"
+  },
+  "notRecorded": "Not recorded",
+  "runName": {
+    "template": "{count}-drone {shape}",
+    "withSeed": "{name}, seed {seed}",
+    "ringShape": "ring",
+    "otherShape": "swarm"
+  },
+  "teamSummary": {
+    "drone": "drone",
+    "drones": "drones",
+    "template": "{head}: {parts}"
+  },
+  "notInReplay": {
+    "title": "Not in this replay",
+    "items": [
+      {"text": "Live radio link"},
+      {"text": "Camera or vision input"},
+      {"text": "Battery state", "unlessRecorded": "battery_pct"},
+      {"text": "Flight controller commands"},
+      {"text": "Measured flight performance"}
+    ]
+  },
+  "teamFilter": {
+    "pinnedLevels": ["caution", "alert"],
+    "showing": "Showing {shown} of {total}",
+    "noMatches": "No drones match \"{query}\"",
+    "clearFilter": "Clear filter",
+    "pinnedNote": "Late and lost drones stay listed."
+  },
+  "transport": {
+    "restart": {"shortcut": "restart", "help": "Go back to the first frame"},
+    "stepBack": {"shortcut": "stepBack", "help": "Go back one frame"},
+    "play": {"label": "Play", "help": "Play the replay"},
+    "pause": {"label": "Pause", "help": "Pause the replay"},
+    "stepForward": {"shortcut": "stepForward", "help": "Go forward one frame"}
+  },
+  "menus": {
+    "checkForUpdates": "Check for Updates...",
+    "openEvidenceReport": "Open Evidence Report...",
+    "openScenarioRun": "Open Scenario Run...",
+    "show3DView": "Show 3D View",
+    "showTopView": "Show Top View",
+    "showKeepOut": "Show Keep-out Volume",
+    "showInspector": "Show Inspector",
+    "focusSelected": "Focus Selected Drone",
+    "resetCamera": "Reset Camera",
+    "filterDrones": "Filter Drones",
+    "playback": "Playback",
+    "stepForward": "Step Forward",
+    "stepBack": "Step Back",
+    "speed": "Speed",
+    "aboutReplay": "About This Replay"
+  },
+  "inspector": {
+    "positionAndMotion": "Position and motion",
+    "neighbors": "Neighbors",
+    "altitude": "Altitude",
+    "details": "Details",
+    "emptyTitle": "No drone selected",
+    "emptyHint": "Click a drone in the team list or the scene."
   }
 }

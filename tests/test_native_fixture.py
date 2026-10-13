@@ -25,12 +25,14 @@ def test_native_fixture_embeds_the_golden_presentation():
     canonical = json.loads((ROOT / "runs/s7-swarm/run.json").read_text())
     native = json.loads(FIXTURE.read_text())
     golden = json.loads(GOLDEN.read_text())
-    assert native["schema"] == "zephyr-s7-native-fixture-3"
+    assert native["schema"] == "zephyr-s7-native-fixture-4"
     assert native["run_id"] == canonical["scenario_id"]
     assert native["seed"] == canonical["seed"]
     embedded = {
-        "schema": "zephyr-s7-presentation-1",
+        "schema": "zephyr-s7-presentation-2",
         "run_id": native["run_id"],
+        "run_name": native["run_name"],
+        "not_in_replay": native["not_in_replay"],
         "about": native["about"],
         "frames": [frame["presentation"] for frame in native["frames"]],
     }

@@ -9,6 +9,8 @@ from .design_tokens import UI_TEXT
 
 
 LEVEL_ORDER = {"alert": 0, "caution": 1, "unavailable": 2, "waiting": 3, "ok": 4}
+SUMMARY_ORDER = ("ok", "caution", "alert", "waiting", "unavailable")
+PRESENTATION_SCHEMA = "zephyr-s7-presentation-2"
 
 
 def _agents(frame: Mapping[str, Any]) -> list[Mapping[str, Any]]:
@@ -233,7 +235,8 @@ def _drone_record(agent: Mapping[str, Any], stats: Mapping[str, Any], target: An
         "altitude_m": round(position[2], 3),
         "speed_mps": round(math.sqrt(sum(value * value for value in velocity)), 3),
         "heading_deg": round(heading, 1) if heading is not None else None,
-        "neighbor_count": int(agent.get("neighbor_count", 0)),
+        # A missing count is "not recorded", never zero neighbors.
+        "neighbor_count": int(agent["neighbor_count"]) if agent.get("neighbor_count") is not None else None,
         "nearest_neighbor_m": (
             round(float(agent["min_neighbor_distance_m"]), 3)
             if agent.get("min_neighbor_distance_m") is not None
@@ -255,19 +258,25 @@ def _range(values: list[Any], digits: int) -> Any:
     return low if low == high and len(present) == len(values) else {"min": low, "max": high}
 
 
+def _stalest_first(record: Mapping[str, Any]) -> tuple[Any, ...]:
+    """Sort key: oldest target age first, unrecorded ages last, then drone ID."""
+    age = record.get("target_age_s")
+    return (age is None, -(age or 0.0), str(record["drone_id"]))
+
+
 def group_rows(run: Mapping[str, Any], frame: Mapping[str, Any]) -> list[dict[str, Any]]:
-    """Group rows by status and rounded target age only."""
+    """Group rows by status level and word only; ages, delays, and losses become ranges."""
     frame_time = float(frame.get("time_s", frame.get("time", 0)))
     stats = link_stats(run, frame_time)["drones"]
     groups: dict[tuple[Any, ...], list[dict[str, Any]]] = {}
     target = frame.get("target_position_m", frame.get("target_position"))
     for agent in _agents(frame):
         record = _drone_record(agent, stats.get(_id(agent), {}), target)
-        key = (record["level"], record["word"], record["target_age_s"])
+        key = (record["level"], record["word"])
         groups.setdefault(key, []).append(record)
     rows = []
-    for (level, word, age), members in groups.items():
-        members.sort(key=lambda item: item["drone_id"])
+    for (level, word), members in groups.items():
+        members.sort(key=_stalest_first)
         status = members[0]
         rows.append({
             "drone_id": members[0]["drone_id"],
@@ -277,7 +286,7 @@ def group_rows(run: Mapping[str, Any], frame: Mapping[str, Any]) -> list[dict[st
             "word": word,
             "shape": status["shape"],
             "color": status["color"],
-            "target_age_s": age,
+            "target_age_s": _range([item["target_age_s"] for item in members], 2),
             "target_link_delay_ms": _range(
                 [item["target_link_delay_ms"] for item in members], 1
             ),
@@ -289,22 +298,112 @@ def group_rows(run: Mapping[str, Any], frame: Mapping[str, Any]) -> list[dict[st
     return rows
 
 
-def filter_group_rows(rows: Iterable[Mapping[str, Any]], query: str) -> list[dict[str, Any]]:
-    """Filter only OK rows, matching compact, heading, and raw names."""
+def pinned_levels() -> tuple[str, ...]:
+    """Status levels that stay listed whatever the team filter says (late and lost)."""
+    return tuple(UI_TEXT["teamFilter"]["pinnedLevels"])
+
+
+def drone_matches(drone_id: str, query: str) -> bool:
+    """Match a query against the raw ID, the compact name, and the heading name."""
     needle = query.strip().lower()
+    if not needle:
+        return True
+    names = (drone_id, compact_name(drone_id), heading_name(drone_id))
+    return any(needle in name.lower() for name in names)
+
+
+def filter_group_rows(rows: Iterable[Mapping[str, Any]], query: str) -> list[dict[str, Any]]:
+    """Apply the team filter to group rows.
+
+    Pinned rows (late and lost) keep every member. Every other row keeps only
+    the members whose names match, and disappears when none match. Each
+    returned row keeps the unfiltered size in ``group_count``.
+    """
+    needle = query.strip()
+    pinned = pinned_levels()
     result = []
     for row in rows:
         ids = [str(item) for item in row.get("drone_ids", [])]
-        names = [name for drone_id in ids for name in (
-            drone_id,
-            compact_name(drone_id),
-            heading_name(drone_id),
-        )]
-        keep = row.get("level") != "ok"
-        keep = keep or not needle or any(needle in name.lower() for name in names)
-        if keep:
-            result.append(dict(row))
+        shown = ids if not needle or row.get("level") in pinned else [
+            drone_id for drone_id in ids if drone_matches(drone_id, needle)
+        ]
+        if not shown:
+            continue
+        item = dict(row)
+        item["group_count"] = int(row.get("count", len(ids)))
+        item["drone_ids"] = shown
+        item["drone_id"] = shown[0]
+        item["count"] = len(shown)
+        result.append(item)
     return result
+
+
+def team_filter(rows: Iterable[Mapping[str, Any]], query: str) -> dict[str, Any]:
+    """Filtered rows plus the counts and texts for the filter caption and empty state.
+
+    ``shown`` counts every listed drone (pinned ones included), ``matched``
+    counts drones whose names match the query, and ``total`` counts every
+    drone in the frame. The caption and empty text are ``None`` with no query.
+    """
+    all_rows = list(rows)
+    filtered = filter_group_rows(all_rows, query)
+    needle = query.strip()
+    total = sum(int(row.get("count", len(row.get("drone_ids", [])))) for row in all_rows)
+    shown = sum(len(row["drone_ids"]) for row in filtered)
+    matched = sum(
+        drone_matches(str(drone_id), needle) for row in all_rows for drone_id in row.get("drone_ids", [])
+    ) if needle else total
+    texts = UI_TEXT["teamFilter"]
+    return {
+        "rows": filtered,
+        "shown": shown,
+        "matched": matched,
+        "total": total,
+        "caption": texts["showing"].format(shown=shown, total=total) if needle else None,
+        "empty_text": texts["noMatches"].format(query=needle) if needle and matched == 0 else None,
+    }
+
+
+def team_summary(per_drone: Iterable[Mapping[str, Any]]) -> str:
+    """The one-line team summary, for example ``50 drones: 47 OK, 3 late``."""
+    records = list(per_drone)
+    counts: dict[tuple[str, str], int] = {}
+    for record in records:
+        level = str(record.get("level") or "unavailable")
+        word = str(record.get("word") or _status_spec(level if level in UI_TEXT["statusLevels"] else "unavailable")["word"])
+        counts[(level, word)] = counts.get((level, word), 0) + 1
+    rank = {level: index for index, level in enumerate(SUMMARY_ORDER)}
+    ordered = sorted(counts.items(), key=lambda item: (rank.get(item[0][0], len(rank)), item[0][1]))
+    parts = [f"{count} {word if word.isupper() else word.lower()}" for (_level, word), count in ordered]
+    text = UI_TEXT["teamSummary"]
+    head = f"{len(records)} {text['drone'] if len(records) == 1 else text['drones']}"
+    return text["template"].format(head=head, parts=", ".join(parts)) if parts else head
+
+
+def run_name(run: Mapping[str, Any]) -> str:
+    """Name the run in plain words, for example ``50-drone ring, seed 17``."""
+    frames = run.get("steps", run.get("frames", []))
+    first = frames[0] if frames else {}
+    count = len(_agents(first)) if isinstance(first, Mapping) else 0
+    identifier = str(run.get("scenario_id", run.get("run_id", ""))).lower()
+    text = UI_TEXT["runName"]
+    words = re.findall(r"[a-z0-9]+", identifier)
+    shape = text["ringShape"] if "ring" in words else text["otherShape"]
+    name = text["template"].format(count=count, shape=shape)
+    seed = run.get("seed")
+    return text["withSeed"].format(name=name, seed=seed) if seed is not None else name
+
+
+def not_in_replay(run: Mapping[str, Any]) -> list[str]:
+    """What this replay does not contain, checked against the data where the run could carry it."""
+    agents = [agent for frame in run.get("steps", run.get("frames", [])) for agent in _agents(frame)]
+    items = []
+    for spec in UI_TEXT["notInReplay"]["items"]:
+        field = spec.get("unlessRecorded")
+        if field and any(agent.get(field) is not None for agent in agents):
+            continue
+        items.append(str(spec["text"]))
+    return items
 
 
 def _event(time_s: float, level: str, text: str, drone_ids: Iterable[str] = ()) -> dict[str, Any]:
@@ -320,6 +419,15 @@ def _event(time_s: float, level: str, text: str, drone_ids: Iterable[str] = ()) 
 def _event_text(template: str, **values: Any) -> str:
     """Format one event from the shared JSON template table."""
     return str(UI_TEXT["eventTemplates"][template]).format(**values)
+
+
+def _drone_list(drone_ids: list[str]) -> str:
+    """Compact names for an event text, capped with "+N more"; the event keeps every ID."""
+    spec = UI_TEXT["eventDroneList"]
+    limit = int(spec["limit"])
+    names = ", ".join(compact_name(drone_id) for drone_id in drone_ids[:limit])
+    extra = len(drone_ids) - limit
+    return f"{names} {spec['more'].format(count=extra)}" if extra > 0 else names
 
 
 def _lost_receivers(run: Mapping[str, Any], lower: float, upper: float) -> list[str]:
@@ -386,7 +494,7 @@ def frame_events(
     recovered = sorted(old_late - late)
     if newly_late:
         maximum_age = max(_age(agent) or 0 for agent in agents if _id(agent) in newly_late)
-        compact_ids = ", ".join(compact_name(drone_id) for drone_id in newly_late)
+        compact_ids = _drone_list(newly_late)
         events.append(
             _event(
                 time_s,
@@ -446,6 +554,7 @@ def frame_presentation(
     """Build the presentation object for one frame."""
     frames = run.get("steps", run.get("frames", []))
     frame = frames[index]
+    per_drone = per_drone_records(run, frame)
     return {
         "frame": index,
         "time_s": round(float(frame.get("time_s", frame.get("time", 0))), 2),
@@ -457,7 +566,8 @@ def frame_presentation(
         ),
         "strip": _frame_stats(run, frame),
         "groups": group_rows(run, frame),
-        "per_drone": per_drone_records(run, frame),
+        "per_drone": per_drone,
+        "team_summary": team_summary(per_drone),
         "events": frame_events(run, index, previous),
     }
 
@@ -466,8 +576,10 @@ def present_run(run: Mapping[str, Any]) -> dict[str, Any]:
     """Build the canonical presentation document."""
     frames = run.get("steps", run.get("frames", []))
     return {
-        "schema": "zephyr-s7-presentation-1",
+        "schema": PRESENTATION_SCHEMA,
         "run_id": run.get("scenario_id", run.get("run_id")),
+        "run_name": run_name(run),
+        "not_in_replay": not_in_replay(run),
         "about": about_content(run),
         "frames": [
             frame_presentation(run, index, frames[index - 1] if index else None)

@@ -26,9 +26,9 @@ struct AboutReplayView: View {
                     StackedValue(label: Format.label("command_authority"), value: sentence(fixture.about.commandAuthority))
                     StackedValue(label: Format.label("failsafe"), value: sentence(fixture.about.failsafe))
                 }
-                section("Not in this replay") {
+                section(UIText.notInReplayTitle) {
                     VStack(alignment: .leading, spacing: Space.xs) {
-                        ForEach(fixture.unavailable, id: \.self) { item in
+                        ForEach(fixture.notInReplay, id: \.self) { item in
                             HStack(alignment: .firstTextBaseline, spacing: Space.sm) {
                                 StatusShape(style: StatusStyle(level: "unavailable"))
                                 Text(item)

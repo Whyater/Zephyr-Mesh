@@ -16,56 +16,56 @@ struct CockpitCommands: Commands {
 
     var body: some Commands {
         CommandGroup(after: .appInfo) {
-            Button("Check for Updates...") { model?.checkForUpdates() }
+            Button(UIText.Menus.checkForUpdates) { model?.checkForUpdates() }
                 .disabled(unavailable || model?.isCheckingForUpdates == true)
         }
         CommandGroup(replacing: .newItem) {
-            Button("Open Evidence Report...") {
+            Button(UIText.Menus.openEvidenceReport) {
                 if let id = store.chooseEvidenceReport() { openWindow(id: WindowID.evidenceReport, value: id) }
             }
             .shortcut("openEvidenceReport")
-            Button("Open Scenario Run...") {
+            Button(UIText.Menus.openScenarioRun) {
                 if let id = store.chooseScenarioRun() { openWindow(id: WindowID.scenarioRun, value: id) }
             }
             .shortcut("openScenarioRun")
         }
         CommandGroup(before: .toolbar) {
-            Button(model?.viewMode == .top ? "Show 3D View" : "Show Top View") { model?.toggleViewMode() }
+            Button(model?.viewMode == .top ? UIText.Menus.show3DView : UIText.Menus.showTopView) { model?.toggleViewMode() }
                 .shortcut("toggleTopView")
                 .disabled(unavailable || typing)
-            Toggle("Show Keep-out Volume", isOn: binding(\.showKeepOut))
+            Toggle(UIText.Menus.showKeepOut, isOn: binding(\.showKeepOut))
                 .shortcut("toggleKeepOut")
                 .disabled(unavailable || typing)
-            Toggle("Show Inspector", isOn: binding(\.showInspector))
+            Toggle(UIText.Menus.showInspector, isOn: binding(\.showInspector))
                 .shortcut("toggleInspector")
                 .disabled(unavailable || typing)
             Divider()
-            Button("Focus Selected Drone") { model?.focusSelected() }
+            Button(UIText.Menus.focusSelected) { model?.focusSelected() }
                 .shortcut("focusSelected")
                 .disabled(unavailable || typing || model?.selectedID == nil)
-            Button("Reset Camera") { model?.resetCamera() }
+            Button(UIText.Menus.resetCamera) { model?.resetCamera() }
                 .shortcut("resetCamera")
                 .disabled(unavailable || typing)
-            Button("Filter Drones") { model?.requestFilterFocus() }
+            Button(UIText.Menus.filterDrones) { model?.requestFilterFocus() }
                 .shortcut("focusFilter")
                 .disabled(unavailable)
             Divider()
         }
-        CommandMenu("Playback") {
-            Button(model?.isPlaying == true ? "Pause" : "Play") { model?.togglePlayback() }
+        CommandMenu(UIText.Menus.playback) {
+            Button(model?.isPlaying == true ? UIText.Transport.pause.label : UIText.Transport.play.label) { model?.togglePlayback() }
                 .shortcut("playPause")
                 .disabled(unavailable || typing)
-            Button("Step Forward") { model?.stepFrame() }
+            Button(UIText.Menus.stepForward) { model?.stepFrame() }
                 .shortcut("stepForward")
                 .disabled(unavailable || arrowsTaken || model?.isAtEnd == true)
-            Button("Step Back") { model?.stepBackward() }
+            Button(UIText.Menus.stepBack) { model?.stepBackward() }
                 .shortcut("stepBack")
                 .disabled(unavailable || arrowsTaken || model?.isAtStart == true)
-            Button("Restart") { model?.restart() }
+            Button(UIText.Transport.restart.label) { model?.restart() }
                 .shortcut("restart")
                 .disabled(unavailable || typing)
             Divider()
-            Picker("Speed", selection: speedBinding) {
+            Picker(UIText.Menus.speed, selection: speedBinding) {
                 ForEach(PlaybackSpeed.allCases) { speed in
                     Text(speed.label).tag(speed)
                 }
@@ -73,7 +73,7 @@ struct CockpitCommands: Commands {
             .disabled(unavailable)
         }
         CommandGroup(replacing: .help) {
-            Button("About This Replay") { openWindow(id: WindowID.about) }
+            Button(UIText.Menus.aboutReplay) { openWindow(id: WindowID.about) }
                 .shortcut("aboutReplay")
                 .disabled(unavailable)
         }

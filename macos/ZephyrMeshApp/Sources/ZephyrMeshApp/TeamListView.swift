@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Sidebar: one row per group of drones with identical displayed values, non-OK groups first.
+/// Sidebar: one row per status group (level and word), non-OK groups first, stalest drone first.
 struct TeamListView: View {
     @ObservedObject var model: CockpitModel
     @Environment(\.palette) private var palette
@@ -18,7 +18,7 @@ struct TeamListView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: Space.sm) {
-                Text(TeamPresentation.summary(groups: model.presentation.groups))
+                Text(model.presentation.teamSummary)
                     .font(TypeScale.bodyStrong)
                     .foregroundStyle(palette.text)
                     .lineLimit(2)
@@ -155,7 +155,7 @@ struct TeamListView: View {
     }
 
     private func expansionKey(_ group: PresentationGroup) -> String {
-        "\(group.level)-\(group.word)-\(group.targetAgeS.map { Format.number($0, decimals: 2) } ?? "none")"
+        "\(group.level)-\(group.word)"
     }
 
     /// Filter matches are always open. Otherwise an explicit user toggle wins; with no toggle, the
@@ -192,7 +192,8 @@ enum TeamColumns {
 /// The Age and Loss cells of a row. When neither value exists the row reads "Not recorded"
 /// across both columns; a single missing cell shows a dash with the same words as its tooltip.
 private struct MetricColumns: View {
-    let age: Double?
+    /// Formatted age, or `nil` when the presentation has no age for the row.
+    let age: String?
     let loss: String
     let lossMissing: Bool
     @Environment(\.palette) private var palette
@@ -203,7 +204,7 @@ private struct MetricColumns: View {
                 .foregroundStyle(palette.textSecondary)
                 .frame(width: TeamColumns.age + TeamColumns.loss + TeamColumns.spacing, alignment: .trailing)
         } else {
-            cell(age.map { Format.seconds($0) }, width: TeamColumns.age)
+            cell(age, width: TeamColumns.age)
             cell(lossMissing ? nil : loss, width: TeamColumns.loss)
         }
     }
@@ -245,7 +246,7 @@ private struct GroupRow: View {
                     .foregroundStyle(palette.textSecondary)
                     .lineLimit(1)
                 Spacer(minLength: 0)
-                MetricColumns(age: group.targetAgeS, loss: Format.percent(group.targetPacketLossPct),
+                MetricColumns(age: group.targetAgeS.map { Format.seconds($0) }, loss: Format.percent(group.targetPacketLossPct),
                               lossMissing: group.targetPacketLossPct == nil)
             }
             .font(TypeScale.body.monospacedDigit())
@@ -280,7 +281,7 @@ private struct DroneRow: View {
                 .foregroundStyle(palette.text)
                 .padding(.leading, Space.md + Space.xxs + Space.lg + TeamColumns.spacing)
             Spacer(minLength: Space.xs)
-            MetricColumns(age: drone.targetAgeS, loss: Format.percent(drone.targetPacketLossPct),
+            MetricColumns(age: drone.targetAgeS.map { Format.seconds($0) }, loss: Format.percent(drone.targetPacketLossPct),
                           lossMissing: drone.targetPacketLossPct == nil)
         }
         .font(TypeScale.body.monospacedDigit())

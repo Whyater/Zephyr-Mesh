@@ -89,7 +89,8 @@ def test_windows_cli_exposes_scenario_run_inspection_path():
     source = (ROOT / "desktop" / "windows_preview.py").read_text(encoding="utf-8")
     viewers = (ROOT / "desktop" / "ui_viewers.py").read_text(encoding="utf-8")
     assert "--scenario-run" in source
-    assert "Open Scenario Run..." in source
+    assert 'UI_TEXT["menus"]["openScenarioRun"], "openScenarioRun"' in source
+    assert any(label == "Open Scenario Run..." for _menu, items in preview.MENU_LAYOUT for label, _a, _k in items)
     assert "load_scenario_run(args.scenario_run).summary()" in source
     assert "load_scenario_run(path)" in source
     assert "project_scenario_altitude" in viewers
@@ -740,13 +741,52 @@ def test_formatting_precision_and_missing_values():
     assert fmt.time_label(0.1, 0.25) == "0.10 / 0.25 s"
 
 
-def test_team_summary_and_plain_run_name():
+def test_team_summary_and_run_name_come_from_the_presentation():
     from desktop import ui_format as fmt
+    from desktop.presentation import run_name, team_summary
 
     records = [{"level": "ok", "word": "OK"}] * 45 + [{"level": "caution", "word": "Late"}] * 4 + [{"level": "waiting", "word": "Waiting"}]
-    assert fmt.team_summary(records) == "50 drones: 45 OK, 4 late, 1 waiting"
-    assert fmt.plain_run_name(_RAW) == "50-drone ring, seed 17"
-    assert RAW_SCENARIO not in fmt.plain_run_name(_RAW)
+    assert team_summary(records) == "50 drones: 45 OK, 4 late, 1 waiting"
+    assert run_name(_RAW) == "50-drone ring, seed 17"
+    assert RAW_SCENARIO not in run_name(_RAW)
+    assert not hasattr(fmt, "team_summary") and not hasattr(fmt, "plain_run_name"), "one source only"
+    session = ReplaySession(RUN)
+    session.seek_frame(3)
+    assert session.presentation["team_summary"] == "50 drones: 47 OK, 3 late"
+
+
+def test_windows_inspector_shows_not_recorded_for_missing_neighbor_values():
+    """A frame without neighbor_count or min_neighbor_distance_m reads "Not recorded", never 0."""
+    from desktop import ui_format as fmt
+
+    document = json.loads(json.dumps(_RAW))
+    for agent in document["steps"][2]["agents"]:
+        agent.pop("neighbor_count", None)
+        agent.pop("min_neighbor_distance_m", None)
+    session = ReplaySession(document)
+    session.seek_frame(2)
+    record = session.record_for(session.presentation["per_drone"][0]["drone_id"])
+    assert record["neighbor_count"] is None
+    assert record["nearest_neighbor_m"] is None
+    # The exact calls _render_inspector makes for the Neighbors rows.
+    assert fmt.format_scalar(record.get("neighbor_count")) == "Not recorded"
+    assert fmt.display(record.get("nearest_neighbor_m"), "m") == "Not recorded"
+    assert fmt.format_scalar(0) == "0", "a recorded zero stays zero"
+    source = (ROOT / "desktop" / "windows_preview.py").read_text(encoding="utf-8")
+    assert 'fmt.format_scalar(record.get("neighbor_count"))' in source
+    assert 'fmt.format_value(record.get("nearest_neighbor_m"), "m")' in source
+
+
+def test_about_not_in_replay_uses_the_presentation_list():
+    from desktop.presentation import not_in_replay
+    from desktop.ui_viewers import unavailable_items
+
+    assert unavailable_items(_RAW) == (
+        "Live radio link, camera or vision input, battery state, flight controller commands, measured flight performance"
+    )
+    with_battery = json.loads(json.dumps(_RAW))
+    with_battery["steps"][0]["agents"][0]["battery_pct"] = 90.0
+    assert "Battery state" not in not_in_replay(with_battery)
 
 
 def test_labels_never_show_snake_case():

@@ -1249,6 +1249,7 @@
         "target_link_delay_ms": null,
         "target_packet_loss_pct": null
       },
+      "team_summary": "50 drones: 50 waiting",
       "time_s": 0.0
     },
     {
@@ -2495,6 +2496,7 @@
         "target_link_delay_ms": null,
         "target_packet_loss_pct": null
       },
+      "team_summary": "50 drones: 50 waiting",
       "time_s": 0.05
     },
     {
@@ -3769,6 +3771,7 @@
         "target_link_delay_ms": 80.0,
         "target_packet_loss_pct": 25.81
       },
+      "team_summary": "50 drones: 46 OK, 4 waiting",
       "time_s": 0.1
     },
     {
@@ -5053,6 +5056,7 @@
         "target_link_delay_ms": 80.0,
         "target_packet_loss_pct": 19.13
       },
+      "team_summary": "50 drones: 47 OK, 3 late",
       "time_s": 0.15
     },
     {
@@ -5082,7 +5086,7 @@
             "drone-038"
           ],
           "level": "caution",
-          "text": "9 drones newly late: D06, D13, D20, D22, D23, D27, D29, D33, D38 (0.15 s)",
+          "text": "9 drones newly late: D06, D13, D20, D22, D23 +4 more (0.15 s)",
           "time_s": 0.2
         },
         {
@@ -6345,6 +6349,7 @@
         "target_link_delay_ms": 80.0,
         "target_packet_loss_pct": 16.25
       },
+      "team_summary": "50 drones: 41 OK, 9 late",
       "time_s": 0.2
     },
     {
@@ -6392,9 +6397,11 @@
       "groups": [
         {
           "color": "caution",
-          "count": 4,
-          "drone_id": "drone-009",
+          "count": 6,
+          "drone_id": "drone-023",
           "drone_ids": [
+            "drone-023",
+            "drone-033",
             "drone-009",
             "drone-025",
             "drone-040",
@@ -6402,29 +6409,14 @@
           ],
           "level": "caution",
           "shape": "triangle",
-          "target_age_s": 0.15,
-          "target_link_delay_ms": 80.0,
-          "target_packet_loss_pct": {
-            "max": 50.0,
-            "min": 25.0
+          "target_age_s": {
+            "max": 0.2,
+            "min": 0.15
           },
-          "word": "Late"
-        },
-        {
-          "color": "caution",
-          "count": 2,
-          "drone_id": "drone-023",
-          "drone_ids": [
-            "drone-023",
-            "drone-033"
-          ],
-          "level": "caution",
-          "shape": "triangle",
-          "target_age_s": 0.2,
           "target_link_delay_ms": 80.0,
           "target_packet_loss_pct": {
             "max": 66.67,
-            "min": 50.0
+            "min": 25.0
           },
           "word": "Late"
         },
@@ -7653,9 +7645,18 @@
         "target_link_delay_ms": 80.0,
         "target_packet_loss_pct": 14.83
       },
+      "team_summary": "50 drones: 44 OK, 6 late",
       "time_s": 0.25
     }
   ],
+  "not_in_replay": [
+    "Live radio link",
+    "Camera or vision input",
+    "Battery state",
+    "Flight controller commands",
+    "Measured flight performance"
+  ],
   "run_id": "s7-ring-50-seed-17",
-  "schema": "zephyr-s7-presentation-1"
+  "run_name": "50-drone ring, seed 17",
+  "schema": "zephyr-s7-presentation-2"
 }

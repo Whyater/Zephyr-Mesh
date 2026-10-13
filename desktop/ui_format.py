@@ -10,16 +10,15 @@ from __future__ import annotations
 import math
 from pathlib import Path
 import re
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Mapping, Sequence
 
 from .design_tokens import SHORTCUTS, UI_TEXT
 
 
 LEVELS: Mapping[str, Mapping[str, Any]] = UI_TEXT["statusLevels"]
-NOT_RECORDED: str = LEVELS["unavailable"]["word"]
+NOT_RECORDED: str = UI_TEXT["notRecorded"]
 FIELD_LABELS: Mapping[str, str] = UI_TEXT["fieldLabels"]
 EN_DASH = "–"
-SUMMARY_ORDER = ("ok", "caution", "alert", "waiting", "unavailable")
 
 # Number formatting per value kind: (digits, unit suffix).
 _KINDS = {
@@ -156,37 +155,9 @@ def link_text(link: Mapping[str, Any] | None) -> str:
     return ", ".join(parts)
 
 
-def team_summary(per_drone: Iterable[Mapping[str, Any]]) -> str:
-    """Build the one-line team summary, for example ``50 drones: 45 OK, 4 late``."""
-    records = list(per_drone)
-    counts: dict[tuple[str, str], int] = {}
-    for record in records:
-        key = (str(record.get("level", "unavailable")), status_word(record.get("level", ""), record.get("word")))
-        counts[key] = counts.get(key, 0) + 1
-    rank = {level: index for index, level in enumerate(SUMMARY_ORDER)}
-    parts = []
-    for (level, word), count in sorted(counts.items(), key=lambda item: (rank.get(item[0][0], 99), item[0][1])):
-        shown = word if word.isupper() else word.lower()
-        parts.append(f"{count} {shown}")
-    noun = "drone" if len(records) == 1 else "drones"
-    return f"{len(records)} {noun}: {', '.join(parts)}" if parts else f"0 {noun}"
-
-
 def group_label(count: int) -> str:
     """Label for a team-list group row."""
     return f"{count} drone" if count == 1 else f"{count} drones"
-
-
-def plain_run_name(run: Mapping[str, Any]) -> str:
-    """Name the run in plain words, for example ``50-drone ring, seed 17``."""
-    frames = run.get("steps", run.get("frames", []))
-    first = frames[0] if frames else {}
-    count = len(first.get("agents", first.get("drones", []))) if isinstance(first, Mapping) else 0
-    identifier = str(run.get("scenario_id", run.get("run_id", ""))).lower()
-    shape = "ring" if "ring" in identifier else "run"
-    name = f"{count}-drone {shape}"
-    seed = run.get("seed")
-    return f"{name}, seed {seed}" if seed is not None else name
 
 
 def time_label(current_s: float, total_s: float) -> str:
@@ -412,5 +383,5 @@ __all__ = [
     "EN_DASH", "FIELD_LABELS", "LEVELS", "NOT_RECORDED", "accelerator", "humanize_filename", "is_raw_id", "is_stat",
     "report_view", "stat_line", "stat_value", "display", "event_row", "field_label",
     "format_age_span", "format_scalar", "link_text", "part_text", "quantity", "format_value", "format_vector", "group_label",
-    "humanize_key", "plain_run_name", "status_word", "summary_sections", "team_summary", "time_label",
+    "humanize_key", "status_word", "summary_sections", "time_label",
 ]

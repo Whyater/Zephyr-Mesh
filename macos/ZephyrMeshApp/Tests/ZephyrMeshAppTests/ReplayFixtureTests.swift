@@ -28,13 +28,49 @@ private func decodeEdited(_ edit: (inout [String: Any]) -> Void) throws -> Fixtu
 final class ReplayFixtureTests: XCTestCase {
     func testNativeFixtureDecodesSixFramesAndFiftyDrones() throws {
         let fixture = try loadFixture()
-        XCTAssertEqual(fixture.schema, "zephyr-s7-native-fixture-3")
+        XCTAssertEqual(fixture.schema, "zephyr-s7-native-fixture-4")
         XCTAssertEqual(fixture.frames.count, 6)
         XCTAssertEqual(fixture.drones.count, 50)
         XCTAssertTrue(fixture.frames.allSatisfy { $0.drones.count == 50 })
         XCTAssertEqual(fixture.runName, "50-drone ring, seed 17")
         XCTAssertEqual(fixture.profiles.count, 50)
-        XCTAssertFalse(fixture.unavailable.isEmpty)
+        XCTAssertEqual(fixture.notInReplay, [
+            "Live radio link", "Camera or vision input", "Battery state",
+            "Flight controller commands", "Measured flight performance",
+        ])
+    }
+
+    func testRunNameAndNotInReplayComeFromTheGoldenPresentation() throws {
+        // The fixture copies these from desktop/presentation.py; Swift never builds them.
+        let goldenURL = sourceURL("../../design/golden/s7_presentation.json")
+        let raw = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: goldenURL)) as? [String: Any])
+        let fixture = try loadFixture()
+        XCTAssertEqual(fixture.runName, raw["run_name"] as? String)
+        XCTAssertEqual(fixture.notInReplay, raw["not_in_replay"] as? [String])
+    }
+
+    func testMissingNeighborCountDecodesAsNotRecorded() throws {
+        let fixture = try decodeEdited { object in
+            var frames = object["frames"] as! [[String: Any]]
+            var drones = frames[1]["drones"] as! [[String: Any]]
+            drones[2]["neighbor_count"] = NSNull()
+            drones[2]["min_neighbor_distance_m"] = NSNull()
+            frames[1]["drones"] = drones
+            var presentation = frames[1]["presentation"] as! [String: Any]
+            var perDrone = presentation["per_drone"] as! [[String: Any]]
+            perDrone[2]["neighbor_count"] = NSNull()
+            perDrone[2]["nearest_neighbor_m"] = NSNull()
+            presentation["per_drone"] = perDrone
+            frames[1]["presentation"] = presentation
+            object["frames"] = frames
+        }
+        XCTAssertNil(fixture.frames[1].drones[2].neighborCount)
+        XCTAssertNil(fixture.frames[1].drones[2].minNeighborDistance)
+        let drone = fixture.frames[1].presentation.perDrone[2]
+        XCTAssertNil(drone.neighborCount)
+        XCTAssertEqual(Format.integer(drone.neighborCount), "Not recorded")
+        XCTAssertEqual(Format.meters(drone.nearestNeighborM), "Not recorded")
+        XCTAssertEqual(Format.integer(0), "0", "a recorded zero stays zero")
     }
 
     func testFrameThreePresentationGroupsAndEventsMatchGolden() throws {
@@ -130,27 +166,59 @@ final class PresentationFormattingTests: XCTestCase {
 }
 
 final class TeamPresentationTests: XCTestCase {
-    func testSummaryMatchesGoldenCounts() throws {
-        // Golden frame 3: groups Late 3 and OK 47. Frame 0: one Waiting group of 50.
+    func testTeamSummaryIsReadFromThePresentation() throws {
+        // Golden frame 3: Late 3 and OK 47. Frame 0: 50 waiting. Hand-checked against the group counts.
         let fixture = try loadFixture()
-        XCTAssertEqual(TeamPresentation.summary(groups: fixture.frames[3].presentation.groups), "50 drones: 47 OK, 3 late")
-        XCTAssertEqual(TeamPresentation.summary(groups: fixture.frames[0].presentation.groups), "50 drones: 50 waiting")
-        XCTAssertEqual(TeamPresentation.summary(groups: fixture.frames[5].presentation.groups), "50 drones: 44 OK, 6 late")
+        XCTAssertEqual(fixture.frames[3].presentation.teamSummary, "50 drones: 47 OK, 3 late")
+        XCTAssertEqual(fixture.frames[0].presentation.teamSummary, "50 drones: 50 waiting")
+        XCTAssertEqual(fixture.frames[5].presentation.teamSummary, "50 drones: 44 OK, 6 late")
+        for frame in fixture.frames {
+            let total = frame.presentation.groups.reduce(0) { $0 + $1.count }
+            XCTAssertTrue(frame.presentation.teamSummary.hasPrefix("\(total) drones"))
+        }
     }
 
-    func testFilterNeverHidesNonOKDrones() throws {
-        let presentation = try loadFixture().frames[3].presentation
+    func testOneGroupPerStatusWithAnAgeRangeAndStalestFirst() throws {
+        // Frame 5 has six late drones with ages 0.15 to 0.20 s: one Late group, not two.
+        let presentation = try loadFixture().frames[5].presentation
+        let late = presentation.groups.filter { $0.level == "caution" }
+        XCTAssertEqual(late.count, 1)
+        XCTAssertEqual(late[0].count, 6)
+        XCTAssertEqual(late[0].targetAgeS, .range(min: 0.15, max: 0.2))
+        XCTAssertEqual(Format.seconds(late[0].targetAgeS), "0.15\u{2013}0.20 s")
+        let byID = Dictionary(uniqueKeysWithValues: presentation.perDrone.map { ($0.droneID, $0) })
+        let ages = late[0].droneIDs.compactMap { byID[$0]?.targetAgeS }
+        XCTAssertEqual(ages, ages.sorted(by: >), "stalest drone first")
+    }
+
+    func testFilterHidesWaitingButKeepsLateDrones() throws {
+        let fixture = try loadFixture()
+        let waiting = fixture.frames[0].presentation
+        let hidden = TeamPresentation.rows(groups: waiting.groups, drones: waiting.perDrone, query: "zzz")
+        XCTAssertTrue(hidden.isEmpty, "a waiting group is filtered like an OK group")
+        let counts = TeamPresentation.filterCounts(rows: hidden, drones: waiting.perDrone, query: "zzz")
+        XCTAssertEqual(counts, TeamPresentation.FilterCounts(
+            shown: 0, matched: 0, total: 50, caption: "Showing 0 of 50", emptyText: "No drones match \"zzz\""))
+
+        let presentation = fixture.frames[3].presentation
         let none = TeamPresentation.rows(groups: presentation.groups, drones: presentation.perDrone, query: "zzz")
         XCTAssertEqual(none.map(\.group.level), ["caution"])
-        XCTAssertEqual(none[0].members.map(\.compactName), ["D09", "D39", "D44"])
+        XCTAssertEqual(Set(none[0].members.map(\.compactName)), ["D09", "D39", "D44"])
+        let pinned = TeamPresentation.filterCounts(rows: none, drones: presentation.perDrone, query: "zzz")
+        XCTAssertEqual(pinned.shown, 3)
+        XCTAssertEqual(pinned.matched, 0)
 
         let one = TeamPresentation.rows(groups: presentation.groups, drones: presentation.perDrone, query: "d07")
         XCTAssertEqual(one.map(\.group.level), ["caution", "ok"])
         XCTAssertEqual(one[1].members.map(\.droneID), ["drone-007"])
         XCTAssertTrue(one[1].isFilteredMatch)
 
+        XCTAssertEqual(TeamPresentation.filterCounts(rows: one, drones: presentation.perDrone, query: "d07").caption,
+                       "Showing 4 of 50")
+
         let all = TeamPresentation.rows(groups: presentation.groups, drones: presentation.perDrone, query: "  ")
         XCTAssertEqual(all.reduce(0) { $0 + $1.members.count }, 50)
+        XCTAssertNil(TeamPresentation.filterCounts(rows: all, drones: presentation.perDrone, query: "  ").caption)
     }
 }
 

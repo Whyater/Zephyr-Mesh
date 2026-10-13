@@ -25,7 +25,7 @@ from typing import Any, Callable, Mapping, Sequence
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from desktop.design_tokens import LAYOUT, SHORTCUTS, SPACE, UI_TEXT
-    from desktop.presentation import filter_group_rows
+    from desktop.presentation import filter_group_rows, pinned_levels, run_name
     from desktop.replay import ReplayModel
     from desktop.replay_session import SPEEDS, ReplaySession
     from desktop.scenario_run import load_scenario_run
@@ -33,7 +33,7 @@ if __package__ in (None, ""):
     from desktop.ui_settings import load_appearance, resolve_theme, save_appearance, system_prefers_dark, system_reduced_motion
 else:
     from .design_tokens import LAYOUT, SHORTCUTS, SPACE, UI_TEXT
-    from .presentation import filter_group_rows
+    from .presentation import filter_group_rows, pinned_levels, run_name
     from .replay import ReplayModel
     from .replay_session import SPEEDS, ReplaySession
     from .scenario_run import load_scenario_run
@@ -223,8 +223,8 @@ SHORTCUT_HANDLERS: dict[str, str] = {
 # (menu, label, action id or None, kind). Kinds: command, check, radio, separator, cascade.
 MENU_LAYOUT: tuple[tuple[str, tuple[tuple[str, str | None, str], ...]], ...] = (
     ("File", (
-        ("Open Evidence Report...", "openEvidenceReport", "command"),
-        ("Open Scenario Run...", "openScenarioRun", "command"),
+        (UI_TEXT["menus"]["openEvidenceReport"], "openEvidenceReport", "command"),
+        (UI_TEXT["menus"]["openScenarioRun"], "openScenarioRun", "command"),
         ("", None, "separator"),
         ("Exit", None, "exit"),
     )),
@@ -232,24 +232,24 @@ MENU_LAYOUT: tuple[tuple[str, tuple[tuple[str, str | None, str], ...]], ...] = (
         ("3D View", "toggleTopView", "view3d"),
         ("Top View", "toggleTopView", "viewtop"),
         ("", None, "separator"),
-        ("Show Keep-out Volume", "toggleKeepOut", "check-keepout"),
-        ("Show Inspector", "toggleInspector", "check-inspector"),
+        (UI_TEXT["menus"]["showKeepOut"], "toggleKeepOut", "check-keepout"),
+        (UI_TEXT["menus"]["showInspector"], "toggleInspector", "check-inspector"),
         ("", None, "separator"),
-        ("Focus Selected Drone", "focusSelected", "command"),
-        ("Reset Camera", "resetCamera", "command"),
+        (UI_TEXT["menus"]["focusSelected"], "focusSelected", "command"),
+        (UI_TEXT["menus"]["resetCamera"], "resetCamera", "command"),
         ("", None, "separator"),
         ("Appearance", None, "appearance"),
     )),
-    ("Playback", (
+    (UI_TEXT["menus"]["playback"], (
         ("Play/Pause", "playPause", "command"),
-        ("Step Forward", "stepForward", "command"),
-        ("Step Back", "stepBack", "command"),
-        ("Restart", "restart", "command"),
+        (UI_TEXT["menus"]["stepForward"], "stepForward", "command"),
+        (UI_TEXT["menus"]["stepBack"], "stepBack", "command"),
+        (UI_TEXT["shortcuts"]["restart"]["label"], "restart", "command"),
         ("", None, "separator"),
-        ("Speed", None, "speed"),
+        (UI_TEXT["menus"]["speed"], None, "speed"),
     )),
     ("Help", (
-        ("About This Replay", "aboutReplay", "command"),
+        (UI_TEXT["menus"]["aboutReplay"], "aboutReplay", "command"),
         ("Check for Updates", None, "updates"),
     )),
 )
@@ -266,8 +266,8 @@ def speed_label(speed: float) -> str:
 
 # ---- pure team-list planning (tested without Tk) ------------------------------
 def group_key(row: Mapping[str, Any]) -> str:
-    """Stable Treeview id for a group: same status and age keep the same row."""
-    return f"group:{row['level']}:{row['word']}:{row.get('target_age_s')}"
+    """Stable Treeview id for a group: one row per status level and word."""
+    return f"group:{row['level']}:{row['word']}"
 
 
 def team_rows(
@@ -277,22 +277,15 @@ def team_rows(
 ) -> list[dict[str, Any]]:
     """Plan the team list: one row per group, children per drone, filter applied.
 
-    The presentation filter never removes a non-OK group. Inside an OK group
-    only matching drones stay when a filter is active, and the group counts them.
+    The presentation filter (``filter_group_rows``) never removes a late or
+    lost group. Any other group keeps only its matching drones while a filter
+    is active, and the label counts them against the whole group.
     """
     records = {str(record["drone_id"]): record for record in per_drone}
-    needle = query.strip().lower()
     rows = []
     for group in filter_group_rows(groups, query):
         members = [str(drone) for drone in group.get("drone_ids", [])]
-        if needle and group.get("level") == "ok":
-            members = [
-                drone for drone in members
-                if needle in drone.lower()
-                or needle in str(records.get(drone, {}).get("compact_name", "")).lower()
-                or needle in str(records.get(drone, {}).get("heading_name", "")).lower()
-            ]
-        total = int(group.get("count", len(members)))
+        total = int(group.get("group_count", group.get("count", len(members))))
         label = fmt.group_label(total) if len(members) == total else f"{len(members)} of {total}"
         children = []
         for drone in members:
@@ -499,7 +492,7 @@ class WindowsReplayApp:
         ttk = self.ttk
         frame = ttk.Frame(parent, style="Surface.TFrame", padding=(self.px(SPACE["lg"]), self.px(SPACE["md"])))
         ttk.Label(frame, text="Zephyr Mesh", style="Surface.Title.TLabel").pack(side="left")
-        ttk.Label(frame, text=fmt.plain_run_name(self.run), style="Surface.Secondary.TLabel").pack(
+        ttk.Label(frame, text=run_name(self.run), style="Surface.Secondary.TLabel").pack(
             side="left", padx=(self.px(SPACE["md"]), 0), pady=(self.px(3), 0))
         ttk.Label(frame, text=UI_TEXT["honesty"]["badge"], style="Badge.TLabel").pack(
             side="left", padx=(self.px(SPACE["md"]), 0), pady=(self.px(3), 0))
@@ -656,17 +649,17 @@ class WindowsReplayApp:
             self.tiles[key] = tile
         label_width = self.px(118)
         wrap = width - 2 * pad - label_width - self.px(SPACE["md"] + 6)
-        ttk.Label(body, text="Position and motion", style="Surface.Strong.TLabel").grid(row=2, column=0, sticky="w",
+        ttk.Label(body, text=UI_TEXT["inspector"]["positionAndMotion"], style="Surface.Strong.TLabel").grid(row=2, column=0, sticky="w",
                 pady=(self.px(SPACE["md"]), self.px(SPACE["xs"])))
         self.motion_grid = self.widgets.KeyValueGrid(body, label_width=label_width, wrap=wrap, scale=self.scale, value_width=14)
         self.motion_grid.frame.grid(row=3, column=0, sticky="ew")
-        ttk.Label(body, text="Neighbors", style="Surface.Strong.TLabel").grid(row=4, column=0, sticky="w",
+        ttk.Label(body, text=UI_TEXT["inspector"]["neighbors"], style="Surface.Strong.TLabel").grid(row=4, column=0, sticky="w",
                 pady=(self.px(SPACE["md"]), self.px(SPACE["xs"])))
         self.neighbor_grid = self.widgets.KeyValueGrid(body, label_width=label_width, wrap=wrap, scale=self.scale, value_width=14)
         self.neighbor_grid.frame.grid(row=5, column=0, sticky="ew")
         ttk.Frame(body, style="Line.TFrame", height=1).grid(row=6, column=0, sticky="ew", pady=(self.px(SPACE["md"]), self.px(SPACE["xs"])))
         self.details = self.widgets.Disclosure(
-            body, "Details", self.images, pad=self.px(SPACE["xs"]),
+            body, UI_TEXT["inspector"]["details"], self.images, pad=self.px(SPACE["xs"]),
             on_toggle=lambda opened: opened and self.root.after_idle(lambda: self.inspector_scroll.reveal(self.details.frame)))
         self.details.frame.grid(row=7, column=0, sticky="ew")
         self.details_grid = self.widgets.KeyValueGrid(self.details.body, wrap=width - 2 * pad - self.px(8), scale=self.scale, stacked=True)
@@ -855,7 +848,7 @@ class WindowsReplayApp:
     def _render_fleet(self) -> None:
         tree = self.fleet
         presentation = self.session.presentation
-        self._set(self.team_summary, text=fmt.team_summary(presentation["per_drone"]))
+        self._set(self.team_summary, text=presentation["team_summary"])
         plan = team_rows(presentation["groups"], presentation["per_drone"], self.filter_var.get())
         filtering = bool(self.filter_var.get().strip())
         wanted_groups = [row["iid"] for row in plan]
@@ -882,7 +875,7 @@ class WindowsReplayApp:
                         tree.move(child["iid"], row["iid"], child_index)
                 else:
                     tree.insert(row["iid"], child_index, iid=child["iid"], text=child["label"], values=child["values"])
-            should_open = row["iid"] in self._open_groups or (filtering and row["level"] == "ok")
+            should_open = row["iid"] in self._open_groups or (filtering and row["level"] not in pinned_levels())
             if bool(tree.item(row["iid"], "open")) != should_open:
                 tree.item(row["iid"], open=should_open)
         for group in existing_groups:
@@ -1012,7 +1005,7 @@ class WindowsReplayApp:
     def _render_inspector(self) -> None:
         record = self.session.record_for(self.session.selected_drone_id)
         if record is None:
-            self.inspector_title.configure(text="No drone selected")
+            self.inspector_title.configure(text=UI_TEXT["inspector"]["emptyTitle"])
             self.inspector_word.configure(text="", image="")
             for tile in self.tiles.values():
                 tile.set(None)
@@ -1028,13 +1021,13 @@ class WindowsReplayApp:
         self.tiles["loss"].set(fmt.format_value(record.get("target_packet_loss_pct"), "pct"))
         heading = record.get("heading_deg")
         self.motion_grid.set_rows((
-            ("Altitude", fmt.format_value(record.get("altitude_m"), "m")),
-            ("Speed", fmt.format_value(record.get("speed_mps"), "mps")),
-            ("Heading", fmt.format_value(heading, "deg") if heading is not None else "At rest"),
+            (UI_TEXT["inspector"]["altitude"], fmt.format_value(record.get("altitude_m"), "m")),
+            (fmt.field_label("speed_mps"), fmt.format_value(record.get("speed_mps"), "mps")),
+            (fmt.field_label("heading_deg"), fmt.format_value(heading, "deg") if heading is not None else "At rest"),
         ))
         self.neighbor_grid.set_rows((
             (fmt.field_label("neighbor_count"), fmt.format_scalar(record.get("neighbor_count"))),
-            ("Nearest neighbor", fmt.format_value(record.get("nearest_neighbor_m"), "m")),
+            (fmt.field_label("nearest_neighbor_m"), fmt.format_value(record.get("nearest_neighbor_m"), "m")),
         ))
         agent = next((item for item in self._raw_frame().get("agents", []) if item.get("agent_id") == record["drone_id"]), {})
         profile = self._profile(record.get("profile_id")) or {}

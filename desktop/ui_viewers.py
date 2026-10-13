@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 from .design_tokens import SPACE, UI_TEXT
+from .presentation import not_in_replay, run_name
 from .scenario_run import (
     ScenarioRunCursor,
     clamp_scenario_rail_x,
@@ -121,12 +122,9 @@ def _sentence(value: Any) -> str:
 
 
 def unavailable_items(run: Mapping[str, Any]) -> str:
-    """What this replay cannot show, stated from the data rather than assumed."""
-    items = ["live radio link", "camera", "motor commands"]
-    agents = [agent for step in run.get("steps", []) for agent in step.get("agents", [])]
-    if not any(agent.get("battery_pct") is not None for agent in agents):
-        items.append("battery level")
-    text = ", ".join(items)
+    """The presentation's "Not in this replay" list as one sentence for the About window."""
+    items = not_in_replay(run)
+    text = ", ".join(items[:1] + [item[:1].lower() + item[1:] for item in items[1:]])
     return text[:1].upper() + text[1:]
 
 
@@ -134,7 +132,7 @@ def about_window(ctx: ViewerContext, run: Mapping[str, Any], details: Sequence[t
     from tkinter import ttk
 
     window = _window(ctx, UI_TEXT["honesty"]["aboutButton"], (640, 620), (520, 420))
-    _header(ctx, window, UI_TEXT["honesty"]["aboutButton"], fmt.plain_run_name(run)).pack(fill="x")
+    _header(ctx, window, UI_TEXT["honesty"]["aboutButton"], run_name(run)).pack(fill="x")
     ttk.Frame(window, style="Line.TFrame", height=1).pack(fill="x")
     _scroll, body = _scroll_body(ctx, window)
     wrap = ctx.px(640 - 2 * SPACE["xl"] - 190 - 24)
@@ -144,7 +142,7 @@ def about_window(ctx: ViewerContext, run: Mapping[str, Any], details: Sequence[t
     for field in ("status", "evidence_boundary", "command_authority", "failsafe"):
         if field in run:
             rows.append((fmt.field_label(field), _sentence(run[field])))
-    rows.append(("Not in this replay", unavailable_items(run)))
+    rows.append((UI_TEXT["notInReplay"]["title"], unavailable_items(run)))
     _section(ctx, body, None, rows, wrap, 150)
     command = run.get("generation_command")
     if command:
