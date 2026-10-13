@@ -24,16 +24,16 @@ from typing import Any, Callable, Mapping, Sequence
 
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from desktop.design_tokens import LAYOUT, SHORTCUTS, SPACE, UI_TEXT
-    from desktop.presentation import filter_group_rows, pinned_levels, run_name
+    from desktop.design_tokens import LAYOUT, SHORTCUTS, SPACE, TRANSPORT, UI_TEXT, WIN_LAYOUT
+    from desktop.presentation import filter_group_rows, pinned_levels, run_name, team_filter
     from desktop.replay import ReplayModel
     from desktop.replay_session import SPEEDS, ReplaySession
     from desktop.scenario_run import load_scenario_run
     from desktop import ui_format as fmt
     from desktop.ui_settings import load_appearance, resolve_theme, save_appearance, system_prefers_dark, system_reduced_motion
 else:
-    from .design_tokens import LAYOUT, SHORTCUTS, SPACE, UI_TEXT
-    from .presentation import filter_group_rows, pinned_levels, run_name
+    from .design_tokens import LAYOUT, SHORTCUTS, SPACE, TRANSPORT, UI_TEXT, WIN_LAYOUT
+    from .presentation import filter_group_rows, pinned_levels, run_name, team_filter
     from .replay import ReplayModel
     from .replay_session import SPEEDS, ReplaySession
     from .scenario_run import load_scenario_run
@@ -161,7 +161,9 @@ def _show_update_failure(root: Any, message: str) -> None:
 
 TEXT_INPUT_CLASSES = frozenset({"Entry", "TEntry", "Text", "Spinbox", "TSpinbox", "TCombobox"})
 BUTTON_CLASSES = frozenset({"Button", "TButton", "TRadiobutton", "TCheckbutton", "Radiobutton", "Checkbutton", "TMenubutton"})
-TREE_KEYS = frozenset({"left", "right", "home"})
+# Keys the team list handles itself (Tk's Treeview class bindings): Left collapses, Right
+# expands, Space toggles the focused group. Home has no Treeview binding, so it stays Restart.
+TREE_KEYS = frozenset({"left", "right", "space"})
 
 
 def is_text_input_class(widget_class: str) -> bool:
@@ -169,18 +171,20 @@ def is_text_input_class(widget_class: str) -> bool:
     return widget_class in TEXT_INPUT_CLASSES
 
 
-def shortcut_blocked(widget_class: str, key: str) -> bool:
+def shortcut_blocked(widget_class: str, key: str, *, tree_owns_keys: bool = True) -> bool:
     """Whether a single-key shortcut must yield to the focused widget's own key handling.
 
     Text fields own every key. A focused button owns Space (it presses the
-    button). A focused Treeview owns Left, Right, and Home (collapse, expand,
-    first row), which keeps list navigation native.
+    button). The team list owns Left, Right, and Space (collapse, expand,
+    toggle), which keeps list navigation native. A flat list with no groups,
+    like the Events list, passes ``tree_owns_keys=False`` so Left, Right,
+    Home, and Space keep stepping and playing the replay.
     """
     if is_text_input_class(widget_class):
         return True
     if key == "space" and widget_class in BUTTON_CLASSES:
         return True
-    return widget_class == "Treeview" and key in TREE_KEYS
+    return tree_owns_keys and widget_class == "Treeview" and key in TREE_KEYS
 
 
 def updater_launch_path(updater: Path, install_dir: Path, *, pid: int) -> Path:
@@ -265,9 +269,23 @@ def speed_label(speed: float) -> str:
 
 
 # ---- pure team-list planning (tested without Tk) ------------------------------
+WIN_TEXT: Mapping[str, str] = UI_TEXT["windowsText"]
+TEAM_COLUMNS = ("loss", "age")
+
+
 def group_key(row: Mapping[str, Any]) -> str:
     """Stable Treeview id for a group: one row per status level and word."""
     return f"group:{row['level']}:{row['word']}"
+
+
+def _cell(value: Any, kind: str) -> str:
+    """A narrow table cell: the formatted value, or an en dash (the list explains it as "Not recorded")."""
+    return fmt.format_value(value, kind) or fmt.EN_DASH
+
+
+def _loss_cell(value: Any) -> str:
+    """Loss with one decimal for single values, so a column of percentages lines up (ranges stay whole)."""
+    return _cell(value, "pct" if isinstance(value, Mapping) else "pct1")
 
 
 def team_rows(
@@ -279,41 +297,81 @@ def team_rows(
 
     The presentation filter (``filter_group_rows``) never removes a late or
     lost group. Any other group keeps only its matching drones while a filter
-    is active, and the label counts them against the whole group.
+    is active, and the label counts them against the whole group. Every row,
+    group or drone, carries its status shape (``level``) and word, so an
+    expanded drone row reads on its own.
     """
     records = {str(record["drone_id"]): record for record in per_drone}
     rows = []
     for group in filter_group_rows(groups, query):
         members = [str(drone) for drone in group.get("drone_ids", [])]
         total = int(group.get("group_count", group.get("count", len(members))))
-        label = fmt.group_label(total) if len(members) == total else f"{len(members)} of {total}"
+        word = fmt.status_word(str(group["level"]), group.get("word"))
+        count = fmt.group_label(total)
+        label = (WIN_TEXT["groupLabel"].format(word=word, count=count) if len(members) == total
+                 else WIN_TEXT["groupLabelFiltered"].format(word=word, shown=len(members), total=total))
         children = []
         for drone in members:
             record = records.get(drone, {})
+            level = str(record.get("level", group["level"]))
             children.append({
                 "iid": drone,
-                "label": str(record.get("compact_name", drone)),
-                "values": (
-                    "",
-                    fmt.format_value(record.get("target_link_delay_ms"), "ms") or fmt.EN_DASH,
-                    fmt.format_value(record.get("target_packet_loss_pct"), "pct") or fmt.EN_DASH,
-                    "",
-                ),
+                "level": level,
+                "label": WIN_TEXT["droneLabel"].format(name=record.get("compact_name", drone),
+                                                       word=fmt.status_word(level, record.get("word"))),
+                "values": (_loss_cell(record.get("target_packet_loss_pct")), _cell(record.get("target_age_s"), "s")),
             })
         rows.append({
             "iid": group_key(group),
             "level": str(group["level"]),
             "label": label,
             "members": members,
-            "values": (
-                fmt.status_word(str(group["level"]), group.get("word")),
-                fmt.format_value(group.get("target_link_delay_ms"), "ms") or fmt.EN_DASH,
-                fmt.format_value(group.get("target_packet_loss_pct"), "pct") or fmt.EN_DASH,
-                fmt.format_value(group.get("target_age_s"), "s") or fmt.EN_DASH,
-            ),
+            "values": (_loss_cell(group.get("target_packet_loss_pct")), _cell(group.get("target_age_s"), "s")),
             "children": children,
         })
     return rows
+
+
+def rows_have_missing(rows: Sequence[Mapping[str, Any]], open_groups: set[str]) -> bool:
+    """True when a visible row shows the en dash, so the list must say what the dash means."""
+    for row in rows:
+        if fmt.EN_DASH in row["values"]:
+            return True
+        if row["iid"] in open_groups and any(fmt.EN_DASH in child["values"] for child in row["children"]):
+            return True
+    return False
+
+
+def open_error_text(path: Path, exc: BaseException | None, noun: str) -> str:
+    """One plain sentence for a file that could not be opened, the same for every viewer.
+
+    ``exc`` is None when the path failed the pre-check (missing or not a file).
+    Format errors keep the decoder's reason, written as a sentence.
+    """
+    name = Path(path).name or str(path)
+    cause = exc.__cause__ if exc is not None and exc.__cause__ is not None else exc
+    if exc is None or isinstance(cause, FileNotFoundError):
+        if Path(path).exists():
+            return WIN_TEXT["openNotFile"].format(name=name)
+        return WIN_TEXT["openMissing"].format(name=name)
+    if isinstance(cause, IsADirectoryError):
+        return WIN_TEXT["openNotFile"].format(name=name)
+    if isinstance(cause, PermissionError):
+        return WIN_TEXT["openPermission"].format(name=name)
+    if isinstance(cause, UnicodeDecodeError):
+        return WIN_TEXT["openNotUtf8"].format(name=name, noun=noun)
+    if isinstance(cause, json.JSONDecodeError):
+        return WIN_TEXT["openNotJson"].format(name=name, line=cause.lineno, column=cause.colno)
+    if isinstance(cause, OSError):
+        reason = cause.strerror or type(cause).__name__
+        return WIN_TEXT["openUnreadable"].format(name=name, reason=_sentence(reason))
+    return WIN_TEXT["openInvalid"].format(name=name, noun=noun, reason=_sentence(str(exc)))
+
+
+def _sentence(text: str) -> str:
+    text = " ".join(str(text).split()) or type(text).__name__
+    text = text[:1].upper() + text[1:]
+    return text if text.endswith((".", "!", "?")) else text + "."
 
 
 def desired_team_selection(rows: Sequence[Mapping[str, Any]], selected: str, open_groups: set[str]) -> str | None:
@@ -325,13 +383,15 @@ def desired_team_selection(rows: Sequence[Mapping[str, Any]], selected: str, ope
 
 
 def drone_for_team_row(rows: Sequence[Mapping[str, Any]], iid: str, selected: str) -> str | None:
-    """Map a selected Treeview row back to a drone id (a group keeps the current drone)."""
+    """Map a selected Treeview row back to a drone id.
+
+    A drone row is that drone. A group row never picks a drone by itself:
+    it keeps the current drone when the group holds it, else ``None``, so
+    landing on a header (arrow keys or a click) never moves the selection.
+    """
     for row in rows:
         if iid == row["iid"]:
-            members = row["members"]
-            if selected in members:
-                return selected
-            return members[0] if members else None
+            return selected if selected in row["members"] else None
         if iid in row["members"]:
             return iid
     return None
@@ -413,6 +473,23 @@ class WindowsReplayApp:
             previous.update(changed)
 
     # ---- construction ------------------------------------------------------
+    def _hairline(self, parent: Any, *, vertical: bool = False) -> Any:
+        size = self.px(WIN_LAYOUT["hairline"])
+        return self.ttk.Frame(parent, style="Line.TFrame", **({"width": size} if vertical else {"height": size}))
+
+    def _baseline_pad(self, reference: Any, font: Any, *, inset: int = 0, height: int | None = None) -> tuple[int, int]:
+        """pack ``pady`` that puts a smaller label's text baseline on ``reference``'s baseline.
+
+        ``pack`` centers both widgets in the row, so the smaller one moves down by
+        half of its top padding. ``inset`` is the space above the text inside the
+        widget (padding and border) and ``height`` its full height.
+        """
+        own = height if height is not None else font.metrics("linespace")
+        reference_baseline = reference.metrics("ascent") - reference.metrics("linespace") / 2.0
+        own_baseline = inset + font.metrics("ascent") - own / 2.0
+        shift = max(0, int(round(2 * (reference_baseline - own_baseline))))
+        return shift, 0
+
     def _build(self, scene_class: Any) -> None:
         tk, ttk, root = self.tk, self.ttk, self.root
         root.title("Zephyr Mesh")
@@ -427,13 +504,13 @@ class WindowsReplayApp:
         self.filter_var = tk.StringVar()
         self._build_menu()
         self._build_title(root).grid(row=0, column=0, sticky="ew")
-        ttk.Frame(root, style="Line.TFrame", height=1).grid(row=1, column=0, sticky="ew")
+        self._hairline(root).grid(row=1, column=0, sticky="ew")
         self._build_strip(root).grid(row=2, column=0, sticky="ew")
-        ttk.Frame(root, style="Line.TFrame", height=1).grid(row=3, column=0, sticky="ew")
+        self._hairline(root).grid(row=3, column=0, sticky="ew")
         self._build_middle(root, scene_class).grid(row=4, column=0, sticky="nsew")
-        ttk.Frame(root, style="Line.TFrame", height=1).grid(row=5, column=0, sticky="ew")
+        self._hairline(root).grid(row=5, column=0, sticky="ew")
         self._build_timeline(root).grid(row=6, column=0, sticky="ew")
-        ttk.Frame(root, style="Line.TFrame", height=1).grid(row=7, column=0, sticky="ew")
+        self._hairline(root).grid(row=7, column=0, sticky="ew")
         self._build_events(root).grid(row=8, column=0, sticky="ew")
         self._bind_shortcuts()
         root.bind_all("<MouseWheel>", self._route_wheel, add="+")
@@ -488,50 +565,70 @@ class WindowsReplayApp:
             self._menus[title] = menu
         self.root.configure(menu=menubar)
 
+    def _segments(self, parent: Any, choices: Sequence[tuple[Any, str]], variable: Any, command: Callable[[], None]) -> Any:
+        """A segmented choice whose segments all have the same width, with SPACE["xxs"] between them."""
+        frame = self.ttk.Frame(parent, style="Surface.TFrame")
+        width = max(len(text) for _value, text in choices)
+        for index, (value, text) in enumerate(choices):
+            self.ttk.Radiobutton(frame, text=text, value=value, variable=variable, style="Segment.Toolbutton", width=width,
+                                 command=command, takefocus=True).pack(
+                side="left", padx=(0 if index == 0 else self.px(SPACE["xxs"]), 0))
+        return frame
+
     def _build_title(self, parent: Any) -> Any:
+        """One toolbar row, like the Mac window: name, run, badge on the left; view controls on the right."""
         ttk = self.ttk
-        frame = ttk.Frame(parent, style="Surface.TFrame", padding=(self.px(SPACE["lg"]), self.px(SPACE["md"])))
+        frame = ttk.Frame(parent, style="Surface.TFrame", padding=(self.px(SPACE["lg"]), self.px(SPACE["sm"])))
+        title_font = self.fonts["title"]
         ttk.Label(frame, text="Zephyr Mesh", style="Surface.Title.TLabel").pack(side="left")
         ttk.Label(frame, text=run_name(self.run), style="Surface.Secondary.TLabel").pack(
-            side="left", padx=(self.px(SPACE["md"]), 0), pady=(self.px(3), 0))
+            side="left", padx=(self.px(SPACE["md"]), 0), pady=self._baseline_pad(title_font, self.fonts["body"]))
+        badge_inset = self.px(WIN_LAYOUT["hairline"]) + self.px(SPACE["xxs"])
+        badge_height = self.fonts["caption"].metrics("linespace") + 2 * badge_inset
         ttk.Label(frame, text=UI_TEXT["honesty"]["badge"], style="Badge.TLabel").pack(
-            side="left", padx=(self.px(SPACE["md"]), 0), pady=(self.px(3), 0))
+            side="left", padx=(self.px(SPACE["md"]), 0),
+            pady=self._baseline_pad(title_font, self.fonts["caption"], inset=badge_inset, height=badge_height))
+        gap = self.px(SPACE["sm"])
         about = ttk.Button(frame, text=f" {UI_TEXT['honesty']['aboutButton']}", style="Tool.TButton", compound="left",
-                           image=self.images.icon("info", "textSecondary", 14), command=self._show_about)
+                           image=self.images.icon("info", "textSecondary", WIN_LAYOUT["iconSize"]), command=self._show_about)
         about.pack(side="right")
+        self.view_modes = self._segments(frame, (("3d", "3D"), ("top", "Top")), self.view_var,
+                                         lambda: self._set_view_mode(self.view_var.get()))
+        self.view_modes.pack(side="right", padx=(0, gap))
         self.notice = ttk.Label(frame, text="", style="Surface.Caption.TLabel")
-        self.notice.pack(side="right", padx=(0, self.px(SPACE["md"])))
+        self.notice.pack(side="right", padx=(0, self.px(SPACE["lg"])))
         return frame
 
     def _build_strip(self, parent: Any) -> Any:
         ttk = self.ttk
-        frame = ttk.Frame(parent, style="Base.TFrame", padding=(self.px(SPACE["sm"]), self.px(SPACE["md"])))
+        # Cells carry SPACE["lg"] on the left, so the first value lines up with the title and the sidebar.
+        frame = ttk.Frame(parent, style="Base.TFrame", padding=(0, self.px(SPACE["md"])))
         labels = UI_TEXT["statusStrip"]
         self.strip_values: dict[str, Any] = {}
         column = 0
         for index, label in enumerate(labels):
             if index:
-                ttk.Frame(frame, style="Line.TFrame", width=1).grid(row=0, column=column, sticky="ns", pady=self.px(2))
+                self._hairline(frame, vertical=True).grid(row=0, column=column, sticky="ns", pady=self.px(SPACE["xxs"]))
                 column += 1
-            cell = ttk.Frame(frame, style="Base.TFrame", padding=(self.px(SPACE["md"]), 0))
+            cell = ttk.Frame(frame, style="Base.TFrame", padding=(self.px(SPACE["lg"]), 0, self.px(SPACE["md"]), 0))
             cell.grid(row=0, column=column, sticky="nsew")
-            frame.columnconfigure(column, weight=2 if index == 0 else 1, uniform="strip")
+            # The headline cell gets a little more room than each number, not twice as much (7:5).
+            frame.columnconfigure(column, weight=7 if index == 0 else 5, uniform="strip")
             ttk.Label(cell, text=label, style="Base.Caption.TLabel").pack(anchor="w")
-            row = ttk.Frame(cell, style="Base.TFrame", height=self.fonts["metric"].metrics("linespace") + self.px(2))
-            row.pack(anchor="w", fill="x", pady=(self.px(2), 0))
+            row = ttk.Frame(cell, style="Base.TFrame", height=self.fonts["metric"].metrics("linespace"))
+            row.pack(anchor="w", fill="x", pady=(self.px(SPACE["xxs"]), 0))
             row.pack_propagate(False)
             if index == 0:
                 glyph = ttk.Label(row, style="Base.Glyph.TLabel")
                 glyph.pack(side="left", padx=(0, self.px(SPACE["sm"])))
                 self.strip_glyph = glyph
-            # Fixed character widths keep the layout still while values change frame to frame.
             value = ttk.Label(row, style="Base.Metric.TLabel", anchor="w")
             value.pack(side="left", fill="both", expand=True)
             self.strip_values[label] = value
             column += 1
         # A fixed-height strip keeps value changes from re-laying out the whole window.
         caption, metric = self.fonts["caption"], self.fonts["metric"]
-        height = caption.metrics("linespace") + metric.metrics("linespace") + self.px(2 + 2 * SPACE["md"] + 4)
+        height = caption.metrics("linespace") + metric.metrics("linespace") + self.px(SPACE["xxs"]) + 2 * self.px(SPACE["md"])
         frame.configure(height=height)
         frame.grid_propagate(False)
         return frame
@@ -542,53 +639,109 @@ class WindowsReplayApp:
         frame.rowconfigure(0, weight=1)
         frame.columnconfigure(2, weight=1, minsize=self.px(LAYOUT["sceneMinWidth"]))
         self._build_team(frame).grid(row=0, column=0, sticky="nsw")
-        ttk.Frame(frame, style="Line.TFrame", width=1).grid(row=0, column=1, sticky="ns")
+        self._hairline(frame, vertical=True).grid(row=0, column=1, sticky="ns")
         self._build_scene(frame, scene_class).grid(row=0, column=2, sticky="nsew")
-        self.inspector_line = ttk.Frame(frame, style="Line.TFrame", width=1)
+        self.inspector_line = self._hairline(frame, vertical=True)
         self.inspector_line.grid(row=0, column=3, sticky="ns")
         self.inspector_panel = self._build_inspector(frame)
         self.inspector_panel.grid(row=0, column=4, sticky="nse")
         return frame
 
+    def _header_row(self, parent: Any, row: int) -> None:
+        """Panel headers share one fixed-height first row, so the sidebar and inspector titles line up."""
+        parent.rowconfigure(row, minsize=self.px(WIN_LAYOUT["controlHeight"]))
+
+    def _team_column_widths(self, inner: int) -> dict[str, int]:
+        """Measure columns from their widest real content, so nothing is clipped at any DPI."""
+        strong = self.fonts["bodyStrong"]  # group rows are bold, the widest case
+        pad = self.px(SPACE["sm"])
+
+        def fit(*samples: str) -> int:
+            return max(strong.measure(sample) for sample in samples) + pad
+
+        widths = {"loss": fit("Loss", "100.0%", f"00{fmt.EN_DASH}100%"), "age": fit("Age", f"0.00{fmt.EN_DASH}0.00 s")}
+        widths["#0"] = max(inner - sum(widths.values()), fit("Drones"))
+        return widths
+
     def _build_team(self, parent: Any) -> Any:
-        ttk, tk = self.ttk, self.tk
-        width = self.px(LAYOUT["sidebarWidthWindows"])
-        frame = ttk.Frame(parent, style="Surface.TFrame", width=width, padding=(self.px(SPACE["md"]), self.px(SPACE["md"])))
+        ttk = self.ttk
+        width = self.px(WIN_LAYOUT["sidebarWidth"])
+        pad = self.px(SPACE["lg"])
+        frame = ttk.Frame(parent, style="Surface.TFrame", width=width, padding=(pad, self.px(SPACE["md"]), pad, pad))
         frame.grid_propagate(False)
         frame.pack_propagate(False)
         frame.columnconfigure(0, weight=1)
-        frame.rowconfigure(2, weight=1)
-        self.team_summary = ttk.Label(frame, style="Surface.Strong.TLabel", wraplength=width - self.px(2 * SPACE["md"]), width=36)
+        frame.rowconfigure(3, weight=1)
+        self._header_row(frame, 0)
+        self.team_summary = ttk.Label(frame, style="Surface.Strong.TLabel", wraplength=width - 2 * pad)
         self.team_summary.grid(row=0, column=0, columnspan=2, sticky="w")
-        self.filter_entry = ttk.Entry(frame, textvariable=self.filter_var, style="Filter.TEntry", font=self.fonts["body"])
-        self.filter_entry.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(self.px(SPACE["sm"]), self.px(SPACE["sm"])))
+        field = ttk.Frame(frame, style="Surface.TFrame")
+        field.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(self.px(SPACE["sm"]), 0))
+        field.columnconfigure(0, weight=1)
+        self.filter_entry = ttk.Entry(field, textvariable=self.filter_var, style="Filter.TEntry", font=self.fonts["body"])
+        self.filter_entry.grid(row=0, column=0, sticky="ew")
+        glyph = self.px(WIN_LAYOUT["iconSize"])
+        text_inset = self.px(SPACE["sm"]) + self.px(WIN_LAYOUT["hairline"])
+        search = ttk.Label(field, image=self.images.glyph("search", "textSecondary", WIN_LAYOUT["iconSize"]),
+                           style="Field.Placeholder.TLabel")
+        search.place(in_=self.filter_entry, x=text_inset, rely=0.5, anchor="w")
+        search.bind("<Button-1>", lambda _event: self.filter_entry.focus_set())
         self.widgets.Placeholder(self.filter_entry, self.filter_var, f"Filter drones ({fmt.accelerator('focusFilter')})",
-                                 "Field.Placeholder.TLabel")
+                                 "Field.Placeholder.TLabel", inset=text_inset + glyph + self.px(SPACE["xs"]))
+        self.clear_button = ttk.Button(field, style="FieldIcon.TButton", takefocus=False, command=self._clear_filter,
+                                       image=self.images.glyph("clear", "textSecondary", WIN_LAYOUT["iconSize"]))
+        self.widgets.Tooltip(self.clear_button, f"{UI_TEXT['teamFilter']['clearFilter']}  (Esc)", lambda: self.theme,
+                             self.fonts["caption"], scale=self.scale)
         self.filter_var.trace_add("write", lambda *_args: self._on_filter())
         self.filter_entry.bind("<Escape>", self._clear_filter)
-        columns = ("status", "delay", "loss", "age")
+        self.filter_caption = ttk.Label(frame, style="Surface.Caption.TLabel", wraplength=width - 2 * pad, justify="left")
+        self.filter_caption.grid(row=2, column=0, columnspan=2, sticky="w", pady=(self.px(SPACE["xs"]), 0))
+        self.filter_caption.grid_remove()
+        columns = TEAM_COLUMNS
         tree = ttk.Treeview(frame, columns=columns, show="tree headings", selectmode="browse", style="Zephyr.Treeview", takefocus=True)
-        inner = width - self.px(2 * SPACE["md"]) - self.px(12)
-        fixed = {"status": self.px(56), "delay": self.px(48), "loss": self.px(60), "age": self.px(46)}
-        widths = {"#0": inner - sum(fixed.values()), **fixed}
-        headings = {"#0": "Drones", "status": "Status", "delay": "Delay", "loss": "Loss", "age": "Age"}
+        scroll_width = self.px(SPACE["sm"]) + self.px(SPACE["xxs"])
+        # Always reserve the scrollbar column, so the columns never jump when it appears.
+        frame.columnconfigure(1, minsize=scroll_width)
+        widths = self._team_column_widths(width - 2 * pad - scroll_width)
+        headings = {"#0": "Drones", "loss": "Loss", "age": "Age"}
         for column in ("#0",) + columns:
-            tree.heading(column, text=headings[column], anchor="w" if column in ("#0", "status") else "e")
-            tree.column(column, width=widths[column], minwidth=widths[column], stretch=column == "#0",
-                        anchor="w" if column in ("#0", "status") else "e")
+            anchor = "w" if column == "#0" else "e"
+            tree.heading(column, text=headings[column], anchor=anchor)
+            tree.column(column, width=widths[column], minwidth=widths[column], stretch=column == "#0", anchor=anchor)
         scroll = ttk.Scrollbar(frame, orient="vertical", style="Thin.Vertical.TScrollbar", command=tree.yview)
-        tree.configure(yscrollcommand=self._auto_scroll(scroll, row=2, column=1))
-        tree.grid(row=2, column=0, sticky="nsew")
+        tree.configure(yscrollcommand=self._auto_scroll(scroll, row=3, column=1))
+        tree.grid(row=3, column=0, sticky="nsew", pady=(self.px(SPACE["sm"]), 0))
         tree.bind("<<TreeviewSelect>>", self._on_select)
         tree.bind("<<TreeviewOpen>>", lambda _event: self._on_group_toggle(True))
         tree.bind("<<TreeviewClose>>", lambda _event: self._on_group_toggle(False))
+        tree.bind("<Button-1>", self._on_team_click)
         tree.bind("<Double-Button-1>", self._on_team_double)
         tree.bind("<Return>", lambda _event: self._focus_selected_drone())
         for sequence in self._context_sequences():
             tree.bind(sequence, self._on_team_context)
         self.fleet = tree
         self.team_hover = self.widgets.TreeHover(tree)
+        self.team_tip = self.widgets.Tooltip(tree, "", lambda: self.theme, self.fonts["caption"], scale=self.scale,
+                                             text_for=self._team_cell_tip)
+        self.team_empty = ttk.Label(tree, style="Surface.Secondary.TLabel", anchor="center", justify="center",
+                                    wraplength=width - 2 * pad - 2 * self.px(SPACE["lg"]))
+        self.missing_legend = ttk.Label(frame, text=WIN_TEXT["missingLegend"], style="Surface.Caption.TLabel")
+        self.missing_legend.grid(row=4, column=0, columnspan=2, sticky="w", pady=(self.px(SPACE["xs"]), 0))
+        self.missing_legend.grid_remove()
         return frame
+
+    def _team_cell_tip(self, x: int, y: int) -> str | None:
+        """Hover text for a dash cell: say plainly that the value was not recorded."""
+        tree = self.fleet
+        row, column = tree.identify_row(y), tree.identify_column(x)
+        if not row or column in ("", "#0"):
+            return None
+        try:
+            values = tree.item(row, "values")
+            index = int(column.lstrip("#")) - 1
+        except (self.tk.TclError, ValueError):
+            return None
+        return fmt.NOT_RECORDED if 0 <= index < len(values) and str(values[index]) == fmt.EN_DASH else None
 
     def _build_scene(self, parent: Any, scene_class: Any) -> Any:
         ttk = self.ttk
@@ -607,11 +760,6 @@ class WindowsReplayApp:
         )
         self.canvas = self.scene.canvas
         self.canvas.grid(row=0, column=0, sticky="nsew")
-        modes = ttk.Frame(frame, style="Base.TFrame")
-        for value, text in (("3d", "3D"), ("top", "Top")):
-            ttk.Radiobutton(modes, text=text, value=value, variable=self.view_var, style="Segment.Toolbutton",
-                            command=lambda: self._set_view_mode(self.view_var.get()), takefocus=True).pack(side="left")
-        modes.place(in_=self.canvas, x=self.px(SPACE["md"]), y=self.px(SPACE["md"]))
         return frame
 
     def _build_inspector(self, parent: Any) -> Any:
@@ -620,108 +768,161 @@ class WindowsReplayApp:
         frame = ttk.Frame(parent, style="Surface.TFrame", width=width)
         frame.grid_propagate(False)
         frame.pack_propagate(False)
-        scroll = self.widgets.ScrollFrame(frame)
+        scroll = self.widgets.ScrollFrame(frame, scale=self.scale)
         scroll.outer.pack(fill="both", expand=True)
         self.inspector_scroll = scroll
         self._theme_hooks.append(scroll.apply_theme)
         pad = self.px(SPACE["lg"])
+        scroll_width = self.px(SPACE["sm"])
         body = ttk.Frame(scroll.inner, style="Surface.TFrame", padding=(pad, self.px(SPACE["md"]), pad, pad))
         body.pack(fill="both", expand=True)
         body.columnconfigure(0, weight=1)
+        self._header_row(body, 0)
         header = ttk.Frame(body, style="Surface.TFrame")
         header.grid(row=0, column=0, sticky="ew")
         self.inspector_title = ttk.Label(header, style="Surface.Headline.TLabel")
         self.inspector_title.pack(side="left")
-        self.inspector_word = ttk.Label(header, style="Surface.Body.TLabel", compound="left", width=10, anchor="e")
+        self.inspector_word = ttk.Label(header, style="Surface.Body.TLabel", compound="left", anchor="e")
         self.inspector_word.pack(side="right")
+        self.inspector_hint = ttk.Label(body, text=UI_TEXT["inspector"]["emptyHint"], style="Surface.Secondary.TLabel",
+                                        wraplength=width - 2 * pad - scroll_width, justify="left")
+        self.inspector_hint.grid(row=1, column=0, sticky="w", pady=(self.px(SPACE["xs"]), 0))
+        self.inspector_hint.grid_remove()
         tiles = ttk.Frame(body, style="Surface.TFrame")
-        tiles.grid(row=1, column=0, sticky="ew", pady=(self.px(SPACE["md"]), 0))
+        tiles.grid(row=2, column=0, sticky="ew", pady=(self.px(SPACE["sm"]), 0))
         tiles.columnconfigure(0, weight=1, uniform="tiles")
         tiles.columnconfigure(1, weight=1, uniform="tiles")
         self.tiles = {}
-        captions = (("target_age", "Target age"), ("estimate", "Estimate error"),
-                    ("delay", fmt.field_label("target_link_delay")), ("loss", fmt.field_label("target_packet_loss")))
+        # Same order as the status strip: estimate error, delay, loss, age.
+        captions = (("estimate", "Estimate error"), ("delay", fmt.field_label("target_link_delay")),
+                    ("loss", fmt.field_label("target_packet_loss")), ("target_age", "Target age"))
         gap = self.px(SPACE["sm"])
         for index, (key, caption) in enumerate(captions):
             tile = self.widgets.MetricTile(tiles, caption, self.scale)
             tile.frame.grid(row=index // 2, column=index % 2, sticky="nsew",
                             padx=(0, gap) if index % 2 == 0 else (0, 0), pady=(0, gap))
             self.tiles[key] = tile
-        label_width = self.px(118)
-        wrap = width - 2 * pad - label_width - self.px(SPACE["md"] + 6)
-        ttk.Label(body, text=UI_TEXT["inspector"]["positionAndMotion"], style="Surface.Strong.TLabel").grid(row=2, column=0, sticky="w",
-                pady=(self.px(SPACE["md"]), self.px(SPACE["xs"])))
-        self.motion_grid = self.widgets.KeyValueGrid(body, label_width=label_width, wrap=wrap, scale=self.scale, value_width=14)
-        self.motion_grid.frame.grid(row=3, column=0, sticky="ew")
-        ttk.Label(body, text=UI_TEXT["inspector"]["neighbors"], style="Surface.Strong.TLabel").grid(row=4, column=0, sticky="w",
-                pady=(self.px(SPACE["md"]), self.px(SPACE["xs"])))
-        self.neighbor_grid = self.widgets.KeyValueGrid(body, label_width=label_width, wrap=wrap, scale=self.scale, value_width=14)
-        self.neighbor_grid.frame.grid(row=5, column=0, sticky="ew")
-        ttk.Frame(body, style="Line.TFrame", height=1).grid(row=6, column=0, sticky="ew", pady=(self.px(SPACE["md"]), self.px(SPACE["xs"])))
+        label_width = self.px(WIN_LAYOUT["inspectorLabelWidth"])
+        wrap = width - 2 * pad - label_width - self.px(SPACE["md"]) - scroll_width
+        section_pad = (self.px(SPACE["md"]), self.px(SPACE["xs"]))
+        self.motion_heading = ttk.Label(body, text=UI_TEXT["inspector"]["positionAndMotion"], style="Surface.Strong.TLabel")
+        self.motion_heading.grid(row=3, column=0, sticky="w", pady=section_pad)
+        # Labels wrap inside their column, so every grid keeps the same value column and nothing is pushed off the edge.
+        grid_options = {"label_width": label_width, "wrap": wrap, "scale": self.scale, "label_wrap": label_width - self.px(SPACE["md"])}
+        self.motion_grid = self.widgets.KeyValueGrid(body, **grid_options)
+        self.motion_grid.frame.grid(row=4, column=0, sticky="ew")
+        self.neighbor_heading = ttk.Label(body, text=UI_TEXT["inspector"]["neighbors"], style="Surface.Strong.TLabel")
+        self.neighbor_heading.grid(row=5, column=0, sticky="w", pady=section_pad)
+        self.neighbor_grid = self.widgets.KeyValueGrid(body, **grid_options)
+        self.neighbor_grid.frame.grid(row=6, column=0, sticky="ew")
+        self.inspector_rule = self._hairline(body)
+        self.inspector_rule.grid(row=7, column=0, sticky="ew", pady=(self.px(SPACE["md"]), self.px(SPACE["xs"])))
         self.details = self.widgets.Disclosure(
             body, UI_TEXT["inspector"]["details"], self.images, pad=self.px(SPACE["xs"]),
             on_toggle=lambda opened: opened and self.root.after_idle(lambda: self.inspector_scroll.reveal(self.details.frame)))
-        self.details.frame.grid(row=7, column=0, sticky="ew")
-        self.details_grid = self.widgets.KeyValueGrid(self.details.body, wrap=width - 2 * pad - self.px(8), scale=self.scale, stacked=True)
-        self.details_grid.frame.pack(fill="x", padx=(self.px(4), 0))
+        self.details.frame.grid(row=8, column=0, sticky="ew")
+        self.details_grid = self.widgets.KeyValueGrid(self.details.body, **grid_options)
+        self.details_grid.frame.pack(fill="x")
+        self._inspector_sections = (tiles, self.motion_heading, self.motion_grid.frame, self.neighbor_heading,
+                                    self.neighbor_grid.frame, self.inspector_rule, self.details.frame)
         return frame
 
+    def _transport_button(self, parent: Any, icon: str, tip: str, command: Callable[[], None]) -> tuple[Any, Any]:
+        button = self.ttk.Button(parent, style="Icon.TButton", command=command,
+                                 image=self.images.icon(icon, "text", WIN_LAYOUT["iconSize"]))
+        return button, self.widgets.Tooltip(button, tip, lambda: self.theme, self.fonts["caption"], scale=self.scale)
+
     def _build_timeline(self, parent: Any) -> Any:
+        """Transport, scrubber, time, speed: one control height and SPACE["lg"] between groups."""
         ttk = self.ttk
         frame = ttk.Frame(parent, style="Surface.TFrame", padding=(self.px(SPACE["lg"]), self.px(SPACE["sm"])))
-        frame.columnconfigure(4, weight=1)
-        transport = (
-            ("restart", "Restart", self._restart, fmt.accelerator("restart")),
-            ("step_back", "Step back", self._step_back, fmt.accelerator("stepBack")),
+        frame.columnconfigure(1, weight=1)
+        group = self.px(SPACE["lg"])
+        transport = ttk.Frame(frame, style="Surface.TFrame")
+        transport.grid(row=0, column=0)
+        items = (
+            ("restart", "restart", self._restart),
+            ("step_back", "stepBack", self._step_back),
+            ("play", "play", self._toggle),
+            ("step_forward", "stepForward", self._step),
         )
-        column = 0
-        for icon, label, command, accel in transport:
-            button = ttk.Button(frame, style="Icon.TButton", image=self.images.icon(icon, "text", 14), command=command)
-            button.grid(row=0, column=column, padx=(0, self.px(SPACE["xs"])))
-            self.widgets.Tooltip(button, f"{label}  ({accel})", lambda: self.theme, self.fonts["caption"])
-            column += 1
-        self.play_button = ttk.Button(frame, style="Tool.TButton", compound="left", width=7,
-                                      image=self.images.icon("play", "text", 14), text=" Play", command=self._toggle)
-        self.play_button.grid(row=0, column=column, padx=(0, self.px(SPACE["xs"])))
-        column += 1
-        forward = ttk.Button(frame, style="Icon.TButton", image=self.images.icon("step_forward", "text", 14), command=self._step)
-        forward.grid(row=0, column=column)
-        self.widgets.Tooltip(forward, f"Step forward  ({fmt.accelerator('stepForward')})", lambda: self.theme, self.fonts["caption"])
-        column += 1
+        for index, (icon, action, command) in enumerate(items):
+            tip = self._transport_tip(action)
+            button, tooltip = self._transport_button(transport, icon, tip, command)
+            button.pack(side="left", padx=(0 if index == 0 else self.px(SPACE["xs"]), 0))
+            if action == "play":
+                self.play_button, self.play_tip = button, tooltip
+                button.configure(style="Primary.Icon.TButton", image=self.images.icon("play", "onAccent", WIN_LAYOUT["iconSize"]))
         self.slider = self.widgets.TimelineSlider(frame, self._seek_frame, self.scale)
-        self.slider.canvas.grid(row=0, column=column, sticky="ew", padx=(self.px(SPACE["lg"]), self.px(SPACE["lg"])))
+        # The slider keeps SPACE["sm"] inside each end for its thumb, so the visible gap is SPACE["lg"].
+        inset = self.px(SPACE["sm"])
+        self.slider.canvas.grid(row=0, column=1, sticky="ew", padx=(group - inset, group - inset))
         self._theme_hooks.append(self.slider.apply_theme)
-        column += 1
-        self.time_label = ttk.Label(frame, style="Surface.Body.TLabel", width=12, anchor="e")
-        self.time_label.grid(row=0, column=column, padx=(0, self.px(SPACE["lg"])))
-        column += 1
+        body = self.fonts["body"]
+        longest = fmt.time_label(self.session.duration, self.session.duration)
+        holder = ttk.Frame(frame, style="Surface.TFrame", width=body.measure(longest.replace("1", "0")) + self.px(SPACE["xxs"]),
+                           height=body.metrics("linespace"))
+        holder.grid(row=0, column=2)
+        holder.pack_propagate(False)
+        self.time_label = ttk.Label(holder, style="Surface.Body.TLabel", anchor="e")
+        self.time_label.pack(fill="both", expand=True)
         speeds = ttk.Frame(frame, style="Surface.TFrame")
-        speeds.grid(row=0, column=column)
+        speeds.grid(row=0, column=3, padx=(group, 0))
         ttk.Label(speeds, text="Speed", style="Surface.Caption.TLabel").pack(side="left", padx=(0, self.px(SPACE["sm"])))
-        for speed in SPEEDS:
-            ttk.Radiobutton(speeds, text=speed_label(speed), value=speed, variable=self.speed_var, style="Segment.Toolbutton",
-                            command=lambda: self._set_speed(self.speed_var.get())).pack(side="left")
+        self._segments(speeds, [(speed, speed_label(speed)) for speed in SPEEDS], self.speed_var,
+                       lambda: self._set_speed(self.speed_var.get())).pack(side="left")
         return frame
+
+    @staticmethod
+    def _transport_tip(action: str) -> str:
+        spec = TRANSPORT[action]
+        shortcut = "playPause" if action in ("play", "pause") else action
+        return f"{spec['label']}  ({fmt.accelerator(shortcut)})"
 
     def _build_events(self, parent: Any) -> Any:
         ttk = self.ttk
-        frame = ttk.Frame(parent, style="Surface.TFrame", padding=(self.px(SPACE["lg"]), self.px(SPACE["sm"]),
-                self.px(SPACE["lg"]), self.px(SPACE["sm"])))
+        frame = ttk.Frame(parent, style="Surface.TFrame", padding=(self.px(SPACE["lg"]), self.px(SPACE["sm"])))
         frame.columnconfigure(0, weight=1)
-        ttk.Label(frame, text="Events", style="Surface.Caption.TLabel").grid(row=0, column=0, sticky="w", pady=(0, self.px(SPACE["xs"])))
-        tree = ttk.Treeview(frame, columns=("word", "time", "text"), show="tree", selectmode="browse", height=4,
-                            style="Events.Treeview", takefocus=True)
-        tree.column("#0", width=self.px(30), minwidth=self.px(30), stretch=False)
-        tree.column("word", width=self.px(76), minwidth=self.px(76), stretch=False, anchor="w")
-        tree.column("time", width=self.px(64), minwidth=self.px(64), stretch=False, anchor="w")
-        tree.column("text", width=self.px(600), stretch=True, anchor="w")
+        ttk.Label(frame, text=WIN_TEXT["eventsTitle"], style="Surface.Caption.TLabel").grid(
+            row=0, column=0, sticky="w", pady=(0, self.px(SPACE["xs"])))
+        ttk.Label(frame, text=WIN_TEXT["eventsHint"], style="Surface.Caption.TLabel").grid(
+            row=0, column=0, columnspan=2, sticky="e", pady=(0, self.px(SPACE["xs"])))
+        tree = ttk.Treeview(frame, columns=("word", "time", "text"), show="tree", selectmode="browse",
+                            height=WIN_LAYOUT["eventRows"], style="Events.Treeview", takefocus=True)
+        body = self.fonts["body"]
+        pad = self.px(SPACE["md"])
+        glyph = self.px(WIN_LAYOUT["glyphBox"]) + self.px(SPACE["md"])
+        word = max(body.measure(fmt.status_word(level)) for level in fmt.LEVELS) + pad
+        time_width = body.measure("00.00 s") + pad
+        tree.column("#0", width=glyph, minwidth=glyph, stretch=False)
+        tree.column("word", width=word, minwidth=word, stretch=False, anchor="w")
+        tree.column("time", width=time_width, minwidth=time_width, stretch=False, anchor="w")
+        tree.column("text", width=self.px(WIN_LAYOUT["eventTextMinWidth"]), stretch=True, anchor="w")
         scroll = ttk.Scrollbar(frame, orient="vertical", style="Thin.Vertical.TScrollbar", command=tree.yview)
         tree.configure(yscrollcommand=self._auto_scroll(scroll, row=1, column=1))
+        frame.columnconfigure(1, minsize=self.px(SPACE["sm"]) + self.px(SPACE["xxs"]))
         tree.grid(row=1, column=0, sticky="ew")
         tree.bind("<<TreeviewSelect>>", self._on_event_select)
+        tree.bind("<ButtonRelease-1>", self._on_event_click)
+        tree.bind("<Return>", lambda _event: self._on_event_select(force=True))
         self.events_tree = tree
         self.events_hover = self.widgets.TreeHover(tree)
+        self.events_tip = self.widgets.Tooltip(tree, "", lambda: self.theme, self.fonts["caption"], scale=self.scale,
+                                               text_for=self._event_tip)
         return frame
+
+    def _event_tip(self, _x: int, y: int) -> str | None:
+        """Full event text on hover, for a long row the column cuts off."""
+        row = self.events_tree.identify_row(y)
+        if not row:
+            return None
+        try:
+            values = self.events_tree.item(row, "values")
+        except self.tk.TclError:
+            return None
+        text = str(values[2]) if len(values) > 2 else ""
+        column = self.events_tree.column("text", "width")
+        return text if self.fonts["body"].measure(text) > int(column) else None
 
     def _auto_scroll(self, scrollbar: Any, *, row: int, column: int) -> Callable[[str, str], None]:
         state = {"shown": False}
@@ -732,7 +933,7 @@ class WindowsReplayApp:
             if needed != state["shown"]:
                 state["shown"] = needed
                 if needed:
-                    scrollbar.grid(row=row, column=column, sticky="ns", padx=(self.px(2), 0))
+                    scrollbar.grid(row=row, column=column, sticky="nse", padx=(self.px(SPACE["xxs"]), 0))
                 else:
                     scrollbar.grid_remove()
         return update
@@ -752,7 +953,11 @@ class WindowsReplayApp:
                 if len(shortcut.key) == 1:
                     self.root.bind(f"<{shortcut.key.upper()}>", callback)
             else:
-                self.root.bind(shortcut.tk_binding, lambda _event, handler=handler: (handler(), "break")[1])
+                chord = lambda _event, handler=handler: (handler(), "break")[1]  # noqa: E731
+                self.root.bind(shortcut.tk_binding, chord)
+                if sys.platform == "darwin" and "Control-" in shortcut.tk_binding:
+                    # On a Mac the same chords also answer to Command, as Mac users expect.
+                    self.root.bind(shortcut.tk_binding.replace("Control-", "Command-"), chord)
 
     def _shortcut(self, action: Callable[[], Any], key: str = "") -> Callable[[Any], Any]:
         """Wrap a single-key shortcut so it stands down while a text field (or owning widget) has focus."""
@@ -762,7 +967,10 @@ class WindowsReplayApp:
                 widget_class = widget.winfo_class() if widget is not None else ""
             except Exception:
                 widget_class = ""
-            if shortcut_blocked(widget_class, key):
+            # Only the team list has groups to open and close; the Events list hands every key to the replay.
+            events = getattr(self, "events_tree", None)
+            owns = not (events is not None and widget is not None and str(widget) == str(events))
+            if shortcut_blocked(widget_class, key, tree_owns_keys=owns):
                 return None
             action()
             return "break"
@@ -780,6 +988,8 @@ class WindowsReplayApp:
         for tree in (self.fleet, self.events_tree):
             tree.tag_configure("hover", background=p.hoverFill)
         self.events_tree.tag_configure("past", foreground=p.textSecondary)
+        self.events_tree.tag_configure("current", foreground=p.text)
+        self.fleet.tag_configure("group", font=self.fonts["bodyStrong"], foreground=p.text)
         self.scene.apply_theme(theme)
         alive = []
         for hook in self._theme_hooks:
@@ -848,9 +1058,10 @@ class WindowsReplayApp:
     def _render_fleet(self) -> None:
         tree = self.fleet
         presentation = self.session.presentation
+        query = self.filter_var.get()
         self._set(self.team_summary, text=presentation["team_summary"])
-        plan = team_rows(presentation["groups"], presentation["per_drone"], self.filter_var.get())
-        filtering = bool(self.filter_var.get().strip())
+        plan = team_rows(presentation["groups"], presentation["per_drone"], query)
+        filtering = bool(query.strip())
         wanted_groups = [row["iid"] for row in plan]
         for row in plan:
             if row["iid"] not in self._seen_groups:
@@ -859,22 +1070,25 @@ class WindowsReplayApp:
                     self._open_groups.add(row["iid"])
         existing_groups = set(tree.get_children(""))
         wanted_children = {child["iid"] for row in plan for child in row["children"]}
+        glyph, box = WIN_LAYOUT["glyphSize"], WIN_LAYOUT["glyphBox"]
         for row in plan:
-            image = self.images.status(row["level"], 10, 16)
+            image = self.images.status(row["level"], glyph, box)
             if tree.exists(row["iid"]):
                 self._tree_item(row["iid"], text=row["label"], values=row["values"], image=image)
             else:
-                tree.insert("", "end", iid=row["iid"], text=row["label"], values=row["values"], image=image)
+                tree.insert("", "end", iid=row["iid"], text=row["label"], values=row["values"], image=image, tags=("group",))
         for index, row in enumerate(plan):
             if tree.parent(row["iid"]) != "" or tree.index(row["iid"]) != index:
                 tree.move(row["iid"], "", index)
             for child_index, child in enumerate(row["children"]):
+                image = self.images.status(child["level"], glyph, box)
                 if tree.exists(child["iid"]):
-                    self._tree_item(child["iid"], text=child["label"], values=child["values"])
+                    self._tree_item(child["iid"], text=child["label"], values=child["values"], image=image)
                     if tree.parent(child["iid"]) != row["iid"] or tree.index(child["iid"]) != child_index:
                         tree.move(child["iid"], row["iid"], child_index)
                 else:
-                    tree.insert(row["iid"], child_index, iid=child["iid"], text=child["label"], values=child["values"])
+                    tree.insert(row["iid"], child_index, iid=child["iid"], text=child["label"], values=child["values"],
+                                image=image)
             should_open = row["iid"] in self._open_groups or (filtering and row["level"] not in pinned_levels())
             if bool(tree.item(row["iid"], "open")) != should_open:
                 tree.item(row["iid"], open=should_open)
@@ -888,7 +1102,35 @@ class WindowsReplayApp:
                 self.team_hover.forget(group)
                 tree.delete(group)
         self._team_plan = plan
+        self._render_filter_state(presentation, query, plan)
         self._sync_team_selection()
+
+    def _render_filter_state(self, presentation: Mapping[str, Any], query: str, plan: Sequence[Mapping[str, Any]]) -> None:
+        """Caption ("Showing 3 of 50"), the no-match message, the clear button, and the dash legend."""
+        state = team_filter(presentation["groups"], query)
+        caption = state["caption"]
+        if caption:
+            pinned = any(row["level"] in pinned_levels() for row in plan)
+            parts = [state["empty_text"], caption] if state["empty_text"] else [caption]
+            if pinned:
+                parts.append(UI_TEXT["teamFilter"]["pinnedNote"])
+            text = " ".join(part if part.endswith(".") else f"{part}." for part in parts)
+            self._set(self.filter_caption, text=text)
+            self.filter_caption.grid()
+            self.clear_button.place(in_=self.filter_entry, relx=1.0, x=-self.px(SPACE["xs"]), rely=0.5, anchor="e")
+        else:
+            self.filter_caption.grid_remove()
+            self.clear_button.place_forget()
+        if not plan and state["empty_text"]:
+            self._set(self.team_empty, text=state["empty_text"])
+            self.team_empty.place(relx=0.5, rely=0.3, anchor="center")
+        else:
+            self.team_empty.place_forget()
+        open_now = {row["iid"] for row in plan if self.fleet.exists(row["iid"]) and self.fleet.item(row["iid"], "open")}
+        if rows_have_missing(plan, open_now):
+            self.missing_legend.grid()
+        else:
+            self.missing_legend.grid_remove()
 
     def _tree_item(self, iid: str, **options: Any) -> None:
         """Update a team row only when its text, values, or image changed."""
@@ -965,6 +1207,24 @@ class WindowsReplayApp:
         else:
             self._open_groups.discard(item)
         self.root.after_idle(self._sync_team_selection)
+        self.root.after_idle(lambda: self._render_filter_state(self.session.presentation, self.filter_var.get(), self._team_plan))
+
+    def _on_team_click(self, event: Any) -> str | None:
+        """A click on a group header opens or closes it and leaves the selected drone alone."""
+        row = self.fleet.identify_row(event.y)
+        if not row or row not in {plan["iid"] for plan in self._team_plan}:
+            return None
+        self.fleet.focus_set()
+        self.fleet.focus(row)
+        opened = not bool(self.fleet.item(row, "open"))
+        self.fleet.item(row, open=opened)
+        if opened:
+            self._open_groups.add(row)
+        else:
+            self._open_groups.discard(row)
+        self._sync_team_selection()
+        self._render_filter_state(self.session.presentation, self.filter_var.get(), self._team_plan)
+        return "break"
 
     def _on_team_double(self, event: Any) -> str | None:
         row = self.fleet.identify_row(event.y)
@@ -987,47 +1247,88 @@ class WindowsReplayApp:
         menu.add_command(label="Copy Drone ID", command=lambda: self._copy_text(drone_id))
         try:
             menu.tk_popup(x, y)
-        finally:
+        except self.tk.TclError:
+            return  # no popup, so there is no grab to release
+        try:
             menu.grab_release()
+        except self.tk.TclError:
+            pass
 
     def _show_in_inspector(self, drone_id: str) -> None:
         self._select_drone(drone_id)
         if not self.session.show_inspector:
             self._set_inspector(True)
 
-    def _copy_text(self, text: str) -> None:
-        self.root.clipboard_clear()
-        self.root.clipboard_append(text)
+    def _copy_text(self, text: str) -> bool:
+        """Copy to the clipboard and say so; a busy clipboard (Windows can lock it) is reported, not raised."""
+        try:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(text)
+        except self.tk.TclError:
+            self._flash_notice(WIN_TEXT["clipboardBusy"])
+            return False
+        self._flash_notice(WIN_TEXT["copied"])
+        return True
+
+    def _flash_notice(self, text: str, duration_ms: int = 2400) -> None:
+        """Show a short note in the title row, then clear it unless something else replaced it."""
+        notice = getattr(self, "notice", None)
+        if notice is None:
+            return
+        try:
+            notice.configure(text=text)
+        except self.tk.TclError:
+            return
+
+        def clear() -> None:
+            try:
+                if str(notice.cget("text")) == text:
+                    notice.configure(text="")
+            except self.tk.TclError:
+                pass
+
+        self.root.after(duration_ms, clear)
 
     def _profile(self, profile_id: str | None) -> Mapping[str, Any] | None:
         return next((item for item in self.run.get("agent_profiles", []) if item.get("profile_id") == profile_id), None)
 
+    def _show_inspector_sections(self, visible: bool) -> None:
+        """With no drone selected, show one hint line instead of empty headings and tiles."""
+        if getattr(self, "_sections_shown", None) == visible:
+            return
+        self._sections_shown = visible
+        for widget in self._inspector_sections:
+            widget.grid() if visible else widget.grid_remove()
+        self.inspector_hint.grid_remove() if visible else self.inspector_hint.grid()
+
     def _render_inspector(self) -> None:
         record = self.session.record_for(self.session.selected_drone_id)
         if record is None:
-            self.inspector_title.configure(text=UI_TEXT["inspector"]["emptyTitle"])
-            self.inspector_word.configure(text="", image="")
-            for tile in self.tiles.values():
-                tile.set(None)
-            self.motion_grid.set_rows(())
-            self.neighbor_grid.set_rows(())
-            self.details_grid.set_rows(())
+            # Through _set, like the normal path: a direct configure would leave the cache stale,
+            # and the header would keep "No drone selected" when the same drone comes back.
+            self._set(self.inspector_title, text=UI_TEXT["inspector"]["emptyTitle"])
+            self._set(self.inspector_word, text="", image="")
+            self._show_inspector_sections(False)
             return
+        self._show_inspector_sections(True)
+        glyph = WIN_LAYOUT["glyphSize"]
         self._set(self.inspector_title, text=record["heading_name"])
-        self._set(self.inspector_word, text=f" {record['word']}", image=self.images.status(record["level"], 10, 12))
+        self._set(self.inspector_word, text=f" {record['word']}", image=self.images.status(record["level"], glyph, glyph + 2))
         self.tiles["target_age"].set(fmt.format_value(record.get("target_age_s"), "s"))
         self.tiles["estimate"].set(fmt.format_value(record.get("estimate_error_m"), "m"))
         self.tiles["delay"].set(fmt.format_value(record.get("target_link_delay_ms"), "ms"))
         self.tiles["loss"].set(fmt.format_value(record.get("target_packet_loss_pct"), "pct"))
-        heading = record.get("heading_deg")
         self.motion_grid.set_rows((
             (UI_TEXT["inspector"]["altitude"], fmt.format_value(record.get("altitude_m"), "m")),
             (fmt.field_label("speed_mps"), fmt.format_value(record.get("speed_mps"), "mps")),
-            (fmt.field_label("heading_deg"), fmt.format_value(heading, "deg") if heading is not None else "At rest"),
+            (fmt.field_label("heading_deg"), fmt.heading_text(record.get("heading_deg"), record.get("speed_mps"))),
         ))
         self.neighbor_grid.set_rows((
-            (fmt.field_label("neighbor_count"), fmt.format_scalar(record.get("neighbor_count"))),
+            (fmt.field_label("neighbor_count"), fmt.format_scalar(record.get("neighbor_count"))
+             if record.get("neighbor_count") is not None else None),
             (fmt.field_label("nearest_neighbor_m"), fmt.format_value(record.get("nearest_neighbor_m"), "m")),
+            (fmt.field_label("neighbor_link_delay_ms"), fmt.format_value(record.get("neighbor_link_delay_ms"), "ms")),
+            (fmt.field_label("neighbor_packet_loss_pct"), fmt.format_value(record.get("neighbor_packet_loss_pct"), "pct")),
         ))
         agent = next((item for item in self._raw_frame().get("agents", []) if item.get("agent_id") == record["drone_id"]), {})
         profile = self._profile(record.get("profile_id")) or {}
@@ -1059,45 +1360,72 @@ class WindowsReplayApp:
         self.slider.set_state(session.frame_index, session.frame_count, session.event_frames())
         self._set(self.time_label, text=fmt.time_label(session.frame_time, session.duration))
         playing = session.playing
-        self._set(self.play_button, text=" Pause" if playing else " Play",
-                  image=self.images.icon("pause" if playing else "play", "text", 14))
+        self._set(self.play_button, image=self.images.icon("pause" if playing else "play", "onAccent", WIN_LAYOUT["iconSize"]))
+        tip = getattr(self, "play_tip", None)
+        if tip is not None:
+            tip.set_text(self._transport_tip("pause" if playing else "play"))
         if abs(self.speed_var.get() - session.speed) > 1e-9:
             self.speed_var.set(session.speed)
 
     def _render_events(self) -> None:
         tree = self.events_tree
         events = self.session.events_through()
+        current = self.session.frame_index
         signature = tuple((frame, event["text"]) for frame, event in events)
-        if signature == self._event_signature:
-            return
-        keep = 0
-        while keep < min(len(signature), len(self._event_signature)) and signature[keep] == self._event_signature[keep]:
-            keep += 1
-        for index in range(keep, len(self._event_signature)):
-            iid = f"event{index}"
-            if tree.exists(iid):
-                self.events_hover.forget(iid)
-                tree.delete(iid)
-                self._event_frames.pop(iid, None)
-        for index in range(keep, len(events)):
-            frame, event = events[index]
-            level, word, time_text, text = fmt.event_row(event)
-            iid = f"event{index}"
-            tree.insert("", "end", iid=iid, image=self.images.status(level, 11, 18), values=(word, time_text, text))
-            self._event_frames[iid] = frame
-        self._event_signature = signature
-        children = tree.get_children("")
-        if children:
-            tree.see(children[-1])
+        if signature != self._event_signature:
+            keep = 0
+            while keep < min(len(signature), len(self._event_signature)) and signature[keep] == self._event_signature[keep]:
+                keep += 1
+            for index in range(keep, len(self._event_signature)):
+                iid = f"event{index}"
+                if tree.exists(iid):
+                    self.events_hover.forget(iid)
+                    tree.delete(iid)
+                    self._event_frames.pop(iid, None)
+            box = WIN_LAYOUT["glyphBox"]
+            for index in range(keep, len(events)):
+                frame, event = events[index]
+                level, word, time_text, text = fmt.event_row(event)
+                iid = f"event{index}"
+                # One glyph size and box for every level, so the row centers line up.
+                tree.insert("", "end", iid=iid, image=self.images.status(level, WIN_LAYOUT["glyphSize"], box),
+                            values=(word, time_text, text))
+                self._event_frames[iid] = frame
+            self._event_signature = signature
+            children = tree.get_children("")
+            if children:
+                tree.see(children[-1])
+        # Events from this frame read in full text; earlier ones step back to the secondary color.
+        if getattr(self, "_events_tagged_at", None) != (current, signature):
+            self._events_tagged_at = (current, signature)
+            for iid, frame in self._event_frames.items():
+                if tree.exists(iid):
+                    hover = ("hover",) if "hover" in tree.item(iid, "tags") else ()
+                    tree.item(iid, tags=("current" if frame == current else "past",) + hover)
 
-    def _on_event_select(self, _event: Any = None) -> None:
+    def _on_event_select(self, _event: Any = None, force: bool = False) -> None:
+        """Moving the selection with the arrow keys (or Return, ``force``) jumps to that event's frame.
+
+        Tk also fires <<TreeviewSelect>> when a key re-sets the same row (Right does), so an
+        unchanged selection is ignored; otherwise that key would seek back to the event.
+        """
         selection = self.events_tree.selection()
-        if not selection:
+        if not selection or (not force and selection[0] == self.__dict__.get("_event_selected")):
             return
-        frame = self._event_frames.get(selection[0])
-        if frame is None or frame == self.session.frame_index:
-            return
-        self._seek_frame(frame)
+        self._event_selected = selection[0]
+        self._activate_event(selection[0])
+
+    def _on_event_click(self, event: Any) -> None:
+        """Every click jumps, even on the row that is already selected (no new <<TreeviewSelect>> then)."""
+        row = self.events_tree.identify_row(event.y)
+        if row:
+            self._event_selected = row
+            self._activate_event(row)
+
+    def _activate_event(self, iid: str) -> None:
+        frame = self._event_frames.get(iid)
+        if frame is not None:
+            self._seek_frame(frame)
 
     # ---- actions -----------------------------------------------------------
     def _schedule(self, callback: Callable[[], None], delay: int) -> Any:
@@ -1147,6 +1475,9 @@ class WindowsReplayApp:
         self.speed_var.set(self.session.speed)
 
     def _focus_selected_drone(self) -> None:
+        if self.session.record_for(self.session.selected_drone_id) is None:
+            self._flash_notice(WIN_TEXT["selectDroneFirst"])
+            return
         self.scene.focus_drone(self.session.selected_drone_id)
 
     def _reset_camera(self) -> None:
@@ -1177,6 +1508,8 @@ class WindowsReplayApp:
         else:
             self.inspector_line.grid_remove()
             self.inspector_panel.grid_remove()
+        # Refit against the new canvas size once Tk has laid it out, so no drone is cut off.
+        self.root.after_idle(self.scene.refit)
 
     def _toggle_inspector(self) -> None:
         self._set_inspector(not self.session.show_inspector)
@@ -1186,8 +1519,9 @@ class WindowsReplayApp:
         self.filter_entry.select_range(0, "end")
 
     def _clear_filter(self, _event: Any = None) -> str:
+        """Escape clears the filter and hands the keys back to the list; the clear button keeps typing focus."""
         self.filter_var.set("")
-        self.fleet.focus_set()
+        (self.fleet if _event is not None else self.filter_entry).focus_set()
         return "break"
 
     def _on_filter(self) -> None:
@@ -1236,14 +1570,26 @@ class WindowsReplayApp:
         self._replace_window("_about_window")
         self._about_window = about_window(self._viewer_context(), self.run, self._about_details())
 
-    def _about_details(self) -> list[tuple[str, Any, str]]:
+    def _replay_digest(self) -> str | None:
+        """SHA-256 of the replay file, hashed once in chunks and then cached for later About windows."""
+        if "_digest" in self.__dict__:
+            return self._digest
         source = getattr(self.model, "source_path", None)
         digest = None
         if source is not None:
             try:
-                digest = hashlib.sha256(Path(source).read_bytes()).hexdigest()
+                hasher = hashlib.sha256()
+                with Path(source).open("rb") as handle:
+                    for chunk in iter(lambda: handle.read(1 << 20), b""):
+                        hasher.update(chunk)
+                digest = hasher.hexdigest()
             except OSError:
                 digest = None
+        self._digest = digest
+        return digest
+
+    def _about_details(self) -> list[tuple[str, Any, str]]:
+        digest = self._replay_digest()
         frames = self.run.get("steps", [])
         return [
             (fmt.field_label("scenario_id"), self.run.get("scenario_id"), "mono"),
@@ -1366,13 +1712,14 @@ class WindowsReplayApp:
         else:
             from .scenario_run import ScenarioRunFormatError
             from .ui_viewers import scenario_window
+        title, noun = WIN_TEXT["openScenarioTitle"], WIN_TEXT["scenarioNoun"]
+        if not Path(path).is_file():
+            messagebox.showerror(title, open_error_text(Path(path), None, noun), parent=self.root)
+            return False
         try:
             run = load_scenario_run(path)
-        except ScenarioRunFormatError as exc:
-            messagebox.showerror("Scenario run", str(exc), parent=self.root)
-            return False
-        except (OSError, TypeError, ValueError) as exc:
-            messagebox.showerror("Scenario run", f"Could not open run: {exc}", parent=self.root)
+        except (ScenarioRunFormatError, OSError, TypeError, ValueError, RecursionError) as exc:
+            messagebox.showerror(title, open_error_text(Path(path), exc, noun), parent=self.root)
             return False
         self._replace_window("_scenario_window")
         self._scenario_window = scenario_window(self._viewer_context(), run, Path(path))
@@ -1384,16 +1731,18 @@ class WindowsReplayApp:
         from tkinter import messagebox
 
         loader, evidence_error = self._evidence_loader()
+        title, noun = WIN_TEXT["openEvidenceTitle"], WIN_TEXT["evidenceNoun"]
+        if not Path(path).is_file():
+            messagebox.showerror(title, open_error_text(Path(path), None, noun), parent=self.root)
+            return False
         try:
             report = loader(Path(path))
-        except evidence_error as exc:
-            messagebox.showerror("Evidence report", str(exc), parent=self.root)
-            return False
-        except (OSError, TypeError, ValueError) as exc:
-            messagebox.showerror("Evidence report", f"Could not open report: {exc}", parent=self.root)
+        except (evidence_error, OSError, TypeError, ValueError, RecursionError) as exc:
+            messagebox.showerror(title, open_error_text(Path(path), exc, noun), parent=self.root)
             return False
         if not isinstance(report, dict):
-            messagebox.showerror("Evidence report", "The report decoder returned an invalid object.", parent=self.root)
+            messagebox.showerror(title, open_error_text(Path(path), ValueError("The report decoder returned an invalid object"),
+                                                        noun), parent=self.root)
             return False
         self._evidence_report = report
         self._evidence_path = Path(path)
@@ -1410,8 +1759,12 @@ class WindowsReplayApp:
 
 
 def _initial_geometry(root: Any, scale: float) -> str:
-    width = min(int(1440 * scale), max(root.winfo_screenwidth() - 80, int(LAYOUT["windowMinWidth"] * scale)))
-    height = min(int(900 * scale), max(root.winfo_screenheight() - 120, int(LAYOUT["windowMinHeight"] * scale)))
+    """The token default size, shrunk to leave room for the taskbar and title bar on small screens."""
+    side, top = int(WIN_LAYOUT["screenMarginX"] * scale), int(WIN_LAYOUT["screenMarginY"] * scale)
+    width = min(int(LAYOUT["windowDefaultWidth"] * scale),
+                max(root.winfo_screenwidth() - side, int(LAYOUT["windowMinWidth"] * scale)))
+    height = min(int(LAYOUT["windowDefaultHeight"] * scale),
+                 max(root.winfo_screenheight() - top, int(LAYOUT["windowMinHeight"] * scale)))
     return f"{width}x{height}"
 
 

@@ -8,20 +8,26 @@ badge in the title row ("Simulation replay") says so.
 What the window shows, top to bottom:
 
 - **Title row.** The app name, the run in plain words (for example "50-drone
-  ring, seed 17"), the "Simulation replay" badge, and an **About this replay**
-  button.
+  ring, seed 17"), the "Simulation replay" badge, and on the right the 3D/Top
+  view choice and an **About this replay** button, like the Mac toolbar.
 - **Status strip.** Tracking (a shape, a color, and a word, such as a filled
   circle and "Tracking held"), estimate error p95, target link delay, target
   packet loss, and target age. A value the replay does not contain reads
   "Not recorded"; it is never shown as 0.
-- **Team list (left).** Drones with identical displayed values share one row
-  with a count ("47 drones"). Rows that are not OK sort first and open by
-  default; open a row to see its drones (D01, D02...). The filter narrows the
-  OK rows only, so a late or lost drone is never hidden. A summary line sits
-  above the list ("50 drones: 47 OK, 3 late").
+- **Team list (left).** One row per status, word first ("Late · 3 drones"),
+  with Loss and Age columns; Age is a range when the drones differ. Rows that
+  are not OK sort first and open by default; open a row to see its drones,
+  each with its own status shape and word ("D09 · Late"). Clicking a group row
+  opens or closes it and never changes the selected drone. A dash in a cell
+  means the value was not recorded: hovering it says so, and a line under the
+  list explains the dash whenever one is showing. The filter narrows every
+  group except late and lost ones, which stay listed; while it is active a
+  caption says "Showing N of M" (and "No drones match ..." when nothing
+  matches), and a clear button sits in the field. A summary line for the whole
+  team sits above the list ("50 drones: 47 OK, 3 late").
 - **Scene (center).** A Canvas drawing of the swarm: X-frame drone glyphs in
   one neutral color, the selected drone in the accent color, and drones with a
-  late or lost target drawn faded. The target is a ring with a thin stem to the
+  late or lost target drawn faded with a small status-colored dot above them. The target is a ring with a thin stem to the
   floor, over a 1 m grid with a stronger line every 5 m. Drag to orbit, scroll
   to zoom (both eased and clamped), double-click a drone or press F to focus
   it, R to reset the framing, T for the straight-down Top view. Keep-out
@@ -29,19 +35,26 @@ What the window shows, top to bottom:
   run has none. Drones do not show a heading marker when the data says they
   are at rest. Each drone has four translucent rotor discs (Tk has no alpha, so
   the translucency is a blend with the floor color); the rotors do not spin.
-  The orbit camera stays within 3x the swarm radius; the Top view may sit up to
-  6x away, because looking straight down puts the whole ring on the short screen
-  axis. Projection and camera math live in `scene_projection.py` and are unit
+  The camera stays within 6x the swarm radius in both views, which is enough to
+  frame the whole ring in a wide, short window. Projection and camera math live in `scene_projection.py` and are unit
   tested.
 - **Inspector (right, toggle with I).** The selected drone's status, four
-  metric tiles (target age, estimate error, target link delay, target packet
-  loss), position and motion, neighbors, and a collapsed **Details** section
+  metric tiles in the same order as the status strip (estimate error, target
+  link delay, target packet loss, target age), position and motion, neighbors
+  (including neighbor link delay and loss), and a collapsed **Details** section
   with the raw vectors, the hardware profile parts, and constraint flags.
-- **Timeline and events (bottom).** Play/Pause (one button), step back, step
-  forward, restart, a slider with tick marks at event frames, the time label,
-  and playback speed (0.1x, 0.25x, 1x; 0.25x by default). The event list below
-  it uses the shared presentation rules, newest at the bottom; click an event
-  to jump to it.
+  Heading reads "At rest" only when a speed was recorded and is below
+  0.01 m/s; a drone with no recorded velocity reads "Not recorded". With no
+  drone selected the panel shows one hint line.
+- **Timeline and events (bottom).** Four square buttons (restart, step back,
+  Play/Pause in the accent color, step forward) with tooltips, a slider with
+  tick marks at event frames, the time label, and playback speed (0.1x, 0.25x,
+  1x; 0.25x by default). Every control in the title row and the timeline is the
+  same height (`windowsLayout.controlHeight` in `design/horizon_tokens.json`),
+  with rounded corners drawn from `RADIUS.small`. The event list below uses the
+  shared presentation rules, newest at the bottom; events from the current
+  frame are in full text color and earlier ones are dimmer. Click an event (or
+  press Enter on it) to jump to it, even if it is already selected.
 
 Every number comes from `desktop/presentation.py` through `ReplaySession`, and
 every color, font size, and label comes from the generated
@@ -67,9 +80,12 @@ Forward, Step Back, Restart, Speed), and **Help** (About This Replay, Check for
 Updates). Keyboard shortcuts match `design/ui_text.json`: Space play or pause,
 Left and Right step, Home restart, F focus, R reset camera, T 3D or Top, K
 keep-out volume, I inspector, Control-L team filter, Control-O evidence report,
-Control-Shift-O scenario run, Control-I about. Single-key shortcuts stand down
-while you type in a text field, and a focused list or button keeps its own
-arrow and Space keys. Right-click a drone in the list or the scene for Focus
+Control-Shift-O scenario run, Control-I about (on a Mac, Command works too).
+Single-key shortcuts stand down while you type in a text field. A focused
+button keeps Space, and the team list keeps Left, Right, and Space for opening
+and closing groups; the Events list hands every key to the replay. A file that
+cannot be opened gets one plain sentence (missing, not readable, not UTF-8,
+not JSON, or the decoder's reason), the same in both viewers. Right-click a drone in the list or the scene for Focus
 Camera, Show in Inspector, and Copy Drone ID.
 
 Both desktop surfaces open the same portable evidence envelope. Create one

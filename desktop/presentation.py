@@ -198,10 +198,20 @@ def heading_name(drone_id: str) -> str:
     return _numbered_name(drone_id, heading=True)
 
 
-def _vector(agent: Mapping[str, Any], key: str) -> list[float]:
-    """Read a numeric vector, defaulting to zeroes."""
-    raw = agent.get(key) or [0, 0, 0]
-    return [float(value) for value in raw]
+def _vector(agent: Mapping[str, Any], key: str) -> list[float] | None:
+    """Read a finite three-element vector, or ``None`` when the agent did not record one.
+
+    A missing vector is never treated as zero: zero velocity would read as
+    "at rest" and zero position as "on the floor", and neither was measured.
+    """
+    raw = agent.get(key)
+    if not isinstance(raw, (list, tuple)) or len(raw) != 3:
+        return None
+    try:
+        values = [float(value) for value in raw]
+    except (TypeError, ValueError):
+        return None
+    return values if all(math.isfinite(value) for value in values) else None
 
 
 def _drone_record(agent: Mapping[str, Any], stats: Mapping[str, Any], target: Any) -> dict[str, Any]:
@@ -212,12 +222,15 @@ def _drone_record(agent: Mapping[str, Any], stats: Mapping[str, Any], target: An
     neighbor_stats = stats.get("neighbor", {})
     position = _vector(agent, "position_m")
     velocity = _vector(agent, "velocity_mps")
-    horizontal_speed = math.hypot(velocity[0], velocity[1])
+    horizontal_speed = math.hypot(velocity[0], velocity[1]) if velocity is not None else None
     estimate = agent.get("fused_target_m", agent.get("fused_target"))
     error = None
     if estimate is not None and target is not None:
         error = math.sqrt(sum((float(a) - float(b)) ** 2 for a, b in zip(estimate, target)))
-    heading = math.degrees(math.atan2(velocity[1], velocity[0])) if horizontal_speed >= 0.01 else None
+    # Heading needs a recorded, moving velocity. A recorded speed under 0.01 m/s is "at rest" (speed set,
+    # heading None); a missing velocity leaves both speed and heading None ("Not recorded").
+    heading = (math.degrees(math.atan2(velocity[1], velocity[0]))
+               if velocity is not None and horizontal_speed is not None and horizontal_speed >= 0.01 else None)
     return {
         "drone_id": drone_id,
         "compact_name": compact_name(drone_id),
@@ -232,8 +245,8 @@ def _drone_record(agent: Mapping[str, Any], stats: Mapping[str, Any], target: An
         "target_packet_loss_pct": _round_metric(target_stats.get("loss_pct"), 2),
         "neighbor_link_delay_ms": _round_metric(neighbor_stats.get("delay_ms"), 1),
         "neighbor_packet_loss_pct": _round_metric(neighbor_stats.get("loss_pct"), 2),
-        "altitude_m": round(position[2], 3),
-        "speed_mps": round(math.sqrt(sum(value * value for value in velocity)), 3),
+        "altitude_m": round(position[2], 3) if position is not None else None,
+        "speed_mps": round(math.sqrt(sum(value * value for value in velocity)), 3) if velocity is not None else None,
         "heading_deg": round(heading, 1) if heading is not None else None,
         # A missing count is "not recorded", never zero neighbors.
         "neighbor_count": int(agent["neighbor_count"]) if agent.get("neighbor_count") is not None else None,

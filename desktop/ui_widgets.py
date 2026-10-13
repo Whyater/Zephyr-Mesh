@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Sequence
 
-from .design_tokens import SPACE
+from .design_tokens import SPACE, WIN_LAYOUT
 from .ui_format import NOT_RECORDED
 
 
@@ -22,8 +22,8 @@ class Disclosure:
         from tkinter import ttk
 
         self.frame = ttk.Frame(parent, style=f"{bg}.TFrame")
-        self._closed = images.icon("chevron_right", "textSecondary", 12)
-        self._open = images.icon("chevron_down", "textSecondary", 12)
+        self._closed = images.icon("chevron_right", "textSecondary", WIN_LAYOUT["chevronSize"])
+        self._open = images.icon("chevron_down", "textSecondary", WIN_LAYOUT["chevronSize"])
         self.button = ttk.Button(self.frame, text=f" {title}", style="Link.TButton", compound="left",
                                  image=self._closed, command=self.toggle, takefocus=True)
         self.button.pack(fill="x")
@@ -68,6 +68,15 @@ class KeyValueGrid:
         self._rows: list[tuple[Any, Any]] = []
         self._shown: list[tuple[str, str, str]] = []
 
+    def set_wrap(self, wrap: int) -> None:
+        """Re-wrap every value for a new width (viewers call this when their window is resized)."""
+        wrap = max(1, int(wrap))
+        if wrap == self.wrap:
+            return
+        self.wrap = wrap
+        for _label, value in self._rows:
+            value.configure(wraplength=wrap)
+
     def set_rows(self, rows: Sequence[Row]) -> None:
         ttk = self.ttk
         gap = int(round(SPACE["xs"] * self.scale))
@@ -79,7 +88,7 @@ class KeyValueGrid:
             if self.stacked:
                 label.configure(style=f"{self.bg}.Caption.TLabel")
                 label.grid(row=2 * index, column=0, columnspan=2, sticky="nw")
-                value.grid(row=2 * index + 1, column=0, columnspan=2, sticky="nw", pady=(0, gap + gap))
+                value.grid(row=2 * index + 1, column=0, columnspan=2, sticky="nw", pady=(0, int(round(SPACE["sm"] * self.scale))))
             else:
                 label.grid(row=index, column=0, sticky="nw", padx=(0, int(round(SPACE["md"] * self.scale))), pady=(0, gap))
                 value.grid(row=index, column=1, sticky="nw", pady=(0, gap))
@@ -109,14 +118,15 @@ class MetricTile:
         from tkinter import ttk
 
         pad = int(round(SPACE["sm"] * scale))
-        self.frame = ttk.Frame(parent, style="Tile.TFrame", padding=(pad + 2, pad, pad, pad))
+        self.frame = ttk.Frame(parent, style="Tile.TFrame", padding=(pad, pad, pad, pad))
         self.caption = ttk.Label(self.frame, text=caption, style="Tile.Caption.TLabel")
         self.caption.pack(anchor="w")
         from tkinter import font as tkfont
 
+        # A fixed-height holder: switching between a number and "Not recorded" never moves the rows below.
         holder = ttk.Frame(self.frame, style="Tile.Holder.TFrame",
-                           height=tkfont.nametofont("ZephyrFontMetricSmall").metrics("linespace") + int(round(2 * scale)))
-        holder.pack(fill="x", pady=(int(round(2 * scale)), 0))
+                           height=tkfont.nametofont("ZephyrFontMetricSmall").metrics("linespace"))
+        holder.pack(fill="x", pady=(int(round(SPACE["xxs"] * scale)), 0))
         holder.pack_propagate(False)
         self.value = ttk.Label(holder, style="Tile.Value.TLabel", anchor="w")
         self.value.pack(side="left", fill="both", expand=True)
@@ -131,10 +141,11 @@ class MetricTile:
 class ScrollFrame:
     """Vertical scrolling container; the scrollbar appears only when content overflows."""
 
-    def __init__(self, parent: Any, *, bg: str = "Surface") -> None:
+    def __init__(self, parent: Any, *, bg: str = "Surface", scale: float = 1.0) -> None:
         import tkinter as tk
         from tkinter import ttk
 
+        self.scale = scale
         self.outer = ttk.Frame(parent, style=f"{bg}.TFrame")
         self.canvas = tk.Canvas(self.outer, highlightthickness=0, borderwidth=0, takefocus=0)
         self.scrollbar = ttk.Scrollbar(self.outer, orient="vertical", style="Thin.Vertical.TScrollbar", command=self.canvas.yview)
@@ -171,7 +182,7 @@ class ScrollFrame:
         total = max(self.inner.winfo_height(), 1)
         top = widget.winfo_rooty() - self.inner.winfo_rooty()
         if total > self.canvas.winfo_height():
-            self.canvas.yview_moveto(max(0.0, (top - 8) / total))
+            self.canvas.yview_moveto(max(0.0, (top - SPACE["sm"] * self.scale) / total))
 
     def contains(self, widget: Any) -> bool:
         """True when ``widget`` sits inside this scroll area (used by the app's wheel router)."""
@@ -192,12 +203,20 @@ class ScrollFrame:
 class TimelineSlider:
     """Seekable frame slider drawn on a Canvas, with neutral tick marks at event frames."""
 
+    # Drawn geometry in device-independent pixels. The thumb (hover radius) fits inside the SPACE["sm"] end inset.
+    TRACK = 3
+    TICK = SPACE["xs"] + 1
+    THUMB = SPACE["xs"] + SPACE["xxs"]
+    THUMB_HOVER = THUMB + 1
+
     def __init__(self, parent: Any, on_seek: Callable[[int], None], scale: float = 1.0) -> None:
         import tkinter as tk
 
         self.scale = scale
-        self.height = int(round(28 * scale))
-        self.canvas = tk.Canvas(parent, height=self.height, highlightthickness=1, borderwidth=0, takefocus=1, cursor="hand2")
+        self.height = int(round(WIN_LAYOUT["sliderHeight"] * scale))
+        # No box around the whole strip on focus: the thumb itself gets an accent ring instead.
+        self.canvas = tk.Canvas(parent, height=self.height, highlightthickness=0, borderwidth=0, takefocus=1, cursor="hand2")
+        self._focused = False
         self.on_seek = on_seek
         self.index = 0
         self.count = 1
@@ -210,13 +229,29 @@ class TimelineSlider:
         self.canvas.bind("<B1-Motion>", self._press)
         self.canvas.bind("<Enter>", lambda _event: self._set_hover(True))
         self.canvas.bind("<Leave>", lambda _event: self._set_hover(False))
+        self.canvas.bind("<FocusIn>", lambda _event: self._set_focus(True))
+        self.canvas.bind("<FocusOut>", lambda _event: self._set_focus(False))
+        self.canvas.bind("<Left>", lambda _event: self._nudge(-1))
+        self.canvas.bind("<Right>", lambda _event: self._nudge(1))
+
+    def _set_focus(self, value: bool) -> None:
+        self._focused = value
+        self.draw()
+
+    def _nudge(self, delta: int) -> str:
+        """Arrow keys move the focused slider one frame, like dragging the thumb."""
+        index = max(0, min(self.count - 1, self.index + delta))
+        if index != self.index:
+            self.on_seek(index)
+        return "break"
 
     def _set_hover(self, value: bool) -> None:
         self._hover = value
         self.draw()
 
     def _inset(self) -> float:
-        return 10 * self.scale
+        """Room at each end for the thumb, so the visible track starts exactly ``SPACE["sm"]`` in."""
+        return SPACE["sm"] * self.scale
 
     def _x_for(self, index: int, width: float) -> float:
         inset = self._inset()
@@ -254,7 +289,7 @@ class TimelineSlider:
         canvas = self.canvas
         width = max(float(canvas.winfo_width()), 40.0)
         middle = self.height / 2.0
-        track = max(2, int(round(3 * self.scale)))
+        track = max(2, int(round(self.TRACK * self.scale)))
         if not self._items:
             self._items["track"] = canvas.create_line(0, 0, 0, 0, capstyle="round")
             self._items["progress"] = canvas.create_line(0, 0, 0, 0, capstyle="round")
@@ -267,23 +302,26 @@ class TimelineSlider:
         canvas.itemconfigure(self._items["track"], fill=p.line, width=track)
         canvas.coords(self._items["progress"], left, middle, current, middle)
         canvas.itemconfigure(self._items["progress"], fill=p.accent, width=track)
-        tick_height = 5 * self.scale
+        tick_height = self.TICK * self.scale
         for frame in self.ticks:
             x = self._x_for(frame, width)
-            canvas.create_line(x, middle + track + 2 * self.scale, x, middle + track + 2 * self.scale + tick_height,
+            gap = SPACE["xxs"] * self.scale
+            canvas.create_line(x, middle + track + gap, x, middle + track + gap + tick_height,
                                fill=p.textSecondary, width=max(1, int(round(self.scale))), tags=("tick",))
-        radius = (7 if self._hover else 6) * self.scale
+        radius = (self.THUMB_HOVER if self._hover else self.THUMB) * self.scale
         canvas.coords(self._items["thumb"], current - radius, middle - radius, current + radius, middle + radius)
-        canvas.itemconfigure(self._items["thumb"], fill=p.accent, outline=p.surface, width=max(1, int(round(2 * self.scale))))
+        ring = p.text if self._focused else p.surface
+        canvas.itemconfigure(self._items["thumb"], fill=p.accent, outline=ring, width=max(1, int(round(SPACE["xxs"] * self.scale))))
         canvas.tag_raise(self._items["thumb"])
 
 
 class Placeholder:
     """Secondary hint text inside an empty ttk.Entry (ttk has no placeholder option)."""
 
-    def __init__(self, entry: Any, variable: Any, text: str, style: str) -> None:
+    def __init__(self, entry: Any, variable: Any, text: str, style: str, inset: int = 0) -> None:
         from tkinter import ttk
 
+        self.inset = inset
         self.entry = entry
         self.variable = variable
         self.label = ttk.Label(entry, text=text, style=style, cursor="xterm")
@@ -297,7 +335,7 @@ class Placeholder:
         if self.variable.get():
             self.label.place_forget()
         else:
-            self.label.place(relx=0, rely=0.5, x=10, anchor="w")
+            self.label.place(relx=0, rely=0.5, x=self.inset, anchor="w")
 
 
 class TreeHover:
@@ -330,53 +368,107 @@ class TreeHover:
 
 
 class Tooltip:
-    """Delayed hover hint for icon-only buttons."""
+    """Delayed hover hint. ``text_for(x, y)`` can pick the text per position (for example one table cell)."""
 
-    def __init__(self, widget: Any, text: str, theme_source: Callable[[], Any], font: Any) -> None:
+    def __init__(self, widget: Any, text: str, theme_source: Callable[[], Any], font: Any, *, scale: float = 1.0,
+                 text_for: Callable[[int, int], str | None] | None = None) -> None:
         self.widget = widget
         self.text = text
         self.theme_source = theme_source
         self.font = font
+        self.scale = scale
+        self.text_for = text_for
         self._job: Any = None
         self._window: Any = None
+        self._shown_text: str | None = None
         widget.bind("<Enter>", self._schedule, add="+")
         widget.bind("<Leave>", self._hide, add="+")
         widget.bind("<ButtonPress>", self._hide, add="+")
+        if text_for is not None:
+            widget.bind("<Motion>", self._move, add="+")
 
-    def _schedule(self, _event: Any = None) -> None:
+    def px(self, value: float) -> int:
+        return max(1, int(round(value * self.scale)))
+
+    def set_text(self, text: str) -> None:
+        self.text = text
+
+    def _current(self, event: Any = None) -> str | None:
+        if self.text_for is None:
+            return self.text
+        if event is None:
+            return None
+        return self.text_for(event.x, event.y)
+
+    def _move(self, event: Any) -> None:
+        text = self._current(event)
+        if text == self._shown_text and (self._window is not None or self._job is not None):
+            return
+        self._hide()
+        if text:
+            self._schedule(event)
+
+    def _schedule(self, event: Any = None) -> None:
         self._cancel()
+        text = self._current(event)
+        if not text:
+            return
+        self._shown_text = text
         self._job = self.widget.after(550, self._show)
 
     def _cancel(self) -> None:
         if self._job is not None:
-            self.widget.after_cancel(self._job)
+            try:
+                self.widget.after_cancel(self._job)
+            except Exception:
+                pass
             self._job = None
 
     def _show(self) -> None:
         import tkinter as tk
 
         self._job = None
-        theme = self.theme_source()
-        window = tk.Toplevel(self.widget)
-        window.wm_overrideredirect(True)
+        if not self._shown_text:
+            return
         try:
-            window.wm_attributes("-topmost", True)
+            theme = self.theme_source()
+            window = tk.Toplevel(self.widget)
+            window.wm_overrideredirect(True)
+            try:
+                window.wm_attributes("-topmost", True)
+            except tk.TclError:
+                pass
+            border = tk.Frame(window, background=theme.p.lineStrong, padx=self.px(WIN_LAYOUT["hairline"]),
+                              pady=self.px(WIN_LAYOUT["hairline"]))
+            border.pack()
+            tk.Label(border, text=self._shown_text, background=theme.p.surface, foreground=theme.p.text, font=self.font,
+                     padx=self.px(SPACE["sm"]), pady=self.px(SPACE["xs"])).pack()
+            window.update_idletasks()  # lay out (and paint) before placing; some Tk builds show an empty box otherwise
+            gap = self.px(SPACE["xs"])
+            if self.text_for is not None:
+                x, y = self.widget.winfo_pointerx(), self.widget.winfo_pointery() + self.px(SPACE["lg"])
+            else:
+                x = self.widget.winfo_rootx()
+                top = self.widget.winfo_rooty()
+                # Controls in the lower half (the timeline bar) get their hint above, so it never covers the Events list.
+                below = top + self.widget.winfo_height() + gap
+                above = top - window.winfo_reqheight() - gap
+                y = above if top > self.widget.winfo_screenheight() / 2 and above > 0 else below
+            window.wm_geometry(f"+{x}+{y}")
         except tk.TclError:
-            pass
-        border = tk.Frame(window, background=theme.p.lineStrong, padx=1, pady=1)
-        border.pack()
-        tk.Label(border, text=self.text, background=theme.p.surface, foreground=theme.p.text, font=self.font,
-                 padx=8, pady=3).pack()
-        x = self.widget.winfo_rootx()
-        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 6
-        window.wm_geometry(f"+{x}+{y}")
+            return
         self._window = window
 
     def _hide(self, _event: Any = None) -> None:
         self._cancel()
         if self._window is not None:
-            self._window.destroy()
+            try:
+                self._window.destroy()
+            except Exception:
+                pass
             self._window = None
+        if _event is not None:
+            self._shown_text = None
 
 
 __all__ = ["Disclosure", "KeyValueGrid", "MetricTile", "Placeholder", "ScrollFrame", "TimelineSlider", "Tooltip", "TreeHover"]

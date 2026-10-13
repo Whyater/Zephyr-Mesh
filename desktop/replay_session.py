@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import inspect
+import math
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
@@ -25,6 +26,16 @@ def _document(source: Mapping[str, Any] | str | Path | ReplayModel) -> Mapping[s
     return json.loads(Path(source).read_text(encoding="utf-8"))
 
 
+def _frame_time(frame: Any, index: int) -> float:
+    """A frame's time in seconds. NaN, infinity, or a non-number would break the playback timer, so they are rejected."""
+    if not isinstance(frame, Mapping):
+        raise ValueError(f"frame {index + 1} is not an object")
+    raw = frame.get("time_s", frame.get("time", 0.0))
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)) or not math.isfinite(float(raw)):
+        raise ValueError(f"frame {index + 1} time must be a finite number of seconds")
+    return float(raw)
+
+
 class ReplaySession:
     """Own replay transitions while leaving scheduling to the Tk surface."""
 
@@ -40,8 +51,8 @@ class ReplaySession:
         frames = self.run.get("steps", self.run.get("frames", []))
         if not isinstance(frames, list) or not frames:
             raise ValueError("run must contain at least one frame")
+        self._times = tuple(_frame_time(frame, index) for index, frame in enumerate(frames))
         self._presentations = tuple(present_run(self.run)["frames"])
-        self._times = tuple(float(frame.get("time_s", frame.get("time", 0.0))) for frame in frames)
         self._index = 0
         self._playing = False
         self._speed = 0.25
@@ -237,7 +248,8 @@ class ReplaySession:
         if len(self._times) < 2:
             return 1
         dt = max(self._times[1] - self._times[0], 0.001)
-        return max(1, round(dt * 1000.0 / self._speed))
+        # Bounded so a huge time step can never schedule an overflowing or hour-long timer.
+        return max(1, min(60_000, round(dt * 1000.0 / self._speed)))
 
     def _schedule_tick(self) -> None:
         if not self._playing or self._pending or self._schedule is None:

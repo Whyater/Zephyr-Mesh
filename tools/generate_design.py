@@ -499,6 +499,8 @@ def generate_python(tokens: dict[str, Any], ui: dict[str, Any]) -> str:
             f"    'reduced': {tokens['motion']['reducedMotionMs']},",
             "}",
             f"LAYOUT = {tokens['layout']!r}",
+            # Windows-only control, column, and window sizes; the Swift output has no use for them.
+            f"WIN_LAYOUT = {pprint.pformat({key: value for key, value in tokens.get('windowsLayout', {}).items() if key != 'comment'}, width=100, sort_dicts=False)}",
             "",
             "@dataclass(frozen=True)",
             "class Shortcut:",
