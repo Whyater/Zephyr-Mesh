@@ -180,11 +180,9 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
                               'dash': '–',
                               'info': 'ⓘ'}},
  'displayThresholds': {'targetAgeLateS': {'value': 0.15,
-                                          'note': 'display candidates from the vault research '
-                                                  '(R-P5-UX-02), not safety limits'},
+                                          'note': 'display choice, not a safety limit'},
                        'targetAgeLostS': {'value': 0.3,
-                                          'note': 'display candidates from the vault research '
-                                                  '(R-P5-UX-02), not safety limits'}},
+                                          'note': 'display choice, not a safety limit'}},
  'fieldLabels': {'abstract_event_delay_s': 'Abstract event delay (s)',
                  'active': 'Active',
                  'active_agent_observations': 'Active agent observations',

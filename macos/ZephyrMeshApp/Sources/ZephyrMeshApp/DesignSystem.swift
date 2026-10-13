@@ -519,8 +519,8 @@ enum UIText {
     static let shortcutRule = "Single-key shortcuts never fire while a text field has focus."
     static let droneCompactName = "D{number:02d}"
     static let droneHeadingName = "Drone {number:02d}"
-    static let targetAgeLateNote = "display candidates from the vault research (R-P5-UX-02), not safety limits"
-    static let targetAgeLostNote = "display candidates from the vault research (R-P5-UX-02), not safety limits"
+    static let targetAgeLateNote = "display choice, not a safety limit"
+    static let targetAgeLostNote = "display choice, not a safety limit"
     struct Shortcut {
         let actionID: String
         let label: String
