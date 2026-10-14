@@ -1,1 +1,33 @@
-[]
+[
+  {
+    "run_dir": "runs/s0-baseline",
+    "command": "{python} main.py --output {out} --no-plot",
+    "outputs": {
+      "telemetry.csv": "66f542dcd128df4e9e695e7dda7668179755ea37a1f746d74e2e8351ccfc7391"
+    }
+  },
+  {
+    "run_dir": "runs/s2-physics",
+    "command": "{python} tools/make_s2_convergence.py --output {out}/convergence.json",
+    "outputs": {
+      "convergence.json": "916ffc271f34e7411c1fc42d4ddd96132876be5396fab5e6a9c50da2d1bce609"
+    }
+  },
+  {
+    "run_dir": "runs/s6-recovery",
+    "command": "PYTHONPATH=. {python} tools/run_s6_recovery.py --output {out} && PYTHONPATH=. {python} tools/make_s6_figure.py --output-dir {out} {out}/summary.json",
+    "outputs": {
+      "per_seed.csv": "ef45a41b8263be67de4b16f8e58d1295f877cead9d8c595d30fbb944534c426a",
+      "summary.json": "a3b04116e93e5e734f0d5f5bfd5e5ebfabb4fe2585110895019d8ff66bbe96eb",
+      "s6_recovery.png": "3aaf4ad6c278fa982ebca09d7beb2a02a0c644b573c981080215c191aa4da3d7",
+      "s6_recovery_all_noise.png": "7ed1841a38204ecd5dd48915d874e41c8e923a5e063063cac653da6438d7aa30"
+    }
+  },
+  {
+    "run_dir": "runs/s7-swarm",
+    "command": "cd {out}/../.. && PYTHONPATH=. {python} tools/generate_s7_fixture.py",
+    "outputs": {
+      "run.json": "73039284032d824c943972bd79c2f96f61e28582b79d8335d4d9d3e7d032585b"
+    }
+  }
+]
