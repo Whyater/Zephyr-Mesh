@@ -18,6 +18,7 @@ from sim.actuator import ActuatorState, QuadrotorActuator, RotorcraftActuator, R
 from sim.controller import GeometricFlightController
 from sim.drone import SixDOFInterceptor
 from sim.hardware import HardwareProfile
+from sim.physics.disturbance_api import DisturbanceSample, combine
 
 
 @dataclass(frozen=True)
@@ -117,7 +118,11 @@ class QuadrotorMixer:
 
 
 class RotorcraftMixer:
-    """Exact X-layout wrench allocation for a v2 rotorcraft profile."""
+    """Exact X-layout wrench allocation for a v2 rotorcraft profile.
+
+    Per-rotor clipping has no priority between collective and yaw. A large
+    yaw request can therefore raise the achieved collective force.
+    """
 
     def __init__(self, actuator: RotorcraftActuator) -> None:
         self.actuator = actuator
@@ -176,8 +181,8 @@ class ActuatedQuadrotor:
         *,
         initial_position: Iterable[float] = (0.0, 0.0, 0.0),
         controller: GeometricFlightController | None = None,
-        drag_coefficient: float = 1.3,
-        cross_sectional_area: float = 0.05,
+        drag_coefficient: float | None = None,
+        cross_sectional_area: float | None = None,
         wind_velocity: Iterable[float] = (0.0, 0.0, 0.0),
         substeps: int = 1,
         disturbance: Any = None,
@@ -186,6 +191,8 @@ class ActuatedQuadrotor:
             raise ValueError("profile must be a HardwareProfile")
         if isinstance(substeps, bool) or int(substeps) != substeps or int(substeps) < 1:
             raise ValueError("substeps must be an integer >= 1")
+        if isinstance(profile, HardwareProfile) and (int(substeps) != 1 or disturbance is not None):
+            raise ValueError("substeps and disturbance require a v2 profile")
         self.substeps = int(substeps)
         self.disturbance = disturbance
         self.time_s = 0.0
@@ -197,15 +204,19 @@ class ActuatedQuadrotor:
             airframe = _profile_part(profile, "airframe")
             mass = float(_field(airframe, "mass_kg"))
             inertia = tuple(float(v) for v in _field(airframe, "inertia_kg_m2"))
-            if drag_coefficient == 1.3:
+            if drag_coefficient is None:
                 drag_coefficient = float(_field(airframe, "drag_coefficient"))
-            if cross_sectional_area == 0.05:
+            if cross_sectional_area is None:
                 cross_sectional_area = float(_field(airframe, "cross_sectional_area_m2"))
         else:
             self.actuator = QuadrotorActuator(profile)
             self.mixer = QuadrotorMixer(self.actuator)
             mass = profile.total_mass_kg
             inertia = profile.estimated_inertia_kg_m2()
+            if drag_coefficient is None:
+                drag_coefficient = 1.3
+            if cross_sectional_area is None:
+                cross_sectional_area = 0.05
         self.drone = SixDOFInterceptor(
             init_pos=initial_position,
             mass=mass,
@@ -219,6 +230,18 @@ class ActuatedQuadrotor:
 
     def model_provenance(self) -> dict[str, object]:
         """Return the coupled dynamics and actuator provenance envelope."""
+        if self._v2:
+            return {
+                "status": "synthetic",
+                "model": "actuated_quadrotor",
+                "dynamics": self.drone.model_provenance(),
+                "inertia_basis": "literature-derived profile value",
+                "profile_id": self.profile.profile_id,
+                "profile_status": self.profile.status,
+                "actuator": self.actuator.model_provenance(),
+                "evidence_boundary": "synthetic controller, actuator, and rigid-body fixture; no flight validation",
+            }
+        # Keep the v1 provenance metadata byte-identical.
         return {
             "status": "synthetic",
             "model": "actuated_quadrotor",
@@ -246,19 +269,14 @@ class ActuatedQuadrotor:
         final_torque = np.zeros(3)
         for index in range(self.substeps):
             t = self.time_s + index * h
-            sample = extra_disturbance
+            # combine adds wind and extra force, and multiplies thrust scales.
+            samples = [DisturbanceSample(wind_velocity_mps=self.drone.wind_velocity.copy())]
             if self.disturbance is not None:
                 own = self.disturbance.sample(t, h, self.drone.position.copy(), self.drone.velocity.copy())
-                if sample is None:
-                    sample = own
-                else:
-                    from sim.physics.disturbance_api import combine
-                    sample = combine((own, sample))
-            if sample is None:
-                # Preserve the rigid-body wind supplied at construction when
-                # no explicit disturbance source is active.
-                from sim.physics.disturbance_api import DisturbanceSample
-                sample = DisturbanceSample(wind_velocity_mps=self.drone.wind_velocity.copy())
+                samples.append(own)
+            if extra_disturbance is not None:
+                samples.append(extra_disturbance)
+            sample = combine(samples)
             final_state = self.actuator.step(mixer.motor_command, h, thrust_scale=sample.thrust_scale, saturated=mixer.saturated)
             # The actuator integrates the exact mean of w(t)^2 over this
             # substep and exposes it separately from end-state telemetry.

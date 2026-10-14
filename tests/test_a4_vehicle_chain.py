@@ -11,6 +11,7 @@ from sim.physics.disturbance_api import DisturbanceSample
 from sim.environment import GRAVITY
 from sim.drone import SixDOFInterceptor
 from sim.vehicle import ActuatedQuadrotor
+from sim.vehicle_fleet import ActuatedVehicleFleet
 
 
 def fixture_profile(*, battery=None):
@@ -88,7 +89,7 @@ def test_reaction_torque_cancels_for_equal_trim_rotors():
     assert state.body_torque_nm[2] == pytest.approx(0.0, abs=1e-15)
 
 
-def test_battery_voltage_uses_start_voltage_and_charge_decreases():
+def test_battery_voltage_starts_at_nominal_and_charge_decreases():
     battery = {
         "nominal_voltage_v": 4.0,
         "cutoff_voltage_v": 3.0,
@@ -117,8 +118,8 @@ def _average_power_w3(w0, command_speed, h, tau):
     return sum(terms)
 
 
-def test_battery_sag_matches_hand_integrated_average_power():
-    """The charge drop uses hand-integrated mean ``w**3`` and start voltage.
+def test_battery_sag_matches_separately_written_reimplementation():
+    """A separately written re-implementation checks the same battery model.
 
     For each step, ``w(t) = c + (w0-c) exp(-t/tau)``.  Expanding its cube and
     integrating each exponential term gives the mean power used below.  The
@@ -268,15 +269,46 @@ def test_max_vertical_acceleration_matches_hand_calculation_after_settle():
     assert measured == pytest.approx(expected, rel=1e-2)
 
 
-def test_yaw_command_has_the_declared_positive_sign():
+def test_mixer_allocation_signs_from_first_principles():
+    """Allocation signs follow reaction torque and ``r cross F`` directly."""
     profile = fixture_profile()
     vehicle = ActuatedQuadrotor(profile)
-    command = vehicle.mixer.mix(profile.mass_kg * GRAVITY, (0.0, 0.0, 1.0e-5))
-    assert command.achieved_torque_nm[2] > 0.0
-    angular_acceleration = vehicle.drone.compute_derivatives(
-        (0.0, 0.0, profile.mass_kg * GRAVITY), command.achieved_torque_nm
-    )[3]
-    assert angular_acceleration[2] > 0.0
+    collective = profile.mass_kg * GRAVITY
+    trim = np.asarray(vehicle.mixer.mix(collective, (0.0, 0.0, 0.0)).rotor_thrust_n)
+    # With +z thrust, r cross F gives +roll for the left rotors (0, 3)
+    # and +pitch for the rear rotors (2, 3).  Positive yaw is supplied by
+    # clockwise rotors (spin direction -1, indices 1 and 3).
+    for axis, expected_rise in ((0, (0, 3)), (1, (2, 3)), (2, (1, 3))):
+        torque = np.zeros(3)
+        torque[axis] = (1.0e-4 if axis < 2 else 1.0e-3)
+        result = vehicle.mixer.mix(collective, torque)
+        thrust = np.asarray(result.rotor_thrust_n)
+        rise = set(expected_rise)
+        assert np.all(thrust[list(rise)] > trim[list(rise)])
+        assert np.all(thrust[[index for index in range(4) if index not in rise]] < trim[[index for index in range(4) if index not in rise]])
+        assert float(np.sum(thrust)) == pytest.approx(collective, abs=1e-15)
+
+
+def test_mixer_allocation_is_built_from_r_cross_f_and_reaction_torque():
+    profile = fixture_profile()
+    vehicle = ActuatedQuadrotor(profile)
+    arm = profile.arm_length_m / math.sqrt(2.0)
+    positions = np.array(((arm, arm, 0.0), (arm, -arm, 0.0), (-arm, -arm, 0.0), (-arm, arm, 0.0)))
+    unit_force = np.array((0.0, 0.0, 1.0))
+    lever_rows = np.asarray([np.cross(position, unit_force) for position in positions]).T
+    expected = np.vstack((np.ones(4), lever_rows[:2], -np.asarray(profile.spin_directions) * profile.torque_to_thrust_m))
+    np.testing.assert_array_equal(vehicle.mixer._allocation, expected)
+
+
+def test_hover_trim_through_mixer_is_equal_rotor_thrust_and_duty():
+    profile = fixture_profile()
+    vehicle = ActuatedQuadrotor(profile)
+    collective = profile.mass_kg * GRAVITY
+    result = vehicle.mixer.mix(collective, (0.0, 0.0, 0.0))
+    per_rotor = collective / 4.0
+    max_thrust = vehicle.actuator.max_thrust_per_rotor_n()
+    np.testing.assert_allclose(result.rotor_thrust_n, np.full(4, per_rotor), rtol=0.0, atol=1e-15)
+    np.testing.assert_allclose(result.motor_command, np.full(4, math.sqrt(per_rotor / max_thrust)), rtol=0.0, atol=1e-15)
 
 
 def _run_end_held(profile, target, *, dt, substeps):
@@ -437,6 +469,196 @@ def test_constant_wind_disturbance_matches_direct_rigid_body_step():
     assert np.array_equal(vehicle.drone.velocity, reference.velocity)
 
 
+def test_v2_configured_wind_survives_zero_effect_vehicle_disturbance():
+    profile = fixture_profile()
+    wind = (3.0, 0.0, 0.0)
+    baseline = ActuatedQuadrotor(
+        profile,
+        wind_velocity=wind,
+        drag_coefficient=1.0,
+        cross_sectional_area=0.01,
+    )
+    hooked = ActuatedQuadrotor(
+        profile,
+        wind_velocity=wind,
+        drag_coefficient=1.0,
+        cross_sectional_area=0.01,
+        disturbance=ConstantDisturbance(DisturbanceSample()),
+    )
+    for _ in range(4):
+        baseline.step((0.0, 0.0, 0.0), 0.01)
+        hooked.step((0.0, 0.0, 0.0), 0.01)
+    np.testing.assert_array_equal(hooked.drone.position, baseline.drone.position)
+    np.testing.assert_array_equal(hooked.drone.velocity, baseline.drone.velocity)
+    np.testing.assert_array_equal(hooked.drone.quaternion, baseline.drone.quaternion)
+
+
+def test_v2_fleet_configured_wind_survives_zero_effect_interaction():
+    profiles = {"alpha": fixture_profile(), "beta": fixture_profile()}
+    targets = {"alpha": (0.0, 0.0, 0.0), "beta": (0.0, 0.0, 0.0)}
+    wind = (3.0, 0.0, 0.0)
+    baseline = ActuatedVehicleFleet(
+        profiles,
+        wind_velocity=wind,
+        drag_coefficient=1.0,
+        cross_sectional_area=0.01,
+    )
+
+    def zero_interaction(positions, velocities):
+        return {agent_id: DisturbanceSample() for agent_id in positions}
+
+    hooked = ActuatedVehicleFleet(
+        profiles,
+        wind_velocity=wind,
+        drag_coefficient=1.0,
+        cross_sectional_area=0.01,
+        interaction=zero_interaction,
+    )
+    for _ in range(4):
+        baseline.step(targets, 0.01)
+        hooked.step(targets, 0.01)
+    for agent_id in baseline.agent_ids:
+        np.testing.assert_array_equal(
+            hooked._vehicles[agent_id].drone.position,
+            baseline._vehicles[agent_id].drone.position,
+        )
+        np.testing.assert_array_equal(
+            hooked._vehicles[agent_id].drone.velocity,
+            baseline._vehicles[agent_id].drone.velocity,
+        )
+
+
+def test_v1_vehicle_rejects_v2_options():
+    from sim.scenarios import default_hardware_profile
+
+    profile = default_hardware_profile(0)
+    sample = ConstantDisturbance(DisturbanceSample())
+    with pytest.raises(ValueError, match="substeps and disturbance require a v2 profile"):
+        ActuatedQuadrotor(profile, substeps=2)
+    with pytest.raises(ValueError, match="substeps and disturbance require a v2 profile"):
+        ActuatedQuadrotor(profile, disturbance=sample)
+
+
+def test_v1_fleet_rejects_v2_options():
+    from sim.scenarios import default_hardware_profile
+
+    profiles = {"alpha": default_hardware_profile(0), "beta": default_hardware_profile(1)}
+    sample = ConstantDisturbance(DisturbanceSample())
+    with pytest.raises(ValueError, match="substeps and disturbance require a v2 profile"):
+        ActuatedVehicleFleet(profiles, substeps=2)
+    with pytest.raises(ValueError, match="substeps and disturbance require a v2 profile"):
+        ActuatedVehicleFleet(profiles, disturbances={"alpha": sample})
+    with pytest.raises(ValueError, match="substeps and disturbance require a v2 profile"):
+        ActuatedVehicleFleet(profiles, interaction=lambda positions, velocities: {})
+
+
+def test_v2_fleet_substeps_match_standalone_vehicles_bit_for_bit():
+    profiles = {"alpha": fixture_profile(), "beta": fixture_profile()}
+    initial = {"alpha": (-0.2, 0.1, 0.0), "beta": (0.4, -0.1, 0.2)}
+    targets = {"alpha": (0.1, 0.0, 0.3), "beta": (0.0, 0.2, 0.1)}
+    fleet = ActuatedVehicleFleet(profiles, initial_positions=initial, substeps=2, drag_coefficient=0.0, cross_sectional_area=0.0)
+    standalone = {
+        agent_id: ActuatedQuadrotor(profile, initial_position=initial[agent_id], substeps=2, drag_coefficient=0.0, cross_sectional_area=0.0)
+        for agent_id, profile in profiles.items()
+    }
+    for _ in range(4):
+        fleet.step(targets, 0.01)
+        for agent_id, vehicle in standalone.items():
+            vehicle.step(targets[agent_id], 0.01)
+            fleet_vehicle = fleet._vehicles[agent_id]
+            np.testing.assert_array_equal(fleet_vehicle.drone.position, vehicle.drone.position)
+            np.testing.assert_array_equal(fleet_vehicle.drone.velocity, vehicle.drone.velocity)
+            np.testing.assert_array_equal(fleet_vehicle.drone.quaternion, vehicle.drone.quaternion)
+            np.testing.assert_array_equal(fleet_vehicle.actuator.speed_rad_s, vehicle.actuator.speed_rad_s)
+
+
+def test_fleet_disturbance_is_applied_only_to_named_vehicle():
+    profiles = {"alpha": fixture_profile(), "beta": fixture_profile()}
+    targets = {"alpha": (0.0, 0.0, 0.0), "beta": (0.0, 0.0, 0.0)}
+    disturbed = ActuatedVehicleFleet(
+        profiles,
+        disturbances={"alpha": ConstantDisturbance(DisturbanceSample(extra_force_n=(0.01, 0.0, 0.0)))},
+        drag_coefficient=0.0,
+        cross_sectional_area=0.0,
+    )
+    baseline = ActuatedVehicleFleet(profiles, drag_coefficient=0.0, cross_sectional_area=0.0)
+    disturbed.step(targets, 0.001)
+    baseline.step(targets, 0.001)
+    np.testing.assert_array_equal(disturbed._vehicles["beta"].drone.position, baseline._vehicles["beta"].drone.position)
+    np.testing.assert_array_equal(disturbed._vehicles["beta"].drone.velocity, baseline._vehicles["beta"].drone.velocity)
+    assert disturbed._vehicles["alpha"].drone.velocity[0] > baseline._vehicles["alpha"].drone.velocity[0]
+
+
+def test_fleet_interaction_force_matches_f_dt_over_m_from_level_trim():
+    profile = fixture_profile()
+    dt = 0.001
+    force = 0.01
+    fleet = ActuatedVehicleFleet({"alpha": profile}, drag_coefficient=0.0, cross_sectional_area=0.0)
+    fleet._vehicles["alpha"].actuator.speed_rad_s[:] = profile.hover_speed_rad_s()
+
+    def interaction(positions, velocities):
+        return {"alpha": DisturbanceSample(extra_force_n=(force, 0.0, 0.0))}
+
+    fleet._interaction = interaction
+    fleet.step({"alpha": (0.0, 0.0, 0.0)}, dt)
+    expected_delta_v = force * dt / profile.mass_kg
+    assert fleet._vehicles["alpha"].drone.velocity[0] == pytest.approx(expected_delta_v, rel=1e-9)
+    assert fleet._vehicles["alpha"].drone.velocity[2] == pytest.approx(0.0, abs=1e-12)
+
+
+@pytest.mark.parametrize(
+    "interaction, message",
+    [
+        (lambda positions, velocities: {}, "one DisturbanceSample per agent"),
+        (lambda positions, velocities: {"alpha": object()}, "DisturbanceSample instances"),
+    ],
+)
+def test_fleet_interaction_requires_one_disturbance_sample_per_agent(interaction, message):
+    fleet = ActuatedVehicleFleet({"alpha": fixture_profile()})
+    fleet._interaction = interaction
+    with pytest.raises(ValueError, match=message):
+        fleet.step({"alpha": (0.0, 0.0, 0.0)}, 0.01)
+
+
+def test_explicit_v2_drag_coefficient_one_point_three_is_honoured():
+    profile = fixture_profile()
+    vehicle = ActuatedQuadrotor(profile, drag_coefficient=1.3)
+    assert vehicle.drone.drag_coefficient == 1.3
+
+
+def test_v2_model_provenance_reports_profile_inertia_basis():
+    profile = fixture_profile()
+    metadata = ActuatedQuadrotor(profile).model_provenance()
+    assert metadata["inertia_basis"] == "literature-derived profile value"
+    assert metadata["profile_id"] == profile.profile_id
+    assert metadata["profile_status"] == profile.status
+
+
+def test_empty_battery_stays_at_cutoff_voltage_after_depletion():
+    battery = {
+        "nominal_voltage_v": 4.0,
+        "cutoff_voltage_v": 3.0,
+        "capacity_mah": 0.001,
+        "internal_resistance_ohm": 0.1,
+        "efficiency": 0.8,
+    }
+    actuator = RotorcraftActuator(fixture_profile(battery=battery))
+    state = actuator.step((1.0,) * 4, 0.1)
+    assert state.battery_charge_ah == 0.0
+    assert state.battery_voltage_v >= battery["cutoff_voltage_v"]
+    state = actuator.step((1.0,) * 4, 0.1)
+    assert state.battery_voltage_v == battery["cutoff_voltage_v"]
+    assert state.speed_rad_s == (0.0, 0.0, 0.0, 0.0)
+
+
+def test_mixer_clipping_can_raise_achieved_collective_when_yaw_is_large():
+    profile = fixture_profile()
+    requested_collective = profile.mass_kg * GRAVITY
+    result = ActuatedQuadrotor(profile).mixer.mix(requested_collective, (0.0, 0.0, 0.01))
+    assert result.saturated
+    assert result.achieved_force_n > requested_collective
+
+
 def test_substep_mean_thrust_matches_brute_force_integration():
     """Independent check of the closed-form mean of w^2 (and power w^3).
 
@@ -460,7 +682,5 @@ def test_substep_mean_thrust_matches_brute_force_integration():
         mean_w2 = np.trapezoid(curve**2, t) / h
         mean_w3 = np.trapezoid(curve**3, t) / h
         assert state.mean_thrust_n[0] == pytest.approx(kf * mean_w2, rel=1e-9)
-        # Mechanical power reported for the battery is the mean of k_m w^3 over all rotors.
-        assert 4.0 * km_ratio * kf * mean_w3 == pytest.approx(
-            km_ratio * kf * 4.0 * _average_power_w3(start_fraction * w_max, duty * w_max, h, tau), rel=1e-9
-        )
+        # Power telemetry reports the same substep mean used for battery charge.
+        assert state.mean_power_w == pytest.approx(km_ratio * kf * 4.0 * mean_w3, rel=1e-9)
