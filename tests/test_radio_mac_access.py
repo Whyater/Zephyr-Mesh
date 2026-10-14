@@ -114,3 +114,35 @@ def test_back_to_back_frames_back_off_between_them():
         ks.append(round(k))
     sd_mean = math.sqrt((32 ** 2 - 1) / 12) / math.sqrt(len(ks))
     assert abs(np.mean(ks) - 15.5) <= 4 * sd_mean
+
+
+def test_broadcast_writes_no_record_for_out_of_range_nodes():
+    # Contract: broadcast records cover only nodes at or above sensitivity - 10 dB.
+    # "far" is 1e6 m away: about -100 dBm below the sensitivity point.
+    positions = {"a": (0.0, 0.0, 1.0), "near": (1.0, 0.0, 1.0), "far": (1e6, 0.0, 1.0)}
+    sim = _sim(positions, m.MacConfig(), seed=0)
+    sim.enqueue("a", m.Frame("a", m.BROADCAST, 32, 0.0), 0.0)
+    sim.run_until(0.05)
+    assert [r.rx for r in sim.rx_records] == ["near"]
+
+
+def test_late_ack_from_an_earlier_try_is_ignored():
+    # With ack_timeout_s shorter than SIFS + ACK airtime, the sender times out
+    # before the first ACK ends and retries.  That first ACK must not mark the
+    # retry as acknowledged.  The retry's own ACK also ends after the timeout,
+    # so every try times out: status retry_exhausted after limit + 1 tries.
+    positions = {"a": (0.0, 0.0, 1.0), "b": (1.0, 0.0, 1.0)}
+    cfg = m.MacConfig(unicast_retry_limit=2, ack_timeout_s=PHY.sifs_s + 0.5 * ACK)
+    sim = _sim(positions, cfg, seed=0)
+    fid = sim.enqueue("a", m.Frame("a", "b", 32, 0.0), 0.0)
+    sim.run_until(0.2)
+    assert sim.frame_records[fid].status == "retry_exhausted"
+    assert sim.frame_records[fid].tries == 3
+
+
+@pytest.mark.parametrize("bad", [dict(ack_timeout_s=float("nan")), dict(ack_timeout_s=0.0),
+                                 dict(cca_threshold_dbm=float("nan")), dict(interference_floor_dbm=float("inf")),
+                                 dict(capture_threshold_db=-1.0), dict(capture_threshold_db=float("nan"))])
+def test_mac_config_rejects_invalid_thresholds(bad):
+    with pytest.raises(ValueError):
+        m.MacConfig(**bad)

@@ -210,6 +210,40 @@ class Channel:
         self.cfg = cfg
         self.rng = rng
         self._last: dict[tuple[str, str], tuple[float, float]] = {}
+        # Speed: the MAC asks for the same node pairs over and over, so the mean
+        # terms are computed once per (distance, walls, bodies) with the same
+        # vectorized functions (identical values), and the DBPSK packet error
+        # rate uses plain math on single numbers.
+        self._mean_cache: dict[tuple[float, int, int], tuple[float, float]] = {}
+        self._a = _dbpsk_a(cfg) if cfg.per_model == "dbpsk" else None
+        # Standard normals drawn in blocks.  A Generator gives the same sequence
+        # whether drawn one at a time or in a block, so the values match
+        # rng.normal(0, sigma) = sigma * z call for call.
+        self._z = np.empty(0)
+        self._zi = 0
+
+    def _next_z(self) -> float:
+        if self._zi >= self._z.size:
+            self._z = self.rng.standard_normal(1024)
+            self._zi = 0
+        z = float(self._z[self._zi])
+        self._zi += 1
+        return z
+
+    def _mean_terms(self, distance_m: float, walls: int, bodies: int) -> tuple[float, float]:
+        key = (float(distance_m), int(walls), int(bodies))
+        hit = self._mean_cache.get(key)
+        if hit is None:
+            hit = (float(path_loss_db(distance_m, self.cfg)),
+                   float(mean_rssi_dbm(distance_m, self.cfg, walls=walls, bodies=bodies)))
+            self._mean_cache[key] = hit
+        return hit
+
+    def _per(self, snr: float, frame_bytes: int) -> float:
+        if self._a is None:
+            return float(packet_error_rate(snr, frame_bytes, self.cfg))
+        ber = min(max(0.5 * math.exp(-self._a * 10.0 ** (snr / 10.0)), 0.0), 0.5)
+        return min(max(-math.expm1(8 * int(frame_bytes) * math.log1p(-ber)), 0.0), 1.0)
 
     @property
     def sensitivity_dbm(self) -> float:
@@ -219,7 +253,8 @@ class Channel:
         t_s = float(t_s)
         if not math.isfinite(t_s):
             raise ValueError("time must be finite")
-        pair = tuple(sorted((str(tx), str(rx))))
+        tx, rx = str(tx), str(rx)
+        pair = (tx, rx) if tx <= rx else (rx, tx)
         sigma = self.cfg.shadowing_sigma_db
         mode = self.cfg.shadowing_mode
         last = self._last.get(pair)
@@ -230,10 +265,10 @@ class Channel:
         if last is not None and (last[0] == t_s or mode == "static"):
             return last[1]
         if last is None or mode == "iid":
-            value = float(self.rng.normal(0.0, sigma))
+            value = sigma * self._next_z()
         else:
             rho = math.exp(-(t_s - last[0]) / self.cfg.shadowing_corr_time_s)
-            value = float(rho * last[1] + math.sqrt(max(0.0, 1.0 - rho * rho)) * sigma * self.rng.normal())
+            value = float(rho * last[1] + math.sqrt(max(0.0, 1.0 - rho * rho)) * sigma * self._next_z())
         self._last[pair] = (t_s, value)
         return value
 
@@ -242,16 +277,16 @@ class Channel:
         if int(frame_bytes) != frame_bytes or frame_bytes < 1:
             raise ValueError("frame_bytes must be a positive integer")
         shadow = self._shadow_value(tx, rx, t_s)
-        loss = float(path_loss_db(distance_m, self.cfg)) + shadow
-        rssi = float(mean_rssi_dbm(distance_m, self.cfg, walls=walls, bodies=bodies)) - shadow - extra_loss_db
+        mean_loss, mean_rssi = self._mean_terms(distance_m, walls, bodies)
+        rssi = mean_rssi - shadow - extra_loss_db
         noise = self.cfg.noise_floor_dbm if noise_floor_dbm is None else float(noise_floor_dbm)
-        snr = float(snr_db(rssi, noise))
-        return LinkSample(rssi, snr, float(packet_error_rate(snr, frame_bytes, self.cfg)), shadow, loss)
+        snr = rssi - noise
+        return LinkSample(rssi, snr, self._per(snr, frame_bytes), shadow, mean_loss + shadow)
 
     def received_power_dbm(self, tx: str, rx: str, distance_m: float, t_s: float, *, walls: int = 0,
                            bodies: int = 0, extra_loss_db: float = 0.0) -> float:
         shadow = self._shadow_value(tx, rx, t_s)
-        return float(mean_rssi_dbm(distance_m, self.cfg, walls=walls, bodies=bodies)) - shadow - extra_loss_db
+        return self._mean_terms(distance_m, walls, bodies)[1] - shadow - extra_loss_db
 
 
 @dataclass(frozen=True)

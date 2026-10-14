@@ -55,3 +55,21 @@ def test_dual_slope_is_continuous_and_steeper_past_breakpoint():
     assert path_loss_db(10.0, c) == pytest.approx(path_loss_db(10.0, ChannelConfig(exponent=2.0)), abs=1e-12)
     with pytest.raises(ValueError):
         ChannelConfig(breakpoint_m=0.5)
+
+
+def test_channel_fast_path_matches_vectorized_functions():
+    # Channel.sample caches the mean terms and computes the DBPSK packet error
+    # rate with plain math; both must agree with the vectorized module functions.
+    from sim.radio.channel import Channel, ChannelConfig, mean_rssi_dbm, packet_error_rate, path_loss_db
+    cfg = ChannelConfig(shadowing_sigma_db=0.0, wall_loss_db=4.0, body_loss_db=10.0)
+    ch = Channel(cfg, np.random.default_rng(0))
+    for d in (0.05, 1.0, 37.5, 900.0, 25_000.0):
+        for walls, bodies in ((0, 0), (2, 1)):
+            for n_bytes in (14, 75, 1024):
+                s = ch.sample("a", "b", d, 0.0, frame_bytes=n_bytes, walls=walls, bodies=bodies)
+                assert s.rssi_dbm == float(mean_rssi_dbm(d, cfg, walls=walls, bodies=bodies))
+                assert s.path_loss_db == float(path_loss_db(d, cfg))
+                assert s.per == pytest.approx(float(packet_error_rate(s.snr_db, n_bytes, cfg)), rel=1e-12, abs=1e-300)
+                assert ch.received_power_dbm("a", "b", d, 0.0, walls=walls, bodies=bodies) == s.rssi_dbm
+    for snr in np.linspace(-20.0, 20.0, 81):  # across the whole waterfall
+        assert ch._per(float(snr), 75) == pytest.approx(float(packet_error_rate(float(snr), 75, cfg)), rel=1e-12, abs=1e-300)

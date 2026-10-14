@@ -127,6 +127,13 @@ class MacConfig:
             raise ValueError("retry limit and queue capacity must be nonnegative")
         if self.processing_delay_s < 0:
             raise ValueError("processing delay must be nonnegative")
+        if self.ack_timeout_s is not None and not (math.isfinite(self.ack_timeout_s) and self.ack_timeout_s > 0):
+            raise ValueError("ack_timeout_s must be positive and finite")
+        if not (math.isfinite(self.cca_threshold_dbm) and math.isfinite(self.interference_floor_dbm)):
+            raise ValueError("cca_threshold_dbm and interference_floor_dbm must be finite")
+        if self.capture_threshold_db is not None and not (math.isfinite(self.capture_threshold_db)
+                                                          and self.capture_threshold_db >= 0):
+            raise ValueError("capture_threshold_db must be finite and nonnegative")
 
 
 @dataclass
@@ -232,6 +239,7 @@ class MacSimulator:
         self.phy = phy
         self.mac = mac
         self.walls = walls or {}
+        self._dist_cache: dict[tuple[str, str], float] = {}
         self.noise_floor_fn = noise_floor_fn
         ss = np.random.SeedSequence(seed)
         b, e, s = ss.spawn(3)
@@ -307,8 +315,12 @@ class MacSimulator:
         self._push(first, self._P_SOURCE, "poisson", (node, dst, rate_hz, payload_bytes, start_s, stop_s))
 
     def _distance(self, a: str, b: str) -> float:
-        p, q = self.positions[a], self.positions[b]
-        return math.sqrt(sum((p[i] - q[i]) ** 2 for i in range(3)))
+        key = (a, b) if a < b else (b, a)
+        d = self._dist_cache.get(key)
+        if d is None:
+            p, q = self.positions[a], self.positions[b]
+            d = self._dist_cache[key] = math.sqrt(sum((p[i] - q[i]) ** 2 for i in range(3)))
+        return d
 
     def _wall_count(self, a: str, b: str) -> int:
         return self.walls.get((a, b), self.walls.get((b, a), 0))
@@ -400,11 +412,11 @@ class MacSimulator:
         st.remaining_slots = 0
         st.current = frame
         st.attempt += 1
-        if st.attempt == 1:
-            rec = self.frame_records[frame.frame_id]
-            self.frame_records[frame.frame_id] = replace(rec, first_tx_s=self._now)
+        # FrameRecords are updated in place (speed); readers always look them up fresh.
         rec = self.frame_records[frame.frame_id]
-        self.frame_records[frame.frame_id] = replace(rec, tries=st.attempt)
+        if st.attempt == 1:
+            rec.first_tx_s = self._now
+        rec.tries = st.attempt
         duration = data_airtime_s(frame.payload_bytes, self.phy)
         powers: dict[str, float] = {}
         samples: dict[str, Any] = {}
@@ -478,7 +490,10 @@ class MacSimulator:
                 continue
             sens = self._sensitivity()
             if sens is not None and float(sample.rssi_dbm) < sens - 10.0:
-                self._write_rx(tx, rx, "below_sensitivity", sample)
+                # Contract: only an intended unicast receiver gets a below_sensitivity
+                # record; broadcast records cover nodes in range only.
+                if f.dst != BROADCAST:
+                    self._write_rx(tx, rx, "below_sensitivity", sample)
                 continue
             if rx in tx.self_collision or any(other.src == rx and self._overlap(tx, other)
                    for other in self._active + self._ended_same_time if other is not tx):
@@ -493,15 +508,11 @@ class MacSimulator:
             if rx == f.dst and outcome == "delivered":
                 delivered_intended = True
         rec = self.frame_records[f.frame_id]
-        self.frame_records[f.frame_id] = replace(
-            rec,
-            last_tx_end_s=tx.end,
-            queue_wait_s=rec.queue_wait_s if rec.queue_wait_s is not None else max(
-                0.0, tx.start - f.created_s - (self.phy.difs_s if self.mac.carrier_sense else 0.0)
-            ),
-        )
+        rec.last_tx_end_s = tx.end
+        if rec.queue_wait_s is None:
+            rec.queue_wait_s = max(0.0, tx.start - f.created_s - (self.phy.difs_s if self.mac.carrier_sense else 0.0))
         if f.dst == BROADCAST:
-            self.frame_records[f.frame_id] = replace(self.frame_records[f.frame_id], status="sent")
+            rec.status = "sent"
             st.current = None; st.attempt = 0; st.cw = self.phy.cw_min; st.phase = "idle"; st.remaining_slots = 0
             st.needs_backoff = self.mac.backoff and bool(st.queue)
             self._schedule_node(tx.src, tx.end)
@@ -548,17 +559,20 @@ class MacSimulator:
         self._push(tx.end, self._P_TX_END, "tx_end", tx)
 
     def _ack_end(self, tx: _Tx) -> None:
-        sample = tx.samples[tx.ack_sender or ""]
-        success = not self._collision(tx, tx.ack_sender or "") and float(self._error_rng.random()) >= float(sample.per)
         parent_frame_id = tx.ack_parent
         if parent_frame_id is None:
             return
-        frame = self.frame_records[parent_frame_id]
-        st = self._nodes[frame.src]
-        if success:
-            self._attempt_done_by_id(parent_frame_id, True)
-        else:
-            self._attempt_done_by_id(parent_frame_id, False)
+        st = self._nodes[self.frame_records[parent_frame_id].src]
+        # An ACK counts only for the try it answers: with a short custom
+        # ack_timeout_s the sender may already have timed out and retried.
+        if (st.phase != "ack_wait" or st.current is None or st.current.frame_id != parent_frame_id
+                or st.attempt != tx.attempt):
+            return
+        sender = tx.ack_sender or ""
+        sample = tx.samples[sender]
+        success = (sender not in tx.self_collision and not self._collision(tx, sender)
+                   and float(self._error_rng.random()) >= float(sample.per))
+        self._attempt_done_by_id(parent_frame_id, success)
 
     def _attempt_done(self, tx: _Tx, success: bool) -> None:
         self._attempt_done_by_id(tx.frame.frame_id, success)  # type: ignore[union-attr]
@@ -570,7 +584,7 @@ class MacSimulator:
         if f is None or f.frame_id != fid:
             return
         if success:
-            self.frame_records[fid] = replace(rec, status="acked")
+            rec.status = "acked"
             st.current = None; st.attempt = 0; st.cw = self.phy.cw_min; st.phase = "idle"; st.remaining_slots = 0
             st.needs_backoff = self.mac.backoff and bool(st.queue)
             self._schedule_node(f.src, self._now)
@@ -581,7 +595,7 @@ class MacSimulator:
             st.current = None; st.needs_backoff = self.mac.backoff; st.phase = "idle"; st.remaining_slots = 0
             self._schedule_node(f.src, self._now)
         else:
-            self.frame_records[fid] = replace(rec, status="retry_exhausted")
+            rec.status = "retry_exhausted"
             st.current = None; st.attempt = 0; st.cw = self.phy.cw_min; st.phase = "idle"; st.remaining_slots = 0
             st.needs_backoff = self.mac.backoff and bool(st.queue)
             self._schedule_node(f.src, self._now)
@@ -602,7 +616,7 @@ class MacSimulator:
     def _enqueue_event(self, node: str, f: Frame) -> None:
         st = self._nodes[node]
         if len(st.queue) >= self.mac.queue_capacity:
-            self.frame_records[f.frame_id] = replace(self.frame_records[f.frame_id], status="queue_drop")
+            self.frame_records[f.frame_id].status = "queue_drop"
             return
         st.queue.append(f)
         self._schedule_node(node, self._now)
