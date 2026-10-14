@@ -1,0 +1,204 @@
+{
+  "argv": [
+    "--output",
+    "runs/c-exp013-channel"
+  ],
+  "code_sha256": {
+    "sim/radio/channel.py": "91f4a8411ca5f9ff9ebdae9a381b4b300d8da78b96e4ff0ff189614193aafde6",
+    "sim/radio/params.py": "c358221bc2b331e2cb9e6d2da1cfc8250eec67a2d8507b94f2c4279e2c5e0984",
+    "tools/c_exp013_channel.py": "2a6fc558a137b72439f21536c5a5070e56f26feeaa9f8b1ad74d7dc5a7289692"
+  },
+  "config": {
+    "base_seed": 20261014,
+    "cases": [
+      {
+        "case": "n low",
+        "exponent": 1.7,
+        "preset": "indoor_gym",
+        "sigma": 3.0
+      },
+      {
+        "case": "n nominal",
+        "exponent": 2.0,
+        "preset": "indoor_gym",
+        "sigma": 3.0
+      },
+      {
+        "case": "n high",
+        "exponent": 2.2,
+        "preset": "indoor_gym",
+        "sigma": 3.0
+      },
+      {
+        "case": "n high, sigma high",
+        "exponent": 2.2,
+        "preset": "indoor_gym",
+        "sigma": 4.3
+      },
+      {
+        "bodies": 1,
+        "case": "1 body",
+        "exponent": 2.0,
+        "preset": "indoor_gym",
+        "sigma": 3.0
+      },
+      {
+        "bodies": 1,
+        "body_loss_db": 21.0,
+        "case": "1 body worst (21 dB)",
+        "exponent": 2.0,
+        "preset": "indoor_gym",
+        "sigma": 3.0
+      },
+      {
+        "case": "1 brick wall",
+        "exponent": 2.0,
+        "preset": "indoor_gym",
+        "sigma": 3.0,
+        "wall_loss_db": 4.4,
+        "walls": 1
+      },
+      {
+        "case": "orientation 6 dB",
+        "exponent": 2.0,
+        "orientation_loss_db": 6.0,
+        "preset": "indoor_gym",
+        "sigma": 3.0
+      },
+      {
+        "bodies": 1,
+        "case": "body + orientation",
+        "exponent": 2.0,
+        "orientation_loss_db": 6.0,
+        "preset": "indoor_gym",
+        "sigma": 3.0
+      },
+      {
+        "case": "n low",
+        "exponent": 2.0,
+        "preset": "outdoor_open",
+        "sigma": 2.5
+      },
+      {
+        "case": "n nominal",
+        "exponent": 2.0,
+        "preset": "outdoor_open",
+        "sigma": 2.5
+      },
+      {
+        "case": "n high",
+        "exponent": 2.6,
+        "preset": "outdoor_open",
+        "sigma": 2.5
+      },
+      {
+        "case": "n high, sigma high",
+        "exponent": 2.6,
+        "preset": "outdoor_open",
+        "sigma": 4.0
+      },
+      {
+        "bodies": 1,
+        "case": "1 body",
+        "exponent": 2.0,
+        "preset": "outdoor_open",
+        "sigma": 2.5
+      },
+      {
+        "bodies": 1,
+        "body_loss_db": 21.0,
+        "case": "1 body worst (21 dB)",
+        "exponent": 2.0,
+        "preset": "outdoor_open",
+        "sigma": 2.5
+      },
+      {
+        "case": "1 brick wall",
+        "exponent": 2.0,
+        "preset": "outdoor_open",
+        "sigma": 2.5,
+        "wall_loss_db": 4.4,
+        "walls": 1
+      },
+      {
+        "case": "orientation 6 dB",
+        "exponent": 2.0,
+        "orientation_loss_db": 6.0,
+        "preset": "outdoor_open",
+        "sigma": 2.5
+      },
+      {
+        "bodies": 1,
+        "case": "body + orientation",
+        "exponent": 2.0,
+        "orientation_loss_db": 6.0,
+        "preset": "outdoor_open",
+        "sigma": 2.5
+      },
+      {
+        "breakpoint_m": 73.16061299981068,
+        "case": "ground bounce, n_far 2",
+        "exponent": 2.0,
+        "exponent_far": 2.0,
+        "preset": "outdoor_open",
+        "sigma": 2.5
+      },
+      {
+        "breakpoint_m": 73.16061299981068,
+        "case": "ground bounce, n_far 3",
+        "exponent": 2.0,
+        "exponent_far": 3.0,
+        "preset": "outdoor_open",
+        "sigma": 2.5
+      },
+      {
+        "breakpoint_m": 73.16061299981068,
+        "case": "ground bounce, n_far 4",
+        "exponent": 2.0,
+        "exponent_far": 4.0,
+        "preset": "outdoor_open",
+        "sigma": 2.5
+      },
+      {
+        "breakpoint_m": 73.16061299981068,
+        "case": "stress corner",
+        "exponent": 2.0,
+        "exponent_far": 4.0,
+        "orientation_loss_db": 6.0,
+        "preset": "outdoor_open",
+        "sigma": 4.0
+      }
+    ],
+    "distances": [
+      1.0,
+      30000.0,
+      121
+    ],
+    "n_draws": 20000,
+    "payload_bytes": 32
+  },
+  "config_sha256": "ff50a5138b91431bd46cee2c00100367a601ffc36c6aa9ecfb01a2d746a9c4c3",
+  "git_revision": "a49696076c0a629a78cde1f67b95981c256660f9",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no ESP32 or drone hardware was used.",
+    "Radio parameters are literature-derived (sim/radio/params.py), with ranges; none are measured.",
+    "Free-space-like log-distance model; no fast fading term; one PER curve (DBPSK) anchored at the datasheet sensitivity.",
+    "No measured gym or ESP32 path-loss exponent exists; presets come from ITU, 3GPP and UAV survey values."
+  ],
+  "n_processes": 1,
+  "numpy": "2.5.1",
+  "outputs": {
+    "curves.csv": "1daddc067f8c1037fe5735e2e4c1580cb52828ecd865519228c11e7157575567",
+    "exp013_delivery_vs_distance.png": "e16b91835a99d59c5505bdb021967f6c74657ec516c9ec0c7339e5295166c256",
+    "summary.json": "9f497f8d40800e5e9c3304c866b021a01d0fef733231557c90cbfffcae40ee86"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp013_channel.py --output {out}",
+  "runtime_s": 1.6329124170006253,
+  "schema": "zephyr-run-c-manifest-1",
+  "seeds": [
+    3192984007
+  ]
+}

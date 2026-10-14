@@ -1,1 +1,69 @@
-[]
+[
+  {
+    "run_dir": "runs/c-exp013-channel",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp013_channel.py --output {out}",
+    "outputs": {
+      "curves.csv": "1daddc067f8c1037fe5735e2e4c1580cb52828ecd865519228c11e7157575567",
+      "exp013_delivery_vs_distance.png": "e16b91835a99d59c5505bdb021967f6c74657ec516c9ec0c7339e5295166c256",
+      "summary.json": "9f497f8d40800e5e9c3304c866b021a01d0fef733231557c90cbfffcae40ee86"
+    }
+  },
+  {
+    "run_dir": "runs/c-exp018-recovery",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp018_recovery.py --output {out}",
+    "outputs": {
+      "exp018_coverage.png": "0b46b9058c99acbb9021e2642ff5f8e9dba2f9ea773a1df803435764c0f1987b",
+      "exp018_design.png": "e0bbd6f291fbedb880b801f647293fac163f3d01aeca1ebe7719d7429615359d",
+      "recovery.csv": "808b1b86a40bfcb7bf4a600bfa7f676b2e01a1fd1a3aaf76aaea9a933e44382e",
+      "summary.json": "9cc24898f0049819912361fb0bf990959023c3a0d6dc4d65a1c842d434f89750",
+      "sweeps.csv": "9e7e1911c4474841f9ff6c15c67ede1eab655c1a46b37ccab0510893a3d2214e"
+    }
+  },
+  {
+    "run_dir": "runs/c-exp014-mac",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp014_mac.py --output {out} --seeds 20",
+    "outputs": {
+      "cells.csv": "b27401989eeeb08b5a9743f6f806c62c821fbc9f16f4f2d2359bbeac882e3c21",
+      "exp014_delivery.png": "a1e9c99128768958e36cf889397834e14bc1409b804822c32a3dde0c8b9cd1a3",
+      "exp014_latency.png": "09e5994875f42ed276051b1358c889bf407b5e62cb31d7c8a93f19a55c2afd2b",
+      "per_seed.csv": "9bce1990c92672e7e931768752de033fa5381c829636b415c6ab1f7cb9de1f8b",
+      "summary.json": "994384f6fc083b740a493a628446f79a5eb3eb76e762ade9b6ab3813ddd0a34b"
+    }
+  },
+  {
+    "run_dir": "runs/c5-heartbeat",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output {out}",
+    "outputs": {
+      "detection_delay.csv": "0ebf878c8fd376ae28fa9d875c7dd232ad5b67645093f9946080bc29bf592e1c",
+      "exp016_false_alarms.png": "6bc600b506852a60d84287b68ee6e12f54ef71537a0f354e557a4a460ed1affb",
+      "exp016_rule_300ms.png": "4cba578f788ddbe934d02156f7056e15c23f88d76ef8e51f03f67f988af4dbab",
+      "false_alarms.csv": "ca0a21e47868eba7e2fc338d29af8f526b78875f6e5ebcfd1812b7b6f5f070ce",
+      "interference.csv": "3520e79e8f7a2034dd4c0104b963e11583dd75e1c9b49d190a768737b8dcbdf5",
+      "summary.json": "43d563641147e2833a90b9256df91317fd535e6e56a977565a7f83cd699cfb6d",
+      "thresholds.json": "8d0f7af78fc41495c14d4990c6502beb5662ec198223bb96d4184a7f968f4a5f"
+    }
+  },
+  {
+    "run_dir": "runs/c-exp017-tolerance",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp017_tolerance.py --output {out}",
+    "outputs": {
+      "cells.csv": "281f68a38c71d4aca53f9872589e63521c730ca6007773c1e70baa726e140740",
+      "exp017_boundary.png": "a95c08f426645dd287ab4f75da36fcbaec006a54f94bfe917b4d5c936af97b41",
+      "exp017_contention.png": "e79efb35ed3818b69724e5de0db03079708c5b4ee334c7519b266057f9ca3648",
+      "exp017_distance.png": "6e5260c66ac192338e020a65272128c6317fe9ea9f4ce68fe5919d46b43292c2",
+      "per_seed.csv": "ddddef59d878a7749542d61237d8d74e17e3390bd6ef181e19d8f9e9524117b2",
+      "summary.json": "d5ad270b7818fa51449e039de94abe2a7564b47f48870db136fa2946ffcc0acf"
+    }
+  },
+  {
+    "run_dir": "runs/c-exp015-network",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp015_network.py --output {out} --seeds 20 --processes 2",
+    "outputs": {
+      "cells.csv": "ad13c4f85ca901726ace3f1b57d670e148e20318bcc1bdcd331926e523ec7f46",
+      "exp015_cost.png": "826052fe7665046d446ed61f540b8ed3624b9ad62cd1b69aaea9e2d56cbe06cd",
+      "exp015_delivery.png": "412f87d03a4c1026b9f266db2955dc69a3cec8301fb763b51e2b5fdfdbb06c2e",
+      "per_seed.csv": "15e4a357b17208d805a37fca24307098ed675a94b489532d6f0cd57d3cc6e4b4",
+      "summary.json": "e7c53a6f337b1aa495057d70b9bcad16d907bc85dbb6658510881f03044776f1"
+    }
+  }
+]

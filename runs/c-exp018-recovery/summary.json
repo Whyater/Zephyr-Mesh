@@ -1,0 +1,549 @@
+{
+  "experiment": "EXP-018",
+  "falsification_criteria": [
+    {
+      "falsified_if": "95% interval excludes the literature-derived 1 m RSSI range",
+      "limiting_factor": "number of positions",
+      "literature_range": [
+        -38.3,
+        -19.1
+      ],
+      "measurement": "EXP-001 RSSI versus distance",
+      "packets_needed": 1000,
+      "parameter": "a_dbm"
+    },
+    {
+      "falsified_if": "interval excludes the indoor literature-derived exponent range",
+      "limiting_factor": "number of positions",
+      "literature_range": [
+        1.7,
+        2.2
+      ],
+      "measurement": "EXP-001 RSSI versus distance",
+      "packets_needed": 1000,
+      "parameter": "n"
+    },
+    {
+      "falsified_if": "interval excludes the outdoor literature-derived exponent range",
+      "limiting_factor": "number of positions",
+      "literature_range": [
+        2.0,
+        2.6
+      ],
+      "measurement": "EXP-001 RSSI versus distance",
+      "packets_needed": 1000,
+      "parameter": "n_outdoor"
+    },
+    {
+      "falsified_if": "residuals are non-Gaussian; this cannot be tested with 5 positions",
+      "limiting_factor": "number of positions",
+      "literature_range": [
+        2.3,
+        4.3
+      ],
+      "measurement": "EXP-001 RSSI versus distance",
+      "packets_needed": 1000,
+      "parameter": "sigma_db"
+    },
+    {
+      "falsified_if": "burst ratio is near 1 when the model needs bursts",
+      "limiting_factor": "packets per position",
+      "literature_range": [
+        0.0,
+        1.0
+      ],
+      "measurement": "EXP-002 delivery and burst structure versus distance",
+      "packets_needed": 1838,
+      "parameter": "p/r"
+    },
+    {
+      "falsified_if": "waterfall location is outside the calibrated model interval",
+      "limiting_factor": "distance grid",
+      "literature_range": [
+        0.0,
+        1.0
+      ],
+      "measurement": "EXP-002 delivery versus distance",
+      "packets_needed": 1000,
+      "parameter": "PER waterfall"
+    },
+    {
+      "falsified_if": "loss versus send rate is inconsistent with simulated queueing",
+      "limiting_factor": "send-rate sweep",
+      "literature_range": [
+        0.0,
+        1.0
+      ],
+      "measurement": "EXP-003 loss versus send rate",
+      "packets_needed": 1000,
+      "parameter": "MAC contention and queueing"
+    }
+  ],
+  "packet_note": "With no fast RSSI noise the n half-width is flat in packets by construction (fast_sigma_db = 0); seeds are reused across packet settings (unpaired design).",
+  "pilot": false,
+  "prediction_check": [
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": 0.7260181868900379,
+      "parameter": "n",
+      "predicted_n_half_width_range": [
+        0.15,
+        0.2
+      ],
+      "true_n": 1.8,
+      "within_prediction": false
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": null,
+      "parameter": "a_dbm",
+      "predicted_n_half_width_range": null,
+      "true_n": 1.8,
+      "within_prediction": null
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": null,
+      "parameter": "sigma_db",
+      "predicted_n_half_width_range": null,
+      "true_n": 1.8,
+      "within_prediction": null
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": null,
+      "parameter": "p",
+      "predicted_n_half_width_range": null,
+      "true_n": 1.8,
+      "within_prediction": null
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": null,
+      "parameter": "r",
+      "predicted_n_half_width_range": null,
+      "true_n": 1.8,
+      "within_prediction": null
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": 0.7237464998434413,
+      "parameter": "n",
+      "predicted_n_half_width_range": [
+        0.15,
+        0.2
+      ],
+      "true_n": 2.0,
+      "within_prediction": false
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": null,
+      "parameter": "a_dbm",
+      "predicted_n_half_width_range": null,
+      "true_n": 2.0,
+      "within_prediction": null
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": null,
+      "parameter": "sigma_db",
+      "predicted_n_half_width_range": null,
+      "true_n": 2.0,
+      "within_prediction": null
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": null,
+      "parameter": "p",
+      "predicted_n_half_width_range": null,
+      "true_n": 2.0,
+      "within_prediction": null
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": null,
+      "parameter": "r",
+      "predicted_n_half_width_range": null,
+      "true_n": 2.0,
+      "within_prediction": null
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": 0.7456104619991399,
+      "parameter": "n",
+      "predicted_n_half_width_range": [
+        0.15,
+        0.2
+      ],
+      "true_n": 2.6,
+      "within_prediction": false
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": null,
+      "parameter": "a_dbm",
+      "predicted_n_half_width_range": null,
+      "true_n": 2.6,
+      "within_prediction": null
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": null,
+      "parameter": "sigma_db",
+      "predicted_n_half_width_range": null,
+      "true_n": 2.6,
+      "within_prediction": null
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": null,
+      "parameter": "p",
+      "predicted_n_half_width_range": null,
+      "true_n": 2.6,
+      "within_prediction": null
+    },
+    {
+      "coverage_within_0.92_0.98": true,
+      "observed_n_half_width": null,
+      "parameter": "r",
+      "predicted_n_half_width_range": null,
+      "true_n": 2.6,
+      "within_prediction": null
+    }
+  ],
+  "recovery": [
+    {
+      "bias": -0.006566606355183913,
+      "coverage": 0.96,
+      "coverage_wilson": [
+        0.923067931799067,
+        0.9795943679338476
+      ],
+      "mean_interval_width": 1.4520363737800759,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "n",
+      "true_n": 1.8
+    },
+    {
+      "bias": 0.08810736009925435,
+      "coverage": 0.975,
+      "coverage_wilson": [
+        0.942821659593358,
+        0.9892752803482386
+      ],
+      "mean_interval_width": 15.568422696308625,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "a_dbm",
+      "true_n": 1.8
+    },
+    {
+      "bias": -0.19476983435635153,
+      "coverage": 0.95,
+      "coverage_wilson": [
+        0.9104218518612239,
+        0.972617354399236
+      ],
+      "mean_interval_width": 8.870299727530018,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "sigma_db",
+      "true_n": 1.8
+    },
+    {
+      "bias": 1.7454575012475215e-05,
+      "coverage": 0.94,
+      "coverage_wilson": [
+        0.8980683070423372,
+        0.9653478057456681
+      ],
+      "mean_interval_width": 0.008171920101480908,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "p",
+      "true_n": 1.8
+    },
+    {
+      "bias": 0.002691953342321113,
+      "coverage": 0.955,
+      "coverage_wilson": [
+        0.9167032959981803,
+        0.976147456998507
+      ],
+      "mean_interval_width": 0.07443183215778397,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "r",
+      "true_n": 1.8
+    },
+    {
+      "bias": 0.0031898080106942395,
+      "coverage": 0.955,
+      "coverage_wilson": [
+        0.9167032959981803,
+        0.976147456998507
+      ],
+      "mean_interval_width": 1.4474929996868826,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "n",
+      "true_n": 2.0
+    },
+    {
+      "bias": -0.002836244431200896,
+      "coverage": 0.96,
+      "coverage_wilson": [
+        0.923067931799067,
+        0.9795943679338476
+      ],
+      "mean_interval_width": 15.519709613339396,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "a_dbm",
+      "true_n": 2.0
+    },
+    {
+      "bias": -0.2035473073523275,
+      "coverage": 0.93,
+      "coverage_wilson": [
+        0.8859451911438936,
+        0.9578478281716571
+      ],
+      "mean_interval_width": 8.842544851200024,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "sigma_db",
+      "true_n": 2.0
+    },
+    {
+      "bias": 0.00017002497693489535,
+      "coverage": 0.945,
+      "coverage_wilson": [
+        0.9042130012276914,
+        0.9690146582965411
+      ],
+      "mean_interval_width": 0.00820885526448563,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "p",
+      "true_n": 2.0
+    },
+    {
+      "bias": 0.0018349107445455315,
+      "coverage": 0.93,
+      "coverage_wilson": [
+        0.8859451911438936,
+        0.9578478281716571
+      ],
+      "mean_interval_width": 0.07387087592381364,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "r",
+      "true_n": 2.0
+    },
+    {
+      "bias": 0.004954411194312058,
+      "coverage": 0.97,
+      "coverage_wilson": [
+        0.9361057075454807,
+        0.9861796856598887
+      ],
+      "mean_interval_width": 1.4912209239982799,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "n",
+      "true_n": 2.6
+    },
+    {
+      "bias": 0.05608068394815291,
+      "coverage": 0.975,
+      "coverage_wilson": [
+        0.942821659593358,
+        0.9892752803482386
+      ],
+      "mean_interval_width": 15.988551042937864,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "a_dbm",
+      "true_n": 2.6
+    },
+    {
+      "bias": -0.11906809279933661,
+      "coverage": 0.935,
+      "coverage_wilson": [
+        0.8919809207009312,
+        0.961623645350847
+      ],
+      "mean_interval_width": 9.10967300453621,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "sigma_db",
+      "true_n": 2.6
+    },
+    {
+      "bias": 0.0001708050606675851,
+      "coverage": 0.945,
+      "coverage_wilson": [
+        0.9042130012276914,
+        0.9690146582965411
+      ],
+      "mean_interval_width": 0.008206541209685976,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "p",
+      "true_n": 2.6
+    },
+    {
+      "bias": 0.002840871704229142,
+      "coverage": 0.965,
+      "coverage_wilson": [
+        0.9295293884777092,
+        0.9829444579914328
+      ],
+      "mean_interval_width": 0.07418912183315367,
+      "n": 200,
+      "n_identifiable": 200,
+      "n_unidentifiable": 0,
+      "parameter": "r",
+      "true_n": 2.6
+    }
+  ],
+  "sizing_table": [
+    {
+      "confidence": 0.95,
+      "halfwidth": 0.01,
+      "p": 0.5,
+      "packets": 9600
+    },
+    {
+      "confidence": 0.95,
+      "halfwidth": 0.005,
+      "p": 0.5,
+      "packets": 38411
+    },
+    {
+      "confidence": 0.95,
+      "halfwidth": 0.01,
+      "p": 0.9,
+      "packets": 3461
+    },
+    {
+      "confidence": 0.95,
+      "halfwidth": 0.005,
+      "p": 0.9,
+      "packets": 13833
+    },
+    {
+      "confidence": 0.95,
+      "halfwidth": 0.01,
+      "p": 0.95,
+      "packets": 1838
+    },
+    {
+      "confidence": 0.95,
+      "halfwidth": 0.005,
+      "p": 0.95,
+      "packets": 7312
+    },
+    {
+      "confidence": 0.95,
+      "halfwidth": 0.01,
+      "p": 0.99,
+      "packets": 454
+    },
+    {
+      "confidence": 0.95,
+      "halfwidth": 0.005,
+      "p": 0.99,
+      "packets": 1606
+    }
+  ],
+  "status": "simulated; literature-derived parameters",
+  "sweeps": [
+    {
+      "n_mean_half_width": 0.7157447085960947,
+      "n_unidentifiable": 0,
+      "r_mean_half_width": 0.12802938234618552,
+      "r_unidentifiable": 0,
+      "setting": 100,
+      "sweep": "packets"
+    },
+    {
+      "n_mean_half_width": 0.7493647109927949,
+      "n_unidentifiable": 0,
+      "r_mean_half_width": 0.06743272687521568,
+      "r_unidentifiable": 0,
+      "setting": 300,
+      "sweep": "packets"
+    },
+    {
+      "n_mean_half_width": 0.7217350249545228,
+      "n_unidentifiable": 0,
+      "r_mean_half_width": 0.03706005572557527,
+      "r_unidentifiable": 0,
+      "setting": 1000,
+      "sweep": "packets"
+    },
+    {
+      "n_mean_half_width": 0.7475377062984133,
+      "n_unidentifiable": 0,
+      "r_mean_half_width": 0.021379153963461475,
+      "r_unidentifiable": 0,
+      "setting": 3000,
+      "sweep": "packets"
+    },
+    {
+      "n_mean_half_width": 2.6828998366625045,
+      "n_unidentifiable": 0,
+      "r_mean_half_width": 0.0490400784452352,
+      "r_unidentifiable": 0,
+      "setting": 3,
+      "sweep": "distances"
+    },
+    {
+      "n_mean_half_width": 0.6871905682201366,
+      "n_unidentifiable": 0,
+      "r_mean_half_width": 0.03757036423815266,
+      "r_unidentifiable": 0,
+      "setting": 5,
+      "sweep": "distances"
+    },
+    {
+      "n_mean_half_width": 0.4642172789705796,
+      "n_unidentifiable": 0,
+      "r_mean_half_width": 0.029448033230898573,
+      "r_unidentifiable": 0,
+      "setting": 8,
+      "sweep": "distances"
+    },
+    {
+      "n_mean_half_width": 0.37175428798093607,
+      "n_unidentifiable": 0,
+      "r_mean_half_width": 0.023838832598631888,
+      "r_unidentifiable": 0,
+      "setting": 12,
+      "sweep": "distances"
+    }
+  ],
+  "why_n_interval_is_wide": "5 positions with one static shadowing draw each give 3 residual degrees of freedom; the t multiplier (about 3.18) and sigma / sqrt(sum of squared deviations of 10 log10 d) (about 3 / 12.3 dB) set the half-width; more packets per position do not shrink it",
+  "wilson_checks": {
+    "p095_halfwidth001": 1838,
+    "p099_halfwidth0005": 1606
+  }
+}
