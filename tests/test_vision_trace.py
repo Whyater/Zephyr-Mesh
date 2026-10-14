@@ -25,6 +25,15 @@ def vision_payload():
             "frame_rate_hz": 30,
         },
         "source": "camera-log.jsonl",
+        "provenance": {
+            "instrument": {"kind": "camera", "model": "cam-x", "settings": {}},
+            "calibration_ref": "a" * 64,
+            "raw_sha256": "b" * 64,
+            "code_revision": "abc123",
+            "captured_at": "2026-10-14T09:30:00-06:00",
+            "operator": "test operator",
+            "ground_truth": {"method": "survey", "values": {}, "uncertainty": {}},
+        },
         "clock_uncertainty_s": 0.0005,
         "observations": [
             {
