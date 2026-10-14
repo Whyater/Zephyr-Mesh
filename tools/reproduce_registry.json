@@ -7,5 +7,16 @@
       "exp013_delivery_vs_distance.png": "e16b91835a99d59c5505bdb021967f6c74657ec516c9ec0c7339e5295166c256",
       "summary.json": "9f497f8d40800e5e9c3304c866b021a01d0fef733231557c90cbfffcae40ee86"
     }
+  },
+  {
+    "run_dir": "runs/c-exp018-recovery",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp018_recovery.py --output {out}",
+    "outputs": {
+      "exp018_coverage.png": "0b46b9058c99acbb9021e2642ff5f8e9dba2f9ea773a1df803435764c0f1987b",
+      "exp018_design.png": "e0bbd6f291fbedb880b801f647293fac163f3d01aeca1ebe7719d7429615359d",
+      "recovery.csv": "808b1b86a40bfcb7bf4a600bfa7f676b2e01a1fd1a3aaf76aaea9a933e44382e",
+      "summary.json": "9cc24898f0049819912361fb0bf990959023c3a0d6dc4d65a1c842d434f89750",
+      "sweeps.csv": "9e7e1911c4474841f9ff6c15c67ede1eab655c1a46b37ccab0510893a3d2214e"
+    }
   }
 ]
