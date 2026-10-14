@@ -27,6 +27,7 @@ def bench_payload():
         },
         "source": "bench-run.jsonl",
         "calibration_id": "cal-001",
+        "provenance": {"instrument": {"kind": "power_meter", "model": "PM-1", "settings": {}}, "calibration_ref": "" + "a" * 64, "raw_sha256": "" + "b" * 64, "code_revision": "abc123", "captured_at": "2026-10-14T09:30:00-06:00", "operator": "bench operator", "ground_truth": {"method": "reference load", "values": {}, "uncertainty": {}}},
         "samples": [
             {"sample_id": "s1", "timestamp_s": 1.0, "quality": "valid", "rpm": 10000, "thrust_n": 0.3, "voltage_v": 3.7, "current_a": 1.0, "duration_s": 2.0, "temperature_c": 22.0},
             {"sample_id": "s2", "timestamp_s": 4.0, "quality": "valid", "rpm": 20000, "thrust_n": 1.2, "voltage_v": 3.6, "current_a": 2.0, "duration_s": 2.0, "temperature_c": 24.0},
@@ -87,9 +88,9 @@ def test_quality_and_clock_rules_reject_ambiguous_records():
 def test_measured_trace_requires_provenance_and_schema_matches():
     schema = json.loads((Path(__file__).parents[1] / "sim" / "bench_trace_schema.json").read_text())
     payload = bench_payload()
-    del payload["calibration_id"]
+    del payload["provenance"]
     assert not Draft202012Validator(schema).is_valid(payload)
-    with pytest.raises(ValueError, match="calibration_id"):
+    with pytest.raises(ValueError, match="provenance"):
         validate_bench_trace(payload)
     payload = bench_payload()
     payload["samples"][0]["quality"] = "invalid"
