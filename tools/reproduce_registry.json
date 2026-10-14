@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "run_dir": "runs/c-exp013-channel",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp013_channel.py --output {out}",
+    "outputs": {
+      "curves.csv": "1daddc067f8c1037fe5735e2e4c1580cb52828ecd865519228c11e7157575567",
+      "exp013_delivery_vs_distance.png": "e16b91835a99d59c5505bdb021967f6c74657ec516c9ec0c7339e5295166c256",
+      "summary.json": "9f497f8d40800e5e9c3304c866b021a01d0fef733231557c90cbfffcae40ee86"
+    }
+  }
+]
