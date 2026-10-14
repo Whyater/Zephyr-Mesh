@@ -53,7 +53,7 @@ def test_lateral_step_has_expected_linearized_response(tmp_path):
     report = json.loads((tmp_path / "report.json").read_text())
     lateral = report["scenarios"]["lateral"]
     # The attitude loop adds lag to x'' + 1.5x' + 2x = 2, so allow a broad
-    # band around the hand linearization's 13.6 percent overshoot.
+    # band around the hand linearization's 14.0 percent (zeta = 1.5 / (2 sqrt 2) = 0.530) overshoot.
     assert 10.0 <= lateral["overshoot_pct"] <= 25.0
     assert 0.3 <= lateral["rise_time_s"] <= 0.8
 
