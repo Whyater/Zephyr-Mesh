@@ -197,3 +197,18 @@ def test_pilot_output_is_worker_count_independent(tmp_path):
     # Keep the JSON parse in the test so a byte-identical but invalid summary
     # cannot satisfy the determinism check.
     json.loads((first / "summary.json").read_text())
+
+
+def test_tool_hand_ground_offset_at_one_rotor_radius_matches_bisection():
+    """At z = R the implicit balance is far from linear, so the tool's hand
+    value must come from a proper root solve (a plain fixed-point iteration
+    oscillates there).  Compare the tool's reported hand value with this
+    file's independent bisection, and with the simulated offset."""
+    from tools import a_run_disturbance_response as tool
+
+    profile = _profile()
+    radius = profile.rotor.prop_radius_m
+    cell = tool._simulate("crazyflie-class", "ground", {"dt_s": 0.01, "duration_s": 10.0, "height_m": radius})
+    expected = _ground_effect_hand_offset(radius, radius, 3.0)
+    np.testing.assert_allclose(cell["hand_z_offset_m"], expected, rtol=1e-6)
+    np.testing.assert_allclose(cell["z_offset_m"], expected, rtol=0.02)

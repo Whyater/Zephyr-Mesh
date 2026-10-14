@@ -48,5 +48,14 @@
       "a_s2_convergence.png": "763de92b702af619538961ee2f51cb0342805576ec4c2bdaf60b29a432a7490d",
       "convergence.json": "916ffc271f34e7411c1fc42d4ddd96132876be5396fab5e6a9c50da2d1bce609"
     }
+  },
+  {
+    "run_dir": "runs/a7-disturbance",
+    "command": "PYTHONPATH=. {python} tools/a_run_disturbance_response.py --output-dir {out}",
+    "outputs": {
+      "a7_disturbance.png": "5cbfde9d9468a192a6309eda182ef74c2200de31c4da15ec52fcb8a01e70075b",
+      "per_run.csv": "3f8c3a21091f5321faea5ff5ff4190f0b8e17646e2a892c073db8c209bdde237",
+      "summary.json": "d716aa00615fcb325a99b44c5a2b396d4fb861446d90a9a2f0354a09570c9d29"
+    }
   }
 ]

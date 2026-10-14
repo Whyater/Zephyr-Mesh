@@ -95,14 +95,17 @@ def _simulate(profile_id, part, params):
         # while the actuator supplies s(z_actual) times that command. Thus
         # delta = g*(s(z+delta)-1)/(Kp*s(z+delta)); solve the resulting
         # one-dimensional fixed point because the disturbance reads current z.
-        hand = 0.0
-        for _ in range(80):
-            actual = z + hand
-            new_hand = GRAVITY * (R / (4.0 * actual)) ** 2 / 3.0
-            if abs(new_hand - hand) < 1e-14:
-                hand = new_hand
-                break
-            hand = new_hand
+        # f(e) = e - g (R / (4 (z + e)))^2 / Kp rises monotonically in e, so
+        # bisection always finds the single root (plain fixed-point iteration
+        # oscillates near z = R).
+        lo, hi = 0.0, 1.0
+        for _ in range(200):
+            mid = 0.5 * (lo + hi)
+            if mid - GRAVITY * (R / (4.0 * (z + mid))) ** 2 / 3.0 > 0.0:
+                hi = mid
+            else:
+                lo = mid
+        hand = 0.5 * (lo + hi)
         return {"part": "c", "profile": profile_id, "height_m": z, "height_R": z / profile.rotor.prop_radius_m,
                 "z_offset_m": float(np.mean(tail[:, 2]) - z), "hand_z_offset_m": hand,
                 "sim_hand_ratio": (float(np.mean(tail[:, 2]) - z) / hand if hand else None)}
