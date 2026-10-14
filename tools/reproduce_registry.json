@@ -18,5 +18,16 @@
       "summary.json": "9cc24898f0049819912361fb0bf990959023c3a0d6dc4d65a1c842d434f89750",
       "sweeps.csv": "9e7e1911c4474841f9ff6c15c67ede1eab655c1a46b37ccab0510893a3d2214e"
     }
+  },
+  {
+    "run_dir": "runs/c-exp014-mac",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp014_mac.py --output {out}",
+    "outputs": {
+      "cells.csv": "b27401989eeeb08b5a9743f6f806c62c821fbc9f16f4f2d2359bbeac882e3c21",
+      "exp014_delivery.png": "a1e9c99128768958e36cf889397834e14bc1409b804822c32a3dde0c8b9cd1a3",
+      "exp014_latency.png": "09e5994875f42ed276051b1358c889bf407b5e62cb31d7c8a93f19a55c2afd2b",
+      "per_seed.csv": "9bce1990c92672e7e931768752de033fa5381c829636b415c6ab1f7cb9de1f8b",
+      "summary.json": "994384f6fc083b740a493a628446f79a5eb3eb76e762ade9b6ab3813ddd0a34b"
+    }
   }
 ]
