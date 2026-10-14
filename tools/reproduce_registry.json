@@ -21,7 +21,7 @@
   },
   {
     "run_dir": "runs/c-exp014-mac",
-    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp014_mac.py --output {out}",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp014_mac.py --output {out} --seeds 20",
     "outputs": {
       "cells.csv": "b27401989eeeb08b5a9743f6f806c62c821fbc9f16f4f2d2359bbeac882e3c21",
       "exp014_delivery.png": "a1e9c99128768958e36cf889397834e14bc1409b804822c32a3dde0c8b9cd1a3",
