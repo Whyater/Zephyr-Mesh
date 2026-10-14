@@ -183,9 +183,8 @@ def test_hover_hold_from_trim_changes_position_by_less_than_one_mm():
 def test_hover_duty_rises_as_battery_sags_while_speed_stays_at_trim():
     """Battery sag raises duty; the target hover speed itself is unchanged.
 
-    The run prompt's phrase "hover RPM rises" is physically wrong for this
-    model.  Thrust depends on rotor speed, so voltage loss raises duty to
-    preserve the same speed and thrust.
+    Thrust depends on rotor speed only, so voltage loss raises the duty
+    needed to keep the same speed and thrust; hover rpm does not rise.
     """
     battery = {
         "nominal_voltage_v": 4.0,
@@ -339,9 +338,9 @@ def test_substep_convergence_selects_smallest_n_under_one_mm_rms():
     """With control dt fixed at .01 s, exact averaging gives these RMS errors.
 
     The 2 s lateral step uses a 50-substep, dt=.01 reference, so controller
-    sampling is identical in every run.  Recorded values on the repaired
-    chain (against a 200-substep reference, 2026-10-14) were N=1: 4.8e-5 m,
-    N=2: 1.2e-5 m, N=5: 1.9e-6 m and N=10: 4.8e-7 m, falling as 1/N^2.  The
+    sampling is identical in every run.  Recorded values (2026-10-14) were
+    N=1: 4.8e-5 m, N=2: 1.2e-5 m, N=5: 1.9e-6 m and N=10: 4.6e-7 m,
+    falling as 1/N^2.  The
     smallest N below 1 mm is therefore N=1.  The old end-of-substep thrust
     method at N=1 gave 1.07e-2 m from the same start, about 220 times worse.
     """
@@ -629,7 +628,7 @@ def test_explicit_v2_drag_coefficient_one_point_three_is_honoured():
 def test_v2_model_provenance_reports_profile_inertia_basis():
     profile = fixture_profile()
     metadata = ActuatedQuadrotor(profile).model_provenance()
-    assert metadata["inertia_basis"] == "literature-derived profile value"
+    assert metadata["inertia_basis"] == "fixture profile value; not measured"
     assert metadata["profile_id"] == profile.profile_id
     assert metadata["profile_status"] == profile.status
 

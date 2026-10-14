@@ -223,7 +223,8 @@ class ActuatedQuadrotor:
             drag_coefficient=drag_coefficient,
             cross_sectional_area=cross_sectional_area,
             wind_velocity=wind_velocity,
-            # Estimated from the profile geometry; see HardwareProfile.estimated_inertia_kg_m2.
+            # v1: estimated from the profile geometry (HardwareProfile.estimated_inertia_kg_m2).
+            # v2: taken from the profile document.
             inertia_kg_m2=inertia,
         )
         self.controller = controller or GeometricFlightController()
@@ -235,7 +236,7 @@ class ActuatedQuadrotor:
                 "status": "synthetic",
                 "model": "actuated_quadrotor",
                 "dynamics": self.drone.model_provenance(),
-                "inertia_basis": "literature-derived profile value",
+                "inertia_basis": f"{self.profile.status} profile value; not measured",
                 "profile_id": self.profile.profile_id,
                 "profile_status": self.profile.status,
                 "actuator": self.actuator.model_provenance(),
