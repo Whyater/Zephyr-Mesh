@@ -29,5 +29,30 @@
       "per_seed.csv": "9bce1990c92672e7e931768752de033fa5381c829636b415c6ab1f7cb9de1f8b",
       "summary.json": "994384f6fc083b740a493a628446f79a5eb3eb76e762ade9b6ab3813ddd0a34b"
     }
+  },
+  {
+    "run_dir": "runs/c5-heartbeat",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output {out}",
+    "outputs": {
+      "detection_delay.csv": "0ebf878c8fd376ae28fa9d875c7dd232ad5b67645093f9946080bc29bf592e1c",
+      "exp016_false_alarms.png": "6bc600b506852a60d84287b68ee6e12f54ef71537a0f354e557a4a460ed1affb",
+      "exp016_rule_300ms.png": "4cba578f788ddbe934d02156f7056e15c23f88d76ef8e51f03f67f988af4dbab",
+      "false_alarms.csv": "ca0a21e47868eba7e2fc338d29af8f526b78875f6e5ebcfd1812b7b6f5f070ce",
+      "interference.csv": "3520e79e8f7a2034dd4c0104b963e11583dd75e1c9b49d190a768737b8dcbdf5",
+      "summary.json": "43d563641147e2833a90b9256df91317fd535e6e56a977565a7f83cd699cfb6d",
+      "thresholds.json": "8d0f7af78fc41495c14d4990c6502beb5662ec198223bb96d4184a7f968f4a5f"
+    }
+  },
+  {
+    "run_dir": "runs/c-exp017-tolerance",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp017_tolerance.py --output {out}",
+    "outputs": {
+      "cells.csv": "281f68a38c71d4aca53f9872589e63521c730ca6007773c1e70baa726e140740",
+      "exp017_boundary.png": "a95c08f426645dd287ab4f75da36fcbaec006a54f94bfe917b4d5c936af97b41",
+      "exp017_contention.png": "e79efb35ed3818b69724e5de0db03079708c5b4ee334c7519b266057f9ca3648",
+      "exp017_distance.png": "6e5260c66ac192338e020a65272128c6317fe9ea9f4ce68fe5919d46b43292c2",
+      "per_seed.csv": "ddddef59d878a7749542d61237d8d74e17e3390bd6ef181e19d8f9e9524117b2",
+      "summary.json": "d5ad270b7818fa51449e039de94abe2a7564b47f48870db136fa2946ffcc0acf"
+    }
   }
 ]
