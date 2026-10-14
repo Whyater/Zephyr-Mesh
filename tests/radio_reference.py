@@ -270,17 +270,19 @@ def md1_waits(lam: float, D: float, n: int, rng: np.random.Generator) -> np.ndar
 def single_sender_starts(arrivals, T: float, difs: float) -> np.ndarray:
     """Transmission start times of one carrier-sensing sender with no backoff.
 
-    Rule (immediate access): the medium is otherwise idle.  After its own frame
-    ends at e, the node waits DIFS before the next one.  A frame arriving when the
-    node has been idle at least DIFS starts at once.  So with D = T + difs:
-        start_k = max(arrival_k, start_{k-1} + D)
+    Rule (contract, 2026-10-14): the medium is otherwise idle.  A frame becomes
+    head of line on arrival, or when the previous frame ends at e_{k-1}; it then
+    always waits DIFS of idle medium before starting:
+        start_k = max(arrival_k, start_{k-1} + T) + difs
+    With s_k = start_k - difs (the moment service begins) and D = T + difs:
+        s_k = max(arrival_k, s_{k-1} + D)
     which is the Lindley recursion with service time D.  Unrolled:
-    start_k = k D + max_{j <= k} (arrival_j - j D).
+    start_k = difs + k D + max_{j <= k} (arrival_j - j D).
     """
     a = np.asarray(arrivals, dtype=float)
     D = T + difs
     k = np.arange(len(a))
-    return k * D + np.maximum.accumulate(a - k * D)
+    return difs + k * D + np.maximum.accumulate(a - k * D)
 
 
 def head_of_line_waits(arrivals, starts, T: float) -> np.ndarray:
@@ -288,8 +290,9 @@ def head_of_line_waits(arrivals, starts, T: float) -> np.ndarray:
 
     Frame k becomes head of line when frame k-1 has finished transmitting, at
     end_{k-1} = start_{k-1} + T, or on arrival if the queue was empty.  So
-    H_k = max(0, end_{k-1} - arrival_k), H_1 = 0.  (Algebra: H = max(W - difs, 0)
-    where W = start - arrival, because the DIFS wait comes after head of line.)
+    H_k = max(0, end_{k-1} - arrival_k), H_1 = 0.  (Algebra: H = W - difs where
+    W = start - arrival, because every frame waits DIFS after head of line; H is
+    the Lindley waiting time, i.e. the M/D/1 queueing delay.)
     """
     a = np.asarray(arrivals, dtype=float)
     s = np.asarray(starts, dtype=float)

@@ -173,7 +173,7 @@ def test_single_sender_starts_and_hol_wait_match_event_loop():
     prev_end = None
     for k, a in enumerate(arr):
         head = a if prev_end is None else max(a, prev_end)       # frame k becomes head of line
-        start = head if prev_end is None else max(head, prev_end + difs)  # DIFS idle after last end
+        start = head + difs                                      # always DIFS of idle after head of line
         assert starts[k] == pytest.approx(start, abs=1e-9)
         assert hol[k] == pytest.approx(head - a, abs=1e-9)
         prev_end = start + T
