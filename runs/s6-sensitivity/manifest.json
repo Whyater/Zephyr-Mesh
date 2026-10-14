@@ -1,0 +1,54 @@
+{
+  "argv": [
+    "--output",
+    "runs/s6-sensitivity",
+    "--processes",
+    "2",
+    "--checkpoint-dir",
+    "/Users/akashi0281/zm-runb-cache/final/sensitivity"
+  ],
+  "config_sha256": null,
+  "git_revision": "e4d8afe1d4c91233bf03775961922139910db429",
+  "git_tree_state": "clean",
+  "limits": [
+    "Simulated link and sensor only; nothing measured.",
+    "Morris moves one input at a time from random starting points, so it ranks inputs and does not split the variance into exact shares.",
+    "The ranking depends on the ranges chosen; a wider range makes an input look more important.",
+    "sigma only says an input interacts or is nonlinear, not with what.",
+    "Each point is the median p95 over the same common seeds (10 by default), so responses carry seed noise.",
+    "Burst length is in packets while the sensor rate also varies, so rate and gap duration are mixed in this screening (the atlas sets bursts in seconds instead).",
+    "The OAT levels are evenly spaced over each range and skip the central value for delay, loss, speed and sensor rate.",
+    "The straight class has the turn-rate input present but without effect; its mu* of 0 is the null check. The turn class corner (2 m/s and 2 rad/s) is harder than any atlas target."
+  ],
+  "n_cells": 490,
+  "n_processes": 2,
+  "n_runs": 4900,
+  "n_seeds": 10,
+  "numpy": "2.5.1",
+  "outputs": {
+    "morris.json": "0fcbdbbd8116fb658050bd543321feec43a3b57a657d687f7facc53776130c73",
+    "oat.csv": "be5dabd69d8d57c98c80c7cb2ca390fe87fabc092f11c8f4a4ff66bb5261677f",
+    "oat.json": "135743ba978143d089d2c6cb120103c013ed7228a8f731910bf0526f102c7517",
+    "per_seed.csv.gz": "9f12f7938b5d2384a1c5312c12a251917784a2c1cdcf35c088e9c8143c9b0c75",
+    "ranking.json": "54c9bf1c46ec2a4f0d56e806ba8d3f4c535b2a929db82d473288f5fae1b27e3f",
+    "summary.json": "95134027efcedb2551cc6ff58dd04b5f2830b739dabe38a8b37e6281907e6115"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_sensitivity.py --output runs/s6-sensitivity --processes 2 --checkpoint-dir /Users/akashi0281/zm-runb-cache/final/sensitivity",
+  "runtime_s": 1125.3940923749997,
+  "schema": "s6-sensitivity",
+  "seeds": [
+    475358220,
+    396089605,
+    2136615580,
+    3779945640,
+    2509691599,
+    1599255996,
+    955383047,
+    4168395281,
+    3059479106,
+    2330081308
+  ],
+  "simulated": true
+}
