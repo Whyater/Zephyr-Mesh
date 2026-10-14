@@ -270,7 +270,7 @@ def md1_waits(lam: float, D: float, n: int, rng: np.random.Generator) -> np.ndar
 def single_sender_starts(arrivals, T: float, difs: float) -> np.ndarray:
     """Transmission start times of one carrier-sensing sender with no backoff.
 
-    Rule (contract, 2026-10-14): the medium is otherwise idle.  A frame becomes
+    Rule (documented in sim/radio/mac.py): the medium is otherwise idle.  A frame becomes
     head of line on arrival, or when the previous frame ends at e_{k-1}; it then
     always waits DIFS of idle medium before starting:
         start_k = max(arrival_k, start_{k-1} + T) + difs

@@ -1,7 +1,7 @@
 """Independent checks for the medium access (MAC) simulator, written from math only.
 
-Every expected value below is hand-derived from the Run C derivations (D5, D6, D7)
-and the written API contract. None of it was read from, or tuned to, the code in
+Every expected value below is hand-derived (the arithmetic is in the comments)
+from the documented API. None of it was read from, or tuned to, the code in
 sim/radio/mac.py. The simulator talks to a fake channel defined in this file, so
 the radio physics is out of the picture and only the MAC rules are tested.
 
@@ -46,7 +46,7 @@ class FakeChannel:
     """A channel with fixed numbers: rssi -50 dBm, SNR 45 dB, chosen PER.
 
     Frames longer than 20 bytes are data frames (PER = per_data). Frames of 20
-    bytes or less are ACKs (the contract's ACK is 14 bytes), with PER = per_ack.
+    bytes or less are ACKs (the documented ACK is 14 bytes), with PER = per_ack.
     """
 
     sensitivity_dbm = -98.0
@@ -107,7 +107,7 @@ def test_d6_short_preamble_2mbps(m):
 
 
 def test_d6_difs_default(m):
-    """D6 / contract (hand-derived): DIFS = SIFS + 2 slots = 10 us + 2 * 20 us = 50 us."""
+    """Hand-derived: DIFS = SIFS + 2 slots = 10 us + 2 * 20 us = 50 us."""
     phy = m.PhyConfig()
     assert phy.sifs_s == pytest.approx(10e-6, abs=1e-15)
     assert phy.slot_s == pytest.approx(20e-6, abs=1e-15)
@@ -145,7 +145,7 @@ def test_d5_single_sender_delay(m):
     delay = DIFS (50 us) + data airtime (792 us) + processing (0.7 ms) = 1.542 ms, within 1e-9.
 
     The DIFS term reflects the rule that a frame must wait for the medium to have been idle
-    for DIFS before sending. The contract's immediate_access wording says a frame reaching
+    for DIFS before sending. The documented immediate_access rule says a frame reaching
     head of line after the medium has ALREADY been idle for >= DIFS goes out right away.
     If the module documents that rule (a frame arriving after a long idle period does not
     wait a further DIFS), the delay would be 0.7 ms + 792 us and this check will flag the

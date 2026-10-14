@@ -24,7 +24,7 @@ def _dicts(events):
     LinkConfig(delay_s=0.01, contention_mode="serialized", packet_duration_s=0.004),
 ])
 def test_abstract_mode_is_simulated_link_event_for_event(config):
-    """The abstract mode must not change a single draw: Run B and EXP-006 depend on it."""
+    """The abstract mode must not change a single draw: EXP-006 and other callers depend on it."""
     reference = SimulatedLink(config, seed=123)
     model = make_network_model(NetworkModelConfig(mode="abstract", link=config), seed=123)
     out_ref, out_model = [], []
@@ -52,7 +52,7 @@ def _radio(positions, seed=7, **kw):
 
 
 def test_radio_single_link_delay_is_difs_plus_airtime_plus_processing():
-    """Hand check (derivations D5): one sender, idle medium, backoff off.
+    """Hand check: one sender, idle medium, backoff off.
 
     Delay = DIFS (50 us) + airtime of a 32 B ESP-NOW frame (792 us) + processing.
     """

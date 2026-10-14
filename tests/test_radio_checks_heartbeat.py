@@ -1,7 +1,7 @@
 """Independent checks for sim/radio/heartbeat.py, written from the math only.
 
-Every expected value below is hand-derived from derivations D9 (heartbeat false
-alarms and detection delay) and D3 (Gilbert-Elliott chain), not copied from the
+Every expected value below is hand-derived (heartbeat false
+alarms, detection delay and the Gilbert-Elliott chain), not copied from the
 module under test. Only the public signatures were read, never the bodies.
 
 Setup (D9): heartbeats every 1/h seconds, alarm when the gap since the last

@@ -1,4 +1,4 @@
-"""Shared plumbing for the Run C experiment scripts (EXP-013 to EXP-018).
+"""Shared plumbing for the radio experiment scripts (EXP-013 to EXP-018).
 
 Every script writes its outputs into a NEW directory, then a manifest.json
 that maps each data and figure file to its sha256.  The fields runtime_s,

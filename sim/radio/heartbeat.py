@@ -9,7 +9,7 @@ trade off:
   string together and set the alarm off falsely;
 - a long timeout rarely false-alarms, but a real failure takes longer to see.
 
-Hand formulas are in the Run C derivations (D9) and are checked against long
+The hand formulas are derived in the function docstrings below and are checked against long
 simulated runs in the tests.
 """
 from __future__ import annotations
@@ -123,7 +123,7 @@ def detection_delay_samples(rate_hz: float, timeout_s: float, n: int, rng, *, pr
     detector fires at (last received heartbeat) + timeout.  If it had already
     fired before the failure (a long run of losses), the delay is 0.
 
-    Hand result (derivations D9): with no prior loss the delay is uniform on
+    Hand result: with no prior loss the delay is uniform on
     (T - 1/h, T], mean T - 1/(2h).  Prior losses can only make it shorter.
     """
     _check(rate_hz, timeout_s)
