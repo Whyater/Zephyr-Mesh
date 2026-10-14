@@ -195,7 +195,8 @@ class RotorcraftActuatorState:
     ``speed_rad_s`` and ``thrust_n`` are the end-of-step telemetry.  When the
     state comes from :meth:`RotorcraftActuator.step`, ``mean_thrust_n`` is the
     exact per-rotor thrust average over that step, which is the value applied
-    to the rigid body by the v2 vehicle integrator.
+    to the rigid body by the v2 vehicle integrator.  ``mean_power_w`` is the
+    corresponding substep mean mechanical power used for battery current.
     """
 
     speed_rad_s: tuple[float, float, float, float]
@@ -210,6 +211,7 @@ class RotorcraftActuatorState:
     duty: tuple[float, float, float, float]
     saturated: bool = False
     mean_thrust_n: tuple[float, float, float, float] | None = None
+    mean_power_w: float | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -303,6 +305,7 @@ class RotorcraftActuator:
         saturated: bool,
         thrust_scale: float,
         mean_thrust_n: np.ndarray | None = None,
+        mean_power_w: float | None = None,
     ) -> RotorcraftActuatorState:
         thrust = self.k_f * self.speed_rad_s**2 * float(thrust_scale)
         torque_z = -self.spin_directions * self.k_m_ratio * thrust
@@ -326,6 +329,7 @@ class RotorcraftActuator:
                 if mean_thrust_n is None
                 else tuple(float(v) for v in np.asarray(mean_thrust_n, dtype=float))
             ),
+            mean_power_w=None if mean_power_w is None else float(mean_power_w),
         )
 
     def step(self, duty: Iterable[float], dt_s: float, *, thrust_scale: float = 1.0, saturated: bool = False) -> RotorcraftActuatorState:
@@ -349,6 +353,7 @@ class RotorcraftActuator:
                 saturated or input_saturated,
                 thrust_scale,
                 np.zeros(4, dtype=float),
+                0.0,
             )
             return self.last_state
         start_voltage = self.voltage_v
@@ -392,15 +397,22 @@ class RotorcraftActuator:
             self.charge_ah = max(0.0, self.charge_ah - current * dt_s / 3600.0)
             soc = self.charge_ah / self.capacity_ah
             open_circuit = self.cutoff_voltage_v + (self.nominal_voltage_v - self.cutoff_voltage_v) * soc
-            self.voltage_v = open_circuit - current * self.internal_resistance_ohm
+            self.voltage_v = max(
+                self.cutoff_voltage_v,
+                open_circuit - current * self.internal_resistance_ohm,
+            )
             if self.charge_ah <= 0.0:
+                # When this step exhausts the battery, stop the rotors now and
+                # hold the reported voltage at the configured cutoff.
                 self.speed_rad_s[:] = 0.0
+                self.voltage_v = self.cutoff_voltage_v
         else:
             self.voltage_v = self.nominal_voltage_v
         self.last_state = self._state(
             saturated or input_saturated,
             thrust_scale,
             mean_thrust,
+            mechanical_power,
         )
         return self.last_state
 

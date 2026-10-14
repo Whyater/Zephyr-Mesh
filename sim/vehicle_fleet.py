@@ -73,8 +73,8 @@ class ActuatedVehicleFleet:
         profiles: Mapping[str, Any],
         *,
         initial_positions: Mapping[str, Iterable[float]] | None = None,
-        drag_coefficient: float = 1.3,
-        cross_sectional_area: float = 0.05,
+        drag_coefficient: float | None = None,
+        cross_sectional_area: float | None = None,
         wind_velocity: Iterable[float] = (0.0, 0.0, 0.0),
         substeps: int = 1,
         disturbances: Mapping[str, Any] | None = None,
@@ -90,10 +90,20 @@ class ActuatedVehicleFleet:
             count = profile.motor_count if isinstance(profile, HardwareProfile) else profile.rotor.count
             if count != 4:
                 raise ValueError(f"profile for {agent_id} must describe four motors")
+        v1_agents = {
+            agent_id for agent_id, profile in profiles.items()
+            if isinstance(profile, HardwareProfile)
+        }
         if disturbances is not None and (not isinstance(disturbances, Mapping) or set(disturbances) - set(profiles)):
             raise ValueError("disturbances contains an unknown agent")
         if interaction is not None and not callable(interaction):
             raise ValueError("interaction must be callable")
+        if v1_agents and (
+            substeps != 1
+            or interaction is not None
+            or (disturbances is not None and bool(set(disturbances) & v1_agents))
+        ):
+            raise ValueError("substeps and disturbance require a v2 profile")
         self._disturbances = {} if disturbances is None else dict(disturbances)
         self._interaction = interaction
         self.substeps = substeps
