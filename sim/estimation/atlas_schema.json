@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Zephyr Mesh S6 recovery atlas",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "experiment", "simulated", "failure_rule", "design", "design_reason", "seeds", "arms", "strata", "limits", "entries"],
+  "properties": {
+    "schema": {"const": "1.0"},
+    "experiment": {"const": "s6-atlas"},
+    "simulated": {"const": true},
+    "failure_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["per_seed", "cell_rule", "fail_rate_threshold", "cell_rule_status"],
+      "properties": {
+        "per_seed": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["p95_error_m", "max_error_m", "scored_window_s"],
+          "properties": {
+            "p95_error_m": {"const": 0.25},
+            "max_error_m": {"const": 0.5},
+            "scored_window_s": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0}}
+          }
+        },
+        "cell_rule": {"type": "string"},
+        "fail_rate_threshold": {"const": 0.5},
+        "cell_rule_status": {"const": "proposed, not yet adopted"}
+      }
+    },
+    "design": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "reason", "burst_mean_s", "imm_strata", "speed_variants_central_only", "arms_by_stratum", "options"],
+      "properties": {
+        "name": {"type": "string"},
+        "reason": {"type": "string"},
+        "burst_mean_s": {"type": "number", "exclusiveMinimum": 0},
+        "imm_strata": {"type": "array", "items": {"type": "string"}},
+        "speed_variants_central_only": {"type": "boolean"},
+        "arms_by_stratum": {
+          "type": "object",
+          "additionalProperties": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+        },
+        "options": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["imm_strata", "speed_variants_central_only"],
+          "properties": {
+            "imm_strata": {"type": "array", "items": {"type": "string"}},
+            "speed_variants_central_only": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "design_reason": {"type": "string"},
+    "seeds": {"type": "array", "minItems": 1, "items": {"type": "integer"}},
+    "arms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "model", "stamping", "late_policy", "retro_window_s", "gate_probability", "gate_reset_after", "adaptive", "r_std_m", "q_factor", "model_options"],
+        "properties": {
+          "name": {"type": "string"},
+          "model": {"type": "string"},
+          "stamping": {"type": "string"},
+          "late_policy": {"type": "string"},
+          "retro_window_s": {"type": ["number", "null"]},
+          "gate_probability": {"type": ["number", "null"]},
+          "gate_reset_after": {"type": "integer"},
+          "adaptive": {"type": ["string", "null"]},
+          "r_std_m": {"type": ["number", "null"]},
+          "q_factor": {"type": "number"},
+          "model_options": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "prefixItems": [{"type": "string"}, {"type": ["number", "string", "boolean", "null"]}]
+            }
+          }
+        }
+      }
+    },
+    "strata": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rate_hz", "noise_model", "noise_std_m", "noise_dof", "jitter_rule"],
+        "properties": {
+          "rate_hz": {"type": "number", "exclusiveMinimum": 0},
+          "noise_model": {"enum": ["gaussian", "student_t"]},
+          "noise_std_m": {"type": "number", "minimum": 0},
+          "noise_dof": {"type": ["number", "null"]},
+          "jitter_rule": {"type": "string"}
+        }
+      }
+    },
+    "limits": {"type": "array", "items": {"type": "string"}},
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stratum", "variant", "loss_condition", "loss_model", "loss_probability", "arm", "max_tolerated_delay_s", "failure_mode", "improvement_vs_naive"],
+        "properties": {
+          "stratum": {"type": "string"},
+          "variant": {"type": "string"},
+          "loss_condition": {"type": "string"},
+          "loss_model": {"type": "string"},
+          "loss_probability": {"type": "number"},
+          "arm": {"type": "string"},
+          "max_tolerated_delay_s": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "censored", "fails_at_zero", "interval_s"],
+            "properties": {
+              "value": {"type": ["number", "null"], "minimum": 0},
+              "censored": {"type": ["string", "null"], "pattern": "^>[0-9]+(\\.[0-9]+)?$"},
+              "fails_at_zero": {"type": "boolean"},
+              "interval_s": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "oneOf": [
+                    {"type": "number", "minimum": 0},
+                    {"type": "string", "pattern": "^>[0-9]+(\\.[0-9]+)?$"},
+                    {"const": "<0"}
+                  ]
+                }
+              }
+            },
+            "oneOf": [
+              {"properties": {"value": {"type": "number"}, "censored": {"type": "null"}, "fails_at_zero": {"const": false}}},
+              {"properties": {"value": {"type": "null"}, "censored": {"type": "string"}, "fails_at_zero": {"const": false}}},
+              {"properties": {"value": {"type": "null"}, "censored": {"type": "null"}, "fails_at_zero": {"const": true}}}
+            ]
+          },
+          "failure_mode": {"type": ["string", "null"], "enum": ["lag-dominated", "gap-dominated", "noise-dominated", "model-mismatch", null]},
+          "improvement_vs_naive": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["delay_s", "median_p95_diff_m", "interval_m"],
+              "properties": {
+                "delay_s": {"type": "number", "minimum": 0},
+                "median_p95_diff_m": {"type": ["number", "null"]},
+                "interval_m": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {"type": ["number", "null"]}
+                }
+              }
+            }
+          },
+          "counterfactual_medians": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["delay", "loss", "noise", "all"],
+            "properties": {
+              "delay": {"type": ["number", "null"]},
+              "loss": {"type": ["number", "null"]},
+              "noise": {"type": ["number", "null"]},
+              "all": {"type": ["number", "null"]}
+            }
+          }
+        }
+      }
+    }
+  }
+}
