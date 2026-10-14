@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zephyr-mesh.dev/schemas/hardware-profile-2.json",
+  "title": "Zephyr Mesh literature-derived rotorcraft profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "profile_id", "status", "notes", "airframe", "rotor", "battery", "parameters"],
+  "properties": {
+    "schema": {"const": "zephyr-hardware-profile-2"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["literature-derived", "synthetic", "fixture", "measured"]},
+    "notes": {"type": "string"},
+    "airframe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mass_kg", "inertia_kg_m2", "arm_length_m", "drag_coefficient", "cross_sectional_area_m2"],
+      "properties": {
+        "mass_kg": {"type": "number", "exclusiveMinimum": 0},
+        "inertia_kg_m2": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number", "exclusiveMinimum": 0}},
+        "arm_length_m": {"type": "number", "exclusiveMinimum": 0},
+        "drag_coefficient": {"type": "number", "minimum": 0},
+        "cross_sectional_area_m2": {"type": "number", "minimum": 0}
+      }
+    },
+    "rotor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "layout", "thrust_coefficient_n_s2", "torque_to_thrust_m", "max_speed_rad_s", "motor_time_constant_s", "prop_radius_m", "spin_directions"],
+      "properties": {
+        "count": {"const": 4},
+        "layout": {"const": "x"},
+        "thrust_coefficient_n_s2": {"type": "number", "exclusiveMinimum": 0},
+        "torque_to_thrust_m": {"type": "number", "exclusiveMinimum": 0},
+        "max_speed_rad_s": {"type": "number", "exclusiveMinimum": 0},
+        "motor_time_constant_s": {"type": "number", "exclusiveMinimum": 0},
+        "prop_radius_m": {"type": "number", "exclusiveMinimum": 0},
+        "spin_directions": {"type": "array", "const": [1, -1, 1, -1]}
+      }
+    },
+    "battery": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["nominal_voltage_v", "cutoff_voltage_v", "capacity_mah", "internal_resistance_ohm", "efficiency"],
+          "properties": {
+            "nominal_voltage_v": {"type": "number", "exclusiveMinimum": 0},
+            "cutoff_voltage_v": {"type": "number", "exclusiveMinimum": 0},
+            "capacity_mah": {"type": "number", "exclusiveMinimum": 0},
+            "internal_resistance_ohm": {"type": "number", "minimum": 0},
+            "efficiency": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+          }
+        }
+      ]
+    },
+    "parameters": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)+$": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "range", "source", "url", "accessed", "status"],
+          "properties": {
+            "value": {"$ref": "#/$defs/numericOrArray"},
+            "range": {"$ref": "#/$defs/rangeOrArray"},
+            "source": {"type": "string", "minLength": 1},
+            "url": {"type": "string", "minLength": 1},
+            "accessed": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+            "status": {"enum": ["CONFIRMED", "CROSS-CHECKED", "SCALED", "UNCONFIRMED", "EXCLUDED"]},
+            "note": {"type": "string", "minLength": 1}
+          },
+          "allOf": [
+            {
+              "if": {"properties": {"status": {"const": "SCALED"}}, "required": ["status"]},
+              "then": {"required": ["note"]}
+            },
+            {
+              "if": {"properties": {"status": {"const": "EXCLUDED"}}, "required": ["status"]},
+              "then": {"required": ["note"]}
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "number": {"type": "number"},
+    "numericArray": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/number"}},
+    "numericOrArray": {"oneOf": [{"$ref": "#/$defs/number"}, {"$ref": "#/$defs/numericArray"}]},
+    "range": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/number"}},
+    "rangeOrArray": {"oneOf": [{"$ref": "#/$defs/range"}, {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/rangeOrArray"}}]}
+  }
+}
