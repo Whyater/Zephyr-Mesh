@@ -152,6 +152,9 @@ def _clear_delays(episodes, transitions) -> list[float]:
 
 
 def _write_figures(out: Path, rows: list[dict], rule_rows: list[dict]) -> None:
+    """Closed form as lines, simulation as markers; a cell with no false alarm in
+    10 simulated hours is drawn as an open triangle on the bottom edge (it is a
+    zero count, not a value)."""
     os.environ.setdefault("MPLCONFIGDIR", "/tmp/zephyr-mplconfig")
     Path("/tmp/zephyr-mplconfig").mkdir(exist_ok=True)
     import matplotlib
@@ -159,28 +162,58 @@ def _write_figures(out: Path, rows: list[dict], rule_rows: list[dict]) -> None:
     import matplotlib.pyplot as plt
     from tools.horizon_mpl import apply_style
     colors = apply_style("light")
+    floor, top = 1e-3, 3e4
+    series = [("independent", None, colors["accent"], "independent loss"),
+              ("bursty", 0.05, colors["ok"], "bursts of 0.05 s"),
+              ("bursty", 0.2, colors["keepOut"], "bursts of 0.2 s"),
+              ("bursty", 0.5, colors["textSecondary"], "bursts of 0.5 s")]
     fig, axes = plt.subplots(2, 2, figsize=(10, 7), sharey=True)
     for ax, h in zip(axes.flat, RATES):
-        for kind, color in (("independent", colors["accent"]), ("bursty", colors["textSecondary"])):
-            rr = [r for r in rows if r["h_hz"] == h and r["kind"] == kind and abs(r["p"] - 0.1) < 1e-12]
-            if rr:
-                ax.plot([r["timeout_s"] for r in rr], [max(r["simulated_rate_per_hour"], 1e-4) for r in rr],
-                        marker="o", color=color, label=kind)
+        for kind, dur, color, label in series:
+            rr = sorted((r for r in rows if r["h_hz"] == h and r["kind"] == kind and abs(r["p"] - 0.1) < 1e-12
+                         and (dur is None or abs(r["duration_s"] - dur) < 1e-12)), key=lambda r: r["timeout_s"])
+            if not rr:
+                continue
+            t = [r["timeout_s"] for r in rr]
+            ax.plot(t, [min(max(r["expected_rate_per_hour"], floor / 10), top) for r in rr], color=color, lw=1.4,
+                    label=label)
+            hit = [r for r in rr if r["simulated_count"] > 0]
+            zero = [r for r in rr if r["simulated_count"] == 0]
+            ax.plot([r["timeout_s"] for r in hit], [r["simulated_rate_per_hour"] for r in hit], ls="none", marker="o",
+                    ms=4.5, color=color)
+            ax.plot([r["timeout_s"] for r in zero], [floor * 1.25] * len(zero), ls="none", marker="v", ms=5,
+                    mfc="none", color=color)
         ax.axhline(1, color=colors["caution"], ls="--", lw=1)
-        ax.set_yscale("log"); ax.set_title(f"h = {h} Hz, simulated")
-        ax.set_xlabel("timeout T (s)"); ax.set_ylabel("false alarms per hour")
-    axes[0, 0].legend(frameon=False)
+        ax.axvline(0.3, color=colors["line"], lw=1)
+        ax.set_yscale("log"); ax.set_ylim(floor, top)
+        ax.set_title(f"heartbeat {h} Hz, mean loss 10 %", fontsize=10)
+        ax.set_xlabel("timeout T (s)"); ax.set_ylabel("false 'link lost' per hour")
+    axes[0, 0].legend(frameon=False, fontsize=8, loc="upper right")
+    fig.suptitle("Simulated (10 h per point, dots) vs closed form (lines). Open triangles: none in 10 h. "
+                 "Dashed: 1 per hour. Grey line: 300 ms.", fontsize=9)
     fig.tight_layout(); fig.savefig(out / "exp016_false_alarms.png", dpi=150, metadata={"Software": None}); plt.close(fig)
-    fig, ax = plt.subplots(figsize=(9, 4.5))
+    fig, ax = plt.subplots(figsize=(9.5, 4.8))
     rr = [r for r in rule_rows if r["h_hz"] == 10]
     x = np.arange(len(rr))
-    ax.bar(x, [max(r["simulated_rate_per_hour"], 1e-3) for r in rr], color=colors["accent"], label="simulated (10 h per cell)")
-    ax.plot(x, [max(r["expected_rate_per_hour"], 1e-3) for r in rr], ls="none", marker="_", ms=14, mew=2,
+    sim = [r["simulated_rate_per_hour"] for r in rr]
+    ax.bar(x, [max(v, floor) for v in sim], color=[colors["accent"] if v > 0 else colors["surface"] for v in sim],
+           edgecolor=colors["accent"])
+    ax.bar([0], [0], color=colors["accent"], label="simulated, 10 h per bar")  # legend swatch only
+    ax.plot(x, [max(r["expected_rate_per_hour"], floor) for r in rr], ls="none", marker="_", ms=14, mew=2,
             color=colors["text"], label="closed form (D9)")
+    for xi, v in zip(x, sim):
+        if v == 0:
+            ax.text(xi, floor * 1.4, "0", ha="center", va="bottom", fontsize=7, color=colors["textSecondary"])
     ax.axhline(1, color=colors["caution"], ls="--", lw=1)
-    ax.set_yscale("log"); ax.legend(frameon=False, fontsize=8)
-    ax.set_xticks(x, [r["loss_condition"].replace("_", " ") for r in rr], rotation=45, ha="right", fontsize=7)
-    ax.set_ylabel("false alarms per hour (log)"); ax.set_title("300 ms timeout at 10 Hz heartbeats (simulated)")
+    ax.set_yscale("log"); ax.set_ylim(floor, top); ax.legend(frameon=False, fontsize=8, loc="upper left")
+
+    def short(r):
+        if r["kind"] == "independent":
+            return f"indep. {r['p'] * 100:g} %"
+        return f"bursts {r['p'] * 100:g} %, {r['duration_s']:g} s"
+    ax.set_xticks(x, [short(r) for r in rr], rotation=45, ha="right", fontsize=7.5)
+    ax.set_ylabel("false 'link lost' per hour (log)")
+    ax.set_title("Planned 'lost link over 300 ms' rule with 10 Hz heartbeats (simulated; 0 = none in 10 h)", fontsize=10)
     fig.tight_layout(); fig.savefig(out / "exp016_rule_300ms.png", dpi=150, metadata={"Software": None}); plt.close(fig)
 
 
@@ -273,7 +306,8 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
         command="PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output {out}", config={"pilot": pilot, "rates": rates, "timeouts": timeouts},
         seeds=[BASE_SEED], outputs=outputs, limits=["All values are simulated; radio parameters are literature-derived.",
         "Heartbeats have zero jitter; bursts are classic Gilbert chains with burst length set in seconds (r = 1 / (duration x h)).",
-        "The 1 per 100 hours threshold uses the closed form only: 10 simulated hours cannot resolve it."],
+        "The 1 per 100 hours threshold uses the closed form only: 10 simulated hours cannot resolve it.",
+        "When burst duration x heartbeat rate < 1 (e.g. 0.05 s or 0.2 s at 5 Hz) a burst is a single packet, so those cases coincide."],
         runtime_s=time.perf_counter() - start,
         n_processes=processes or default_processes(), hashed_sources=["sim/radio/heartbeat.py", "sim/radio/interference.py", "sim/radio/channel.py", "tools/c_exp016_heartbeat.py"])
 
