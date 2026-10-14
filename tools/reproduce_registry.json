@@ -29,5 +29,24 @@
     "outputs": {
       "run.json": "73039284032d824c943972bd79c2f96f61e28582b79d8335d4d9d3e7d032585b"
     }
+  },
+  {
+    "run_dir": "runs/s0-baseline-v2",
+    "command": "PYTHONPATH=. {python} tools/a_make_s0_baseline_v2.py --output-dir {out}",
+    "outputs": {
+      "a_s0_baseline_v2.png": "06b64aa6d60e7d5725f7154472627765b4e6f3e5dab37109070826929bff784f",
+      "lateral.csv": "33b12e8b7f740f266f7e217969a5fc83f5835f8191012d2d28880f8e9885a8bf",
+      "report.json": "d41207d8310b16719cc78672fca977d9186cb9ce79e5b1ce668b719f68a051dc",
+      "vertical.csv": "a59202c84ecfeb06ce523c7e37cd9621c2092c16bd20c4dd3cd2bb58181b3337",
+      "yaw.csv": "b95f74b18961f30f2d77b7873f2e9f42614ca31b4c1b3bbe8ed17781b6ce7416"
+    }
+  },
+  {
+    "run_dir": "runs/s2-physics-v2",
+    "command": "PYTHONPATH=. {python} tools/a_make_s2_physics_v2.py --output-dir {out}",
+    "outputs": {
+      "a_s2_convergence.png": "763de92b702af619538961ee2f51cb0342805576ec4c2bdaf60b29a432a7490d",
+      "convergence.json": "916ffc271f34e7411c1fc42d4ddd96132876be5396fab5e6a9c50da2d1bce609"
+    }
   }
 ]

@@ -71,3 +71,19 @@ def test_scenario_time_and_s2_artifacts(tmp_path):
     document = json.loads((first / "convergence.json").read_text())
     ratios = [row["error_ratio_to_next"] for row in document["results"][:-1]]
     assert ratios[0] > 10.0
+
+
+def test_manifest_outputs_accept_paths_relative_to_the_working_directory(tmp_path, monkeypatch):
+    """A relative output dir such as runs/<name> must not be joined twice."""
+    from sim.physics.run_manifest import build_manifest
+
+    monkeypatch.chdir(tmp_path)
+    out = Path("runs") / "demo"
+    out.mkdir(parents=True)
+    (out / "data.csv").write_text("a\n1\n")
+    manifest = build_manifest(
+        schema="demo-1", argv=[], config={}, seeds=[], limits=[],
+        outputs=[out / "data.csv"], output_dir=out, replay_command="x", runtime_s=0.0,
+        repo=Path(__file__).resolve().parents[1],
+    )
+    assert set(manifest["outputs"]) == {"data.csv"}
