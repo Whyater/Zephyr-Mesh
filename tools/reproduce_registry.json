@@ -54,5 +54,16 @@
       "per_seed.csv": "ddddef59d878a7749542d61237d8d74e17e3390bd6ef181e19d8f9e9524117b2",
       "summary.json": "d5ad270b7818fa51449e039de94abe2a7564b47f48870db136fa2946ffcc0acf"
     }
+  },
+  {
+    "run_dir": "runs/c-exp015-network",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp015_network.py --output {out} --seeds 20 --processes 2",
+    "outputs": {
+      "cells.csv": "ad13c4f85ca901726ace3f1b57d670e148e20318bcc1bdcd331926e523ec7f46",
+      "exp015_cost.png": "826052fe7665046d446ed61f540b8ed3624b9ad62cd1b69aaea9e2d56cbe06cd",
+      "exp015_delivery.png": "412f87d03a4c1026b9f266db2955dc69a3cec8301fb763b51e2b5fdfdbb06c2e",
+      "per_seed.csv": "15e4a357b17208d805a37fca24307098ed675a94b489532d6f0cd57d3cc6e4b4",
+      "summary.json": "e7c53a6f337b1aa495057d70b9bcad16d907bc85dbb6658510881f03044776f1"
+    }
   }
 ]
