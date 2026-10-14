@@ -23,6 +23,17 @@ def trace_payload():
             "phy": "802.11n",
         },
         "source": "esp-now-capture.json",
+        "provenance": {
+            "instrument": {"kind": "esp32-sniffer", "model": "model-1", "settings": {}},
+            "calibration_ref": None,
+            "calibration_ref_null_reason": "no calibration artifact for this fixture",
+            "raw_sha256": "a" * 64,
+            "code_revision": "abc123",
+            "captured_at": "2026-10-09T09:30:00-06:00",
+            "operator": "operator one",
+            "ground_truth": None,
+            "ground_truth_null_reason": "no independent reference for this fixture",
+        },
         "clock_uncertainty_s": 0.0001,
         "packets": [
             {"packet_id": "boot-a-0", "sender_id": "a", "receiver_id": "b", "sender_session_id": "boot-a", "seq": 0, "send_time_s": 1.0, "receive_time_s": 1.1, "outcome": "received", "rssi_dbm": -54.0, "callback_time_s": 1.101, "payload_bytes": 32, "retry_count": 0},

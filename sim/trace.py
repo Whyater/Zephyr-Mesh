@@ -8,14 +8,18 @@ the observed receive outcome and timestamps instead of fitting a distribution.
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
+from datetime import datetime
 import json
 import math
+import re
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
 TRACE_SCHEMA = "zephyr-espnow-trace-1"
 TRACE_STATUSES = {"measured", "synthetic", "fixture"}
 OUTCOMES = {"received", "lost", "unknown"}
+_SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
+_TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T[^ ]+(?:Z|[+-]\d{2}:\d{2})$")
 
 
 def _reject_unknown(raw: Mapping[str, Any], allowed: set[str], field: str) -> None:
@@ -31,7 +35,7 @@ _PACKET_FIELDS = {
 }
 _TRACE_FIELDS = {
     "schema", "trace_id", "status", "clock_domain", "source", "code_revision",
-    "clock_uncertainty_s", "notes", "capture", "packets",
+    "clock_uncertainty_s", "notes", "provenance", "capture", "packets",
 }
 _CAPTURE_FIELDS = {"transport", "device_ids", "firmware", "channel", "phy"}
 
@@ -61,6 +65,92 @@ def _optional_bool(value: Any, field: str) -> bool | None:
     if not isinstance(value, bool):
         raise ValueError(f"{field} must be a boolean or null")
     return value
+
+
+def _sha256(value: Any, field: str) -> str:
+    value = _required_text(value, field)
+    if not _SHA256_RE.fullmatch(value):
+        raise ValueError(f"{field} must be a 64-hex-character sha256 string")
+    return value.lower()
+
+
+def _timestamp(value: Any, field: str) -> str:
+    value = _required_text(value, field)
+    if not _TIMESTAMP_RE.fullmatch(value):
+        raise ValueError(f"{field} must be an ISO 8601 timestamp with a UTC offset")
+    candidate = value[:-1] + "+00:00" if value.endswith("Z") else value
+    try:
+        parsed = datetime.fromisoformat(candidate)
+    except ValueError as exc:
+        raise ValueError(f"{field} must be an ISO 8601 timestamp with a UTC offset") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"{field} must include a UTC offset")
+    return value
+
+
+_PROVENANCE_FIELDS = {
+    "instrument", "calibration_ref", "calibration_ref_null_reason", "raw_sha256",
+    "code_revision", "captured_at", "operator", "ground_truth", "ground_truth_null_reason",
+}
+_PROVENANCE_REQUIRED = {"instrument", "calibration_ref", "raw_sha256", "code_revision", "captured_at", "operator", "ground_truth"}
+
+
+def _provenance(value: Any) -> dict[str, Any]:
+    """Validate the shared capture-provenance block (same rules as the vision and bench traces)."""
+
+    if not isinstance(value, Mapping):
+        raise ValueError("provenance must be an object")
+    _reject_unknown(value, _PROVENANCE_FIELDS, "provenance")
+    missing = sorted(_PROVENANCE_REQUIRED - set(value))
+    if missing:
+        raise ValueError(f"provenance is missing required field(s): {', '.join(missing)}")
+    instrument = value["instrument"]
+    if not isinstance(instrument, Mapping):
+        raise ValueError("provenance.instrument must be an object")
+    _reject_unknown(instrument, {"kind", "model", "settings"}, "provenance.instrument")
+    if set(instrument) != {"kind", "model", "settings"}:
+        raise ValueError("provenance.instrument requires kind, model, and settings")
+    if not isinstance(instrument["settings"], Mapping):
+        raise ValueError("provenance.instrument.settings must be an object")
+    result: dict[str, Any] = {
+        "instrument": {
+            "kind": _required_text(instrument["kind"], "provenance.instrument.kind"),
+            "model": _required_text(instrument["model"], "provenance.instrument.model"),
+            "settings": dict(instrument["settings"]),
+        }
+    }
+    calibration = value["calibration_ref"]
+    if calibration is None:
+        result["calibration_ref"] = None
+        result["calibration_ref_null_reason"] = _required_text(value.get("calibration_ref_null_reason"), "provenance.calibration_ref_null_reason")
+    else:
+        result["calibration_ref"] = _sha256(calibration, "provenance.calibration_ref")
+        if "calibration_ref_null_reason" in value:
+            raise ValueError("calibration_ref_null_reason is only allowed when calibration_ref is null")
+    result["raw_sha256"] = _sha256(value["raw_sha256"], "provenance.raw_sha256")
+    result["code_revision"] = _required_text(value["code_revision"], "provenance.code_revision")
+    result["captured_at"] = _timestamp(value["captured_at"], "provenance.captured_at")
+    result["operator"] = _required_text(value["operator"], "provenance.operator")
+    ground_truth = value["ground_truth"]
+    if ground_truth is None:
+        result["ground_truth"] = None
+        result["ground_truth_null_reason"] = _required_text(value.get("ground_truth_null_reason"), "provenance.ground_truth_null_reason")
+    else:
+        if not isinstance(ground_truth, Mapping):
+            raise ValueError("provenance.ground_truth must be an object or null")
+        _reject_unknown(ground_truth, {"method", "values", "uncertainty"}, "provenance.ground_truth")
+        if set(ground_truth) != {"method", "values", "uncertainty"}:
+            raise ValueError("provenance.ground_truth requires method, values, and uncertainty")
+        if not isinstance(ground_truth["values"], Mapping) or not isinstance(ground_truth["uncertainty"], Mapping):
+            raise ValueError("provenance.ground_truth values and uncertainty must be objects")
+        result["ground_truth"] = {
+            "method": _required_text(ground_truth["method"], "provenance.ground_truth.method"),
+            "values": dict(ground_truth["values"]),
+            "uncertainty": dict(ground_truth["uncertainty"]),
+        }
+        if "ground_truth_null_reason" in value:
+            raise ValueError("ground_truth_null_reason is only allowed when ground_truth is non-null")
+    return result
 
 
 @dataclass(frozen=True)
@@ -179,6 +269,7 @@ class EspNowTrace:
     code_revision: str | None = None
     clock_uncertainty_s: float | None = None
     notes: str | None = None
+    provenance: dict[str, Any] | None = None
 
     @classmethod
     def from_dict(cls, raw: Mapping[str, Any]) -> "EspNowTrace":
@@ -227,6 +318,9 @@ class EspNowTrace:
                     raise ValueError("shared_monotonic callback_time_s cannot precede receive_time_s")
         if status == "measured" and raw.get("source") is None:
             raise ValueError("measured traces require source")
+        provenance = _provenance(raw["provenance"]) if "provenance" in raw else None
+        if status == "measured" and provenance is None:
+            raise ValueError("measured traces require provenance")
         uncertainty = _optional_float(raw.get("clock_uncertainty_s"), "clock_uncertainty_s")
         return cls(
             trace_id=_required_text(raw.get("trace_id"), "trace_id"),
@@ -238,6 +332,7 @@ class EspNowTrace:
             code_revision=None if raw.get("code_revision") is None else _required_text(raw["code_revision"], "code_revision"),
             clock_uncertainty_s=uncertainty,
             notes=None if raw.get("notes") is None else _required_text(raw["notes"], "notes"),
+            provenance=provenance,
         )
 
     @classmethod
@@ -254,7 +349,7 @@ class EspNowTrace:
             "capture": dict(self.capture),
             "packets": [packet.as_dict() for packet in self.packets],
         }
-        for key in ("source", "code_revision", "clock_uncertainty_s", "notes"):
+        for key in ("source", "code_revision", "clock_uncertainty_s", "notes", "provenance"):
             value = getattr(self, key)
             if value is not None:
                 data[key] = value
