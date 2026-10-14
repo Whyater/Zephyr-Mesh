@@ -1,7 +1,7 @@
 """Checks of the standalone reference simulator (tests/radio_reference.py).
 
 The reference is the yardstick for the MAC cross-checks, so it is itself checked
-against closed forms derived by hand (see the Run C derivations, D4 and D5):
+against closed forms derived by hand:
 
 * Pure ALOHA: P(success) = exp(-2G), S = G exp(-2G), peak S = 1/(2e) at G = 1/2.
 * Slotted ALOHA: P(success) = exp(-G), S = G exp(-G), peak S = 1/e at G = 1.
@@ -187,7 +187,7 @@ def test_single_sender_starts_and_hol_wait_match_event_loop():
 
 @pytest.mark.parametrize("rho", [0.5, 0.8])
 def test_md1_mean_wait_matches_pollaczek_khinchine(rho):
-    D = 1e-3  # seconds; example in the derivations: rho 0.5 -> 0.5 ms, rho 0.8 -> 2.0 ms
+    D = 1e-3  # seconds; hand example: rho 0.5 -> 0.5 ms, rho 0.8 -> 2.0 ms
     lam = rho / D
     expected = rho / (2.0 * (1.0 / D) * (1.0 - rho))
     assert ref.md1_mean_wait(lam, D) == pytest.approx(expected, rel=1e-12)

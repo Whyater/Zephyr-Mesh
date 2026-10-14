@@ -1,4 +1,4 @@
-"""Independent checks for sim.radio.network, written from the contract and the hand derivations (D6, D7, D10).
+"""Independent checks for sim.radio.network, written from the documented semantics and hand derivations.
 
 Nothing here was derived by running the network code.  Every expected number has
 its hand derivation in a comment next to it.
@@ -327,7 +327,7 @@ def test_ttl_cap_stops_flood():
 # transmits for 792 us (backoff off, so nothing else).  It is delivered to the next
 # node p = 1 ms after the end of the transmission, and the next node enqueues at that
 # moment.  The next node's DIFS counts from the moment its frame became head of line
-# (contract rule), and the medium has been idle for p already, so it still waits a
+# (documented rule), and the medium has been idle for p already, so it still waits a
 # full DIFS.  Nobody else is on air at that time (previous transmitter finished
 # p earlier).  So each hop takes t_hop = 50 us + 792 us + 1000 us = 1.842 ms.
 # Reception at hop j: first_rx - created = j * 1.842 ms, so hop 4: 7.368 ms.

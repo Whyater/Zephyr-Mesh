@@ -1,8 +1,8 @@
 """Independent checks for sim/radio/channel.py, written from the math only.
 
-Every expected value below was derived by hand (see derivations D1, D2, D3) and
-NOT taken from the module under test. The tests use only the public API listed
-in the Run C contract: ChannelConfig, path_loss_db, mean_rssi_dbm, snr_db,
+Every expected value below was derived by hand (the arithmetic is in the comments) and
+NOT taken from the module under test. The tests use only this public API:
+ChannelConfig, path_loss_db, mean_rssi_dbm, snr_db,
 bit_error_rate, packet_error_rate, Channel, LinkSample, GilbertElliott and
 delivery_vs_distance.
 
@@ -63,11 +63,11 @@ def test_d1_path_loss_value_by_hand(rc):
 
 
 def test_d1_path_loss_clamps_below_min_distance(rc):
-    """D1 + contract: distances below min_distance_m are clamped to it."""
+    """Distances below min_distance_m are clamped to it."""
     cfg = rc.ChannelConfig(min_distance_m=0.5, exponent=2.5)
     at_min = float(rc.path_loss_db(0.5, cfg))
     assert float(rc.path_loss_db(0.01, cfg)) == pytest.approx(at_min, abs=1e-9)
-    # Orchestrator decision (2026-10-14): distance 0 (co-located nodes) clamps too; negative distance is an error.
+    # Design choice: distance 0 (co-located nodes) clamps too; negative distance is an error.
     assert float(rc.path_loss_db(0.0, cfg)) == pytest.approx(at_min, abs=1e-9)
     with pytest.raises(ValueError):
         rc.path_loss_db(-1.0, cfg)
@@ -154,7 +154,7 @@ def test_d1_iid_shadowing_std_and_mean(rc):
     dev, shadow = _deviation_series(rc, cfg, _rng(11), n, dist_m=30.0, dt_s=0.01)
     assert dev.std(ddof=1) == pytest.approx(sigma, rel=0.01)
     assert abs(dev.mean()) < 4.0 * sigma / math.sqrt(n)
-    # shadow_db reports the same excursion (sign convention not fixed by the contract).
+    # shadow_db reports the same excursion (sign convention not fixed by the documented API).
     assert np.allclose(np.abs(dev), np.abs(shadow), atol=1e-9)
     assert shadow.std(ddof=1) == pytest.approx(sigma, rel=0.01)
 
@@ -223,7 +223,7 @@ def test_d1_time_correlated_equal_time_reuses_state(rc):
 
 
 def test_d1_static_shadow_is_reciprocal_and_fixed(rc):
-    """D1/contract: in 'static' mode sample(a,b) and sample(b,a) at the same time share
+    """In 'static' mode sample(a,b) and sample(b,a) at the same time share
     one shadow draw per unordered pair, fixed over time. Different pairs differ.
     """
     cfg = rc.ChannelConfig(shadowing_sigma_db=6.0, shadowing_mode="static")
@@ -288,7 +288,7 @@ def test_d1_received_power_matches_sample_shadow(rc, mode):
 
 
 def test_d1_sample_applies_walls_bodies_extra_and_noise_override(rc):
-    """D1/contract: with sigma 0 the sample equals the hand sum and SNR uses the override.
+    """With sigma 0 the sample equals the hand sum and SNR uses the override.
 
     tx 10, PL0 40.05, n 2, d 100 m: PL = 40.05 + 40 = 80.05. RSSI with 1 wall (6),
     1 body (2), extra 1.5: 10 - 80.05 - 6 - 2 - 1.5 = -79.55 dBm. SNR with noise
@@ -450,7 +450,7 @@ def test_d2_logistic_hand_shape(rc):
     (snr_s - s50) / w = ln(0.92 / 0.08) = ln(11.5) = 2.4423, so s50 = -3 - 2.4423 w
     and PER(s50) = 0.5 exactly. For w = 1, at SNR_s + 1 dB the exponent is 3.4423:
     PER = 1 / (1 + e^3.4423) = 0.03100 (hand). Other frame sizes use the same
-    sizes move the midpoint by w ln(L / L_ref) (contract revision 2026-10-14: the
+    sizes move the midpoint by w ln(L / L_ref) (design revision: the
     rare-error tail scales with frame length, so short frames still fail at very low
     SNR). At SNR_s for 75 B: exponent = ln(11.5) - ln(75/1024) = ln(157.01), so
     PER = 1 / (1 + 157.01) = 6.329e-3 (hand).
@@ -525,9 +525,9 @@ def _percentile_key(keys, number: int):
 
 
 def test_d1_delivery_vs_distance_structure_and_monotone(rc):
-    """D1 + contract: delivery_vs_distance returns, per distance, mean delivery, 5/50/95
+    """delivery_vs_distance returns, per distance, mean delivery, 5/50/95
     percentiles of delivery, mean RSSI and its 5/95 percentiles (key names are not fixed
-    by the contract, so keys are located by substring: 'deliver', 'rssi', 'mean', 5/50/95).
+    by the documented API, so keys are located by substring: 'deliver', 'rssi', 'mean', 5/50/95).
 
     Expected values computed by hand in the test: mean RSSI at each distance equals
     mean_rssi_dbm within 4 sigma / sqrt(n_draws); mean delivery is nonincreasing in

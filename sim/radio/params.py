@@ -16,7 +16,7 @@ Status meanings:
 - ``UNCONFIRMED``: no source found.  Kept out of defaults.
 - ``modelling-choice``: not a fact about the world; a choice of this model.
 
-The sources were checked on 2026-10-14 (vault briefs E and F of Run C).
+The sources were checked on 2026-10-14.
 """
 from __future__ import annotations
 

@@ -2,7 +2,7 @@
 
 Every expected value below was derived by hand from derivation D11 (32-bit serial
 arithmetic, diff(a, b) = ((a - b + 2^31) mod 2^32) - 2^31) and the status
-definitions in the Run C contract, NOT taken from the code under test.
+documented definitions, NOT taken from the code under test.
 
 The modules are imported lazily through fixtures so this file collects (and the
 other tests skip) before the modules exist, while `test_module_exists` does plain
