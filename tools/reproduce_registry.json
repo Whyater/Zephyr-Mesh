@@ -76,5 +76,17 @@
       "per_seed.csv": "9bce1990c92672e7e931768752de033fa5381c829636b415c6ab1f7cb9de1f8b",
       "summary.json": "994384f6fc083b740a493a628446f79a5eb3eb76e762ade9b6ab3813ddd0a34b"
     }
+  },
+  {
+    "run_dir": "runs/c-exp017-tolerance-r2",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp017_tolerance.py --output {out}",
+    "outputs": {
+      "cells.csv": "2ef63f91381e0c26870b8de4f46bdbbd6fe06bec1722f6262c71e11d58348dc2",
+      "exp017_boundary.png": "a95c08f426645dd287ab4f75da36fcbaec006a54f94bfe917b4d5c936af97b41",
+      "exp017_contention.png": "e79efb35ed3818b69724e5de0db03079708c5b4ee334c7519b266057f9ca3648",
+      "exp017_distance.png": "6e5260c66ac192338e020a65272128c6317fe9ea9f4ce68fe5919d46b43292c2",
+      "per_seed.csv": "e290967e2583f8152175ae100cb609e546533d45e0e100d87d8e1082f5151b03",
+      "summary.json": "ebe6a796f95cb7dd23fd5da2de2487ceb91925e5a751aee774d88a86d7775741"
+    }
   }
 ]
