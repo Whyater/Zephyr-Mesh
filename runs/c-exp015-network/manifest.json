@@ -1,0 +1,83 @@
+{
+  "argv": [
+    "--seeds",
+    "20",
+    "--processes",
+    "2"
+  ],
+  "code_sha256": {
+    "sim/radio/channel.py": "e095a023fc3c9c3a11844ec27be608f0d283fe0966e86eb954f2a7d31d68e6b1",
+    "sim/radio/mac.py": "5ccdb58940f8d75466e84081fbc4f566e95b37e23124820d7b3aa9e36f257be9",
+    "sim/radio/network.py": "3952f3f406c9f2e575af98771cd5d22ca5c5e5dc02c6e621781ef874c0c09923",
+    "sim/radio/params.py": "c358221bc2b331e2cb9e6d2da1cfc8250eec67a2d8507b94f2c4279e2c5e0984",
+    "tools/c_exp015_network.py": "4c6b0a82d24b5bdf0652eace22a9742f80067d7806b1007cd0c9ff2d34c921d5"
+  },
+  "config": {
+    "additions": [
+      "broadcast (single-hop baseline, not pre-registered)"
+    ],
+    "areas": [
+      "gym",
+      "field"
+    ],
+    "n": [
+      4,
+      8,
+      12
+    ],
+    "n_seeds": 20,
+    "payload_bytes": 32,
+    "pilot": false,
+    "pre_registered_n_seeds": 50,
+    "rates": [
+      10,
+      20
+    ]
+  },
+  "config_sha256": "a8be0b81baf97e5a828098b4376bfeab0ac230d77df4ff8f5a18414f5a0996da",
+  "git_revision": "28024dde419795fa48332e3f415b0dc5ff843428",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no ESP32 or drone hardware was used.",
+    "Radio parameters are literature-derived (sim/radio/params.py), with ranges; none are measured.",
+    "Field busy fraction is the union over the whole network medium.",
+    "Star retries by unicast (ACK, up to 5 retries); the relay topology's first leg is one unacknowledged broadcast.",
+    "Fewer seeds than pre-registered when --seeds is below 50 (see summary.json n_seeds)."
+  ],
+  "n_processes": 2,
+  "numpy": "2.5.1",
+  "outputs": {
+    "cells.csv": "ad13c4f85ca901726ace3f1b57d670e148e20318bcc1bdcd331926e523ec7f46",
+    "exp015_cost.png": "826052fe7665046d446ed61f540b8ed3624b9ad62cd1b69aaea9e2d56cbe06cd",
+    "exp015_delivery.png": "412f87d03a4c1026b9f266db2955dc69a3cec8301fb763b51e2b5fdfdbb06c2e",
+    "per_seed.csv": "15e4a357b17208d805a37fca24307098ed675a94b489532d6f0cd57d3cc6e4b4",
+    "summary.json": "e7c53a6f337b1aa495057d70b9bcad16d907bc85dbb6658510881f03044776f1"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp015_network.py --output {out} --seeds 20 --processes 2",
+  "runtime_s": 2869.9618520410004,
+  "schema": "zephyr-run-c-manifest-1",
+  "seeds": [
+    3846226046,
+    2988412209,
+    2229674988,
+    559856038,
+    1251247066,
+    2878399822,
+    2516205056,
+    1150457146,
+    323609879,
+    3374317742,
+    1504059276,
+    2452380340,
+    1579650761,
+    1852780881,
+    1993717711,
+    1938950362,
+    349673257,
+    1590919485,
+    789195200,
+    3325987334
+  ]
+}

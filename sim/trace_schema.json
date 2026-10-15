@@ -14,6 +14,173 @@
     "code_revision": {"type": ["string", "null"]},
     "clock_uncertainty_s": {"type": ["number", "null"], "minimum": 0},
     "notes": {"type": ["string", "null"]},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instrument",
+        "calibration_ref",
+        "raw_sha256",
+        "code_revision",
+        "captured_at",
+        "operator",
+        "ground_truth"
+      ],
+      "properties": {
+        "instrument": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "model",
+            "settings"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "minLength": 1
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1
+            },
+            "settings": {
+              "type": "object"
+            }
+          }
+        },
+        "calibration_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "calibration_ref_null_reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "raw_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "code_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "captured_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T[^ ]+(?:Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "operator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ground_truth": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "values",
+            "uncertainty"
+          ],
+          "properties": {
+            "method": {
+              "type": "string",
+              "minLength": 1
+            },
+            "values": {
+              "type": "object"
+            },
+            "uncertainty": {
+              "type": "object"
+            }
+          }
+        },
+        "ground_truth_null_reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "calibration_ref": {
+                "const": null
+              }
+            },
+            "required": [
+              "calibration_ref"
+            ]
+          },
+          "then": {
+            "required": [
+              "calibration_ref_null_reason"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "calibration_ref": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "calibration_ref"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "calibration_ref_null_reason"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "ground_truth": {
+                "const": null
+              }
+            },
+            "required": [
+              "ground_truth"
+            ]
+          },
+          "then": {
+            "required": [
+              "ground_truth_null_reason"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "ground_truth": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "ground_truth"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "ground_truth_null_reason"
+              ]
+            }
+          }
+        }
+      ]
+    },
     "capture": {
       "description": "Capture provenance required before a trace can be labelled measured.",
       "type": "object",
@@ -80,7 +247,7 @@
   "allOf": [
     {
       "if": {"properties": {"status": {"const": "measured"}}, "required": ["status"]},
-      "then": {"required": ["source"], "properties": {"source": {"type": "string", "minLength": 1}}}
+      "then": {"required": ["source", "provenance"], "properties": {"source": {"type": "string", "minLength": 1}}}
     }
   ],
   "additionalProperties": false

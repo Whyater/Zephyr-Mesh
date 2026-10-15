@@ -1,0 +1,1042 @@
+{
+  "generating_command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output {out}",
+  "parameters_basis": "literature-derived",
+  "records": [
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.39777682648905677,
+        "p95_detection_delay_s": 0.4896435819810847
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.39777682648905677,
+        "p95_detection_delay_s": 0.4896435819810847
+      },
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.01_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.39789626119226096,
+        "p95_detection_delay_s": 0.48988103648172654
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.39789626119226096,
+        "p95_detection_delay_s": 0.48988103648172654
+      },
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.01_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.8945268745183443,
+        "p95_detection_delay_s": 1.9892670542425979
+      },
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.01_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.38950628617932737,
+        "p95_detection_delay_s": 0.488146303775763
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.38950628617932737,
+        "p95_detection_delay_s": 0.488146303775763
+      },
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.05_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.3904368259452468,
+        "p95_detection_delay_s": 0.48954332819692536
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.3904368259452468,
+        "p95_detection_delay_s": 0.48954332819692536
+      },
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.05_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.05_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.38118798693781464,
+        "p95_detection_delay_s": 0.4886302139023222
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.38118798693781464,
+        "p95_detection_delay_s": 0.4886302139023222
+      },
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.1_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.38031806176019034,
+        "p95_detection_delay_s": 0.48858033016062696
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.38031806176019034,
+        "p95_detection_delay_s": 0.48858033016062696
+      },
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.1_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.1_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.3586427774691674,
+        "p95_detection_delay_s": 0.48712581555434115
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.3586427774691674,
+        "p95_detection_delay_s": 0.48712581555434115
+      },
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.2_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.3584711543280746,
+        "p95_detection_delay_s": 0.4874622189976861
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.3584711543280746,
+        "p95_detection_delay_s": 0.4874622189976861
+      },
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.2_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.2_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.3381204719166076,
+        "p95_detection_delay_s": 0.48628859589427476
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.3381204719166076,
+        "p95_detection_delay_s": 0.48628859589427476
+      },
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.3_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.33911286822139536,
+        "p95_detection_delay_s": 0.4855526856882885
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.33911286822139536,
+        "p95_detection_delay_s": 0.4855526856882885
+      },
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.3_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 5,
+      "loss_condition": "bursty_p_0.3_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 1.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.8983218787553171,
+        "p95_detection_delay_s": 0.9900484934944185
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 1.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.8983218787553171,
+        "p95_detection_delay_s": 0.9900484934944185
+      },
+      "h_hz": 5,
+      "loss_condition": "independent_p_0.01"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 1.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.8888182796995535,
+        "p95_detection_delay_s": 0.9895268133581598
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 1.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.8888182796995535,
+        "p95_detection_delay_s": 0.9895268133581598
+      },
+      "h_hz": 5,
+      "loss_condition": "independent_p_0.05"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 2.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 1.8775599380048122,
+        "p95_detection_delay_s": 1.9890327024975316
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 1.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.8774398340388542,
+        "p95_detection_delay_s": 0.9889684226603463
+      },
+      "h_hz": 5,
+      "loss_condition": "independent_p_0.1"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 2.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 1.8475907457143323,
+        "p95_detection_delay_s": 1.9878412807080632
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.8475907457143323,
+        "p95_detection_delay_s": 1.9878412807080632
+      },
+      "h_hz": 5,
+      "loss_condition": "independent_p_0.2"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.8135233489279343,
+        "p95_detection_delay_s": 1.9854634336715709
+      },
+      "h_hz": 5,
+      "loss_condition": "independent_p_0.3"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.2,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.14920314472536628,
+        "p95_detection_delay_s": 0.19500668523297104
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.2,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.14920314472536628,
+        "p95_detection_delay_s": 0.19500668523297104
+      },
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.01_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 2.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 1.9478000712933259,
+        "p95_detection_delay_s": 1.9945253431222993
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 1.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.9470944350079037,
+        "p95_detection_delay_s": 0.9945408633838833
+      },
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.01_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.01_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.2,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.14456229193158734,
+        "p95_detection_delay_s": 0.19472068579317695
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.2,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.14456229193158734,
+        "p95_detection_delay_s": 0.19472068579317695
+      },
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.05_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 2.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 1.9408674327730329,
+        "p95_detection_delay_s": 1.9943263220366987
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.9408674327730329,
+        "p95_detection_delay_s": 1.9943263220366987
+      },
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.05_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.05_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.2,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.14019604267215674,
+        "p95_detection_delay_s": 0.1943946174457089
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.2,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.14019604267215674,
+        "p95_detection_delay_s": 0.1943946174457089
+      },
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.1_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 2.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 1.9312660377893924,
+        "p95_detection_delay_s": 1.9948088313137926
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.9312660377893924,
+        "p95_detection_delay_s": 1.9948088313137926
+      },
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.1_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.1_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.2,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.13086008938986352,
+        "p95_detection_delay_s": 0.19378945863793556
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.2,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.13086008938986352,
+        "p95_detection_delay_s": 0.19378945863793556
+      },
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.2_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 2.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 1.9116251729293738,
+        "p95_detection_delay_s": 1.9940842295896573
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.9116251729293738,
+        "p95_detection_delay_s": 1.9940842295896573
+      },
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.2_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.2_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.2,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.11923917104735192,
+        "p95_detection_delay_s": 0.19245968644921801
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.2,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.11923917104735192,
+        "p95_detection_delay_s": 0.19245968644921801
+      },
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.3_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.8883305688404208,
+        "p95_detection_delay_s": 1.9929630179685736
+      },
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.3_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 10,
+      "loss_condition": "bursty_p_0.3_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.4498767135432292,
+        "p95_detection_delay_s": 0.49517398161557635
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.3,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.24921424457391828,
+        "p95_detection_delay_s": 0.2948798251106391
+      },
+      "h_hz": 10,
+      "loss_condition": "independent_p_0.01"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 1.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.9446378400376074,
+        "p95_detection_delay_s": 0.9943496620867164
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.444692270097551,
+        "p95_detection_delay_s": 0.49476898123568114
+      },
+      "h_hz": 10,
+      "loss_condition": "independent_p_0.05"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 1.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.9395680619243991,
+        "p95_detection_delay_s": 0.9943917578200001
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.43880717275373843,
+        "p95_detection_delay_s": 0.49449491219381386
+      },
+      "h_hz": 10,
+      "loss_condition": "independent_p_0.1"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 1.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.9253825458380145,
+        "p95_detection_delay_s": 0.9939505434901033
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 1.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.9253825458380145,
+        "p95_detection_delay_s": 0.9939505434901033
+      },
+      "h_hz": 10,
+      "loss_condition": "independent_p_0.2"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 2.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 1.9077829203322187,
+        "p95_detection_delay_s": 1.9930444159664606
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 1.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.9059667509066796,
+        "p95_detection_delay_s": 0.9923878582136294
+      },
+      "h_hz": 10,
+      "loss_condition": "independent_p_0.3"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.1,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.07453091467461036,
+        "p95_detection_delay_s": 0.09755031371370942
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.1,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.07453091467461036,
+        "p95_detection_delay_s": 0.09755031371370942
+      },
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.01_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 2.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 1.9730668856894833,
+        "p95_detection_delay_s": 1.9973768002371195
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.9730668856894833,
+        "p95_detection_delay_s": 1.9973768002371195
+      },
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.01_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.01_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.1,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.0725606562486831,
+        "p95_detection_delay_s": 0.0972445799790715
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.1,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.0725606562486831,
+        "p95_detection_delay_s": 0.0972445799790715
+      },
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.05_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.9657638803732684,
+        "p95_detection_delay_s": 1.997277374279772
+      },
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.05_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.05_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.1,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.06979487510419802,
+        "p95_detection_delay_s": 0.09719660822948306
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.1,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.06979487510419802,
+        "p95_detection_delay_s": 0.09719660822948306
+      },
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.1_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.954685645024489,
+        "p95_detection_delay_s": 1.9972947053826189
+      },
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.1_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.1_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.1,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.0648121253507264,
+        "p95_detection_delay_s": 0.09679967554253519
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.1,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.0648121253507264,
+        "p95_detection_delay_s": 0.09679967554253519
+      },
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.2_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.9333586835827576,
+        "p95_detection_delay_s": 1.9968973544194863
+      },
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.2_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.2_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.1,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.060458025889516466,
+        "p95_detection_delay_s": 0.09659203943360559
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.1,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.060458025889516466,
+        "p95_detection_delay_s": 0.09659203943360559
+      },
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.3_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.9134019964594573,
+        "p95_detection_delay_s": 1.9963064692059782
+      },
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.3_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 20,
+      "loss_condition": "bursty_p_0.3_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.2,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.17434167915887885,
+        "p95_detection_delay_s": 0.1973916599490079
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.2,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.17434167915887885,
+        "p95_detection_delay_s": 0.1973916599490079
+      },
+      "h_hz": 20,
+      "loss_condition": "independent_p_0.01"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.3,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.2721058397214711,
+        "p95_detection_delay_s": 0.2972668894596865
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.2,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.17242870863904217,
+        "p95_detection_delay_s": 0.19731884994191332
+      },
+      "h_hz": 20,
+      "loss_condition": "independent_p_0.05"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.46929105537993066,
+        "p95_detection_delay_s": 0.49727669253662815
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.3,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.26951175020641704,
+        "p95_detection_delay_s": 0.29716482106997494
+      },
+      "h_hz": 20,
+      "loss_condition": "independent_p_0.1"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.4627840348707146,
+        "p95_detection_delay_s": 0.49659584096983667
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.4627840348707146,
+        "p95_detection_delay_s": 0.49659584096983667
+      },
+      "h_hz": 20,
+      "loss_condition": "independent_p_0.2"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 1.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.9528427490514824,
+        "p95_detection_delay_s": 0.9964880043217674
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.4533973417050371,
+        "p95_detection_delay_s": 0.49624071962694744
+      },
+      "h_hz": 20,
+      "loss_condition": "independent_p_0.3"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.5,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.48947625696744235,
+        "p95_detection_delay_s": 0.4990278856960733
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.3,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.28955394376472293,
+        "p95_detection_delay_s": 0.2989882564805746
+      },
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.01_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 2.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 1.9875301758273898,
+        "p95_detection_delay_s": 1.9990485188935772
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.9875301758273898,
+        "p95_detection_delay_s": 1.9990485188935772
+      },
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.01_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.01_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 1.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.9875315071825771,
+        "p95_detection_delay_s": 0.998925215317176
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.48751167298440107,
+        "p95_detection_delay_s": 0.4989471913834385
+      },
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.05_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.979588936043732,
+        "p95_detection_delay_s": 1.9989924238909142
+      },
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.05_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.05_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 1.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.9852295606202477,
+        "p95_detection_delay_s": 0.9988297019969286
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.4848437855076512,
+        "p95_detection_delay_s": 0.4989126310412041
+      },
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.1_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.9693749316917277,
+        "p95_detection_delay_s": 1.9988457968659035
+      },
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.1_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.1_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 1.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.9801802629409098,
+        "p95_detection_delay_s": 0.9988747366315587
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.4795505505730791,
+        "p95_detection_delay_s": 0.49869822923693197
+      },
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.2_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.9510944928966423,
+        "p95_detection_delay_s": 1.9986981553664762
+      },
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.2_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.2_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 1.0,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.9747470066976927,
+        "p95_detection_delay_s": 0.9985449150085304
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.5,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.47485563042354645,
+        "p95_detection_delay_s": 0.498518803438384
+      },
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.3_duration_0.05s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": {
+        "T_s": 2.0,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 1.92797542035958,
+        "p95_detection_delay_s": 1.99843871694052
+      },
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.3_duration_0.2s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": null,
+      "false_alarm_below_1_per_hour": null,
+      "h_hz": 50,
+      "loss_condition": "bursty_p_0.3_duration_0.5s"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.1,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.08973364066325294,
+        "p95_detection_delay_s": 0.0989813724534054
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.1,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.08973364066325294,
+        "p95_detection_delay_s": 0.0989813724534054
+      },
+      "h_hz": 50,
+      "loss_condition": "independent_p_0.01"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.2,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.18904368557910933,
+        "p95_detection_delay_s": 0.19897810133631952
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.1,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.08887090267856133,
+        "p95_detection_delay_s": 0.09899388780048787
+      },
+      "h_hz": 50,
+      "loss_condition": "independent_p_0.05"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.2,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.1877524930928637,
+        "p95_detection_delay_s": 0.19886371520590887
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.2,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.1877524930928637,
+        "p95_detection_delay_s": 0.19886371520590887
+      },
+      "h_hz": 50,
+      "loss_condition": "independent_p_0.1"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.3,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.2850526321600679,
+        "p95_detection_delay_s": 0.2987103855606616
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.2,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.1851837282534157,
+        "p95_detection_delay_s": 0.19873970897901325
+      },
+      "h_hz": 50,
+      "loss_condition": "independent_p_0.2"
+    },
+    {
+      "false_alarm_below_0_01_per_hour": {
+        "T_s": 0.3,
+        "basis": "closed_form",
+        "mean_detection_delay_s": 0.2812854825330411,
+        "p95_detection_delay_s": 0.29857043778758874
+      },
+      "false_alarm_below_1_per_hour": {
+        "T_s": 0.2,
+        "basis": "simulated_and_closed_form",
+        "mean_detection_delay_s": 0.18158042704705488,
+        "p95_detection_delay_s": 0.19847755788393015
+      },
+      "h_hz": 50,
+      "loss_condition": "independent_p_0.3"
+    }
+  ],
+  "status": "simulated"
+}

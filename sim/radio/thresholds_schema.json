@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EXP-016 heartbeat timeout thresholds",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "parameters_basis",
+    "generating_command",
+    "records"
+  ],
+  "properties": {
+    "status": {
+      "const": "simulated"
+    },
+    "parameters_basis": {
+      "const": "literature-derived"
+    },
+    "generating_command": {
+      "type": "string",
+      "minLength": 1
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/record"
+      },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "h_hz",
+        "loss_condition",
+        "false_alarm_below_1_per_hour",
+        "false_alarm_below_0_01_per_hour"
+      ],
+      "properties": {
+        "h_hz": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "loss_condition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "false_alarm_below_1_per_hour": {
+          "$ref": "#/$defs/threshold"
+        },
+        "false_alarm_below_0_01_per_hour": {
+          "$ref": "#/$defs/threshold"
+        }
+      }
+    },
+    "threshold": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "T_s",
+            "mean_detection_delay_s",
+            "p95_detection_delay_s",
+            "basis"
+          ],
+          "properties": {
+            "T_s": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "mean_detection_delay_s": {
+              "type": "number",
+              "minimum": 0
+            },
+            "p95_detection_delay_s": {
+              "type": "number",
+              "minimum": 0
+            },
+            "basis": {
+              "type": "string",
+              "enum": ["simulated_and_closed_form", "closed_form"]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

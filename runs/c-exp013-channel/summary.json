@@ -1,0 +1,364 @@
+{
+  "breakpoint_m": 73.16061299981068,
+  "cases": [
+    {
+      "beyond_grid": false,
+      "case": "n low",
+      "cliff_ratio_d10_over_d90": 1.0897060040870086,
+      "d10_m": 30000.0,
+      "d90_m": 27530.361296976593,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 1.7,
+      "preset": "indoor_gym",
+      "sigma_db": 3.0
+    },
+    {
+      "beyond_grid": false,
+      "case": "n nominal",
+      "cliff_ratio_d10_over_d90": 2.5727807741117257,
+      "d10_m": 15088.515189482443,
+      "d90_m": 5864.671930585256,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "indoor_gym",
+      "sigma_db": 3.0
+    },
+    {
+      "beyond_grid": false,
+      "case": "n high",
+      "cliff_ratio_d10_over_d90": 2.3609861416403657,
+      "d10_m": 6390.768214759298,
+      "d90_m": 2706.821570040695,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 2.2,
+      "preset": "indoor_gym",
+      "sigma_db": 3.0
+    },
+    {
+      "beyond_grid": false,
+      "case": "n high, sigma high",
+      "cliff_ratio_d10_over_d90": 3.055072136365743,
+      "d10_m": 6964.058494351622,
+      "d90_m": 2279.5070569547784,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 0.9999999999999993,
+        "50": 1.0
+      },
+      "exponent": 2.2,
+      "preset": "indoor_gym",
+      "sigma_db": 4.3
+    },
+    {
+      "beyond_grid": false,
+      "case": "1 body",
+      "cliff_ratio_d10_over_d90": 2.3609861416403657,
+      "d10_m": 4532.269136482802,
+      "d90_m": 1919.6508850890048,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "indoor_gym",
+      "sigma_db": 3.0
+    },
+    {
+      "beyond_grid": false,
+      "case": "1 body worst (21 dB)",
+      "cliff_ratio_d10_over_d90": 2.572780774111728,
+      "d10_m": 1361.3972791592603,
+      "d90_m": 529.1540160973462,
+      "delivery_at_m": {
+        "100": 0.9999999999997445,
+        "30": 1.0,
+        "300": 0.9982695573322673,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "indoor_gym",
+      "sigma_db": 3.0
+    },
+    {
+      "beyond_grid": false,
+      "case": "1 brick wall",
+      "cliff_ratio_d10_over_d90": 2.5727807741117283,
+      "d10_m": 9011.362111313743,
+      "d90_m": 3502.5767457489583,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "indoor_gym",
+      "sigma_db": 3.0
+    },
+    {
+      "beyond_grid": false,
+      "case": "orientation 6 dB",
+      "cliff_ratio_d10_over_d90": 2.5727807741117257,
+      "d10_m": 7588.776354108092,
+      "d90_m": 2949.63971686557,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "indoor_gym",
+      "sigma_db": 3.0
+    },
+    {
+      "beyond_grid": false,
+      "case": "body + orientation",
+      "cliff_ratio_d10_over_d90": 2.3609861416403684,
+      "d10_m": 2279.5070569547784,
+      "d90_m": 965.4893846056293,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 0.9999976228303521,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "indoor_gym",
+      "sigma_db": 3.0
+    },
+    {
+      "beyond_grid": false,
+      "case": "n low",
+      "cliff_ratio_d10_over_d90": 2.166626716550471,
+      "d10_m": 13846.409153379052,
+      "d90_m": 6390.768214759298,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "outdoor_open",
+      "sigma_db": 2.5
+    },
+    {
+      "beyond_grid": false,
+      "case": "n nominal",
+      "cliff_ratio_d10_over_d90": 2.166626716550471,
+      "d10_m": 13846.409153379052,
+      "d90_m": 6390.768214759298,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "outdoor_open",
+      "sigma_db": 2.5
+    },
+    {
+      "beyond_grid": false,
+      "case": "n high",
+      "cliff_ratio_d10_over_d90": 1.8245904882785815,
+      "d10_m": 1483.5227890475624,
+      "d90_m": 813.0716446117171,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 0.9999999996662676,
+        "50": 1.0
+      },
+      "exponent": 2.6,
+      "preset": "outdoor_open",
+      "sigma_db": 2.5
+    },
+    {
+      "beyond_grid": false,
+      "case": "n high, sigma high",
+      "cliff_ratio_d10_over_d90": 2.5727807741117283,
+      "d10_m": 1761.6227476853744,
+      "d90_m": 684.715450850486,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 0.999893640075236,
+        "50": 1.0
+      },
+      "exponent": 2.6,
+      "preset": "outdoor_open",
+      "sigma_db": 4.0
+    },
+    {
+      "beyond_grid": false,
+      "case": "1 body",
+      "cliff_ratio_d10_over_d90": 2.1666267165504687,
+      "d10_m": 4159.166894083592,
+      "d90_m": 1919.6508850890048,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "outdoor_open",
+      "sigma_db": 2.5
+    },
+    {
+      "beyond_grid": false,
+      "case": "1 body worst (21 dB)",
+      "cliff_ratio_d10_over_d90": 2.1666267165504687,
+      "d10_m": 1249.3252987991773,
+      "d90_m": 576.6223084280314,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 0.999702208667378,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "outdoor_open",
+      "sigma_db": 2.5
+    },
+    {
+      "beyond_grid": false,
+      "case": "1 brick wall",
+      "cliff_ratio_d10_over_d90": 2.1666267165504665,
+      "d10_m": 8269.535156745102,
+      "d90_m": 3816.7789096181773,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "outdoor_open",
+      "sigma_db": 2.5
+    },
+    {
+      "beyond_grid": false,
+      "case": "orientation 6 dB",
+      "cliff_ratio_d10_over_d90": 2.1666267165504687,
+      "d10_m": 6964.058494351622,
+      "d90_m": 3214.2401093619137,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "outdoor_open",
+      "sigma_db": 2.5
+    },
+    {
+      "beyond_grid": false,
+      "case": "body + orientation",
+      "cliff_ratio_d10_over_d90": 2.166626716550469,
+      "d10_m": 2091.8550952324276,
+      "d90_m": 965.4893846056293,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 0.9999999879524644,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "outdoor_open",
+      "sigma_db": 2.5
+    },
+    {
+      "beyond_grid": false,
+      "case": "ground bounce, n_far 2",
+      "cliff_ratio_d10_over_d90": 2.166626716550471,
+      "d10_m": 13846.409153379052,
+      "d90_m": 6390.768214759298,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "outdoor_open",
+      "sigma_db": 2.5
+    },
+    {
+      "beyond_grid": false,
+      "case": "ground bounce, n_far 3",
+      "cliff_ratio_d10_over_d90": 1.6743878453778773,
+      "d10_m": 2279.5070569547784,
+      "d90_m": 1361.3972791592603,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 1.0,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "outdoor_open",
+      "sigma_db": 2.5
+    },
+    {
+      "beyond_grid": false,
+      "case": "ground bounce, n_far 4",
+      "cliff_ratio_d10_over_d90": 1.4100592931069302,
+      "d10_m": 965.4893846056293,
+      "d90_m": 684.715450850486,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 0.9999999999999971,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "outdoor_open",
+      "sigma_db": 2.5
+    },
+    {
+      "beyond_grid": false,
+      "case": "stress corner",
+      "cliff_ratio_d10_over_d90": 1.8245904882785813,
+      "d10_m": 746.1385378829171,
+      "d90_m": 408.9347953287124,
+      "delivery_at_m": {
+        "100": 1.0,
+        "30": 1.0,
+        "300": 0.9979430587486791,
+        "50": 1.0
+      },
+      "exponent": 2.0,
+      "preset": "outdoor_open",
+      "sigma_db": 4.0
+    }
+  ],
+  "experiment": "EXP-013",
+  "frame_bytes": 75,
+  "grid_deviation": "distance grid extended from 3 km (pre-registered) to 30 km because nominal presets deliver past 3 km",
+  "gym_min_delivery_under_50m": 1.0,
+  "n_shadow_draws": 20000,
+  "payload_bytes": 32,
+  "status": "simulated; literature-derived parameters"
+}
