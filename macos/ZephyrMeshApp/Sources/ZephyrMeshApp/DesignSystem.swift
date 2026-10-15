@@ -18,6 +18,7 @@ enum Theme {
         let background, surface, line, lineStrong, text, textSecondary: Color
         let accent, target, keepOut, ok, caution, alert, info, onAlert: Color
         let selectionFill, hoverFill: Color
+        let bandFill, atlasStop1, atlasStop2, atlasStop3, atlasStop4: Color
         var backgroundNS: NSColor { NSColor(background) }
         var surfaceNS: NSColor { NSColor(surface) }
         var lineNS: NSColor { NSColor(line) }
@@ -34,6 +35,11 @@ enum Theme {
         var onAlertNS: NSColor { NSColor(onAlert) }
         var selectionFillNS: NSColor { NSColor(selectionFill) }
         var hoverFillNS: NSColor { NSColor(hoverFill) }
+        var bandFillNS: NSColor { NSColor(bandFill) }
+        var atlasStop1NS: NSColor { NSColor(atlasStop1) }
+        var atlasStop2NS: NSColor { NSColor(atlasStop2) }
+        var atlasStop3NS: NSColor { NSColor(atlasStop3) }
+        var atlasStop4NS: NSColor { NSColor(atlasStop4) }
     }
     static let dark = Palette(
         background: Color(hex: "0F1522", opacity: 1),
@@ -51,7 +57,12 @@ enum Theme {
         info: Color(hex: "7CC4FF", opacity: 1),
         onAlert: Color(hex: "0F1522", opacity: 1),
         selectionFill: Color(hex: "273A54", opacity: 1),
-        hoverFill: Color(hex: "242D3F", opacity: 1)
+        hoverFill: Color(hex: "242D3F", opacity: 1),
+        bandFill: Color(hex: "273A54", opacity: 1),
+        atlasStop1: Color(hex: "23344B", opacity: 1),
+        atlasStop2: Color(hex: "2F4764", opacity: 1),
+        atlasStop3: Color(hex: "3B5B7C", opacity: 1),
+        atlasStop4: Color(hex: "476F95", opacity: 1)
     )
     static let light = Palette(
         background: Color(hex: "F6F8FB", opacity: 1),
@@ -69,7 +80,12 @@ enum Theme {
         info: Color(hex: "1F6FD1", opacity: 1),
         onAlert: Color(hex: "FFFFFF", opacity: 1),
         selectionFill: Color(hex: "E0EBF9", opacity: 1),
-        hoverFill: Color(hex: "F4F4F5", opacity: 1)
+        hoverFill: Color(hex: "F4F4F5", opacity: 1),
+        bandFill: Color(hex: "DBE8F8", opacity: 1),
+        atlasStop1: Color(hex: "E4EEF9", opacity: 1),
+        atlasStop2: Color(hex: "C9DCF4", opacity: 1),
+        atlasStop3: Color(hex: "AAC8EE", opacity: 1),
+        atlasStop4: Color(hex: "84B0E6", opacity: 1)
     )
     static let darkScene3D = ScenePalette(
         droneBody: Color(hex: "9AA8C0", opacity: 1),
@@ -209,6 +225,25 @@ enum LayoutMetrics {
     static let messageMaxWidth: CGFloat = 520
     static let emptyWindowMinWidth: CGFloat = 420
     static let emptyWindowMinHeight: CGFloat = 240
+    static let resultsWindowWidth: CGFloat = 1240
+    static let resultsWindowHeight: CGFloat = 840
+    static let resultsWindowMinWidth: CGFloat = 980
+    static let resultsWindowMinHeight: CGFloat = 680
+    static let resultsSidebarWidth: CGFloat = 200
+    static let chartPanelMinWidth: CGFloat = 260
+    static let chartPanelHeight: CGFloat = 220
+    static let chartPlotInset: CGFloat = 36
+    static let chartLineWidth: CGFloat = 1.5
+    static let chartMarkerSize: CGFloat = 6
+    static let chartCapWidth: CGFloat = 6
+    static let chartHoverRing: CGFloat = 10
+    static let failureLineWidth: CGFloat = 1.5
+    static let atlasCellWidth: CGFloat = 104
+    static let atlasCellHeight: CGFloat = 36
+    static let atlasRowHeaderWidth: CGFloat = 168
+    static let atlasWinnerBorder: CGFloat = 2
+    static let legendSwatchWidth: CGFloat = 22
+    static let legendSwatchHeight: CGFloat = 10
 }
 
 enum UIText {
@@ -542,6 +577,7 @@ enum UIText {
         Shortcut(actionID: "openScenarioRun", label: "Open scenario run...", key: "o", modifiers: ["primary", "shift"], singleKey: false),
         Shortcut(actionID: "focusFilter", label: "Focus team filter", key: "l", modifiers: ["primary"], singleKey: false),
         Shortcut(actionID: "aboutReplay", label: "About this replay", key: "i", modifiers: ["primary"], singleKey: false),
+        Shortcut(actionID: "showResults", label: "Show results", key: "r", modifiers: ["primary"], singleKey: false),
     ]
     static let eventReplayLoaded = "Replay loaded: {count} drones"
     static let eventEstimateReached = "Target estimate reached {estimated} of {total} drones"
@@ -578,6 +614,7 @@ enum UIText {
         static let stepBack = "Step Back"
         static let speed = "Speed"
         static let aboutReplay = "About This Replay"
+        static let showResults = "Show Results"
     }
     enum Inspector {
         static let positionAndMotion = "Position and motion"
@@ -586,6 +623,103 @@ enum UIText {
         static let details = "Details"
         static let emptyTitle = "No drone selected"
         static let emptyHint = "Click a drone in the team list or the scene."
+    }
+    enum Results {
+        static let windowTitle = "Results"
+        static let badge = "Simulated results"
+        static let sidebarDelay = "Delay and loss"
+        static let sidebarAtlas = "Tolerance atlas"
+        static let delayTitle = "How much delay can the tracker take?"
+        static let atlasTitle = "Which tracker takes the most delay?"
+        static let sourcePrefix = "From {source}"
+        static let pathLabel = "Path"
+        static let pathStraight = "Straight line"
+        static let pathTurn = "1 m turn"
+        static let lossTypeLabel = "Loss type"
+        static let lossRandom = "Random"
+        static let lossBursty = "Bursty"
+        static let lossLevelLabel = "Loss"
+        static let lossNone = "None"
+        static let panelNoLoss = "No loss"
+        static let panelLoss = "{percent} % loss"
+        static let axisDelay = "Link delay (ms)"
+        static let axisError = "p95 error (m)"
+        static let armNaive = "Basic tracker"
+        static let armRecovery = "Recovery (capture time)"
+        static let legendInterval = "95 % interval, {n} seeds"
+        static let legendFailure = "Failure line"
+        static let failureLineLabel = "Failure line {value} m"
+        static let tileMedian = "p95 error (median)"
+        static let tileInterval = "95 % interval"
+        static let tileSeedsFailing = "Seeds failing"
+        static let tileCellResult = "Cell result"
+        static let cellPasses = "Passes"
+        static let cellFails = "Fails"
+        static let seedsOf = "{count} of {total}"
+        static let compareTitle = "Compared with the other tracker"
+        static let recoveryLower = "Recovery is lower by {value} m (median of paired seeds)"
+        static let recoveryHigher = "Recovery is higher by {value} m (median of paired seeds)"
+        static let recoveryNoDifference = "No difference (median of paired seeds)"
+        static let pairedInterval = "Interval, basic minus recovery: {low} to {high} m"
+        static let pairedCounts = "Recovery better in {better}, worse in {worse}, tied in {tied} of {total} seeds"
+        static let identicalNoDelay = "Both trackers are identical here (no delay, no loss)"
+        static let tiedEverySeed = "Tied in every seed"
+        static let limitsTitle = "Limits"
+        static let sourceTitle = "Source"
+        static let detailsTitle = "Details"
+        static let inspectorEmptyTitle = "Nothing selected"
+        static let inspectorEmptyHintDelay = "Click a point on a chart, or use the arrow keys."
+        static let inspectorEmptyHintAtlas = "Click a cell in the atlas, or use the arrow keys."
+        static let notComputed = "Not computed"
+        static let hoverTemplate = "{arm}, {delay} ms: {median} m ({low} to {high}), {failing} of {total} fail"
+        static let rangeTemplate = "{low} to {high} m"
+        static let pointSubtitle = "{path}, {loss}, {delay} ms"
+        static let chartSummary =
+            "p95 error against link delay for the basic tracker and the recovery tracker, {path}, {lossType} loss. Use the arrow keys " +
+            "to read each point."
+    }
+    enum Atlas {
+        static let conditionsLabel = "Conditions"
+        static let mostDelayColumn = "Most delay"
+        static let nothingPasses = "Nothing passes"
+        static let failsAtZero = "Fails at 0"
+        static let failsAtZeroLong = "Fails even at 0 ms"
+        static let censored = ">300 ms"
+        static let censoredLong = "More than 300 ms (no failure seen)"
+        static let bin1 = "0 to 25 ms"
+        static let bin2 = "50 to 100 ms"
+        static let bin3 = "150 to 200 ms"
+        static let clearWinner = "Clear winner"
+        static let summaryLine = "{tie} ties, {winner} clear winners, {none} cells where nothing passes, of {cells} cells"
+        static let tileMostDelay = "Most delay tolerated"
+        static let tileInterval = "Interval"
+        static let tileCause = "Failure cause"
+        static let tileSeeds = "Seeds"
+        static let seedsPerCell = "{n} per cell"
+        static let causeLag = "Delay"
+        static let causeGap = "Lost packets"
+        static let causeNoise = "Sensor noise"
+        static let causeModel = "Path model"
+        static let causeNone = "No failure seen"
+        static let intervalBelowZero = "below 0"
+        static let intervalAbove = "above 300"
+        static let acrossLossTitle = "Across loss levels"
+        static let diffTitle = "Difference from basic tracker"
+        static let diffCaption = "Positive means lower error than the basic tracker."
+        static let diffColumnDelay = "Delay (ms)"
+        static let diffColumnMedian = "Median (m)"
+        static let diffColumnInterval = "Interval (m)"
+        static let cellRule = "A cell fails when at least half its seeds fail ({status})."
+        static let cellSubtitle = "{path}, {loss}, {conditions}"
+        static let armHelpNaive = "Uses each packet when it arrives."
+        static let armHelpRecovery = "Stamps each packet with its capture time and predicts forward."
+        static let armHelpImm = "Mixes a straight-line model and a turning model."
+        static let armHelpCt = "Models a steady turn rate."
+        static let armHelpAdaptive = "Adjusts how much unexpected motion it allows as packets arrive."
+        static let armHelpRetro = "Re-filters packets that arrive late."
+        static let armHelpRecoveryGated = "Recovery that rejects outlier measurements."
+        static let armHelpImmGated = "IMM that rejects outlier measurements."
+        static let armHelpCtGated = "Turn-rate model that rejects outlier measurements."
     }
     struct TransportControl {
         let label: String

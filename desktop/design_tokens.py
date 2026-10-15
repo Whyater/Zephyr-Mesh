@@ -20,6 +20,11 @@ class Palette:
     onAlert: str
     selectionFill: str
     hoverFill: str
+    bandFill: str
+    atlasStop1: str
+    atlasStop2: str
+    atlasStop3: str
+    atlasStop4: str
 
 @dataclass(frozen=True)
 class SceneColor:
@@ -36,8 +41,8 @@ class ScenePalette:
     grid: SceneColor
     floor: SceneColor
 
-DARK = Palette('#0F1522', '#172033', '#2B3A55', '#5B6B88', '#EEF2F7', '#9AA8C0', '#7CC4FF', '#FFB38A', '#B4A7FF', '#5FD39B', '#FFC857', '#FF5C5C', '#7CC4FF', '#0F1522', '#273A54', '#242D3F')
-LIGHT = Palette('#F6F8FB', '#FFFFFF', '#D5DCE6', '#7D8AA1', '#1B2433', '#56627A', '#1F6FD1', '#A8501C', '#5E4BC4', '#1E7F4F', '#8A5A00', '#C62828', '#1F6FD1', '#FFFFFF', '#E0EBF9', '#F4F4F5')
+DARK = Palette('#0F1522', '#172033', '#2B3A55', '#5B6B88', '#EEF2F7', '#9AA8C0', '#7CC4FF', '#FFB38A', '#B4A7FF', '#5FD39B', '#FFC857', '#FF5C5C', '#7CC4FF', '#0F1522', '#273A54', '#242D3F', '#273A54', '#23344B', '#2F4764', '#3B5B7C', '#476F95')
+LIGHT = Palette('#F6F8FB', '#FFFFFF', '#D5DCE6', '#7D8AA1', '#1B2433', '#56627A', '#1F6FD1', '#A8501C', '#5E4BC4', '#1E7F4F', '#8A5A00', '#C62828', '#1F6FD1', '#FFFFFF', '#E0EBF9', '#F4F4F5', '#DBE8F8', '#E4EEF9', '#C9DCF4', '#AAC8EE', '#84B0E6')
 DARK_SCENE3D = ScenePalette(SceneColor('#9AA8C0', 1.0), SceneColor('#9AA8C0', 1.0), SceneColor('#9AA8C0', 1.0), SceneColor('#FFB38A', 1.0), SceneColor('#B4A7FF', 0.12), SceneColor('#2B3A55', 1.0), SceneColor('#0F1522', 1.0))
 LIGHT_SCENE3D = ScenePalette(SceneColor('#56627A', 1.0), SceneColor('#56627A', 1.0), SceneColor('#56627A', 1.0), SceneColor('#A8501C', 1.0), SceneColor('#5E4BC4', 0.18), SceneColor('#D5DCE6', 1.0), SceneColor('#F6F8FB', 1.0))
 
@@ -71,7 +76,7 @@ MOTION_MS = {
     'curve': 'ease-out',
     'reduced': 0,
 }
-LAYOUT = {'windowMinWidth': 1180, 'windowMinHeight': 760, 'sidebarWidth': 260, 'inspectorWidth': 300, 'rowHeight': 28, 'sceneMinWidth': 520, 'windowDefaultWidth': 1440, 'windowDefaultHeight': 900, 'eventListHeight': 128, 'inspectorMaxWidth': 360, 'sidebarIdealWidth': 300, 'eventPaneHeight': 192, 'sidebarWidthWindows': 340, 'contentInset': 16, 'controlHeight': 28, 'iconButtonSize': 28, 'iconGlyphSize': 14, 'speedSegmentWidth': 48, 'viewSegmentWidth': 44, 'stripOneRowMinWidth': 960, 'stripMetricWidth': 136, 'stripMetricMinWidth': 112, 'stripValueHeight': 28, 'stripDividerHeight': 40, 'eventRowHeight': 24, 'eventWordWidth': 60, 'eventTimeWidth': 52, 'eventRowsCompact': 4, 'eventRowsRegular': 6, 'compactDetailHeight': 820, 'teamAgeWidth': 64, 'teamLossWidth': 52, 'teamColumnSpacing': 6, 'scrubberMinWidth': 160, 'scrubberTrackHeight': 4, 'scrubberThumbSize': 14, 'scrubberTickHeight': 6, 'metricTileMinHeight': 56, 'sceneStatusMarkerPoints': 11, 'sceneSelectionRingPoints': 15, 'sceneTargetRingPoints': 9, 'sceneFitMarginPoints': 20, 'hoverLabelOffset': 16, 'viewerContentMaxWidth': 720, 'viewerLabelWidth': 220, 'viewerTwoColumnWidth': 960, 'scenarioSideWidth': 360, 'scenarioPlotHeight': 340, 'scenarioRailWidth': 84, 'plotDroneMark': 9, 'plotTargetMark': 14, 'aboutWindowWidth': 700, 'aboutWindowHeight': 760, 'aboutWindowMinWidth': 480, 'aboutWindowMinHeight': 420, 'evidenceWindowWidth': 720, 'evidenceWindowHeight': 840, 'evidenceWindowMinWidth': 560, 'evidenceWindowMinHeight': 440, 'scenarioWindowWidth': 1000, 'scenarioWindowHeight': 720, 'scenarioWindowMinWidth': 620, 'scenarioWindowMinHeight': 520, 'badgeHeight': 22, 'settingsWidth': 360, 'messageMaxWidth': 520, 'emptyWindowMinWidth': 420, 'emptyWindowMinHeight': 240}
+LAYOUT = {'windowMinWidth': 1180, 'windowMinHeight': 760, 'sidebarWidth': 260, 'inspectorWidth': 300, 'rowHeight': 28, 'sceneMinWidth': 520, 'windowDefaultWidth': 1440, 'windowDefaultHeight': 900, 'eventListHeight': 128, 'inspectorMaxWidth': 360, 'sidebarIdealWidth': 300, 'eventPaneHeight': 192, 'sidebarWidthWindows': 340, 'contentInset': 16, 'controlHeight': 28, 'iconButtonSize': 28, 'iconGlyphSize': 14, 'speedSegmentWidth': 48, 'viewSegmentWidth': 44, 'stripOneRowMinWidth': 960, 'stripMetricWidth': 136, 'stripMetricMinWidth': 112, 'stripValueHeight': 28, 'stripDividerHeight': 40, 'eventRowHeight': 24, 'eventWordWidth': 60, 'eventTimeWidth': 52, 'eventRowsCompact': 4, 'eventRowsRegular': 6, 'compactDetailHeight': 820, 'teamAgeWidth': 64, 'teamLossWidth': 52, 'teamColumnSpacing': 6, 'scrubberMinWidth': 160, 'scrubberTrackHeight': 4, 'scrubberThumbSize': 14, 'scrubberTickHeight': 6, 'metricTileMinHeight': 56, 'sceneStatusMarkerPoints': 11, 'sceneSelectionRingPoints': 15, 'sceneTargetRingPoints': 9, 'sceneFitMarginPoints': 20, 'hoverLabelOffset': 16, 'viewerContentMaxWidth': 720, 'viewerLabelWidth': 220, 'viewerTwoColumnWidth': 960, 'scenarioSideWidth': 360, 'scenarioPlotHeight': 340, 'scenarioRailWidth': 84, 'plotDroneMark': 9, 'plotTargetMark': 14, 'aboutWindowWidth': 700, 'aboutWindowHeight': 760, 'aboutWindowMinWidth': 480, 'aboutWindowMinHeight': 420, 'evidenceWindowWidth': 720, 'evidenceWindowHeight': 840, 'evidenceWindowMinWidth': 560, 'evidenceWindowMinHeight': 440, 'scenarioWindowWidth': 1000, 'scenarioWindowHeight': 720, 'scenarioWindowMinWidth': 620, 'scenarioWindowMinHeight': 520, 'badgeHeight': 22, 'settingsWidth': 360, 'messageMaxWidth': 520, 'emptyWindowMinWidth': 420, 'emptyWindowMinHeight': 240, 'resultsWindowWidth': 1240, 'resultsWindowHeight': 840, 'resultsWindowMinWidth': 980, 'resultsWindowMinHeight': 680, 'resultsSidebarWidth': 200, 'chartPanelMinWidth': 260, 'chartPanelHeight': 220, 'chartPlotInset': 36, 'chartLineWidth': 1.5, 'chartMarkerSize': 6, 'chartCapWidth': 6, 'chartHoverRing': 10, 'failureLineWidth': 1.5, 'atlasCellWidth': 104, 'atlasCellHeight': 36, 'atlasRowHeaderWidth': 168, 'atlasWinnerBorder': 2, 'legendSwatchWidth': 22, 'legendSwatchHeight': 10}
 WIN_LAYOUT = {'iconSize': 14,
  'chevronSize': 12,
  'glyphSize': 10,
@@ -104,7 +109,19 @@ WIN_LAYOUT = {'iconSize': 14,
  'strokeRangeBar': 5,
  'tooltipDelayMs': 550,
  'noticeMs': 2400,
- 'copiedMs': 1200}
+ 'copiedMs': 1200,
+ 'resultsWindow': {'width': 1240, 'height': 840, 'minWidth': 980, 'minHeight': 680},
+ 'resultsSidebarWidth': 200,
+ 'chartPanelHeight': 220,
+ 'chartPlotInset': 40,
+ 'chartMarkerSize': 6,
+ 'chartCapWidth': 6,
+ 'atlasCellWidth': 104,
+ 'atlasCellHeight': 36,
+ 'atlasRowHeaderWidth': 168,
+ 'legendSwatchWidth': 22,
+ 'legendSwatchHeight': 10,
+ 'dashPattern': [4, 3]}
 
 @dataclass(frozen=True)
 class Shortcut:
@@ -129,6 +146,7 @@ SHORTCUTS = (
     Shortcut('openScenarioRun', 'Open scenario run...', 'o', ('primary', 'shift'), '<Control-Shift-O>', False),
     Shortcut('focusFilter', 'Focus team filter', 'l', ('primary',), '<Control-l>', False),
     Shortcut('aboutReplay', 'About this replay', 'i', ('primary',), '<Control-i>', False),
+    Shortcut('showResults', 'Show results', 'r', ('primary',), '<Control-r>', False),
 )
 
 UI_TEXT = {'$schema': 'zephyr-ui-text-1',
@@ -476,7 +494,8 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
                                    'key': 'o',
                                    'modifiers': ['primary', 'shift']},
                'focusFilter': {'label': 'Focus team filter', 'key': 'l', 'modifiers': ['primary']},
-               'aboutReplay': {'label': 'About this replay', 'key': 'i', 'modifiers': ['primary']}},
+               'aboutReplay': {'label': 'About this replay', 'key': 'i', 'modifiers': ['primary']},
+               'showResults': {'label': 'Show results', 'key': 'r', 'modifiers': ['primary']}},
  'shortcutRule': 'Single-key shortcuts never fire while a text field has focus.',
  'eventTemplates': {'replayLoaded': 'Replay loaded: {count} drones',
                     'estimateReached': 'Target estimate reached {estimated} of {total} drones',
@@ -521,13 +540,110 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
            'stepForward': 'Step Forward',
            'stepBack': 'Step Back',
            'speed': 'Speed',
-           'aboutReplay': 'About This Replay'},
+           'aboutReplay': 'About This Replay',
+           'showResults': 'Show Results'},
  'inspector': {'positionAndMotion': 'Position and motion',
                'neighbors': 'Neighbors',
                'altitude': 'Altitude',
                'details': 'Details',
                'emptyTitle': 'No drone selected',
                'emptyHint': 'Click a drone in the team list or the scene.'},
+ 'results': {'windowTitle': 'Results',
+             'badge': 'Simulated results',
+             'sidebarDelay': 'Delay and loss',
+             'sidebarAtlas': 'Tolerance atlas',
+             'delayTitle': 'How much delay can the tracker take?',
+             'atlasTitle': 'Which tracker takes the most delay?',
+             'sourcePrefix': 'From {source}',
+             'pathLabel': 'Path',
+             'pathStraight': 'Straight line',
+             'pathTurn': '1 m turn',
+             'lossTypeLabel': 'Loss type',
+             'lossRandom': 'Random',
+             'lossBursty': 'Bursty',
+             'lossLevelLabel': 'Loss',
+             'lossNone': 'None',
+             'panelNoLoss': 'No loss',
+             'panelLoss': '{percent} % loss',
+             'axisDelay': 'Link delay (ms)',
+             'axisError': 'p95 error (m)',
+             'armNaive': 'Basic tracker',
+             'armRecovery': 'Recovery (capture time)',
+             'legendInterval': '95 % interval, {n} seeds',
+             'legendFailure': 'Failure line',
+             'failureLineLabel': 'Failure line {value} m',
+             'tileMedian': 'p95 error (median)',
+             'tileInterval': '95 % interval',
+             'tileSeedsFailing': 'Seeds failing',
+             'tileCellResult': 'Cell result',
+             'cellPasses': 'Passes',
+             'cellFails': 'Fails',
+             'seedsOf': '{count} of {total}',
+             'compareTitle': 'Compared with the other tracker',
+             'recoveryLower': 'Recovery is lower by {value} m (median of paired seeds)',
+             'recoveryHigher': 'Recovery is higher by {value} m (median of paired seeds)',
+             'recoveryNoDifference': 'No difference (median of paired seeds)',
+             'pairedInterval': 'Interval, basic minus recovery: {low} to {high} m',
+             'pairedCounts': 'Recovery better in {better}, worse in {worse}, tied in {tied} of '
+                             '{total} seeds',
+             'identicalNoDelay': 'Both trackers are identical here (no delay, no loss)',
+             'tiedEverySeed': 'Tied in every seed',
+             'limitsTitle': 'Limits',
+             'sourceTitle': 'Source',
+             'detailsTitle': 'Details',
+             'inspectorEmptyTitle': 'Nothing selected',
+             'inspectorEmptyHintDelay': 'Click a point on a chart, or use the arrow keys.',
+             'inspectorEmptyHintAtlas': 'Click a cell in the atlas, or use the arrow keys.',
+             'notComputed': 'Not computed',
+             'hoverTemplate': '{arm}, {delay} ms: {median} m ({low} to {high}), {failing} of '
+                              '{total} fail',
+             'rangeTemplate': '{low} to {high} m',
+             'pointSubtitle': '{path}, {loss}, {delay} ms',
+             'chartSummary': 'p95 error against link delay for the basic tracker and the recovery '
+                             'tracker, {path}, {lossType} loss. Use the arrow keys to read each '
+                             'point.'},
+ 'atlas': {'conditionsLabel': 'Conditions',
+           'mostDelayColumn': 'Most delay',
+           'nothingPasses': 'Nothing passes',
+           'failsAtZero': 'Fails at 0',
+           'failsAtZeroLong': 'Fails even at 0 ms',
+           'censored': '>300 ms',
+           'censoredLong': 'More than 300 ms (no failure seen)',
+           'bin1': '0 to 25 ms',
+           'bin2': '50 to 100 ms',
+           'bin3': '150 to 200 ms',
+           'clearWinner': 'Clear winner',
+           'summaryLine': '{tie} ties, {winner} clear winners, {none} cells where nothing passes, '
+                          'of {cells} cells',
+           'tileMostDelay': 'Most delay tolerated',
+           'tileInterval': 'Interval',
+           'tileCause': 'Failure cause',
+           'tileSeeds': 'Seeds',
+           'seedsPerCell': '{n} per cell',
+           'causeLag': 'Delay',
+           'causeGap': 'Lost packets',
+           'causeNoise': 'Sensor noise',
+           'causeModel': 'Path model',
+           'causeNone': 'No failure seen',
+           'intervalBelowZero': 'below 0',
+           'intervalAbove': 'above 300',
+           'acrossLossTitle': 'Across loss levels',
+           'diffTitle': 'Difference from basic tracker',
+           'diffCaption': 'Positive means lower error than the basic tracker.',
+           'diffColumnDelay': 'Delay (ms)',
+           'diffColumnMedian': 'Median (m)',
+           'diffColumnInterval': 'Interval (m)',
+           'cellRule': 'A cell fails when at least half its seeds fail ({status}).',
+           'cellSubtitle': '{path}, {loss}, {conditions}',
+           'armHelpNaive': 'Uses each packet when it arrives.',
+           'armHelpRecovery': 'Stamps each packet with its capture time and predicts forward.',
+           'armHelpImm': 'Mixes a straight-line model and a turning model.',
+           'armHelpCt': 'Models a steady turn rate.',
+           'armHelpAdaptive': 'Adjusts how much unexpected motion it allows as packets arrive.',
+           'armHelpRetro': 'Re-filters packets that arrive late.',
+           'armHelpRecoveryGated': 'Recovery that rejects outlier measurements.',
+           'armHelpImmGated': 'IMM that rejects outlier measurements.',
+           'armHelpCtGated': 'Turn-rate model that rejects outlier measurements.'},
  'windowsText': {'comment': 'Copy used only by the Windows Tk app. Shared wording lives in the '
                             'sections above.',
                  'missingLegend': '– means not recorded',

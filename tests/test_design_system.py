@@ -47,6 +47,7 @@ def test_shortcut_bindings_are_exact() -> None:
         "openScenarioRun": "<Control-Shift-O>",
         "focusFilter": "<Control-l>",
         "aboutReplay": "<Control-i>",
+        "showResults": "<Control-r>",
     }
     rows = {row["action_id"]: row["tk_binding"] for row in shortcut_rows(ui)}
     assert rows == expected
@@ -105,6 +106,7 @@ def test_contrast_checker_covers_each_required_pair_once_per_theme() -> None:
     expected = {
         *{(foreground, background) for foreground in colors for background in ("background", "surface")},
         *{(foreground, fill) for foreground in colors for fill in ("selectionFill", "hoverFill")},
+        *{("text", fill) for fill in ("bandFill", "atlasStop1", "atlasStop2", "atlasStop3", "atlasStop4")},
         ("lineStrong", "surface"),
         ("onAlert", "alert"),
         ("onAlert", "caution"),
@@ -214,3 +216,45 @@ def test_shared_copy_sections_are_emitted_and_transport_reuses_shortcut_labels()
     drifted["teamFilter"]["pinnedLevels"] = ["late"]
     with pytest.raises(ValueError, match="pinnedLevels"):
         validate_ui(drifted)
+
+
+RESULT_FILLS = ("bandFill", "atlasStop1", "atlasStop2", "atlasStop3", "atlasStop4")
+
+
+def test_results_fills_are_derived_and_atlas_stops_step_up() -> None:
+    """Each Results fill is an accent blend over surface, and the atlas stops get stronger and stay distinct."""
+    from tools.check_contrast import blend, contrast, unwrap
+
+    tokens = json.loads((ROOT / "design/horizon_tokens.json").read_text(encoding="utf-8"))
+    for theme, colors in tokens["colors"].items():
+        for name in RESULT_FILLS:
+            fill = colors[name]
+            assert fill["base"] == "accent" and fill["over"] == "surface"
+            assert fill["hex"] == blend(unwrap(colors["accent"]), unwrap(colors["surface"]), fill["alpha"])
+            assert contrast(unwrap(colors["text"]), fill["hex"]) >= 4.5
+        alphas = [colors[f"atlasStop{index}"]["alpha"] for index in range(1, 5)]
+        assert alphas == sorted(alphas) and len(set(alphas)) == 4, theme
+        chain = [unwrap(colors["surface"])] + [colors[f"atlasStop{index}"]["hex"] for index in range(1, 5)]
+        assert all(contrast(first, second) >= 1.15 for first, second in zip(chain, chain[1:])), theme
+
+
+def test_results_tokens_and_strings_reach_both_outputs() -> None:
+    """Layout, Windows layout, palette fields and the two copy sections are emitted to Swift and Python."""
+    from desktop.design_tokens import DARK, LAYOUT, LIGHT, UI_TEXT, WIN_LAYOUT
+
+    swift = (ROOT / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
+    assert LAYOUT["chartPanelHeight"] == 220 and LAYOUT["chartLineWidth"] == 1.5
+    assert WIN_LAYOUT["resultsWindow"] == {"width": 1240, "height": 840, "minWidth": 980, "minHeight": 680}
+    assert WIN_LAYOUT["dashPattern"] == [4, 3]
+    assert DARK.atlasStop4 != LIGHT.atlasStop4 and DARK.bandFill.startswith("#")
+    assert "static let chartPanelHeight: CGFloat = 220" in swift
+    assert "static let chartLineWidth: CGFloat = 1.5" in swift
+    assert "let bandFill, atlasStop1, atlasStop2, atlasStop3, atlasStop4: Color" in swift
+    assert "enum Results {" in swift and "enum Atlas {" in swift
+    assert 'static let badge = "Simulated results"' in swift
+    assert UI_TEXT["results"]["badge"] == "Simulated results"
+    assert UI_TEXT["menus"]["showResults"] == "Show Results"
+    for section in ("results", "atlas"):
+        assert all(isinstance(item, str) for item in UI_TEXT[section].values()), section
+        assert all("\u2014" not in item for item in UI_TEXT[section].values()), section
+    assert ", )" not in swift and ",\n    )" not in swift
