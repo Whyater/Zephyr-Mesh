@@ -72,3 +72,27 @@ def test_refuses_nonempty_output_directory(tmp_path: Path):
     (output / "keep.txt").write_text("x", encoding="utf-8")
     with pytest.raises(SystemExit):
         checks.main(["--output-dir", str(output)])
+
+
+def test_paired_ratio_interval_brackets_the_ratio_of_medians():
+    windy = [4.0, 4.4, 3.6, 4.2, 3.8, 4.1]
+    still = [1.0, 1.1, 0.9, 1.05, 0.95, 1.0]
+    low, high = checks._paired_ratio_interval(windy, still)
+    ratio = float(np.median(windy) / np.median(still))
+    assert low <= ratio <= high
+    assert checks._paired_ratio_interval(windy, still) == (low, high)
+
+
+def test_downwash_margin_matches_hand_thrust_numbers():
+    profile = checks._profile_data("crazyflie-class")
+    # Max thrust by hand: 4 * 1.9e-8 * 2846^2 is about 0.616 N; weight 0.028 * 9.81 = 0.275 N.
+    max_thrust = 4 * 1.9e-8 * 2846.0 ** 2
+    assert profile.rotor.thrust_coefficient_n_s2 == 1.9e-8
+    assert max_thrust == pytest.approx(0.6156, rel=1e-3)
+
+
+def test_downwash_cell_reports_saturation_count_and_height_range():
+    cell = checks._downwash_cell(("crazyflie-class", 0.002, 0.6))
+    assert cell["steps"] == 1000
+    assert 0 <= cell["saturated_steps"] <= cell["steps"]
+    assert cell["last_3s_min_z_m"] <= cell["last_3s_max_z_m"]
