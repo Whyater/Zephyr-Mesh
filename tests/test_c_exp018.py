@@ -1,14 +1,19 @@
 import hashlib
 import json
+import math
 from pathlib import Path
 
 import pytest
+import numpy as np
 
 from sim.radio.channel import GilbertElliott
 from sim.trace import EspNowTrace
 from tools.calibrate_radio_from_trace import PositionInput, calibrate, synthetic_trace_dicts
-from tools.c_exp018_recovery import coverage_stat, _trace_with_provenance, run
-from tools.calibrate_radio_from_trace import packets_for_wilson_halfwidth
+from tools.c_exp018_recovery import (BURST_AWARE_SIZING_RULE, BURST_P_GOOD_TO_BAD,
+                                     BURST_R_BAD_TO_GOOD, _falsification,
+                                     _trace_with_provenance, burst_aware_sizing_table,
+                                     coverage_stat, run)
+from tools.calibrate_radio_from_trace import packets_for_wilson_halfwidth, sizing_table
 from tools import c_common
 
 
@@ -23,6 +28,61 @@ def test_wilson_sizing_hand_values():
     # The Wald values (1825, 1521) explain the pre-registration's "about 1800 / 1500".
     assert packets_for_wilson_halfwidth(0.95, 0.01) == 1838
     assert packets_for_wilson_halfwidth(0.99, 0.005) == 1606
+
+
+def test_falsification_rssi_rows_name_exp002():
+    rows = _falsification()
+    rssi_rows = [row for row in rows if "RSSI" in row["measurement"]]
+    assert rssi_rows
+    assert all("EXP-002" in row["measurement"] for row in rssi_rows)
+    channel_parameters = {"a_dbm", "n", "n_outdoor", "sigma_db"}
+    assert all("EXP-001" not in row["measurement"]
+               for row in rows if row["parameter"] in channel_parameters)
+
+
+def test_burst_inflation_hand_value():
+    rho = 1.0 - 0.02 - 0.2
+    inflation_factor = (1.0 + rho) / (1.0 - rho)
+    assert inflation_factor == pytest.approx(8.0909, rel=1e-3)
+
+
+def test_burst_inflation_matches_simulated_chain():
+    chain = GilbertElliott(0.02, 0.2)
+    n = 2000
+    replicates = 4000
+    rng = np.random.default_rng(18018)
+    delivery_means = np.empty(replicates)
+    for i in range(replicates):
+        # The default start_state=None samples the stationary distribution.
+        _, lost = chain.sample(n, rng, start_state=None)
+        delivery_means[i] = np.mean(~lost)
+    q = 0.2 / (0.02 + 0.2)
+    empirical_inflation = np.var(delivery_means, ddof=1) / (q * (1.0 - q) / n)
+    expected_inflation = (1.0 + (1.0 - 0.02 - 0.2)) / (1.0 - (1.0 - 0.02 - 0.2))
+    assert empirical_inflation == pytest.approx(expected_inflation, rel=0.10)
+
+
+def test_burst_aware_sizing_rows_preserve_independent_table():
+    independent_rows = sizing_table()
+    burst_rows = burst_aware_sizing_table()
+    assert sizing_table() == independent_rows
+    assert len(burst_rows) == len(independent_rows)
+    expected_inflation = (1.0 + (1.0 - BURST_P_GOOD_TO_BAD - BURST_R_BAD_TO_GOOD)) / (
+        1.0 - (1.0 - BURST_P_GOOD_TO_BAD - BURST_R_BAD_TO_GOOD))
+    expected_fields = {"p", "halfwidth", "packets_independent", "inflation_factor",
+                       "packets_bursty", "burst_p", "burst_r"}
+    for base, row in zip(independent_rows, burst_rows):
+        assert set(row) == expected_fields
+        assert row["p"] == base["p"]
+        assert row["halfwidth"] == base["halfwidth"]
+        assert row["packets_independent"] == base["packets"]
+        assert row["inflation_factor"] == pytest.approx(expected_inflation)
+        assert row["packets_bursty"] == math.ceil(expected_inflation * base["packets"])
+        assert row["burst_p"] == BURST_P_GOOD_TO_BAD
+        assert row["burst_r"] == BURST_R_BAD_TO_GOOD
+    assert "large-n approximation" in BURST_AWARE_SIZING_RULE
+    assert "delivery probability" in BURST_AWARE_SIZING_RULE
+    assert "stationary delivery" in BURST_AWARE_SIZING_RULE
 
 
 def test_coverage_stat_counts_unidentifiable_entries():
@@ -62,6 +122,11 @@ def test_pilot_byte_identical(tmp_path, monkeypatch):
     # Manifest carries runtime and host fields, so compare every reproducible artifact.
     for name in ("summary.json", "recovery.csv", "sweeps.csv", "exp018_coverage.png", "exp018_design.png"):
         assert hashlib.sha256((a / name).read_bytes()).hexdigest() == hashlib.sha256((b / name).read_bytes()).hexdigest()
+
+    summary = json.loads((a / "summary.json").read_text())
+    assert summary["sizing_table"] == sizing_table()
+    assert summary["burst_aware_sizing_table"] == burst_aware_sizing_table()
+    assert summary["burst_aware_sizing_rule"] == BURST_AWARE_SIZING_RULE
 
     manifest_a = json.loads((a / "manifest.json").read_text())
     manifest_b = json.loads((b / "manifest.json").read_text())
