@@ -57,5 +57,16 @@
       "s6_turn_phases.png": "ed9be05de9362700fd42928263c7135feb484ead4b3a0d9fa72d08229a6abe07",
       "summary.json": "9580d36b69a08e6f6323e135b8ddfc443d0edb676adb6e99d8c80b7de1f8207c"
     }
+  },
+  {
+    "run_dir": "runs/s6-sending",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_sending.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. ./.venv/bin/python tools/make_s6_sending_figure.py {out}",
+    "outputs": {
+      "cells.csv": "fa99cdb3665a0f53eecd8eb166f049f7747ad01f4642169022445e97ea10c2e6",
+      "per_seed.csv.gz": "1a54dadd612c390d40ece9f71a458bee6c40b93b4e2ae678e1462589100c49b0",
+      "s6_sending_bytes.png": "9df7f8b968e42baaed47b42714b9c484f2cf400e99c6f2b4a2dab3800f79a662",
+      "s6_sending_packets.png": "3c3114cfeff3846cb1a4e97c2899ce7c591a73d84bb199a36c06953bb34b6d58",
+      "summary.json": "392017cdfe809b54b758e0daa51388f8e76f9cdfda2d59d609a258a1071ef70c"
+    }
   }
 ]
