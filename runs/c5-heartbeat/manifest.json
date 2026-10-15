@@ -1,0 +1,60 @@
+{
+  "argv": [
+    "--full",
+    "--processes",
+    "2"
+  ],
+  "code_sha256": {
+    "sim/radio/channel.py": "e095a023fc3c9c3a11844ec27be608f0d283fe0966e86eb954f2a7d31d68e6b1",
+    "sim/radio/heartbeat.py": "92077d98f54a2633685239ae65eb836dc0b2b5248dbd075eacb1f3dea64f8e96",
+    "sim/radio/interference.py": "d09287e67bc7b8fd37f8c9f74bb60b0157543f1513e9395e5dfa6c8ee5c6d8b6",
+    "tools/c_exp016_heartbeat.py": "27da76697f8903d2473c06b178cc54ea7f7b7e6837d00f3648bafe7e9f26f1bd"
+  },
+  "config": {
+    "pilot": false,
+    "rates": [
+      5,
+      10,
+      20,
+      50
+    ],
+    "timeouts": [
+      0.1,
+      0.2,
+      0.3,
+      0.5,
+      1.0,
+      2.0
+    ]
+  },
+  "config_sha256": "62df1d79115d3f04728a07550b19f45ef326ffa3969bd1fed4f750bf7a9a3c9b",
+  "git_revision": "4a946b0488ddc82516064de17a7d4f3136ba625d",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no ESP32 or drone hardware was used.",
+    "Radio parameters are literature-derived (sim/radio/params.py), with ranges; none are measured.",
+    "All values are simulated; radio parameters are literature-derived.",
+    "Heartbeats have zero jitter; bursts are classic Gilbert chains with burst length set in seconds (r = 1 / (duration x h)).",
+    "The 1 per 100 hours threshold uses the closed form only: 10 simulated hours cannot resolve it.",
+    "When burst duration x heartbeat rate < 1 (e.g. 0.05 s or 0.2 s at 5 Hz) a burst is a single packet, so those cases coincide."
+  ],
+  "n_processes": 2,
+  "numpy": "2.5.1",
+  "outputs": {
+    "detection_delay.csv": "0ebf878c8fd376ae28fa9d875c7dd232ad5b67645093f9946080bc29bf592e1c",
+    "exp016_false_alarms.png": "6bc600b506852a60d84287b68ee6e12f54ef71537a0f354e557a4a460ed1affb",
+    "exp016_rule_300ms.png": "4cba578f788ddbe934d02156f7056e15c23f88d76ef8e51f03f67f988af4dbab",
+    "false_alarms.csv": "ca0a21e47868eba7e2fc338d29af8f526b78875f6e5ebcfd1812b7b6f5f070ce",
+    "interference.csv": "3520e79e8f7a2034dd4c0104b963e11583dd75e1c9b49d190a768737b8dcbdf5",
+    "summary.json": "43d563641147e2833a90b9256df91317fd535e6e56a977565a7f83cd699cfb6d",
+    "thresholds.json": "8d0f7af78fc41495c14d4990c6502beb5662ec198223bb96d4184a7f968f4a5f"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output {out}",
+  "runtime_s": 2324.3834199579996,
+  "schema": "zephyr-run-c-manifest-1",
+  "seeds": [
+    20261016
+  ]
+}
