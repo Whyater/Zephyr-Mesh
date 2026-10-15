@@ -141,3 +141,50 @@ def apply_style(theme: str = "light") -> dict[str, str]:
         }
     )
     return pal
+
+
+# ---------------------------------------------------------------- arm styles
+
+
+def _arm_fade(color: str, pal: dict) -> str:
+    """Same hue, 40 % toward the surface color (the gated and q10 variants)."""
+    return mix(color, pal["surface"], 0.4)
+
+
+def arm_style(name: str, pal: dict) -> dict:
+    """Color, line style and marker for a tracker arm, the same in every S6 figure.
+
+    Returns {"color": hex, "linestyle": str, "marker": str}. Names that start with a
+    model prefix followed by an underscore and a setting (cv_r0.2, ct_q25,
+    imm_adaptq_r0.2) are styled by the model prefix, where cv is the recovery arm.
+    The status colors caution (amber) and alert (red) are never arm colors.
+    Unknown names raise ValueError.
+    """
+    table = {
+        "naive": (pal["lineStrong"], "--", "o"),
+        "recovery": (pal["accent"], "-", "o"),
+        "retro": (mix(pal["accent"], pal["ok"], 0.5), "-", "D"),
+        "ca": (pal["target"], "-", "^"),
+        "ca_q10": (_arm_fade(pal["target"], pal), ":", "^"),
+        "ct": (pal["ok"], "-", "s"),
+        "ct_q10": (_arm_fade(pal["ok"], pal), ":", "s"),
+        "ct_gated": (_arm_fade(pal["ok"], pal), "-.", "s"),
+        "imm": (pal["keepOut"], "-", "v"),
+        "imm_gated": (_arm_fade(pal["keepOut"], pal), "-.", "v"),
+        "adaptive": (mix(pal["target"], pal["keepOut"], 0.5), "-", "P"),
+        "recovery_gated": (_arm_fade(pal["accent"], pal), "-.", "o"),
+    }
+    key = name
+    if key not in table:
+        if key == "recovery-v1" or key == "cv":
+            key = "recovery"
+        else:
+            prefix = key.split("_", 1)[0] if "_" in key else None
+            if prefix == "cv":
+                key = "recovery"
+            elif prefix in ("ca", "ct", "imm"):
+                key = prefix
+    if key not in table:
+        raise ValueError(f"unknown arm name {name!r}")
+    color, linestyle, marker = table[key]
+    return {"color": color, "linestyle": linestyle, "marker": marker}

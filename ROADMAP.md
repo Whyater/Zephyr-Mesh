@@ -16,6 +16,7 @@ This roadmap is written for contributors and reviewers. It separates shipped cod
 - Portable S7 scenario runs: tools/run_scenario.py validates bounded JSON configs, produces deterministic parameter and payload digests, and both desktop surfaces inspect the same read-only frames with matching contract checks. The inspectors show runtime provenance and the evidence boundary, while all readers reject reordered frames or timestamps outside the documented 1e-9 second contract tolerance. A selected-frame altitude profile sits beside the top-down geometry without claiming a full 3D/live view. Linear moving keep-out spheres are captured at each frame time with a shared velocity bound; arbitrary trajectories and obstacle rendering remain future work.
 - Swarm model provenance: `SwarmSimulator.model_provenance()` keeps declared profile identity and calibration fields visible while explicitly marking actuator coupling, energy telemetry, and 6-DOF flight as not simulated. A future actuator-coupled swarm path needs its own contract and independent validation.
 - Shared release updater contract with digest verification, safe extraction, rollback backup, runtime version discovery, and post-exit replacement for the macOS bundle and Windows directory build. Release `v0.2.2` publishes Apple Silicon, Intel, and Windows x86_64 assets with SHA-256 sidecars and a manifest. The workflow runs a frozen Windows GUI smoke check; physical install and relaunch remain open.
+- Estimation package (`sim/estimation`) and follow-up S6 sweeps in `runs/s6-retro`, `s6-turn`, `s6-tuning`, `s6-clocks`, `s6-sending`, `s6-sensitivity`, and `s6-atlas`: re-filtering late packets, turn-aware filters, a filter-consistency check, clock offset and sync, event-triggered and 16-bit sending, a parameter sensitivity sweep, and a map of which tracker tolerates how much delay and loss. State: Local and simulated only. The inputs are assumed or taken from the literature, nothing is measured, and nothing is flight-tested. The cell-fails rule (at least half the seeds fail) is proposed, not yet adopted.
 
 ## Next evidence gates
 
@@ -27,6 +28,7 @@ This roadmap is written for contributors and reviewers. It separates shipped cod
 6. Capture a documented camera/tracker run, validate it against `sim/vision_trace_schema.json`, and inspect it with `tools/analyze_vision_trace.py` before fitting noise, latency, or recovery parameters.
 7. Exercise the v0.2.2 downloads on physical macOS and Windows hosts, including updater staging and relaunch. macOS code signing/notarization and Windows publisher signing remain release gates.
 8. Replace the checked-in fixture report with public measured reports only after issues [#1](https://github.com/Whyater/Zephyr-Mesh/issues/1), [#2](https://github.com/Whyater/Zephyr-Mesh/issues/2), and [#3](https://github.com/Whyater/Zephyr-Mesh/issues/3) produce documented artifacts and review them through the same inspector.
+9. Measure real ESP-NOW delay, jitter, and loss, plus the clock offset between the sensor and the tracker, to replace the assumed and literature-derived inputs (including the packet size on air) used by the simulated sweeps.
 
 ## Later
 

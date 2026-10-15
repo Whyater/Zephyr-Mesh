@@ -1,0 +1,152 @@
+{
+  "by_mu_star": {
+    "straight": {
+      "imm": [
+        "noise",
+        "tuning_error",
+        "sensor_rate",
+        "burst_mean_length",
+        "clock_error",
+        "loss",
+        "speed",
+        "delay",
+        "turn_rate"
+      ],
+      "recovery": [
+        "noise",
+        "tuning_error",
+        "sensor_rate",
+        "clock_error",
+        "burst_mean_length",
+        "loss",
+        "delay",
+        "speed",
+        "turn_rate"
+      ]
+    },
+    "turn": {
+      "imm": [
+        "sensor_rate",
+        "noise",
+        "turn_rate",
+        "tuning_error",
+        "burst_mean_length",
+        "loss",
+        "delay",
+        "speed",
+        "clock_error"
+      ],
+      "recovery": [
+        "sensor_rate",
+        "turn_rate",
+        "burst_mean_length",
+        "speed",
+        "loss",
+        "tuning_error",
+        "delay",
+        "noise",
+        "clock_error"
+      ]
+    }
+  },
+  "oat_ranges": {
+    "ct": {
+      "imm": {
+        "burst_mean_length": 0.062147846119127714,
+        "clock_error": 0.07418361722468536,
+        "delay": 0.09605632812382334,
+        "loss": 0.07190355850247387,
+        "noise": 0.24238792850313298,
+        "sensor_rate": 0.09718960102408121,
+        "speed": 0.01733474111311678,
+        "tuning_error": 0.12887872029336475,
+        "turn_rate": 0.008358896279749756
+      },
+      "recovery": {
+        "burst_mean_length": 0.2972870543622147,
+        "clock_error": 0.059846565628590837,
+        "delay": 0.18485813747693838,
+        "loss": 0.21357948446937247,
+        "noise": 0.15534443748661547,
+        "sensor_rate": 0.16969916256839532,
+        "speed": 0.15670469649016455,
+        "tuning_error": 0.23393731059320091,
+        "turn_rate": 0.1640937991190459
+      }
+    },
+    "cv": {
+      "imm": {
+        "burst_mean_length": 0.05878121079214571,
+        "clock_error": 0.07438602832519009,
+        "delay": 0.07220573892593361,
+        "loss": 0.04224749752832074,
+        "noise": 0.262349067265459,
+        "sensor_rate": 0.08477441933998794,
+        "speed": 0.0035407135217552232,
+        "tuning_error": 0.17408063572586438,
+        "turn_rate": 0.0
+      },
+      "recovery": {
+        "burst_mean_length": 0.04344968454004777,
+        "clock_error": 0.07676447671838044,
+        "delay": 0.06430412698625618,
+        "loss": 0.03869645136302967,
+        "noise": 0.24820908244265277,
+        "sensor_rate": 0.07940704439297057,
+        "speed": 4.163336342344337e-17,
+        "tuning_error": 0.14474620329813798,
+        "turn_rate": 0.0
+      }
+    }
+  },
+  "oat_rank": {
+    "ct": {
+      "imm": {
+        "burst_mean_length": 7,
+        "clock_error": 5,
+        "delay": 4,
+        "loss": 6,
+        "noise": 1,
+        "sensor_rate": 3,
+        "speed": 8,
+        "tuning_error": 2,
+        "turn_rate": 9
+      },
+      "recovery": {
+        "burst_mean_length": 1,
+        "clock_error": 9,
+        "delay": 4,
+        "loss": 3,
+        "noise": 8,
+        "sensor_rate": 5,
+        "speed": 7,
+        "tuning_error": 2,
+        "turn_rate": 6
+      }
+    },
+    "cv": {
+      "imm": {
+        "burst_mean_length": 6,
+        "clock_error": 4,
+        "delay": 5,
+        "loss": 7,
+        "noise": 1,
+        "sensor_rate": 3,
+        "speed": 8,
+        "tuning_error": 2,
+        "turn_rate": 9
+      },
+      "recovery": {
+        "burst_mean_length": 6,
+        "clock_error": 4,
+        "delay": 5,
+        "loss": 7,
+        "noise": 1,
+        "sensor_rate": 3,
+        "speed": 8,
+        "tuning_error": 2,
+        "turn_rate": 9
+      }
+    }
+  }
+}

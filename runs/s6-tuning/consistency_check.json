@@ -1,0 +1,13 @@
+{
+  "arm": "recovery",
+  "band_high": 4.6979242243671155,
+  "band_low": 1.6790772265566631,
+  "delay_s": 0.0,
+  "fraction_windows_inside_band": 0.946,
+  "loss_probability": 0.0,
+  "mean_of_seed_mean_nis": 3.0112900114477554,
+  "n_seeds": 50,
+  "q": 0.1,
+  "r": 0.05,
+  "target": "cwna"
+}
