@@ -2,9 +2,14 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
+
+from tools.build_results_fixture import build_atlas, build_s6
 
 ROOT = Path(__file__).parents[1]
 MACOS = ROOT / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/results_fixture.json"
@@ -52,4 +57,67 @@ def test_json_is_finite_and_small():
     text = raw.decode("utf-8")
     assert "NaN" not in text and "Infinity" not in text
     print(f"results_fixture.json size: {len(raw)} bytes")
-    assert len(raw) < 3_000_000  # D-134: verbatim atlas differences
+    # size target: under 3 MB
+    assert len(raw) < 3_000_000
+
+
+def _sources():
+    summary_path = ROOT / "runs/s6-recovery/summary.json"
+    atlas_path = ROOT / "runs/s6-atlas/atlas.json"
+    return (
+        json.loads(summary_path.read_text(encoding="utf-8")),
+        summary_path.read_bytes(),
+        json.loads(atlas_path.read_text(encoding="utf-8")),
+        atlas_path.read_bytes(),
+    )
+
+
+def _atlas_args(atlas):
+    manifest_path = ROOT / "runs/s6-atlas/manifest.json"
+    return atlas, b"{}", json.loads(manifest_path.read_text(encoding="utf-8")), "- The map: most cells are ties"
+
+
+def _s6_args(summary):
+    manifest_path = ROOT / "runs/s6-recovery/manifest.json"
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    return summary, b"{}", json.loads(manifest_path.read_text(encoding="utf-8")), readme
+
+
+def test_builders_reject_source_shape_drift():
+    summary, _, atlas, _ = _sources()
+
+    mutated = deepcopy(atlas)
+    mutated["strata"]["extra"] = {}
+    with pytest.raises(ValueError):
+        build_atlas(*_atlas_args(mutated))
+
+    mutated = deepcopy(atlas)
+    mutated["entries"][0]["loss_model"] = "unknown"
+    with pytest.raises(ValueError):
+        build_atlas(*_atlas_args(mutated))
+
+    mutated = deepcopy(atlas)
+    mutated["entries"][0]["variant"] = "new_variant"
+    with pytest.raises(ValueError):
+        build_atlas(*_atlas_args(mutated))
+
+    mutated = deepcopy(summary)
+    selected = [cell for cell in mutated["cells"] if cell["slice"] == "burst"]
+    mutated["cells"].append(deepcopy(selected[0]))
+    with pytest.raises(ValueError):
+        build_s6(*_s6_args(mutated))
+
+    mutated = deepcopy(summary)
+    mutated["cells"] = [
+        cell for cell in mutated["cells"]
+        if not (cell["slice"] == "main" and cell["loss_model"] == "independent" and cell["loss_probability"] == 0.5)
+    ]
+    with pytest.raises(ValueError):
+        build_s6(*_s6_args(mutated))
+
+    mutated = deepcopy(atlas)
+    next(entry for entry in mutated["entries"] if entry["arm"] != "naive")["improvement_vs_naive"] = [
+        {"delay_s": 0, "median_p95_diff_m": 0, "interval_m": [0, 0]}
+    ] * 6
+    with pytest.raises(ValueError):
+        build_atlas(*_atlas_args(mutated))

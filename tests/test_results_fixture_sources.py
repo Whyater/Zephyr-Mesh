@@ -21,8 +21,6 @@ FIXTURE_PATHS = [
 S6_DIR = ROOT / "runs" / "s6-recovery"
 ATLAS_DIR = ROOT / "runs" / "s6-atlas"
 
-# Number of individual value comparisons performed (printed by the last test with -s).
-COUNT = 0
 FAILS_SHOWN = 12
 
 
@@ -32,21 +30,21 @@ class Checker:
     def __init__(self, name: str):
         self.name = name
         self.bad: list[str] = []
+        self.n = 0
 
     def eq(self, got, want, what: str) -> None:
-        global COUNT
-        COUNT += 1
+        self.n += 1
         same = got == want and isinstance(got, bool) == isinstance(want, bool)
         if not same:
             self.bad.append(f"{what}: fixture={got!r} source={want!r}")
 
     def true(self, cond: bool, what: str) -> None:
-        global COUNT
-        COUNT += 1
+        self.n += 1
         if not cond:
             self.bad.append(what)
 
     def done(self) -> None:
+        print(f"\n[{self.name}] comparisons: {self.n}")
         if self.bad:
             shown = "\n  ".join(self.bad[:FAILS_SHOWN])
             more = f"\n  ... and {len(self.bad) - FAILS_SHOWN} more" if len(self.bad) > FAILS_SHOWN else ""
@@ -97,7 +95,7 @@ def test_both_fixture_copies_identical_and_formatted():
     want = (json.dumps(obj, indent=1, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\n").encode("utf-8")
     c.true(raw == want, "fixture bytes are not json.dumps(indent=1, sort_keys, ensure_ascii=False) + LF")
     c.true(b"\r" not in raw, "fixture contains CR")
-    c.true(len(raw) < 3_000_000, f"fixture is {len(raw)} bytes, target is under 3 MB (D-134)")
+    c.true(len(raw) < 3_000_000, f"fixture is {len(raw)} bytes, target is under 3 MB")
     c.eq(obj.get("schema"), "zephyr-results-fixture-1", "schema")
     c.eq(obj.get("generator"), "tools/build_results_fixture.py", "generator")
     c.eq(obj.get("simulated"), True, "simulated")
@@ -206,7 +204,9 @@ def test_s6_series_values(fx, s6_src):
                 c.eq(s[key][i], arm[key], f"{where} {key}")
             for fkey, skey in PAIRED_MAP.items():
                 c.eq(s[fkey][i], cell["paired"][skey], f"{where} {fkey}")
-    c.eq(order, sorted(order), "series order (motion, loss model, loss probability, arm)")
+    expected = [(m, lm, p, a) for m in range(2) for lm, ps in ((0, [0.0, 0.1, 0.3, 0.5]), (1, [0.1, 0.3, 0.5]))
+                for p in ps for a in range(2)]
+    c.eq(order, expected, "series order (motion, loss model, loss probability ascending, arm)")
     c.done()
 
 
@@ -228,6 +228,52 @@ def test_s6_cell_coverage(fx, s6_src):
 
 
 # ---------------------------------------------------------------- 3. atlas
+
+STRATUM_ORDER = ["central", "noise0", "noise2", "noise10", "rate5", "rate20", "rate50", "jitter", "student_t"]
+VARIANT_ORDER = ["cv_0.5", "cv_1", "cv_2", "ct_r0.5", "ct_r1", "ct_r3", "jink", "figure8", "start_stop"]
+ARM_ORDER = ["naive", "recovery", "imm", "ct", "adaptive", "retro", "recovery_gated", "imm_gated", "ct_gated"]
+STRATUM_TITLES = {"central": "Central: 10 Hz, 5 cm noise", "noise0": "No sensor noise", "noise2": "2 cm noise",
+                  "noise10": "10 cm noise", "rate5": "5 Hz sensor", "rate20": "20 Hz sensor", "rate50": "50 Hz sensor",
+                  "jitter": "Delay jitter", "student_t": "Heavy-tail noise"}
+# What each title implies about the atlas.json stratum parameters.
+STRATUM_PARAMS = {
+    "central": {"noise_std_m": 0.05, "rate_hz": 10.0, "noise_model": "gaussian", "noise_dof": None, "jitter_rule": "none"},
+    "noise0": {"noise_std_m": 0.0, "rate_hz": 10.0, "noise_model": "gaussian", "noise_dof": None, "jitter_rule": "none"},
+    "noise2": {"noise_std_m": 0.02, "rate_hz": 10.0, "noise_model": "gaussian", "noise_dof": None, "jitter_rule": "none"},
+    "noise10": {"noise_std_m": 0.1, "rate_hz": 10.0, "noise_model": "gaussian", "noise_dof": None, "jitter_rule": "none"},
+    "rate5": {"noise_std_m": 0.05, "rate_hz": 5.0, "noise_model": "gaussian", "noise_dof": None, "jitter_rule": "none"},
+    "rate20": {"noise_std_m": 0.05, "rate_hz": 20.0, "noise_model": "gaussian", "noise_dof": None, "jitter_rule": "none"},
+    "rate50": {"noise_std_m": 0.05, "rate_hz": 50.0, "noise_model": "gaussian", "noise_dof": None, "jitter_rule": "none"},
+    "jitter": {"noise_std_m": 0.05, "rate_hz": 10.0, "noise_model": "gaussian", "noise_dof": None,
+               "jitter_rule": "jitter_s = delay_s / 2"},
+    "student_t": {"noise_std_m": 0.05, "rate_hz": 10.0, "noise_model": "student_t", "noise_dof": 3.0, "jitter_rule": "none"},
+}
+ARM_TITLES = {"naive": "Naive", "recovery": "Recovery", "imm": "IMM", "ct": "Turn-rate (CT)", "adaptive": "Adaptive",
+              "retro": "Retro", "recovery_gated": "Recovery gated", "imm_gated": "IMM gated", "ct_gated": "CT gated"}
+FIXED_VARIANT_TITLES = {"jink": "Random jinking", "figure8": "Figure eight", "start_stop": "Start and stop"}
+
+
+def variant_name(v: str) -> str:
+    if v.startswith("cv_"):
+        return f"Straight line, {v[3:]} m/s"
+    if v.startswith("ct_r"):
+        return f"Circle, {v[4:]} m radius"
+    return FIXED_VARIANT_TITLES[v]
+
+
+def loss_sort(cond: str) -> tuple[int, float]:
+    model, prob = cond.split(":")
+    return (1 if model == "burst" else 0, float(prob))
+
+
+def entry_sort_key(e: dict) -> tuple:
+    return (STRATUM_ORDER.index(e["stratum"]), VARIANT_ORDER.index(e["variant"]), loss_sort(e["loss_condition"]),
+            ARM_ORDER.index(e["arm"]))
+
+
+def ordered(values, order) -> list:
+    return [v for v in order if v in set(values)]
+
 
 def rank(tol: dict) -> float:
     if tol["fails_at_zero"]:
@@ -278,6 +324,8 @@ def test_atlas_entries(fx, atlas_src):
     c.eq(sorted(set(got) - set(src)), [], "fixture entry keys not in source")
     c.eq(sorted(set(src) - set(got)), [], "source entry keys missing in fixture")
     c.eq(len(at["entries"]), len(atlas_src["entries"]), "entry count")
+    c.eq([entry_sort_key(f) for f in at["entries"]], sorted(entry_sort_key(e) for e in atlas_src["entries"]),
+         "entries order (stratum, variant, loss random-then-burst by probability, arm)")
     for key, e in src.items():
         f = got.get(key)
         if f is None:
@@ -314,31 +362,25 @@ def test_atlas_header_fields(fx, atlas_src):
     delays = sorted({d["delay_s"] for e in atlas_src["entries"] if e["arm"] != "naive" for d in e["improvement_vs_naive"]})
     c.eq(at["delays_s"], delays, "delays_s")
     c.eq(len(at["delays_s"]), 7, "7 tested delays")
-    expect_ids = ["central", "noise0", "noise2", "noise10", "rate5", "rate20", "rate50", "jitter", "student_t"]
-    c.eq([s["id"] for s in at["strata"]], expect_ids, "strata order")
-    titles = {"central": "Central: 10 Hz, 5 cm noise", "noise0": "No sensor noise", "noise2": "2 cm noise",
-              "noise10": "10 cm noise", "rate5": "5 Hz sensor", "rate20": "20 Hz sensor", "rate50": "50 Hz sensor",
-              "jitter": "Delay jitter", "student_t": "Heavy-tail noise"}
+    c.eq([s["id"] for s in at["strata"]], STRATUM_ORDER, "strata order")
     by_stratum: dict[str, list[dict]] = {}
     for e in atlas_src["entries"]:
         by_stratum.setdefault(e["stratum"], []).append(e)
     for s in at["strata"]:
         sid = s["id"]
-        c.eq(s["title"], titles[sid], f"{sid} title")
+        c.eq(s["title"], STRATUM_TITLES[sid], f"{sid} title")
+        c.eq(atlas_src["strata"][sid], STRATUM_PARAMS[sid], f"{sid} source parameters match what the title says")
         ents = by_stratum[sid]
-        c.eq(sorted(s["variants"]), sorted({e["variant"] for e in ents}), f"{sid} variants")
-        c.eq(sorted(s["arms"]), sorted({e["arm"] for e in ents}), f"{sid} arms")
-        c.eq(sorted(s["loss_conditions"]), sorted({e["loss_condition"] for e in ents}), f"{sid} loss_conditions")
-        c.eq(len(s["variants"]), len(set(s["variants"])), f"{sid} variants unique")
-        c.eq(len(s["arms"]), len(set(s["arms"])), f"{sid} arms unique")
+        c.eq(s["variants"], ordered({e["variant"] for e in ents}, VARIANT_ORDER), f"{sid} variants (ordered)")
+        c.eq(s["arms"], ordered({e["arm"] for e in ents}, ARM_ORDER), f"{sid} arms (ordered)")
+        c.eq(s["loss_conditions"], sorted({e["loss_condition"] for e in ents}, key=loss_sort), f"{sid} loss_conditions (ordered)")
         c.true(isinstance(s["description"], str) and s["description"] != "", f"{sid} description present")
-    # stratum parameters named in the contract
-    c.eq(atlas_src["strata"]["noise10"]["noise_std_m"], 0.1, "source noise10 noise_std_m")
-    c.eq(atlas_src["strata"]["rate5"]["rate_hz"], 5.0, "source rate5 rate_hz")
     all_variants = {e["variant"] for e in atlas_src["entries"]}
     all_arms = {e["arm"] for e in atlas_src["entries"]}
     c.eq(sorted(at["variant_titles"]), sorted(all_variants), "variant_titles keys")
     c.eq(sorted(at["arm_labels"]), sorted(all_arms), "arm_labels keys")
+    c.eq(at["variant_titles"], {v: variant_name(v) for v in all_variants}, "variant_titles values")
+    c.eq(at["arm_labels"], {a: ARM_TITLES[a] for a in all_arms}, "arm_labels values")
     c.eq(sorted(at["loss_titles"]), sorted({e["loss_condition"] for e in atlas_src["entries"]}), "loss_titles keys")
     for key, title in at["loss_titles"].items():
         model, prob = key.split(":")
@@ -361,14 +403,16 @@ def test_atlas_cells_and_counts(fx, atlas_src):
     c.eq(sorted(set(got) - set(derived)), [], "fixture cells not in source groups")
     c.eq(sorted(set(derived) - set(got)), [], "source groups missing from fixture cells")
     c.eq(len(at["cells"]), len(derived), "cell count")
+    cell_key = lambda k: (STRATUM_ORDER.index(k[0]), VARIANT_ORDER.index(k[1]), loss_sort(k[2]))  # noqa: E731
+    c.eq([cell_key((x["stratum"], x["variant"], x["loss_condition"])) for x in at["cells"]],
+         sorted(cell_key(k) for k in derived), "cells order (stratum, variant, loss)")
     for key, (kind, arms) in derived.items():
         cell = got.get(key)
         if cell is None:
             continue
         where = "/".join(key)
         c.eq(cell["kind"], kind, f"{where} kind")
-        c.eq(set(cell["arms"]), arms, f"{where} arms")
-        c.eq(len(cell["arms"]), len(arms), f"{where} arms count (no duplicates)")
+        c.eq(cell["arms"], ordered(arms, ARM_ORDER), f"{where} arms (ordered list in arm order)")
         if kind == "none":
             c.eq(cell["delay_text"], None, f"{where} delay_text")
         else:
@@ -415,10 +459,3 @@ def test_findings_verbatim_in_sources(fx):
     c.true(at_find[0]["text"].startswith("The map: most cells are ties"), "atlas finding[0] starts with the map bullet")
     c.true(not at_find[0]["text"].startswith("- "), "atlas finding[0] drops the bullet marker")
     c.done()
-
-
-# ---------------------------------------------------------------- report
-
-def test_zz_comparison_count():
-    print(f"\nRESULTS FIXTURE SOURCE COMPARISONS: {COUNT}")
-    assert COUNT > 1000, f"only {COUNT} comparisons ran"
