@@ -4,7 +4,7 @@
 
 ![The macOS app showing a synthetic 50-drone replay from above, with each drone marked on time or late](docs/media/macos-replay.png)
 
-*Screenshot of a synthetic replay in the macOS app. No real drones or radio data.*
+*Screenshot of a synthetic replay in the macOS app, paused on its last frame. No real drones or radio data.*
 
 Zephyr Mesh is a simulator I'm building to study cooperative drone tracking before working with hardware. It models one quadcopter as a full 6-degree-of-freedom rigid body, an unreliable radio link (delay, jitter, dropped and out-of-order packets, plus an ESP-NOW style radio model), trackers that estimate a moving target, and a simplified multi-drone layer. Everything is simulated: no drone has been built or flown.
 
@@ -38,7 +38,7 @@ All of these are simulated. Nothing is measured on hardware. The failure line be
 - Stamping each measurement with the time it was taken, then predicting forward, cuts the 300 ms error with no loss from 0.36 m to 0.16 m on a straight line, and from 0.38 m to 0.29 m on a 1 m radius turn (`runs/s6-recovery`).
 - On the turn, lost packets matter more than delay: at 30 % random loss the recovery tracker fails from 150 ms just like the basic one, and at 50 % both fail at every delay (`runs/s6-recovery`).
 - On a 1 m radius turn at 300 ms delay and 30 % loss, a tracker that models turning stays under the line (0.20 m) where the straight-line recovery tracker fails (0.40 m) (`runs/s6-turn`).
-- Delaying the drone's own position and velocity feedback is what really hurts its control loop: in an 80 s check, two micro-quad profiles built from published specs both settle at 0.33 s of delay and start a growing wobble at 0.34 s (`runs/a6-long-check`, `runs/a6-control-tolerance`).
+- Delaying the drone's own position and velocity feedback is what really hurts its control loop: in an 80 s check, two micro-quad profiles built from published specs at 0.33 s of delay the wobble after a 1 m step still shrinks, but slowly (its peak in each 10 s window falls from 0.73 m to 0.41 m over 80 s), and at 0.34 s it grows instead (up to 1.24 m) (`runs/a6-long-check`, `runs/a6-control-tolerance`).
 - In a simulated ESP-NOW style link, the worst p95 radio latency in the tracker test was about 28 ms, well under the 150 to 200 ms where the tracker starts failing from delay, so lost packets break it first (`runs/c-exp017-tolerance-r2`).
 - Twelve drones each sending 32-byte packets 50 times a second keep the channel about two thirds busy. With retries every packet arrives, with a p95 latency of 4.4 ms. This assumes no outside Wi-Fi traffic and that every drone hears every other one (`runs/c-exp014-mac-r2`).
 
@@ -50,10 +50,10 @@ Set up once with the steps in [INSTALL.md](INSTALL.md#run-from-source), then run
 
 | Check | What it shows | Command |
 | --- | --- | --- |
-| RK4 accuracy | Error drops about 16x each time the time step halves, a measured order of 4.00, as expected for RK4 (plot: `runs/s2-physics-v2/a_s2_convergence.png`) | `PYTHONPATH=. python tools/make_s2_convergence.py --output /tmp/convergence.json` |
+| RK4 accuracy | Error drops about 16x each time the time step halves, ratios of 16.09, 16.03 and 16.01, so order about 4, as expected for RK4 (plot: `runs/s2-physics-v2/a_s2_convergence.png`) | `PYTHONPATH=. python tools/make_s2_convergence.py --output /tmp/convergence.json` |
 | Step response | Vertical 3 m step: 8.4 % overshoot, settles in 3.0 s; 1 m sideways step: 19 % overshoot, settles in 3.4 s (plot: `runs/s0-baseline-v2/a_s0_baseline_v2.png`) | `PYTHONPATH=. python tools/a_make_s0_baseline_v2.py --output-dir /tmp/s0-v2` |
 | Controller timestep limit | The controller refuses time steps at or above 2/18 = 0.111 s, where its attitude damping would go unstable | `python -m pytest tests/test_vehicle.py -k sampled_attitude_limit` |
-| Reproducibility | Running the same scenario and seed twice gives byte-identical output | `PYTHONPATH=. python tools/run_scenario.py --config sim/scenario_example.json --output /tmp/run.json --summary` |
+| Reproducibility | Running the same scenario and seed twice gives byte-identical output (run it twice to two files and compare them with `cmp`) | `PYTHONPATH=. python tools/run_scenario.py --config sim/scenario_example.json --output /tmp/run.json --summary` |
 | Every published run | Reruns each registered run from a clean copy and checks its output hashes (slow: several hours) | `python tools/reproduce_all.py` |
 
 ![RK4 error against time step, dropping about 16x each time the step is halved](runs/s2-physics-v2/a_s2_convergence.png)

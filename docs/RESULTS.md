@@ -22,7 +22,7 @@ PYTHONPATH=. python tools/make_s6_figure.py runs/s6-recovery/summary.json --outp
 In simulation, each idea below was tried against the capture-time tracker above, with the same 0.25 m p95 research line. In the map, a cell fails when at least half its seeds fail; that rule is proposed, not yet adopted.
 
 - Late packets: putting out-of-order packets back into the filter gains under 1 cm (paired median, at most 0.94 cm), so dropping them costs very little (`runs/s6-retro`).
-- Turns: on a 1 m radius turn at 300 ms delay and 30 % loss, a turn-rate model stays under the line (0.20 m) where the straight-line recovery tracker fails (0.40 m). The price on straight lines is 1 to 2 cm with no loss, up to 3 cm with random loss, and up to 10 cm with 50 % bursty loss, and no single turn-aware tracker is best on every path (`runs/s6-turn`).
+- Turns: on a 1 m radius turn at 300 ms delay and 30 % loss, a turn-rate model stays under the line (0.20 m) where the straight-line recovery tracker fails (0.40 m). The price on straight lines is up to 2 cm with no loss, up to 3 cm with random loss, and up to 10 cm with 50 % bursty loss, and no single turn-aware tracker is best on every path (`runs/s6-turn`).
 - Tuning check: a consistency check on the filter (NIS) flags a wrongly guessed sensor noise without knowing the truth, but it cannot see pure link delay (`runs/s6-tuning`).
 - Clock sync: a simple sync exchange every 0.1 to 1 s keeps the extra error within 1 cm of perfect clocks. It only misses with a 10 s interval and half the sync exchanges lost (about 29 % of sync messages) (`runs/s6-clocks`).
 - Sending fewer packets: sending only when the target has moved can stand in for a faster periodic rate on a turn, but not on a lossy straight line. With 5 cm noise and 100 ms delay on the turn with no loss, sending after every 10 cm of movement (about 20 packets/s) gives 11.6 cm p95, against 16.9 cm at 10 packets/s and 12.1 cm at 25 packets/s. On a straight line with 30 % loss, about 19 packets/s gives 12.2 cm, against 13.9 cm at 10 packets/s and 9.7 cm at 25 packets/s. Sending positions as 16-bit numbers at 1 mm saves about 10 % of the bytes on air and moves p95 by at most 2 % with periodic sending, and up to 6 % either way with event sending (`runs/s6-sending`).
@@ -41,7 +41,7 @@ PYTHONPATH=. python tools/make_s6_atlas_figure.py /tmp/s6-atlas
 In simulation, with two micro-quad profiles built from published specs (not measured):
 
 - Delaying only the position the drone is told to fly to never made it unstable. It only adds lag error, in proportion to the delay.
-- Delaying the drone's own position and velocity feedback is different. In an 80 s check both profiles settle at 0.33 s of delay and start a growing wobble at 0.34 s. A hand calculation from the controller's phase margin predicts about 0.32 to 0.34 s.
+- Delaying the drone's own position and velocity feedback is different. In an 80 s check on both profiles, at 0.33 s of delay the wobble after a 1 m step still shrinks, but slowly (its peak in each 10 s window falls from 0.73 m to 0.41 m over 80 s), and at 0.34 s it grows instead (up to 1.24 m). A hand calculation from the controller's phase margin predicts about 0.32 to 0.34 s.
 - If the whole state is delayed, attitude included, the limit drops to about 20 to 30 ms.
 
 Limits: simulated, with literature-derived profiles and one controller tuning; the 80 s check uses one seed per case; ground contact is not modeled. Data: `runs/a6-long-check`, `runs/a6-control-tolerance`.

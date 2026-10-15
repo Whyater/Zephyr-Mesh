@@ -9,7 +9,7 @@ The native app requires macOS 14 or newer. Download the architecture that matche
 - [Apple Silicon](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.3/ZephyrMesh-macos-arm64-v0.2.3.zip)
 - [Intel](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.3/ZephyrMesh-macos-x86_64-v0.2.3.zip)
 
-If you downloaded v0.2.2: that Mac build crashes at launch on any Mac other than the one that built it, because it cannot find its bundled replay file. v0.2.3 fixes this.
+If you downloaded v0.2.2: that Mac build crashes at launch on any Mac other than the one that built it, because it cannot find its bundled replay file. v0.2.3 includes the fix.
 
 Unzip the download and open `ZephyrMesh.app`. SHA-256 sidecars are attached to the release. The package is ad hoc signed and may require a one-time confirmation in macOS Privacy & Security. To build the local bundle instead, install the Xcode Command Line Tools and run:
 
