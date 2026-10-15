@@ -52,18 +52,74 @@ def test_atlas_figures_build_and_are_deterministic(run_dir: Path, tmp_path: Path
         assert manifest["outputs"][key] == value
 
 
-def test_winner_prefers_larger_delay_then_smaller_p95() -> None:
-    def entry(value, censored=None, fails=False):
-        return {"loss_model": "independent", "loss_probability": 0.1,
-                "max_tolerated_delay_s": {"value": value, "censored": censored,
-                                          "fails_at_zero": fails, "interval_s": [0, 0]}}
+def _entry(value, censored=None, fails=False):
+    return {"loss_model": "independent", "loss_probability": 0.1,
+            "max_tolerated_delay_s": {"value": value, "censored": censored,
+                                      "fails_at_zero": fails, "interval_s": [0, 0]}}
 
-    arms = {"a": entry(0.1), "b": entry(0.1), "c": entry(None, ">0.3"), "d": entry(None, None, True)}
-    table = {}
-    assert make_s6_atlas_figure.pick_winner(arms, table, "s", "v", None)[0] == "c"
+
+def test_clear_winner_needs_strictly_larger_delay() -> None:
+    arms = {"a": _entry(0.1), "b": _entry(0.1), "c": _entry(None, ">0.3"),
+            "d": _entry(None, None, True)}
+    kind, top, entry = make_s6_atlas_figure.classify_cell(arms)
+    assert (kind, top) == ("winner", ["c"])
+    assert entry is arms["c"]
     del arms["c"]
-    table[("s", "v", "independent", 0.1, 0.1, "a")] = 0.20
-    table[("s", "v", "independent", 0.1, 0.1, "b")] = 0.15
-    assert make_s6_atlas_figure.pick_winner(arms, table, "s", "v", None)[0] == "b"
-    assert make_s6_atlas_figure.pick_winner({"d": entry(None, None, True)}, table, "s", "v",
-                                            None) == (None, None)
+    kind, top, _ = make_s6_atlas_figure.classify_cell(arms)
+    assert (kind, top) == ("tie", ["a", "b"])  # equal delay is a tie, never an arm pick
+
+
+def test_ties_listed_in_arm_order_and_none_when_all_fail() -> None:
+    arms = {"adaptive": _entry(None, ">0.3"), "naive": _entry(None, ">0.3"),
+            "imm": _entry(0.2)}
+    kind, top, _ = make_s6_atlas_figure.classify_cell(arms)
+    assert kind == "tie" and top == ["naive", "adaptive"]
+    assert make_s6_atlas_figure.classify_cell({"d": _entry(None, None, True)}) == (
+        "none", [], None)
+
+
+def test_tie_text_names_arms_or_counts_them() -> None:
+    assert make_s6_atlas_figure.tie_text(["naive", "adaptive"]) == "Tie: Naive, Adapt."
+    assert make_s6_atlas_figure.tie_text(["naive", "recovery", "imm", "ct"]) == "Tie (4 arms)"
+
+
+def test_count_line_is_computed_from_cells() -> None:
+    cells = [("tie", ["a", "b"], None)] * 3 + [("winner", ["a"], None)] * 2 + [
+        ("none", [], None)]
+    counts = make_s6_atlas_figure.cell_counts(cells)
+    assert counts == {"cells": 6, "none": 1, "winner": 2, "tie": 3, "survive": 5}
+    assert make_s6_atlas_figure.count_line(counts) == (
+        "Ties: 3 of 5 cells where some arm survives; clear winner: 2; "
+        "no arm tolerates 0 ms: 1.")
+
+
+def test_footnotes_and_context_lines(run_dir: Path) -> None:
+    atlas = make_s6_atlas_figure.load_atlas(run_dir / "atlas.json")
+    summary = make_s6_atlas_figure.load_summary(run_dir / "summary.json")
+    for stratum in atlas["strata"]:
+        text = make_s6_atlas_figure.footnote(atlas, stratum, summary)
+        flat = " ".join(text.split())
+        assert "median p95 with 95" not in flat
+        assert "largest tested delay before the first failing delay" in flat
+        assert "rule proposed, not yet adopted" in flat
+        assert "\u2014" not in text
+    central = " ".join(make_s6_atlas_figure.footnote(atlas, "central", summary).split())
+    assert "assumes" not in central and "burst" not in central.lower().replace("burst loss", "")
+    for stratum, info in atlas["strata"].items():
+        text = " ".join(make_s6_atlas_figure.footnote(atlas, stratum, summary).split())
+        if stratum.startswith("noise"):
+            assert "still assumes 5 cm measurement noise" in text
+        if stratum.startswith("rate"):
+            assert "0.5 s mean bursts at every measurement rate" in text
+        if info["jitter_rule"] != "none":
+            assert info["jitter_rule"].replace("_s", "") in text
+
+
+def test_which_method_counts_match_the_data(run_dir: Path) -> None:
+    atlas = make_s6_atlas_figure.load_atlas(run_dir / "atlas.json")
+    groups = make_s6_atlas_figure.group_entries(atlas)["central"]
+    kinds = [make_s6_atlas_figure.classify_cell(arms)[0] for arms in groups.values()]
+    counts = make_s6_atlas_figure.cell_counts(
+        [make_s6_atlas_figure.classify_cell(arms) for arms in groups.values()])
+    assert counts["tie"] == kinds.count("tie") and counts["none"] == kinds.count("none")
+    assert counts["tie"] + counts["winner"] + counts["none"] == len(groups)

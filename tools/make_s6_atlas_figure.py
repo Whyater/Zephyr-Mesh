@@ -18,11 +18,14 @@ fail even at 0 ms and the darkest cells mark arms that never break within the te
 range.
 
 Question of figure 2: for each target motion and loss level, which arm tolerates the
-most delay, and is there any cell where no arm tolerates even 0 ms?
+most delay? A cell names an arm only when that arm's tolerated delay is strictly larger
+than every other arm's. When two or more arms share the best tolerated delay the cell
+says "Tie" in a neutral color and lists them. Cells where no arm tolerates even 0 ms keep
+a red outline.
 
-Every plotted number is read from atlas.json (and summary.json for the tie-break by
-median p95 error). The script only converts seconds to milliseconds and fractions
-to percent for labels. Colors come from design/horizon_tokens.json through
+Every plotted number is read from atlas.json (summary.json supplies the tested delays and
+the tracker settings quoted in the footnote). The script only converts seconds to
+milliseconds and fractions to percent for labels. Colors come from design/horizon_tokens.json through
 tools/horizon_mpl.py. The same input files always produce the same PNG bytes.
 """
 
@@ -115,24 +118,10 @@ def load_atlas(path: Path) -> dict:
 
 
 def load_summary(path: Path) -> dict | None:
-    """summary.json is only used for the tie-break; a missing file is not fatal."""
+    """summary.json supplies tested delays and tracker settings; a missing file is not fatal."""
     if not path.exists():
         return None
     return _read_json(path)
-
-
-def index_p95(summary: dict | None) -> dict:
-    """Map (stratum, variant, loss model, loss, delay, arm) to the median p95 in meters."""
-    table: dict = {}
-    if summary is None:
-        return table
-    for cell in summary.get("cells", []):
-        info = cell.get("cell", {})
-        for arm, stats in cell.get("arms", {}).items():
-            table[(cell.get("stratum"), cell.get("variant"), info.get("loss_model"),
-                   round(float(info.get("loss_probability", 0.0)), 6),
-                   round(float(info.get("delay_s", 0.0)), 6), arm)] = stats.get("p95_median_m")
-    return table
 
 
 def tested_delays(summary: dict | None) -> list[float]:
@@ -288,24 +277,50 @@ def stratum_description(atlas: dict, stratum: str) -> str:
     elif "noise_std_m" in info:
         parts.append(f"Gaussian noise {fmt_g(round(info['noise_std_m'] * 100, 3))} cm")
     if info.get("jitter_rule") not in (None, "none"):
-        parts.append("delay jitter")
+        parts.append(f"delay jitter ({info['jitter_rule']})")
     return ", ".join(parts)
 
 
-def footnote(atlas: dict, stratum: str, with_tiebreak: bool, width: int = 125) -> str:
+def context_lines(atlas: dict, summary: dict | None, stratum: str) -> list[str]:
+    """Plain-language notes on what differs in this stratum from the central one.
+
+    Everything comes from the strata definitions, the run config and burst_mean_s.
+    """
+    info = atlas["strata"].get(stratum, {})
+    base = atlas["strata"].get(CENTRAL, {})
+    config = (summary or {}).get("config", {})
+    lines = []
+    if stratum != CENTRAL and "noise_std_m" in info and info.get("noise_std_m") != base.get(
+            "noise_std_m"):
+        assumed = config.get("tracker_measurement_std_m", base.get("noise_std_m"))
+        if assumed is not None:
+            lines.append(f"The tracker still assumes {fmt_g(round(assumed * 100, 3))} cm "
+                         "measurement noise in this stratum, whatever the sensor noise is.")
+    if stratum != CENTRAL and "rate_hz" in info and info.get("rate_hz") != base.get("rate_hz"):
+        burst = (summary or {}).get("burst_mean_s")
+        if burst is not None:
+            lines.append(f"Burst loss uses {fmt_g(burst)} s mean bursts at every measurement rate.")
+    if info.get("jitter_rule") not in (None, "none"):
+        lines.append(f"Delay jitter: {info['jitter_rule'].replace('_s', '')}, "
+                     "so the jitter size grows with the delay.")
+    return lines
+
+
+def footnote(atlas: dict, stratum: str, summary: dict | None = None, width: int = 125,
+             extra: list[str] | None = None) -> str:
     rule = atlas["failure_rule"]["per_seed"]
     n_seeds = len(atlas["seeds"])
     lines = [
-        f"Simulated link and sensor, {n_seeds} seeds per cell, median p95 with 95 % interval. "
+        f"Simulated link and sensor, {n_seeds} seeds per cell. "
         f"A seed fails above {fmt_g(round(rule['p95_error_m'] * 100, 3))} cm p95 or "
         f"{fmt_g(round(rule['max_error_m'] * 100, 3))} cm peak error; "
-        "a cell fails when at least 50 % of seeds fail (rule proposed, not yet adopted).",
-        f"Stratum: {stratum_description(atlas, stratum)}. Maximum tolerated delay is the "
-        "largest tested delay before the first failing delay. Not flight data.",
+        "a cell fails when at least 50\u00a0% of seeds fail (rule proposed, not yet adopted).",
+        f"Stratum: {stratum_description(atlas, stratum)}. Cells show the maximum tolerated "
+        "delay, the largest tested delay before the first failing delay; no p95 error is "
+        "plotted (p95 values are in summary.json). Not flight data.",
     ]
-    if with_tiebreak:
-        lines.append("Ties in tolerated delay are broken by the smaller median p95 error "
-                     "at that delay.")
+    lines.extend(context_lines(atlas, summary, stratum))
+    lines.extend(extra or [])
     return "\n".join(textwrap.fill(line, width=width) for line in lines)
 
 
@@ -403,9 +418,13 @@ def make_overview(atlas, summary, stratum, groups, pal, path):
     has_fail = any(e["max_tolerated_delay_s"]["fails_at_zero"] for e in atlas["entries"])
     n_rows = math.ceil(len(variants) / PANEL_COLUMNS)
     width = 12.0
-    height = 1.1 + 2.1 * n_rows + 2.7
+    foot = footnote(atlas, stratum, summary)
+    foot_h = 0.15 + 0.155 * (foot.count("\n") + 1)
+    cbar_y = max(1.2, foot_h + 0.3)  # inches from the bottom
+    bottom_in = cbar_y + 1.5
+    height = 1.1 + 2.1 * n_rows + bottom_in
     fig = plt.figure(figsize=(width, height))
-    top, bottom = 1 - 1.1 / height, 2.7 / height
+    top, bottom = 1 - 1.1 / height, bottom_in / height
     gs = fig.add_gridspec(n_rows, PANEL_COLUMNS, left=0.085, right=0.985, top=top,
                           bottom=bottom, wspace=0.14, hspace=0.38)
     for i, variant in enumerate(variants):
@@ -422,11 +441,11 @@ def make_overview(atlas, summary, stratum, groups, pal, path):
     fig.text(0.085, 1 - 0.62 / height, f"Maximum tolerated one-way delay (ms), {desc}"
              + ("" if stratum == CENTRAL else f" (stratum: {stratum})"),
              fontsize=9, color=pal["textSecondary"], ha="left", va="top")
-    cbar = fig.add_axes([0.085, 1.2 / height, 0.45, 0.3 / height])
+    cbar = fig.add_axes([0.085, cbar_y / height, 0.45, 0.3 / height])
     draw_colorbar(cbar, bins, beyond_label, colors, pal, has_fail)
-    fig.text(0.085, 1.65 / height, "Maximum tolerated delay (ms)",
+    fig.text(0.085, (cbar_y + 0.45) / height, "Maximum tolerated delay (ms)",
              fontsize=8.5, color=pal["textSecondary"], ha="left", va="bottom")
-    fig.text(0.085, 0.15 / height, footnote(atlas, stratum, with_tiebreak=False), fontsize=8,
+    fig.text(0.085, 0.15 / height, foot, fontsize=8,
              color=pal["textSecondary"], ha="left", va="bottom", linespacing=1.35)
     save(fig, path)
 
@@ -434,25 +453,42 @@ def make_overview(atlas, summary, stratum, groups, pal, path):
 # ---------------------------------------------------------------- figure 2
 
 
-def pick_winner(atlas_arms: dict, p95_table: dict, stratum, variant, loss_entry_key):
-    """Arm with the largest tolerated delay; ties go to the smaller median p95.
+NONE, WINNER, TIE = "none", "winner", "tie"
+SHORT_LABELS = {
+    "naive": "Naive", "recovery": "Recov.", "imm": "IMM", "ct": "CT", "adaptive": "Adapt.",
+    "retro": "Retro", "recovery_gated": "Rec-g", "imm_gated": "IMM-g", "ct_gated": "CT-g",
+}
+TIE_LISTED_MAX = 3  # more tied arms than this are summarised as a count
 
-    Returns (arm, entry) or (None, None) when no arm tolerates 0 ms.
+
+def short_label(name: str) -> str:
+    return SHORT_LABELS.get(name, arm_label(name))
+
+
+def classify_cell(atlas_arms: dict) -> tuple[str, list[str], dict | None]:
+    """Decide what one cell shows: (kind, arms, entry).
+
+    NONE: no arm tolerates 0 ms. WINNER: exactly one arm has the largest tolerated delay.
+    TIE: two or more arms share the largest tolerated delay; arms lists all of them in arm
+    order and entry is one of their entries (the delay is the same for all).
     """
-    best, best_key = None, None
+    ranked = {}
     for arm in sorted(atlas_arms, key=arm_sort_key):
-        entry = atlas_arms[arm]
-        rank, delay = tolerance_rank(entry)
-        if rank < 0:
-            continue
-        p95 = p95_table.get((stratum, variant, entry["loss_model"],
-                             round(entry["loss_probability"], 6), round(delay, 6), arm))
-        key = (rank, -(p95 if p95 is not None else math.inf))
-        if best_key is None or key > best_key:
-            best, best_key = arm, key
-    if best is None:
-        return None, None
-    return best, atlas_arms[best]
+        rank, _ = tolerance_rank(atlas_arms[arm])
+        if rank >= 0:
+            ranked[arm] = rank
+    if not ranked:
+        return NONE, [], None
+    best = max(ranked.values())
+    top = [arm for arm, rank in ranked.items() if rank == best]
+    kind = WINNER if len(top) == 1 else TIE
+    return kind, top, atlas_arms[top[0]]
+
+
+def tie_text(arms: list[str]) -> str:
+    if len(arms) > TIE_LISTED_MAX:
+        return f"Tie ({len(arms)} arms)"
+    return "Tie: " + ", ".join(short_label(a) for a in arms)
 
 
 def delay_text(entry: dict) -> str:
@@ -462,42 +498,77 @@ def delay_text(entry: dict) -> str:
     return f"{fmt_g(ms(tol['value']))} ms"
 
 
+def cell_counts(classified: list[tuple[str, list[str], dict | None]]) -> dict[str, int]:
+    kinds = [k for k, _, _ in classified]
+    return {"cells": len(kinds), "none": kinds.count(NONE), "winner": kinds.count(WINNER),
+            "tie": kinds.count(TIE), "survive": kinds.count(WINNER) + kinds.count(TIE)}
+
+
+def count_line(counts: dict[str, int]) -> str:
+    return (f"Ties: {counts['tie']} of {counts['survive']} cells where some arm survives; "
+            f"clear winner: {counts['winner']}; no arm tolerates 0 ms: {counts['none']}.")
+
+
 def make_which_method(atlas, summary, stratum, groups, pal, path):
-    p95_table = index_p95(summary)
     variants, losses, arms = stratum_axes(groups)
     xs = loss_columns(losses)
     colors = arm_colors(pal)
+    tie_face = pal["line"]  # neutral Horizon token, never an arm color, red or amber
     fig_w = 11.6
-    cell_h = 0.62
-    height = cell_h * len(variants) + 3.5
+    cell_h = 0.72
+    classified = {(v, lk): classify_cell(groups.get((v, lk), {}))
+                  for v in variants for lk in losses if groups.get((v, lk))}
+    counts = cell_counts(list(classified.values()))
+    foot = footnote(atlas, stratum, summary, width=112, extra=[
+        count_line(counts),
+        "Cell text: the arm and its maximum tolerated delay. A cell names an arm only when "
+        "it tolerates strictly more delay than every other arm; otherwise it reads Tie."])
+    foot_h = 0.15 + 0.155 * (foot.count("\n") + 1)
+    legend_y = foot_h + 0.2
+    bottom_in = legend_y + 0.3 + 0.35  # legend, then a small gap under the grid
+    height = cell_h * len(variants) + bottom_in + 1.55  # title, subtitle, loss labels
     fig = plt.figure(figsize=(fig_w, height))
-    ax = fig.add_axes([0.14, 1.95 / height, 0.845, cell_h * len(variants) / height])
+    ax = fig.add_axes([0.14, bottom_in / height, 0.845, cell_h * len(variants) / height])
     winners_used: list[str] = []
+    any_tie = False
     for r, variant in enumerate(variants):
         for lk, x in zip(losses, xs):
-            arms_here = groups.get((variant, lk), {})
-            arm, entry = pick_winner(arms_here, p95_table, stratum, variant, lk)
-            if not arms_here:
-                face = pal["background"]
-                ax.add_patch(Rectangle((x - 0.5, r - 0.5), 1, 1, facecolor=face,
+            if (variant, lk) not in classified:
+                ax.add_patch(Rectangle((x - 0.5, r - 0.5), 1, 1, facecolor=pal["background"],
                                        edgecolor=pal["surface"], linewidth=2))
                 continue
-            if arm is None:
+            kind, tied, entry = classified[(variant, lk)]
+            if kind == NONE:
                 ax.add_patch(Rectangle((x - 0.5, r - 0.5), 1, 1, facecolor=pal["surface"],
                                        edgecolor=pal["alert"], linewidth=1.2))
                 ax.text(x, r - 0.12, "none", ha="center", va="center", fontsize=9,
                         color=pal["alert"])
                 ax.text(x, r + 0.17, "fails at 0 ms", ha="center", va="center", fontsize=7,
                         color=pal["alert"])
-                continue
-            winners_used.append(arm)
-            face = colors.get(arm, pal["textSecondary"])
-            ax.add_patch(Rectangle((x - 0.5, r - 0.5), 1, 1, facecolor=face,
-                                   edgecolor=pal["surface"], linewidth=2))
-            ax.text(x, r - 0.12, arm_label(arm), ha="center", va="center", fontsize=9,
-                    color=text_on(face, pal))
-            ax.text(x, r + 0.17, delay_text(entry), ha="center", va="center", fontsize=7.5,
-                    color=text_on(face, pal))
+            elif kind == TIE:
+                any_tie = True
+                ax.add_patch(Rectangle((x - 0.5, r - 0.5), 1, 1, facecolor=tie_face,
+                                       edgecolor=pal["surface"], linewidth=2))
+                if len(tied) > TIE_LISTED_MAX:
+                    ax.text(x, r - 0.12, tie_text(tied), ha="center", va="center", fontsize=8,
+                            color=pal["text"])
+                else:
+                    ax.text(x, r - 0.27, "Tie", ha="center", va="center", fontsize=9,
+                            color=pal["text"])
+                    ax.text(x, r - 0.03, ", ".join(short_label(a) for a in tied), ha="center",
+                            va="center", fontsize=6.5, color=pal["textSecondary"])
+                ax.text(x, r + 0.25, delay_text(entry), ha="center", va="center",
+                        fontsize=7.5, color=pal["text"])
+            else:
+                arm = tied[0]
+                winners_used.append(arm)
+                face = colors.get(arm, pal["textSecondary"])
+                ax.add_patch(Rectangle((x - 0.5, r - 0.5), 1, 1, facecolor=face,
+                                       edgecolor=pal["surface"], linewidth=2))
+                ax.text(x, r - 0.12, arm_label(arm), ha="center", va="center", fontsize=9,
+                        color=text_on(face, pal))
+                ax.text(x, r + 0.17, delay_text(entry), ha="center", va="center", fontsize=7.5,
+                        color=text_on(face, pal))
     ax.set_xlim(-0.5, xs[-1] + 0.5)
     ax.set_ylim(len(variants) - 0.5, -0.5)
     ax.set_yticks(range(len(variants)))
@@ -519,31 +590,36 @@ def make_which_method(atlas, summary, stratum, groups, pal, path):
                     textcoords="offset points", ha="center", va="bottom", fontsize=8.5,
                     color=pal["textSecondary"])
     ax.xaxis.set_label_position("top")
-    fig.text(0.14, 1 - 0.22 / height, "Which method tolerates the most delay, and where does none?",
-             fontsize=12.5, color=pal["text"], ha="left", va="top")
+    fig.text(0.14, 1 - 0.22 / height, "Which method tolerates the most delay, where is it a "
+             "tie, and where does none?", fontsize=12.5, color=pal["text"], ha="left", va="top")
     desc = stratum_description(atlas, stratum)
-    fig.text(0.14, 1 - 0.62 / height, f"Arm with the largest maximum tolerated delay (ms), {desc}",
+    fig.text(0.14, 1 - 0.62 / height, "An arm is named only when it tolerates strictly more "
+             f"delay than every other arm (maximum tolerated delay, ms), {desc}",
              fontsize=9, color=pal["textSecondary"], ha="left", va="top")
-    # Legend: one swatch per arm that wins somewhere, plus the "no arm" marker.
+    # Legend: one swatch per arm that wins somewhere, the tie swatch, and the "no arm" marker.
     present = [a for a in arms if a in winners_used]
-    leg = fig.add_axes([0.14, 1.5 / height, 0.845, 0.3 / height])
+    leg = fig.add_axes([0.14, legend_y / height, 0.845, 0.3 / height])
     x_cursor = 0.0
+
+    def swatch(face, edge, label, label_color):
+        nonlocal x_cursor
+        leg.add_patch(Rectangle((x_cursor, 0), 0.5, 1, facecolor=face, edgecolor=edge,
+                                linewidth=1.2 if edge != "none" else 0))
+        leg.text(x_cursor + 0.62, 0.5, label, va="center", ha="left", fontsize=9,
+                 color=label_color)
+        x_cursor += 0.62 + 0.115 * len(label) + 0.55
+
     for arm in present:
-        leg.add_patch(Rectangle((x_cursor, 0), 0.5, 1, facecolor=colors.get(arm, pal["textSecondary"]),
-                                edgecolor="none"))
-        leg.text(x_cursor + 0.62, 0.5, arm_label(arm), va="center", ha="left", fontsize=9,
-                 color=pal["text"])
-        x_cursor += 0.62 + 0.115 * len(arm_label(arm)) + 0.55
-    leg.add_patch(Rectangle((x_cursor, 0), 0.5, 1, facecolor=pal["surface"],
-                            edgecolor=pal["alert"], linewidth=1.2))
-    leg.text(x_cursor + 0.62, 0.5, "no arm tolerates 0 ms", va="center", ha="left", fontsize=9,
-             color=pal["alert"])
-    leg.set_xlim(0, max(x_cursor + 3.2, 12))
+        swatch(colors.get(arm, pal["textSecondary"]), "none", arm_label(arm), pal["text"])
+    if any_tie:
+        swatch(tie_face, "none", "tie: two or more arms share the best delay", pal["text"])
+    if counts["none"]:
+        swatch(pal["surface"], pal["alert"], "no arm tolerates 0 ms", pal["alert"])
+    leg.set_xlim(0, max(x_cursor, 12))
     leg.set_ylim(0, 1)
     leg.axis("off")
-    fig.text(0.14, 0.15 / height, footnote(atlas, stratum, with_tiebreak=True, width=112)
-             + "\nCell text: arm, then its maximum tolerated delay.", fontsize=8,
-             color=pal["textSecondary"], ha="left", va="bottom", linespacing=1.35)
+    fig.text(0.14, 0.15 / height, foot, fontsize=8, color=pal["textSecondary"], ha="left",
+             va="bottom", linespacing=1.35)
     save(fig, path)
 
 
