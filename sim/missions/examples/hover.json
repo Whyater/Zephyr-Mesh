@@ -1,0 +1,8 @@
+{
+  "mission": "hover",
+  "seed": 1,
+  "duration_s": 10.0,
+  "adapter": "point_mass",
+  "preset": "clean",
+  "params": {"start_m": [2.0, 2.0, 1.5], "goal_m": [4.0, 3.0, 1.5]}
+}
