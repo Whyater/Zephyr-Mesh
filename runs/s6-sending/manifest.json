@@ -5,7 +5,7 @@
     "--processes",
     "2",
     "--checkpoint-dir",
-    "/Users/akashi0281/zm-runb-cache/final/sending",
+    "local-cache/final/sending",
     "--seeds",
     "50"
   ],
@@ -30,7 +30,7 @@
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
-  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_sending.py --output runs/s6-sending --processes 2 --checkpoint-dir /Users/akashi0281/zm-runb-cache/final/sending --seeds 50",
+  "replay_command": "PYTHONPATH=. python tools/run_s6_sending.py --output runs/s6-sending --processes 2 --checkpoint-dir local-cache/final/sending --seeds 50",
   "runtime_s": 3705.6514046670018,
   "schema": "s6-sending-manifest-1",
   "seeds": [

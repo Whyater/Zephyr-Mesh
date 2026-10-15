@@ -5,7 +5,7 @@
     "--processes",
     "2",
     "--checkpoint-dir",
-    "/Users/akashi0281/zm-runb-cache/final/tuning",
+    "local-cache/final/tuning",
     "--seeds",
     "50"
   ],
@@ -28,7 +28,7 @@
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
-  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_tuning.py --output runs/s6-tuning --processes 2 --checkpoint-dir /Users/akashi0281/zm-runb-cache/final/tuning --seeds 50",
+  "replay_command": "PYTHONPATH=. python tools/run_s6_tuning.py --output runs/s6-tuning --processes 2 --checkpoint-dir local-cache/final/tuning --seeds 50",
   "runtime_s": 530.8471291249989,
   "schema": "s6-tuning-manifest-1",
   "seeds": [

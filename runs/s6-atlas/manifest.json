@@ -10,7 +10,7 @@
     "central,student_t,jitter",
     "--speed-variants-central-only",
     "--checkpoint-dir",
-    "/Users/akashi0281/zm-runb-cache/final/atlas_full"
+    "local-cache/final/atlas_full"
   ],
   "config_sha256": "084476c53f3e52d3a079f67f79221174cb7089d448fa27e922c1774c822dbd14",
   "git_revision": "028a91ce97d84bec1507662236b2969c1d8b90d0",
@@ -45,7 +45,7 @@
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
-  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_atlas.py --output runs/s6-atlas --seeds 20 --processes 2 --imm-strata central,student_t,jitter --speed-variants-central-only --checkpoint-dir /Users/akashi0281/zm-runb-cache/final/atlas_full",
+  "replay_command": "PYTHONPATH=. python tools/run_s6_atlas.py --output runs/s6-atlas --seeds 20 --processes 2 --imm-strata central,student_t,jitter --speed-variants-central-only --checkpoint-dir local-cache/final/atlas_full",
   "runtime_s": 4861.847643500001,
   "schema": "s6-atlas-manifest-1",
   "seeds": [

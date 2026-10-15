@@ -55,7 +55,7 @@
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
-  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp015_network.py --output {out} --seeds 20 --processes 2",
+  "replay_command": "PYTHONPATH=. python tools/c_exp015_network.py --output {out} --seeds 20 --processes 2",
   "runtime_s": 2869.9618520410004,
   "schema": "zephyr-run-c-manifest-1",
   "seeds": [

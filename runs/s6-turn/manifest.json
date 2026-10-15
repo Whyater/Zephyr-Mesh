@@ -5,7 +5,7 @@
     "--processes",
     "2",
     "--checkpoint-dir",
-    "/Users/akashi0281/zm-runb-cache/final/turn",
+    "local-cache/final/turn",
     "--seeds",
     "50"
   ],
@@ -31,7 +31,7 @@
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
-  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_turn.py --output runs/s6-turn --processes 2 --checkpoint-dir /Users/akashi0281/zm-runb-cache/final/turn --seeds 50",
+  "replay_command": "PYTHONPATH=. python tools/run_s6_turn.py --output runs/s6-turn --processes 2 --checkpoint-dir local-cache/final/turn --seeds 50",
   "runtime_s": 1488.567834292,
   "schema": "s6-turn-manifest-1",
   "seeds": [

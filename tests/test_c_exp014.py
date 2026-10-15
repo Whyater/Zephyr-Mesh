@@ -1,6 +1,7 @@
 import hashlib
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -46,8 +47,8 @@ def test_predicted_u_hand_check():
 
 
 def test_pilot_byte_identity(tmp_path):
-    py = "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python"
-    env = {"PYTHONPATH": ".", "MPLCONFIGDIR": "/private/tmp/exp014-mpl"}
+    py = sys.executable
+    env = {"PYTHONPATH": ".", "MPLCONFIGDIR": str(tmp_path / "mpl")}
     a, b = tmp_path / "a", tmp_path / "b"
     cmd = [py, "tools/c_exp014_mac.py", "--output", str(a), "--pilot", "--processes", "1"]
     import os

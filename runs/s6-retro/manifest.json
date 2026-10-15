@@ -5,7 +5,7 @@
     "--processes",
     "2",
     "--checkpoint-dir",
-    "/Users/akashi0281/zm-runb-cache/final/retro",
+    "local-cache/final/retro",
     "--seeds",
     "50"
   ],
@@ -32,7 +32,7 @@
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
-  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_retro.py --output runs/s6-retro --processes 2 --checkpoint-dir /Users/akashi0281/zm-runb-cache/final/retro --seeds 50",
+  "replay_command": "PYTHONPATH=. python tools/run_s6_retro.py --output runs/s6-retro --processes 2 --checkpoint-dir local-cache/final/retro --seeds 50",
   "runtime_s": 230.65498191699953,
   "schema": "s6-retro-manifest-1",
   "seeds": [

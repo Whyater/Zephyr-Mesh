@@ -96,7 +96,7 @@
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
-  "replay_command": "PYTHONPATH=. '/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python' tools/a_make_s2_physics_v2.py --output-dir runs/s2-physics-v2",
+  "replay_command": "PYTHONPATH=. python tools/a_make_s2_physics_v2.py --output-dir runs/s2-physics-v2",
   "runtime_s": 20.95792191700002,
   "schema": "zephyr-s2-physics-v2-manifest-1",
   "seeds": [],

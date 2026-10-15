@@ -17,7 +17,7 @@
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
-  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_recovery.py --output runs/s6-recovery --overwrite",
+  "replay_command": "PYTHONPATH=. python tools/run_s6_recovery.py --output runs/s6-recovery --overwrite",
   "runtime_s": 118.73010641700057,
   "schema": "zephyr-s6-recovery-manifest-1"
 }

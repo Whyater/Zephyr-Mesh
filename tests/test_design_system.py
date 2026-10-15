@@ -11,7 +11,7 @@ from pathlib import Path
 from tools.generate_design import shortcut_rows, tk_binding
 
 ROOT = Path(__file__).parents[1]
-PYTHON = "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python"
+PYTHON = sys.executable
 
 
 def run_generator(*arguments: str) -> subprocess.CompletedProcess[str]:

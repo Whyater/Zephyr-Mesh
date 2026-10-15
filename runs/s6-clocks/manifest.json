@@ -5,7 +5,7 @@
     "--processes",
     "2",
     "--checkpoint-dir",
-    "/Users/akashi0281/zm-runb-cache/final/clocks",
+    "local-cache/final/clocks",
     "--seeds",
     "50"
   ],
@@ -29,7 +29,7 @@
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
-  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_clocks.py --output runs/s6-clocks --processes 2 --checkpoint-dir /Users/akashi0281/zm-runb-cache/final/clocks --seeds 50",
+  "replay_command": "PYTHONPATH=. python tools/run_s6_clocks.py --output runs/s6-clocks --processes 2 --checkpoint-dir local-cache/final/clocks --seeds 50",
   "runtime_s": 1319.7863053339988,
   "schema": "s6-clocks-manifest-1",
   "seeds": [

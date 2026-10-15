@@ -61,12 +61,12 @@
   "git_tree_state": "dirty",
   "limits": [
     "Sampled-controller limit: attitude rate damping of 18 per second needs dt < 2/18 = 0.111 s (necessary condition; the controller rejects larger steps). Sideways steps are tested to converge at dt 0.01 s for four targets and four starting yaw angles, not at every dt below the limit.",
-    "No heading setpoint: the controller damps yaw rate but does not hold or command a yaw angle.",
+    "Optional heading setpoint: the controller holds a yaw angle only when a target yaw is given (this run commands a 90 degree yaw step); with no target yaw it damps yaw rate only.",
     "No ground plane: the body can descend below z = 0 without contact.",
     "No integral action: a steady thrust shortfall leaves a small steady position error.",
     "Default inertia (0.0023, 0.0023, 0.0040 kg m^2) is a fixed estimate for a 450 g 5-inch frame and is not derived from mass. Hardware-profile vehicles use a point-mass plus plate estimate. Neither is measured.",
     "Drag coefficient, reference area, and controller gains are synthetic scenario inputs, not measured values.",
-    "This artifact only runs the vertical step to (0, 0, 3) m; sideways and yawed cases are covered by tests, not by this run.",
+    "This artifact runs three cases: a vertical step to (0, 0, 3) m, a 1 m sideways step, and a 90 degree yaw step. Other cases are covered by tests, not by this run.",
     "RK4 stages use the attitude quaternion without renormalizing it inside a step (it is renormalized after each step). The effect is small: the measured convergence ratio is still about 16 per halving of dt."
   ],
   "n_processes": null,
@@ -80,7 +80,7 @@
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
-  "replay_command": "PYTHONPATH=. '/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python' tools/a_make_s0_baseline_v2.py --output-dir runs/s0-baseline-v2",
+  "replay_command": "PYTHONPATH=. python tools/a_make_s0_baseline_v2.py --output-dir runs/s0-baseline-v2",
   "runtime_s": 10.39796829199986,
   "schema": "zephyr-s0-baseline-v2-manifest-1",
   "seeds": [],
