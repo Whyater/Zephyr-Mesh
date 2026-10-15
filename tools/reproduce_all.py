@@ -203,7 +203,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--registry", default="tools/reproduce_registry.json")
     parser.add_argument("--rev", default="HEAD", help="git revision for the clean archive")
     parser.add_argument("--source-dir", type=Path, help="copy this plain directory instead of using git archive")
-    parser.add_argument("--python", default="/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python")
+    parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--timeout", type=float, default=3600.0)
     parser.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 1) // 3))
     parser.add_argument("--only", help="comma-separated run directory basenames")
