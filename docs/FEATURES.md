@@ -1,0 +1,24 @@
+# Current features
+
+The full list of what exists today. A short summary is in the [README](../README.md#current-features).
+
+- Six-degree-of-freedom rigid-body simulation with quaternion attitude, gravity, configurable wind, quadratic relative-air drag, and an RK4 integrator whose fourth-order convergence is regenerated on the real model by `tools/make_s2_convergence.py` into `runs/s2-physics/convergence.json`.
+- Cascaded position and attitude control with transparent, inspectable inputs. Attitude gains are scaled by moment of inertia, and the controller rejects steps at or above 2 divided by its largest attitude damping gain (about 0.111 s with the default gains), where its sampled attitude loop cannot settle.
+- Deterministic communication fixtures for delay, jitter (lognormal, with mean and spread equal to the configured values), independent loss, burst loss, serialized contention, packet age, duplicates, and out-of-order delivery. Loss and delay use separate random streams so one can be changed without altering the other. Sequence numbers must not wrap (see `sim/link.py`).
+- Versioned ESP-NOW trace schema and replay bridge that preserve packet identity, measured outcomes, timestamps, RSSI, retries, and clock boundaries without fitting unmeasured radio behavior.
+- Trace summary CLI with unresolved-outcome counts, shared-clock delay summaries, observed-record loss bounds, RSSI summaries, and provenance.
+- Versioned camera/tracker trace schema and summary CLI that preserve detection, miss, and unresolved outcomes, confidence, image-space boxes, optional frame-labelled positions, clock boundaries, and provenance.
+- Seeded sensing and tracking fixtures with independent or burst sensor dropouts, bias, covariance, out-of-order rejection, and recovery metrics; S7 adds a separate deterministic agent dropout schedule.
+- Bounded latency, loss, noise, and target-acceleration investigations with reproducible JSON outputs.
+- Stage 7 coordination foundation with a seeded multi-agent event log, stable identities, formation slots, cooperative target fusion, dropout events, separation checks, and keep-out constraints.
+- Hardware profile and actuator foundation with SI-unit motor and propeller inputs, first-order motor lag, RPM saturation, torque mixing, power draw, and battery sag.
+- Strict SI-unit hardware-profile documents with custom motor and propeller part IDs, status/source/calibration provenance, JSON Schema validation, round-trip loading, and a normalization CLI.
+- Versioned bench trace schema and summary CLI for RPM, thrust, voltage, current, temperature, test conditions, incomplete readings, and transparent electrical input power summaries without curve fitting.
+- Portable evidence reports for the macOS and Windows inspectors, preserving source hashes, declared status, nested values, and limitations.
+- S6 recovery sweep in `runs/s6-recovery`: a naive arm (fuses each packet at arrival time) against a recovery arm (fuses at capture time, then predicts forward), 50 seeds per cell with intervals, over delay, independent and burst loss, noise, delay jitter, and an oracle-tuning slice. The older single-seed, naive-only sweep (`sim/investigation.py`, `sim/investigation_example.json`) is kept and still regenerates, but is superseded by `runs/s6-recovery`. These are simulated research results, not tolerance or flight-performance results.
+- S7 replay analysis for per-route outcomes, abstract packet age, estimator coverage and age, bracketed reacquisition intervals, constraint flags, and observed separation. These metrics describe the checked-in replay and do not establish radio tolerance or flight safety.
+- Typed drone adapter, authority arbitration, and replayable link or battery failsafe contracts.
+- Native macOS SwiftUI and SceneKit cockpit plus a Windows Tkinter desktop surface built from the same canonical replay, including compact mission-event history and replay-only authority or failsafe context.
+- Portable deterministic S7 scenario runs with parameter hashes, payload digests, strict cross-platform validation, bounded linear moving keep-out spheres, and read-only frame inspectors with matching manual controls on both desktop surfaces. Inspectors expose the canonical digests, runtime provenance, base revision semantics, and evidence boundary; frame order and timestamps are validated across readers. The selected-frame view includes a compact synthetic altitude profile beside the top-down geometry, with the long integrity details collapsed to reduce clutter.
+- Model-provenance helpers identify the S7 coordinator as a bounded point-mass fixture and keep declared hardware-profile identity separate from actuator state, energy telemetry, and 6-DOF flight simulation.
+- Local release updater contract with digest verification, path-safe extraction, rollback staging, and architecture-aware asset selection.
