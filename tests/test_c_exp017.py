@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import csv
 import json
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from sim import s6_recovery
 from sim.link import LinkConfig
 from sim.radio.model import NetworkModelConfig
 from tools.c_common import REPO_ROOT, VOLATILE_MANIFEST_FIELDS
+import tools.c_exp017_tolerance as exp017
 from tools.c_exp017_tolerance import (build_cells, deliver_radio, headline, nearest_exp006, run, run_one,
                                       scenario_config)
 
@@ -43,6 +45,25 @@ def test_nearest_exp006_uses_the_real_summary():
     assert nearest_exp006(exp006, delay_s=0.0, loss=0.0, motion="constant_velocity", arm="naive")["label"] == "passes"
 
 
+def test_nearest_exp006_uses_only_main_slice_and_matching_noise():
+    def cell(cell_id, slice_name, noise, delay, loss, label):
+        return {"slice": slice_name, "loss_model": "independent", "motion": "constant_velocity",
+                "noise_std_m": noise, "delay_s": delay, "loss_probability": loss, "cell_id": cell_id,
+                "arms": {"naive": {"label": label, "fail_rate": 0.0},
+                         "recovery": {"label": label, "fail_rate": 0.0}}}
+
+    exp006 = {"cells": [
+        cell("main-near", "main", 0.05, 0.20, 0.20, "main-near"),
+        cell("main-far", "main", 0.05, 0.40, 0.40, "main-far"),
+        cell("other-exact", "stress", 0.05, 0.10, 0.10, "wrong-slice"),
+        cell("noise-exact", "main", 0.10, 0.10, 0.10, "wrong-noise"),
+    ]}
+    assert nearest_exp006(exp006, delay_s=0.18, loss=0.18, motion="constant_velocity",
+                          arm="recovery")["cell_id"] == "main-near"
+    assert nearest_exp006(exp006, delay_s=0.11, loss=0.11, motion="constant_velocity",
+                          arm="naive")["cell_id"] == "main-near"
+
+
 def test_gym_control_delivers_everything_and_never_fails():
     # EXP-013: a 30 m gym link has a margin above 25 dB, so every packet arrives
     # and the tracker behaves as with a perfect link (no failures).
@@ -52,7 +73,34 @@ def test_gym_control_delivers_everything_and_never_fails():
         rows = run_one((cell, seed))
         assert len(rows) == 4  # two motions x two arms from one radio run
         assert all(r["received"] == r["sent"] == 121 for r in rows)
+        assert all(r["received_in_run"] <= r["received"] for r in rows)
         assert not any(r["failed"] for r in rows)
+
+
+def test_received_in_run_excludes_packet_after_run_end(monkeypatch):
+    cell = next(c for c in build_cells() if c["scenario"] == "A" and c["area"] == "gym"
+                and c["mode"] == "unicast" and c["processing_s"] == 0.0)
+    original_scenario_config = exp017.scenario_config
+
+    def abstract_scenario_config(c, seed):
+        radio = original_scenario_config(c, seed).radio
+        return NetworkModelConfig(mode="abstract", link=LinkConfig(delay_s=0.03, loss_probability=0.0), radio=radio)
+
+    original_radio_events = exp017.radio_events
+
+    def abstract_radio_events(radio_cfg, *, seed, config):
+        events, _ = original_radio_events(radio_cfg, seed=seed, config=config)
+
+        class Model:
+            duplicates_suppressed = 0
+
+        return events, Model()
+
+    monkeypatch.setattr(exp017, "scenario_config", abstract_scenario_config)
+    monkeypatch.setattr(exp017, "radio_events", abstract_radio_events)
+    rows = run_one((cell, 1))
+    assert all(r["received"] == 121 for r in rows)
+    assert all(r["received_in_run"] == r["received"] - 1 for r in rows)
 
 
 def test_lossy_distance_counts_every_sent_packet():
@@ -102,3 +150,11 @@ def test_pilot_is_byte_identical(tmp_path: Path):
             assert ma == mb
         else:
             assert hashlib.sha256((a / name).read_bytes()).digest() == hashlib.sha256((b / name).read_bytes()).digest()
+
+    summary = json.loads((a / "summary.json").read_text())
+    contention = next(c for c in summary["cells"] if c["scenario"] == "B" and c["n"] == 8
+                      and c["rate_hz"] == 50.0)
+    with (a / "per_seed.csv").open(newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    observed = {row["background_senders"] for row in rows if int(row["cell"]) == contention["cell"]}
+    assert observed == {"7"}

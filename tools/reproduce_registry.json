@@ -65,5 +65,39 @@
       "per_seed.csv": "15e4a357b17208d805a37fca24307098ed675a94b489532d6f0cd57d3cc6e4b4",
       "summary.json": "e7c53a6f337b1aa495057d70b9bcad16d907bc85dbb6658510881f03044776f1"
     }
+  },
+  {
+    "run_dir": "runs/c-exp014-mac-r2",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp014_mac.py --output {out} --seeds 20",
+    "outputs": {
+      "cells.csv": "b27401989eeeb08b5a9743f6f806c62c821fbc9f16f4f2d2359bbeac882e3c21",
+      "exp014_delivery.png": "03e17ad1813c0f6f2c7cf808268d4573b7422763deedabde5b7d125f37a0ff15",
+      "exp014_latency.png": "ff35c54c5bd112c7f27103786aea88a002459191d47f8b7dce1c9b2ce842f47e",
+      "per_seed.csv": "9bce1990c92672e7e931768752de033fa5381c829636b415c6ab1f7cb9de1f8b",
+      "summary.json": "994384f6fc083b740a493a628446f79a5eb3eb76e762ade9b6ab3813ddd0a34b"
+    }
+  },
+  {
+    "run_dir": "runs/c-exp017-tolerance-r2",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp017_tolerance.py --output {out}",
+    "outputs": {
+      "cells.csv": "2ef63f91381e0c26870b8de4f46bdbbd6fe06bec1722f6262c71e11d58348dc2",
+      "exp017_boundary.png": "a95c08f426645dd287ab4f75da36fcbaec006a54f94bfe917b4d5c936af97b41",
+      "exp017_contention.png": "e79efb35ed3818b69724e5de0db03079708c5b4ee334c7519b266057f9ca3648",
+      "exp017_distance.png": "6e5260c66ac192338e020a65272128c6317fe9ea9f4ce68fe5919d46b43292c2",
+      "per_seed.csv": "e290967e2583f8152175ae100cb609e546533d45e0e100d87d8e1082f5151b03",
+      "summary.json": "ebe6a796f95cb7dd23fd5da2de2487ceb91925e5a751aee774d88a86d7775741"
+    }
+  },
+  {
+    "run_dir": "runs/c-exp018-recovery-r2",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp018_recovery.py --output {out}",
+    "outputs": {
+      "exp018_coverage.png": "0b46b9058c99acbb9021e2642ff5f8e9dba2f9ea773a1df803435764c0f1987b",
+      "exp018_design.png": "e0bbd6f291fbedb880b801f647293fac163f3d01aeca1ebe7719d7429615359d",
+      "recovery.csv": "808b1b86a40bfcb7bf4a600bfa7f676b2e01a1fd1a3aaf76aaea9a933e44382e",
+      "summary.json": "4101d96b067b75bec9bf9f84b71b9740be079f67a27ee277374c25cb45cb112a",
+      "sweeps.csv": "9e7e1911c4474841f9ff6c15c67ede1eab655c1a46b37ccab0510893a3d2214e"
+    }
   }
 ]

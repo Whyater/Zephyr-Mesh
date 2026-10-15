@@ -29,6 +29,19 @@ BASE_SEED = 20261014 + 18
 DISTANCES_M = (1.0, 5.0, 10.0, 20.0, 40.0)
 N_VALUES = (1.8, 2.0, 2.6)
 PARAMETERS = ("n", "a_dbm", "sigma_db", "p", "r")
+BURST_P_GOOD_TO_BAD = 0.02
+BURST_R_BAD_TO_GOOD = 0.2
+BURST_AWARE_SIZING_RULE = (
+    "For each delivery probability p and Wilson half-width, packets_bursty = "
+    "ceil(F * packets_independent), where rho = 1 - burst_p - burst_r and "
+    "F = (1 + rho) / (1 - rho); this is a large-n approximation for the "
+    "two-state chain. Here p is the delivery probability used by the Wilson "
+    "table, while burst_p is the Good-to-Bad transition probability. With "
+    "loss_good=0 and loss_bad=1, the chain's stationary delivery is "
+    "burst_r / (burst_p + burst_r) = 0.9090909. The table's delivery p "
+    "values do not equal this stationary delivery; the inflation factor is "
+    "still the chain's own."
+)
 
 
 def coverage_stat(values: list[float], intervals: list[list[float]], truth: float, confidence: float = 0.95) -> dict:
@@ -65,7 +78,7 @@ def recover_one(seed: int, n_true: float, packets: int = 1000, distances: tuple[
     """Generate one multi-position trace set and fit it with the preregistered calibrator."""
     preset = channel_preset("indoor_gym")
     a_true = preset.tx_power_dbm - preset.pl0_db
-    ge = GilbertElliott(0.02, 0.2)
+    ge = GilbertElliott(BURST_P_GOOD_TO_BAD, BURST_R_BAD_TO_GOOD)
     docs = synthetic_trace_dicts(n=n_true, a_dbm=a_true, sigma_db=3.0, distances_m=distances,
                                  packets_per_distance=packets, ge=ge, fast_sigma_db=0.0, seed=seed)
     positions = [PositionInput(pid, _trace_with_provenance(doc), d) for pid, d, doc in docs]
@@ -78,7 +91,8 @@ def recover_one(seed: int, n_true: float, packets: int = 1000, distances: tuple[
                  "p": gil["p_good_to_bad_ci"], "r": gil["p_bad_to_good_ci"]}
     row = {"seed": int(seed), "true_n": n_true, "packets_per_distance": packets, "n_distances": len(distances)}
     for key in PARAMETERS:
-        row[f"true_{key}"] = {"n": n_true, "a_dbm": a_true, "sigma_db": 3.0, "p": 0.02, "r": 0.2}[key]
+        row[f"true_{key}"] = {"n": n_true, "a_dbm": a_true, "sigma_db": 3.0,
+                               "p": BURST_P_GOOD_TO_BAD, "r": BURST_R_BAD_TO_GOOD}[key]
         row[f"fit_{key}"] = estimates[key]
         row[f"{key}_lo"] = intervals[key][0] if intervals[key] else None
         row[f"{key}_hi"] = intervals[key][1] if intervals[key] else None
@@ -160,16 +174,16 @@ def _falsification() -> list[dict]:
     outdoor_n_range = [p["exponent_outdoor_open"].low, p["exponent_outdoor_open"].high]
     sigma_range = [p["sigma_indoor_large_room_db"].low, p["sigma_indoor_large_room_db"].high]
     return [
-        {"parameter": "a_dbm", "measurement": "EXP-001 RSSI versus distance", "literature_range": a_range,
+        {"parameter": "a_dbm", "measurement": "EXP-002 RSSI versus distance", "literature_range": a_range,
          "packets_needed": 1000, "limiting_factor": "number of positions",
          "falsified_if": "95% interval excludes the literature-derived 1 m RSSI range"},
-        {"parameter": "n", "measurement": "EXP-001 RSSI versus distance", "literature_range": n_range,
+        {"parameter": "n", "measurement": "EXP-002 RSSI versus distance", "literature_range": n_range,
          "packets_needed": 1000, "limiting_factor": "number of positions",
          "falsified_if": "interval excludes the indoor literature-derived exponent range"},
-        {"parameter": "n_outdoor", "measurement": "EXP-001 RSSI versus distance", "literature_range": outdoor_n_range,
+        {"parameter": "n_outdoor", "measurement": "EXP-002 RSSI versus distance", "literature_range": outdoor_n_range,
          "packets_needed": 1000, "limiting_factor": "number of positions",
          "falsified_if": "interval excludes the outdoor literature-derived exponent range"},
-        {"parameter": "sigma_db", "measurement": "EXP-001 RSSI versus distance", "literature_range": sigma_range,
+        {"parameter": "sigma_db", "measurement": "EXP-002 RSSI versus distance", "literature_range": sigma_range,
          "packets_needed": 1000, "limiting_factor": "number of positions",
          "falsified_if": "residuals are non-Gaussian; this cannot be tested with 5 positions"},
         {"parameter": "p/r", "measurement": "EXP-002 delivery and burst structure versus distance", "literature_range": [0.0, 1.0],
@@ -182,6 +196,25 @@ def _falsification() -> list[dict]:
          "packets_needed": 1000, "limiting_factor": "send-rate sweep",
          "falsified_if": "loss versus send rate is inconsistent with simulated queueing"},
     ]
+
+
+def burst_aware_sizing_table(confidence: float = 0.95) -> list[dict]:
+    """Adjust independent Wilson packet counts for the runner's burst chain."""
+    rho = 1.0 - BURST_P_GOOD_TO_BAD - BURST_R_BAD_TO_GOOD
+    inflation_factor = (1.0 + rho) / (1.0 - rho)
+    rows = []
+    for independent in sizing_table(confidence):
+        packets_independent = independent["packets"]
+        rows.append({
+            "p": independent["p"],
+            "halfwidth": independent["halfwidth"],
+            "packets_independent": packets_independent,
+            "inflation_factor": inflation_factor,
+            "packets_bursty": math.ceil(inflation_factor * packets_independent),
+            "burst_p": BURST_P_GOOD_TO_BAD,
+            "burst_r": BURST_R_BAD_TO_GOOD,
+        })
+    return rows
 
 
 def run(output: Path, argv: list[str], pilot: bool, processes: int) -> None:
@@ -257,7 +290,10 @@ def run(output: Path, argv: list[str], pilot: bool, processes: int) -> None:
                "prediction_check": prediction,
                "why_n_interval_is_wide": "5 positions with one static shadowing draw each give 3 residual degrees of freedom; the t multiplier (about 3.18) and sigma / sqrt(sum of squared deviations of 10 log10 d) (about 3 / 12.3 dB) set the half-width; more packets per position do not shrink it",
                "packet_note": "With no fast RSSI noise the n half-width is flat in packets by construction (fast_sigma_db = 0); seeds are reused across packet settings (unpaired design).",
-               "sizing_table": sizing_table(), "falsification_criteria": _falsification(),
+               "sizing_table": sizing_table(),
+               "burst_aware_sizing_table": burst_aware_sizing_table(),
+               "burst_aware_sizing_rule": BURST_AWARE_SIZING_RULE,
+               "falsification_criteria": _falsification(),
                "wilson_checks": {"p095_halfwidth001": packets_for_wilson_halfwidth(0.95, 0.01), "p099_halfwidth0005": packets_for_wilson_halfwidth(0.99, 0.005)}}
     write_json(output / "summary.json", summary)
     write_manifest(output, schema="zephyr-run-c-manifest-1", argv=argv, command="PYTHONPATH=. ./.venv/bin/python tools/c_exp018_recovery.py --output {out}",

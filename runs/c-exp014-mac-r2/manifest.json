@@ -1,0 +1,90 @@
+{
+  "argv": [
+    "--output",
+    "runs/c-exp014-mac-r2",
+    "--seeds",
+    "20",
+    "--processes",
+    "4"
+  ],
+  "code_sha256": {
+    "sim/radio/channel.py": "e095a023fc3c9c3a11844ec27be608f0d283fe0966e86eb954f2a7d31d68e6b1",
+    "sim/radio/mac.py": "5ccdb58940f8d75466e84081fbc4f566e95b37e23124820d7b3aa9e36f257be9",
+    "sim/radio/params.py": "01be78408289434c9833e883385d6012e69bd4892625d324c912bbe5e602232a",
+    "sim/s6_recovery.py": "243c3a5715e02f4d21a05e5a7a7dd58f695e4f627d8e5de7e7da327ad50a2c56",
+    "tools/c_exp014_mac.py": "9bef2faa94d99e90297ebd59fa11320fb5d43377397084a933e7a68cdb4c605c"
+  },
+  "config": {
+    "base_seed": 20261028,
+    "modes": [
+      "unicast_r0",
+      "unicast_r5",
+      "unicast_r10",
+      "broadcast"
+    ],
+    "n_values": [
+      1,
+      2,
+      4,
+      6,
+      8,
+      12
+    ],
+    "payloads_bytes": [
+      32,
+      64
+    ],
+    "pilot": false,
+    "rates_hz": [
+      10,
+      20,
+      50
+    ],
+    "t_stop_s": 31.0
+  },
+  "config_sha256": "1880095c5ee2d7a449cc7fb1df52a70f48abbc62f4c88c704f2f0fa382237ab9",
+  "git_revision": "43be5f58cefc57be20a8c6d1ef64992c7d04ebeb",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no ESP32 or drone hardware was used.",
+    "Radio parameters are literature-derived (sim/radio/params.py), with ranges; none are measured.",
+    "Gym preset only: distance loss is about zero, so losses here are contention.",
+    "Fixed positions per seed, no motion; periodic senders with random phase, no jitter."
+  ],
+  "n_processes": 4,
+  "numpy": "2.5.1",
+  "outputs": {
+    "cells.csv": "b27401989eeeb08b5a9743f6f806c62c821fbc9f16f4f2d2359bbeac882e3c21",
+    "exp014_delivery.png": "03e17ad1813c0f6f2c7cf808268d4573b7422763deedabde5b7d125f37a0ff15",
+    "exp014_latency.png": "ff35c54c5bd112c7f27103786aea88a002459191d47f8b7dce1c9b2ce842f47e",
+    "per_seed.csv": "9bce1990c92672e7e931768752de033fa5381c829636b415c6ab1f7cb9de1f8b",
+    "summary.json": "994384f6fc083b740a493a628446f79a5eb3eb76e762ade9b6ab3813ddd0a34b"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp014_mac.py --output {out} --seeds 20",
+  "runtime_s": 634.2706818340012,
+  "schema": "zephyr-run-c-manifest-1",
+  "seeds": [
+    3287529750,
+    2971200942,
+    569738739,
+    3252724474,
+    2608236947,
+    3584524033,
+    1832143234,
+    1298540780,
+    3261825678,
+    53415417,
+    2272737745,
+    3655753500,
+    2497953798,
+    3620495626,
+    3341464188,
+    3985844985,
+    3389777134,
+    3620760358,
+    4027325130,
+    558149022
+  ]
+}
