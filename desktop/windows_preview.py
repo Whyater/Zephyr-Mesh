@@ -255,6 +255,7 @@ SHORTCUT_HANDLERS: dict[str, str] = {
     "openScenarioRun": "_open_scenario_run",
     "focusFilter": "_focus_filter",
     "aboutReplay": "_show_about",
+    "showResults": "_show_results",
 }
 
 # (menu, label, action id or None, kind). Kinds: command, check, radio, separator, cascade.
@@ -274,6 +275,8 @@ MENU_LAYOUT: tuple[tuple[str, tuple[tuple[str, str | None, str], ...]], ...] = (
         ("", None, "separator"),
         (UI_TEXT["menus"]["focusSelected"], "focusSelected", "command"),
         (UI_TEXT["menus"]["resetCamera"], "resetCamera", "command"),
+        ("", None, "separator"),
+        (UI_TEXT["menus"]["showResults"], "showResults", "command"),
         ("", None, "separator"),
         ("Appearance", None, "appearance"),
     )),
@@ -492,6 +495,7 @@ class WindowsReplayApp:
         self._evidence_window: Any | None = None
         self._scenario_window: Any | None = None
         self._about_window: Any | None = None
+        self._results: Any | None = None  # the single Results window (ui_results.ResultsWindow)
         self.reduced_motion = system_reduced_motion()
         self._configure_styles(self.style, self.theme, self.fonts, self.scale)
         self.images.apply(self.theme)
@@ -1111,7 +1115,8 @@ class WindowsReplayApp:
             except self.tk.TclError:
                 continue
         self._theme_hooks = alive
-        for window in (self.root, self._about_window, self._evidence_window, self._scenario_window):
+        results = self._results.window if self._results is not None and self._results.exists() else None
+        for window in (self.root, self._about_window, self._evidence_window, self._scenario_window, results):
             if window is not None:
                 try:
                     if window is not self.root:
@@ -1745,6 +1750,22 @@ class WindowsReplayApp:
         self._replace_window("_about_window")
         self._about_window = about_window(self._viewer_context(), self.run, self._about_details())
 
+    def _show_results(self, view: str | None = None, select: Mapping[str, str] | None = None) -> Any:
+        """Open the Results window, or bring the open one forward (there is only ever one)."""
+        if __package__ in (None, ""):
+            from desktop.ui_results import open_results
+        else:
+            from .ui_results import open_results
+        if self._results is not None and self._results.exists():
+            self._results.focus()
+            if view:
+                self._results.show_view(view)
+        else:
+            self._results = open_results(self._viewer_context(), view or "delay")
+        if select:
+            self._results.apply_select(select)
+        return self._results
+
     def _replay_digest(self) -> str | None:
         """SHA-256 of the replay file, hashed once in chunks and then cached for later About windows."""
         if "_digest" in self.__dict__:
@@ -2034,7 +2055,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--smoke-evidence", type=Path, action="append",
             help="open and validate an evidence report during frozen GUI smoke; repeat for parity checks")
     parser.add_argument("--smoke-idle", type=Path, help="run the real event loop, then write whether the idle window stopped rendering")
+    parser.add_argument("--open-results", choices=("delay", "atlas"), help="open the Results window on this view (screenshots)")
+    parser.add_argument("--results-select", metavar="SPEC",
+            help="select a chart point or atlas cell, e.g. 'path=turn,loss=independent,level=0.3,arm=recovery,delay=0.2'")
     args = parser.parse_args(argv)
+    results_select = None
+    if args.results_select:
+        if __package__ in (None, ""):
+            from desktop.results_data import parse_select_spec
+        else:
+            from .results_data import parse_select_spec
+        try:
+            results_select = parse_select_spec(args.results_select)
+        except ValueError as exc:
+            parser.error(f"--results-select: {exc}")
     if args.self_test:
         return run_self_test()
     smoke_mode = any((args.smoke_ready, args.smoke_step, args.smoke_health, args.smoke_evidence, args.smoke_idle))
@@ -2080,6 +2114,11 @@ def main(argv: list[str] | None = None) -> int:
         if args.scenario_run and not app._show_scenario_run(args.scenario_run):
             root.destroy()
             return 2
+        if args.open_results or results_select:
+            try:
+                app._show_results(args.open_results or "delay", results_select)
+            except ValueError as exc:
+                print(f"--results-select: {exc}", file=sys.stderr)
         if args.smoke_step:
             app._step()
         if args.smoke_evidence:

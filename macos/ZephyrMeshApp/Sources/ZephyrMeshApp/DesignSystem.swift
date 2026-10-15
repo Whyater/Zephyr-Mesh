@@ -225,7 +225,7 @@ enum LayoutMetrics {
     static let messageMaxWidth: CGFloat = 520
     static let emptyWindowMinWidth: CGFloat = 420
     static let emptyWindowMinHeight: CGFloat = 240
-    static let resultsWindowWidth: CGFloat = 1240
+    static let resultsWindowWidth: CGFloat = 1440
     static let resultsWindowHeight: CGFloat = 840
     static let resultsWindowMinWidth: CGFloat = 980
     static let resultsWindowMinHeight: CGFloat = 680
@@ -239,9 +239,11 @@ enum LayoutMetrics {
     static let chartHoverRing: CGFloat = 10
     static let failureLineWidth: CGFloat = 1.5
     static let atlasCellWidth: CGFloat = 104
+    static let atlasCellMinWidth: CGFloat = 84
     static let atlasCellHeight: CGFloat = 36
     static let atlasRowHeaderWidth: CGFloat = 168
     static let atlasWinnerBorder: CGFloat = 2
+    static let atlasWinnerBar: CGFloat = 3
     static let legendSwatchWidth: CGFloat = 22
     static let legendSwatchHeight: CGFloat = 10
 }
@@ -677,6 +679,17 @@ enum UIText {
         static let chartSummary =
             "p95 error against link delay for the basic tracker and the recovery tracker, {path}, {lossType} loss. Use the arrow keys " +
             "to read each point."
+        static let loadFailed = "The results file could not be read"
+        static let loadFailedHint = "Rebuild the results fixture and the app, then open this window again."
+        static let sourceRunFolder = "Run folder"
+        static let sourceFile = "File"
+        static let sourceManifest = "Manifest SHA-256"
+        static let sourceTreeState = "Working tree"
+        static let sourceRevision = "Git revision"
+        static let detailCellID = "Cell ID"
+        static let detailRule = "Rule"
+        static let detailIntervals = "Intervals"
+        static let moreFindings = "More from the write-up"
     }
     enum Atlas {
         static let conditionsLabel = "Conditions"
@@ -720,6 +733,12 @@ enum UIText {
         static let armHelpRecoveryGated = "Recovery that rejects outlier measurements."
         static let armHelpImmGated = "IMM that rejects outlier measurements."
         static let armHelpCtGated = "Turn-rate model that rejects outlier measurements."
+        static let levelPercent = "{percent} %"
+        static let intervalRange = "{low} to {high} ms"
+        static let tieListed = "Tie: {arms}"
+        static let tieCount = "Tie: {count} trackers"
+        static let intervalSpan = "{low} to {high}"
+        static let intervalCaption = "The interval shows how far the tolerated delay could move with more seeds."
     }
     struct TransportControl {
         let label: String

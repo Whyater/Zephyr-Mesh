@@ -18,7 +18,7 @@ from desktop.evidence import load_evidence_report
 WINDOWS_UI_MODULES = (
     "desktop.scene_projection", "desktop.ui_settings", "desktop.replay_session", "desktop.presentation",
     "desktop.ui_format", "desktop.ui_icons", "desktop.ui_theme", "desktop.ui_widgets", "desktop.scene_view",
-    "desktop.ui_viewers",
+    "desktop.ui_viewers", "desktop.results_data", "desktop.ui_results_chart", "desktop.ui_results_atlas", "desktop.ui_results",
 )
 
 

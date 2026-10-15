@@ -76,7 +76,7 @@ MOTION_MS = {
     'curve': 'ease-out',
     'reduced': 0,
 }
-LAYOUT = {'windowMinWidth': 1180, 'windowMinHeight': 760, 'sidebarWidth': 260, 'inspectorWidth': 300, 'rowHeight': 28, 'sceneMinWidth': 520, 'windowDefaultWidth': 1440, 'windowDefaultHeight': 900, 'eventListHeight': 128, 'inspectorMaxWidth': 360, 'sidebarIdealWidth': 300, 'eventPaneHeight': 192, 'sidebarWidthWindows': 340, 'contentInset': 16, 'controlHeight': 28, 'iconButtonSize': 28, 'iconGlyphSize': 14, 'speedSegmentWidth': 48, 'viewSegmentWidth': 44, 'stripOneRowMinWidth': 960, 'stripMetricWidth': 136, 'stripMetricMinWidth': 112, 'stripValueHeight': 28, 'stripDividerHeight': 40, 'eventRowHeight': 24, 'eventWordWidth': 60, 'eventTimeWidth': 52, 'eventRowsCompact': 4, 'eventRowsRegular': 6, 'compactDetailHeight': 820, 'teamAgeWidth': 64, 'teamLossWidth': 52, 'teamColumnSpacing': 6, 'scrubberMinWidth': 160, 'scrubberTrackHeight': 4, 'scrubberThumbSize': 14, 'scrubberTickHeight': 6, 'metricTileMinHeight': 56, 'sceneStatusMarkerPoints': 11, 'sceneSelectionRingPoints': 15, 'sceneTargetRingPoints': 9, 'sceneFitMarginPoints': 20, 'hoverLabelOffset': 16, 'viewerContentMaxWidth': 720, 'viewerLabelWidth': 220, 'viewerTwoColumnWidth': 960, 'scenarioSideWidth': 360, 'scenarioPlotHeight': 340, 'scenarioRailWidth': 84, 'plotDroneMark': 9, 'plotTargetMark': 14, 'aboutWindowWidth': 700, 'aboutWindowHeight': 760, 'aboutWindowMinWidth': 480, 'aboutWindowMinHeight': 420, 'evidenceWindowWidth': 720, 'evidenceWindowHeight': 840, 'evidenceWindowMinWidth': 560, 'evidenceWindowMinHeight': 440, 'scenarioWindowWidth': 1000, 'scenarioWindowHeight': 720, 'scenarioWindowMinWidth': 620, 'scenarioWindowMinHeight': 520, 'badgeHeight': 22, 'settingsWidth': 360, 'messageMaxWidth': 520, 'emptyWindowMinWidth': 420, 'emptyWindowMinHeight': 240, 'resultsWindowWidth': 1240, 'resultsWindowHeight': 840, 'resultsWindowMinWidth': 980, 'resultsWindowMinHeight': 680, 'resultsSidebarWidth': 200, 'chartPanelMinWidth': 260, 'chartPanelHeight': 220, 'chartPlotInset': 36, 'chartLineWidth': 1.5, 'chartMarkerSize': 6, 'chartCapWidth': 6, 'chartHoverRing': 10, 'failureLineWidth': 1.5, 'atlasCellWidth': 104, 'atlasCellHeight': 36, 'atlasRowHeaderWidth': 168, 'atlasWinnerBorder': 2, 'legendSwatchWidth': 22, 'legendSwatchHeight': 10}
+LAYOUT = {'windowMinWidth': 1180, 'windowMinHeight': 760, 'sidebarWidth': 260, 'inspectorWidth': 300, 'rowHeight': 28, 'sceneMinWidth': 520, 'windowDefaultWidth': 1440, 'windowDefaultHeight': 900, 'eventListHeight': 128, 'inspectorMaxWidth': 360, 'sidebarIdealWidth': 300, 'eventPaneHeight': 192, 'sidebarWidthWindows': 340, 'contentInset': 16, 'controlHeight': 28, 'iconButtonSize': 28, 'iconGlyphSize': 14, 'speedSegmentWidth': 48, 'viewSegmentWidth': 44, 'stripOneRowMinWidth': 960, 'stripMetricWidth': 136, 'stripMetricMinWidth': 112, 'stripValueHeight': 28, 'stripDividerHeight': 40, 'eventRowHeight': 24, 'eventWordWidth': 60, 'eventTimeWidth': 52, 'eventRowsCompact': 4, 'eventRowsRegular': 6, 'compactDetailHeight': 820, 'teamAgeWidth': 64, 'teamLossWidth': 52, 'teamColumnSpacing': 6, 'scrubberMinWidth': 160, 'scrubberTrackHeight': 4, 'scrubberThumbSize': 14, 'scrubberTickHeight': 6, 'metricTileMinHeight': 56, 'sceneStatusMarkerPoints': 11, 'sceneSelectionRingPoints': 15, 'sceneTargetRingPoints': 9, 'sceneFitMarginPoints': 20, 'hoverLabelOffset': 16, 'viewerContentMaxWidth': 720, 'viewerLabelWidth': 220, 'viewerTwoColumnWidth': 960, 'scenarioSideWidth': 360, 'scenarioPlotHeight': 340, 'scenarioRailWidth': 84, 'plotDroneMark': 9, 'plotTargetMark': 14, 'aboutWindowWidth': 700, 'aboutWindowHeight': 760, 'aboutWindowMinWidth': 480, 'aboutWindowMinHeight': 420, 'evidenceWindowWidth': 720, 'evidenceWindowHeight': 840, 'evidenceWindowMinWidth': 560, 'evidenceWindowMinHeight': 440, 'scenarioWindowWidth': 1000, 'scenarioWindowHeight': 720, 'scenarioWindowMinWidth': 620, 'scenarioWindowMinHeight': 520, 'badgeHeight': 22, 'settingsWidth': 360, 'messageMaxWidth': 520, 'emptyWindowMinWidth': 420, 'emptyWindowMinHeight': 240, 'resultsWindowWidth': 1440, 'resultsWindowHeight': 840, 'resultsWindowMinWidth': 980, 'resultsWindowMinHeight': 680, 'resultsSidebarWidth': 200, 'chartPanelMinWidth': 260, 'chartPanelHeight': 220, 'chartPlotInset': 36, 'chartLineWidth': 1.5, 'chartMarkerSize': 6, 'chartCapWidth': 6, 'chartHoverRing': 10, 'failureLineWidth': 1.5, 'atlasCellWidth': 104, 'atlasCellMinWidth': 84, 'atlasCellHeight': 36, 'atlasRowHeaderWidth': 168, 'atlasWinnerBorder': 2, 'atlasWinnerBar': 3, 'legendSwatchWidth': 22, 'legendSwatchHeight': 10}
 WIN_LAYOUT = {'iconSize': 14,
  'chevronSize': 12,
  'glyphSize': 10,
@@ -601,7 +601,19 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
              'pointSubtitle': '{path}, {loss}, {delay} ms',
              'chartSummary': 'p95 error against link delay for the basic tracker and the recovery '
                              'tracker, {path}, {lossType} loss. Use the arrow keys to read each '
-                             'point.'},
+                             'point.',
+             'loadFailed': 'The results file could not be read',
+             'loadFailedHint': 'Rebuild the results fixture and the app, then open this window '
+                               'again.',
+             'sourceRunFolder': 'Run folder',
+             'sourceFile': 'File',
+             'sourceManifest': 'Manifest SHA-256',
+             'sourceTreeState': 'Working tree',
+             'sourceRevision': 'Git revision',
+             'detailCellID': 'Cell ID',
+             'detailRule': 'Rule',
+             'detailIntervals': 'Intervals',
+             'moreFindings': 'More from the write-up'},
  'atlas': {'conditionsLabel': 'Conditions',
            'mostDelayColumn': 'Most delay',
            'nothingPasses': 'Nothing passes',
@@ -643,7 +655,14 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
            'armHelpRetro': 'Re-filters packets that arrive late.',
            'armHelpRecoveryGated': 'Recovery that rejects outlier measurements.',
            'armHelpImmGated': 'IMM that rejects outlier measurements.',
-           'armHelpCtGated': 'Turn-rate model that rejects outlier measurements.'},
+           'armHelpCtGated': 'Turn-rate model that rejects outlier measurements.',
+           'levelPercent': '{percent} %',
+           'intervalRange': '{low} to {high} ms',
+           'tieListed': 'Tie: {arms}',
+           'tieCount': 'Tie: {count} trackers',
+           'intervalSpan': '{low} to {high}',
+           'intervalCaption': 'The interval shows how far the tolerated delay could move with more '
+                              'seeds.'},
  'windowsText': {'comment': 'Copy used only by the Windows Tk app. Shared wording lives in the '
                             'sections above.',
                  'missingLegend': '– means not recorded',

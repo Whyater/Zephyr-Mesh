@@ -11,8 +11,13 @@ import Foundation
 ///   ZEPHYR_VIEW=top                start in top view
 ///   ZEPHYR_FILTER=D0               prefill the team filter
 ///   ZEPHYR_INSPECTOR=0             start with the inspector hidden
-///   ZEPHYR_OPEN=about              also open: about, scenario:<path>, or evidence:<path>
-///   ZEPHYR_WINDOW=1180x760         resize the main window, for example to the minimum size
+///   ZEPHYR_OPEN=about              also open: about, scenario:<path>, evidence:<path>, results:delay or results:atlas
+///   ZEPHYR_WINDOW=1180x760         resize the main window (and the Results window when ZEPHYR_OPEN opens it)
+///   ZEPHYR_RESULTS_SELECT=...      select in the Results window so its inspector is filled:
+///                                  results:delay  path=turn,loss=independent,level=0.3,arm=recovery,delay=0.2
+///                                                 (path straight|turn, loss independent|burst, arm naive|recovery)
+///                                  results:atlas  stratum=central,loss=burst,level=0.3,variant=figure8,arm=ct
+///                                  ZEPHYR_INSPECTOR=0 also hides the Results inspector
 ///   ZEPHYR_SCENE_STATS=1           show SceneKit frame statistics (read in SceneView.swift)
 struct ScreenshotSetup {
     let frame: Int?
@@ -24,6 +29,7 @@ struct ScreenshotSetup {
     let showInspector: Bool?
     let open: String?
     let windowSize: CGSize?
+    let resultsSelect: String?
 
     static let current = ScreenshotSetup(environment: ProcessInfo.processInfo.environment)
 
@@ -38,11 +44,12 @@ struct ScreenshotSetup {
         open = environment["ZEPHYR_OPEN"]
         let size = environment["ZEPHYR_WINDOW"]?.split(separator: "x").compactMap { Double($0) } ?? []
         windowSize = size.count == 2 ? CGSize(width: size[0], height: size[1]) : nil
+        resultsSelect = environment["ZEPHYR_RESULTS_SELECT"]
     }
 
     var isActive: Bool {
         frame != nil || appearance != nil || selectID != nil || focus || viewMode != nil || filter != nil
-            || showInspector != nil || open != nil || windowSize != nil
+            || showInspector != nil || open != nil || windowSize != nil || resultsSelect != nil
     }
 
     @MainActor
