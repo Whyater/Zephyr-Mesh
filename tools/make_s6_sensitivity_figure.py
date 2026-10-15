@@ -360,9 +360,9 @@ def build_morris_figure(run: dict, pal: dict, colors: dict):
         "The ranking depends on the input ranges chosen (a wider range makes an input look more "
         "important).\n"
         "The turn rate cannot change a straight line, so its point at zero is a built-in check.\n"
-        f"Turning target: {over} of {len(turn_resp)} recovery design points are past the 25 cm line, so μ* there "
+        f"Turning target: {over} of {len(turn_resp)} recovery design points are past the 25 cm p95 failure line, so μ* there "
         "partly ranks how badly the tracker breaks.\n"
-        "Burst length is counted in packets, so a faster sensor also shortens each lost burst in time: sensor rate "
+        "Burst length is counted in packets, so a faster sensor also shortens each lost burst in time. Sensor rate "
         "and turn rate tie for first for the recovery tracker.",
         fontsize=8, color=pal["textSecondary"], ha="left", va="bottom", linespacing=1.4)
     return fig
