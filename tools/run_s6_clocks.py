@@ -108,6 +108,7 @@ def _fingerprint(seeds_count):
     h.update(str(seeds_count).encode()); return h.hexdigest()
 
 def run(output: Path, *, pilot=False, seeds_count=50, processes=None, checkpoint_dir=None, no_checkpoint=False, argv=None, cells_override=None):
+    provenance = capture_provenance()  # before any output exists
     if output.exists() and any(output.iterdir()): raise ValueError(f"output directory is non-empty: {output}")
     output.mkdir(parents=True, exist_ok=True)
     if seeds_count < 1: raise ValueError("--seeds must be positive")
@@ -142,7 +143,7 @@ def run(output: Path, *, pilot=False, seeds_count=50, processes=None, checkpoint
     write_csv_gz(output/"per_seed.csv.gz", per_seed, sorted({k for row in per_seed for k in row}))
     write_manifest(output, outputs=["summary.json","cells.csv","per_seed.csv.gz"], argv=args, n_processes=nproc, runtime_s=runtime,
                    extra={"n_cells":len(cells),"n_runs":len(cells)*seeds_count,"n_seeds":seeds_count,"config_sha256":sha256_json(config),"seeds":seeds,"limits":["simulated link and sensor only"],
-                          "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_clocks.py " + shlex.join(args)}, schema="s6-clocks-manifest-1", provenance=capture_provenance())
+                          "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_clocks.py " + shlex.join(args)}, schema="s6-clocks-manifest-1", provenance=provenance)
     return runtime
 
 def main(argv=None):

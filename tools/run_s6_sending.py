@@ -154,6 +154,7 @@ def run_sweep(output: Path, *, pilot: bool = False, seeds_count: int = 50, proce
               checkpoint_dir: Path | None = None, no_checkpoint: bool = False, argv: list[str] | None = None) -> dict[str, Any]:
     if seeds_count < 1:
         raise ValueError("seeds_count must be positive")
+    provenance = capture_provenance()  # before any output exists
     if output.exists() and (not output.is_dir() or any(output.iterdir())):
         raise ValueError("output directory must be new and empty")
     output.mkdir(parents=True, exist_ok=True)
@@ -175,7 +176,7 @@ def run_sweep(output: Path, *, pilot: bool = False, seeds_count: int = 50, proce
     write_csv(output / "cells.csv", srows, sorted({k for r in srows for k in r}))
     write_csv_gz(output / "per_seed.csv.gz", prows, sorted({k for r in prows for k in r}))
     replay_args = list(sys.argv[1:] if argv is None else argv)
-    return write_manifest(output, outputs=["summary.json", "cells.csv", "per_seed.csv.gz"], argv=replay_args, n_processes=nproc, runtime_s=runtime, extra={"replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_sending.py " + shlex.join(replay_args), "n_cells": len(cells), "n_runs": len(cells) * seeds_count, "n_seeds": seeds_count, "config_sha256": sha256_json(config), "seeds": seeds, "limits": limits}, schema="s6-sending-manifest-1", provenance=capture_provenance())
+    return write_manifest(output, outputs=["summary.json", "cells.csv", "per_seed.csv.gz"], argv=replay_args, n_processes=nproc, runtime_s=runtime, extra={"replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_sending.py " + shlex.join(replay_args), "n_cells": len(cells), "n_runs": len(cells) * seeds_count, "n_seeds": seeds_count, "config_sha256": sha256_json(config), "seeds": seeds, "limits": limits}, schema="s6-sending-manifest-1", provenance=provenance)
 
 
 def main(argv: list[str] | None = None) -> int:

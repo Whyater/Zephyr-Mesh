@@ -231,6 +231,7 @@ def run_sweep(output: Path, *, pilot: bool = False, seeds_count: int = 50,
               no_checkpoint: bool = False, argv: list[str] | None = None) -> dict:
     if seeds_count < 1:
         raise ValueError("--seeds must be positive")
+    provenance = capture_provenance()  # before any output exists
     if output.exists():
         if not output.is_dir():
             raise ValueError(f"output path is not a directory: {output}")
@@ -273,7 +274,7 @@ def run_sweep(output: Path, *, pilot: bool = False, seeds_count: int = 50,
     extra["replay_command"] = "PYTHONPATH=. ./.venv/bin/python tools/run_s6_retro.py " + shlex.join(args)
     manifest = write_manifest(output, outputs=["summary.json", "cells.csv", "per_seed.csv.gz"],
                              argv=args, n_processes=nproc, runtime_s=runtime, extra=extra,
-                             schema="s6-retro-manifest-1", provenance=capture_provenance())
+                             schema="s6-retro-manifest-1", provenance=provenance)
     if pilot:
         estimate = runtime * (56 * 50) / (len(cells) * seeds_count)
         print(f"pilot cells: {len(cells)}, seeds: {seeds_count}, wall time: {runtime:.3f} s, estimated full-run wall time at 50 seeds: {estimate:.3f} s", file=sys.stderr)

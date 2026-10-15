@@ -115,7 +115,8 @@ def _fingerprint(seeds: int) -> str:
 
 
 def _write_outputs(out_dir: Path, results: list[dict], cells: list[dict], arms: list[ArmSpec],
-                   seeds: list[int], argv: list[str], processes: int, runtime: float) -> None:
+                   seeds: list[int], argv: list[str], processes: int, runtime: float,
+                   provenance: dict | None = None) -> None:
     rows = []
     per_seed = []
     for result in results:
@@ -180,7 +181,7 @@ def _write_outputs(out_dir: Path, results: list[dict], cells: list[dict], arms: 
                           "n_cells": len(results), "n_runs": len(results) * len(seeds),
                           "n_seeds": len(seeds), "config_sha256": sha256_json(summary["config"]),
                           "seeds": seeds, "limits": "simulation only"}, schema="s6-tuning-manifest-1",
-                   provenance=capture_provenance())
+                   provenance=provenance if provenance is not None else capture_provenance())
 
 
 def _consistency_check(seeds: list[int]) -> dict:
@@ -210,6 +211,7 @@ def main(argv=None) -> int:
     parser.add_argument("--test-small", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     out = Path(args.output)
+    provenance = capture_provenance()  # before any output exists
     if out.exists() and any(out.iterdir()):
         raise ValueError("output directory must be empty or absent")
     out.mkdir(parents=True, exist_ok=True)
@@ -229,7 +231,7 @@ def main(argv=None) -> int:
                        checkpoint_dir=checkpoint, fingerprint=_fingerprint(args.seeds))
     replay_args = list(sys.argv[1:] if argv is None else argv)
     _write_outputs(out, results, cells, arms, seed_list(args.seeds), replay_args,
-                   processes, time.perf_counter() - start)
+                   processes, time.perf_counter() - start, provenance)
     return 0
 
 

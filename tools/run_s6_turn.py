@@ -126,6 +126,7 @@ def _fingerprint(seeds: int) -> str:
 
 
 def run(output: Path, *, pilot: bool, seeds: int, processes: int | None, checkpoint_dir: Path | None, no_checkpoint: bool, argv: list[str]) -> None:
+    provenance = capture_provenance()  # before any output exists
     if output.exists() and (not output.is_dir() or any(output.iterdir())):
         raise ValueError("--output must be a new empty directory")
     output.mkdir(parents=True, exist_ok=True)
@@ -171,7 +172,7 @@ def run(output: Path, *, pilot: bool, seeds: int, processes: int | None, checkpo
             rows.append({column: values.get(column) for column in columns})
     write_csv(output / "cells.csv", rows, columns)
     write_manifest(output, outputs=["summary.json", "cells.csv", "per_seed.csv.gz"], argv=argv, n_processes=nproc, runtime_s=runtime,
-                   extra={"replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_turn.py " + shlex.join(argv), "n_cells": len(jobs), "n_runs": len(jobs) * seeds, "n_seeds": seeds, "config_sha256": sha256_json(asdict(RecoveryConfig())), "seeds": seed_list(seeds), "limits": ["simulated link and sensor", "10 Hz", "no jitter"]}, schema="s6-turn-manifest-1", provenance=capture_provenance())
+                   extra={"replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_turn.py " + shlex.join(argv), "n_cells": len(jobs), "n_runs": len(jobs) * seeds, "n_seeds": seeds, "config_sha256": sha256_json(asdict(RecoveryConfig())), "seeds": seed_list(seeds), "limits": ["simulated link and sensor", "10 Hz", "no jitter"]}, schema="s6-turn-manifest-1", provenance=provenance)
 
 
 def main(argv=None) -> int:
