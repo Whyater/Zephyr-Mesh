@@ -9,7 +9,7 @@
     "ou_n": 100000
   },
   "config_sha256": "fd47b484372568447cbe7405627f394d37358b2b33fc0c472fb0856fc66c33fb",
-  "git_revision": "6ee16db9d1ef16aba0a3fc2996eb2305d30fc85f",
+  "git_revision": "b852a169b6441d96021e70831b5d7ff9e46ec01f",
   "git_tree_state": "dirty",
   "limits": [
     "simulated only",
@@ -19,12 +19,12 @@
   "n_processes": 2,
   "numpy": "2.5.1",
   "outputs": {
-    "model_checks.json": "89383eb87cc9503204953bdfcccec70faaf62622a75e28c0c46e7c6c3b7c2526"
+    "model_checks.json": "e699e4e1bae6f843c17ca4c6770616e5dada866fa5fe765e86ddc30e6cc8b15b"
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
   "replay_command": "--output-dir runs/a7-model-checks",
-  "runtime_s": 638.1885911250029,
+  "runtime_s": 503.45873445899997,
   "schema": "a7-disturbance-model-checks-manifest-v1",
   "seeds": [
     0,

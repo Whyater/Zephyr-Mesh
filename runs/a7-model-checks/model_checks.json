@@ -97,7 +97,7 @@
         "weight_n": 0.24525
       }
     ],
-    "note": "on-axis follower, same 10 s run as the main downwash cells; no floor is modeled",
+    "note": "on-axis follower starting at rest inside the wake (the wake switches on as a step), same 10 s run as the main downwash cells; no floor is modeled",
     "on_axis_cells": [
       {
         "drag_area_m2": 0.002,
@@ -106,7 +106,10 @@
         "last_3s_min_z_m": 0.195576535,
         "profile": "crazyflie-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.15740666,
+        "whole_run_min_z_time_s": 1.39
       },
       {
         "drag_area_m2": 0.002,
@@ -115,7 +118,10 @@
         "last_3s_min_z_m": 0.390122059,
         "profile": "crazyflie-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.310083366,
+        "whole_run_min_z_time_s": 1.16
       },
       {
         "drag_area_m2": 0.002,
@@ -124,7 +130,22 @@
         "last_3s_min_z_m": 0.583394234,
         "profile": "crazyflie-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.461788266,
+        "whole_run_min_z_time_s": 1.0
+      },
+      {
+        "drag_area_m2": 0.002,
+        "gap_m": 1.0,
+        "last_3s_max_z_m": 1.00001156,
+        "last_3s_min_z_m": 0.991061059,
+        "profile": "crazyflie-class",
+        "saturated_steps": 0,
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.989905638,
+        "whole_run_min_z_time_s": 0.65
       },
       {
         "drag_area_m2": 0.005,
@@ -133,7 +154,10 @@
         "last_3s_min_z_m": 0.172667971,
         "profile": "crazyflie-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 41,
+        "whole_run_min_z_m": -0.0750458033,
+        "whole_run_min_z_time_s": 0.97
       },
       {
         "drag_area_m2": 0.005,
@@ -142,7 +166,10 @@
         "last_3s_min_z_m": 0.361989998,
         "profile": "crazyflie-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.0884174671,
+        "whole_run_min_z_time_s": 0.9
       },
       {
         "drag_area_m2": 0.005,
@@ -151,7 +178,22 @@
         "last_3s_min_z_m": 0.551664021,
         "profile": "crazyflie-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.263897249,
+        "whole_run_min_z_time_s": 0.83
+      },
+      {
+        "drag_area_m2": 0.005,
+        "gap_m": 1.0,
+        "last_3s_max_z_m": 1.00002187,
+        "last_3s_min_z_m": 0.977757713,
+        "profile": "crazyflie-class",
+        "saturated_steps": 0,
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.974933868,
+        "whole_run_min_z_time_s": 0.65
       },
       {
         "drag_area_m2": 0.012,
@@ -160,7 +202,10 @@
         "last_3s_min_z_m": 0.112812669,
         "profile": "crazyflie-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 78,
+        "whole_run_min_z_m": -0.328688442,
+        "whole_run_min_z_time_s": 0.8
       },
       {
         "drag_area_m2": 0.012,
@@ -169,7 +214,10 @@
         "last_3s_min_z_m": 0.30697596,
         "profile": "crazyflie-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 56,
+        "whole_run_min_z_m": -0.153790687,
+        "whole_run_min_z_time_s": 0.77
       },
       {
         "drag_area_m2": 0.012,
@@ -178,7 +226,22 @@
         "last_3s_min_z_m": 0.489985789,
         "profile": "crazyflie-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.0304332118,
+        "whole_run_min_z_time_s": 0.74
+      },
+      {
+        "drag_area_m2": 0.012,
+        "gap_m": 1.0,
+        "last_3s_max_z_m": 1.00018097,
+        "last_3s_min_z_m": 0.947359522,
+        "profile": "crazyflie-class",
+        "saturated_steps": 0,
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.941053812,
+        "whole_run_min_z_time_s": 0.65
       },
       {
         "drag_area_m2": 0.002,
@@ -187,7 +250,10 @@
         "last_3s_min_z_m": 0.169514164,
         "profile": "esp-fly-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 44,
+        "whole_run_min_z_m": -0.0900190874,
+        "whole_run_min_z_time_s": 0.98
       },
       {
         "drag_area_m2": 0.002,
@@ -196,7 +262,10 @@
         "last_3s_min_z_m": 0.368523649,
         "profile": "esp-fly-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.0781415492,
+        "whole_run_min_z_time_s": 0.91
       },
       {
         "drag_area_m2": 0.002,
@@ -205,7 +274,22 @@
         "last_3s_min_z_m": 0.563513289,
         "profile": "esp-fly-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.258910542,
+        "whole_run_min_z_time_s": 0.85
+      },
+      {
+        "drag_area_m2": 0.002,
+        "gap_m": 1.0,
+        "last_3s_max_z_m": 1.0000589,
+        "last_3s_min_z_m": 0.97996979,
+        "profile": "esp-fly-class",
+        "saturated_steps": 0,
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.977415251,
+        "whole_run_min_z_time_s": 0.65
       },
       {
         "drag_area_m2": 0.005,
@@ -214,7 +298,10 @@
         "last_3s_min_z_m": 0.097528073,
         "profile": "esp-fly-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 88,
+        "whole_run_min_z_m": -0.441829732,
+        "whole_run_min_z_time_s": 0.82
       },
       {
         "drag_area_m2": 0.005,
@@ -223,7 +310,10 @@
         "last_3s_min_z_m": 0.318706434,
         "profile": "esp-fly-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 68,
+        "whole_run_min_z_m": -0.238889747,
+        "whole_run_min_z_time_s": 0.78
       },
       {
         "drag_area_m2": 0.005,
@@ -232,7 +322,22 @@
         "last_3s_min_z_m": 0.505658824,
         "profile": "esp-fly-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 22,
+        "whole_run_min_z_m": -0.0232553204,
+        "whole_run_min_z_time_s": 0.75
+      },
+      {
+        "drag_area_m2": 0.005,
+        "gap_m": 1.0,
+        "last_3s_max_z_m": 1.00010794,
+        "last_3s_min_z_m": 0.950335672,
+        "profile": "esp-fly-class",
+        "saturated_steps": 0,
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.944206461,
+        "whole_run_min_z_time_s": 0.65
       },
       {
         "drag_area_m2": 0.012,
@@ -241,7 +346,10 @@
         "last_3s_min_z_m": 0.0164509385,
         "profile": "esp-fly-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 142,
+        "whole_run_min_z_m": -0.729048998,
+        "whole_run_min_z_time_s": 0.71
       },
       {
         "drag_area_m2": 0.012,
@@ -250,7 +358,10 @@
         "last_3s_min_z_m": 0.238364133,
         "profile": "esp-fly-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 95,
+        "whole_run_min_z_m": -0.541740402,
+        "whole_run_min_z_time_s": 0.7
       },
       {
         "drag_area_m2": 0.012,
@@ -259,7 +370,22 @@
         "last_3s_min_z_m": 0.388658975,
         "profile": "esp-fly-class",
         "saturated_steps": 0,
-        "steps": 1000
+        "steps": 1000,
+        "steps_below_z0": 74,
+        "whole_run_min_z_m": -0.294341071,
+        "whole_run_min_z_time_s": 0.68
+      },
+      {
+        "drag_area_m2": 0.012,
+        "gap_m": 1.0,
+        "last_3s_max_z_m": 1.00025081,
+        "last_3s_min_z_m": 0.88395028,
+        "profile": "esp-fly-class",
+        "saturated_steps": 0,
+        "steps": 1000,
+        "steps_below_z0": 0,
+        "whole_run_min_z_m": 0.871202946,
+        "whole_run_min_z_time_s": 0.64
       }
     ]
   },
