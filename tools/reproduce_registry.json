@@ -62,7 +62,7 @@
     "run_dir": "runs/a7-model-checks",
     "command": "PYTHONPATH=. {python} tools/a_make_disturbance_model_checks.py --output-dir {out}",
     "outputs": {
-      "model_checks.json": "a00c39ecd05c9bf08af081908f5b1010ba484a0fe6d95331ce7de06086aba608"
+      "model_checks.json": "89383eb87cc9503204953bdfcccec70faaf62622a75e28c0c46e7c6c3b7c2526"
     }
   }
 ]

@@ -34,6 +34,235 @@
     "formula": "v_h = sqrt(T / (2 rho A)), A = 4 pi R^2; far wake = 2 v_h",
     "pass": true
   },
+  "downwash_thrust_margin": {
+    "margins": [
+      {
+        "drag_area_m2": 0.002,
+        "max_thrust_n": 0.615578416,
+        "profile": "crazyflie-class",
+        "push_exceeds_spare_thrust": false,
+        "push_over_weight": 0.314380135,
+        "spare_thrust_n": 0.340898416,
+        "wake_push_n": 0.0863539353,
+        "weight_n": 0.27468
+      },
+      {
+        "drag_area_m2": 0.005,
+        "max_thrust_n": 0.615578416,
+        "profile": "crazyflie-class",
+        "push_exceeds_spare_thrust": false,
+        "push_over_weight": 0.785950336,
+        "spare_thrust_n": 0.340898416,
+        "wake_push_n": 0.215884838,
+        "weight_n": 0.27468
+      },
+      {
+        "drag_area_m2": 0.012,
+        "max_thrust_n": 0.615578416,
+        "profile": "crazyflie-class",
+        "push_exceeds_spare_thrust": true,
+        "push_over_weight": 1.88628081,
+        "spare_thrust_n": 0.340898416,
+        "wake_push_n": 0.518123612,
+        "weight_n": 0.27468
+      },
+      {
+        "drag_area_m2": 0.002,
+        "max_thrust_n": 0.66564,
+        "profile": "esp-fly-class",
+        "push_exceeds_spare_thrust": false,
+        "push_over_weight": 0.707355303,
+        "spare_thrust_n": 0.42039,
+        "wake_push_n": 0.173478888,
+        "weight_n": 0.24525
+      },
+      {
+        "drag_area_m2": 0.005,
+        "max_thrust_n": 0.66564,
+        "profile": "esp-fly-class",
+        "push_exceeds_spare_thrust": true,
+        "push_over_weight": 1.76838826,
+        "spare_thrust_n": 0.42039,
+        "wake_push_n": 0.43369722,
+        "weight_n": 0.24525
+      },
+      {
+        "drag_area_m2": 0.012,
+        "max_thrust_n": 0.66564,
+        "profile": "esp-fly-class",
+        "push_exceeds_spare_thrust": true,
+        "push_over_weight": 4.24413182,
+        "spare_thrust_n": 0.42039,
+        "wake_push_n": 1.04087333,
+        "weight_n": 0.24525
+      }
+    ],
+    "note": "on-axis follower, same 10 s run as the main downwash cells; no floor is modeled",
+    "on_axis_cells": [
+      {
+        "drag_area_m2": 0.002,
+        "gap_m": 0.2,
+        "last_3s_max_z_m": 0.214417291,
+        "last_3s_min_z_m": 0.195576535,
+        "profile": "crazyflie-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.002,
+        "gap_m": 0.4,
+        "last_3s_max_z_m": 0.414414719,
+        "last_3s_min_z_m": 0.390122059,
+        "profile": "crazyflie-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.002,
+        "gap_m": 0.6,
+        "last_3s_max_z_m": 0.610948208,
+        "last_3s_min_z_m": 0.583394234,
+        "profile": "crazyflie-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.005,
+        "gap_m": 0.2,
+        "last_3s_max_z_m": 0.213247522,
+        "last_3s_min_z_m": 0.172667971,
+        "profile": "crazyflie-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.005,
+        "gap_m": 0.4,
+        "last_3s_max_z_m": 0.411570514,
+        "last_3s_min_z_m": 0.361989998,
+        "profile": "crazyflie-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.005,
+        "gap_m": 0.6,
+        "last_3s_max_z_m": 0.608358056,
+        "last_3s_min_z_m": 0.551664021,
+        "profile": "crazyflie-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.012,
+        "gap_m": 0.2,
+        "last_3s_max_z_m": 0.212275693,
+        "last_3s_min_z_m": 0.112812669,
+        "profile": "crazyflie-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.012,
+        "gap_m": 0.4,
+        "last_3s_max_z_m": 0.411772781,
+        "last_3s_min_z_m": 0.30697596,
+        "profile": "crazyflie-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.012,
+        "gap_m": 0.6,
+        "last_3s_max_z_m": 0.609025262,
+        "last_3s_min_z_m": 0.489985789,
+        "profile": "crazyflie-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.002,
+        "gap_m": 0.2,
+        "last_3s_max_z_m": 0.215992851,
+        "last_3s_min_z_m": 0.169514164,
+        "profile": "esp-fly-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.002,
+        "gap_m": 0.4,
+        "last_3s_max_z_m": 0.410151176,
+        "last_3s_min_z_m": 0.368523649,
+        "profile": "esp-fly-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.002,
+        "gap_m": 0.6,
+        "last_3s_max_z_m": 0.606611612,
+        "last_3s_min_z_m": 0.563513289,
+        "profile": "esp-fly-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.005,
+        "gap_m": 0.2,
+        "last_3s_max_z_m": 0.216726156,
+        "last_3s_min_z_m": 0.097528073,
+        "profile": "esp-fly-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.005,
+        "gap_m": 0.4,
+        "last_3s_max_z_m": 0.41076054,
+        "last_3s_min_z_m": 0.318706434,
+        "profile": "esp-fly-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.005,
+        "gap_m": 0.6,
+        "last_3s_max_z_m": 0.60763835,
+        "last_3s_min_z_m": 0.505658824,
+        "profile": "esp-fly-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.012,
+        "gap_m": 0.2,
+        "last_3s_max_z_m": 0.212923999,
+        "last_3s_min_z_m": 0.0164509385,
+        "profile": "esp-fly-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.012,
+        "gap_m": 0.4,
+        "last_3s_max_z_m": 0.410612092,
+        "last_3s_min_z_m": 0.238364133,
+        "profile": "esp-fly-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      },
+      {
+        "drag_area_m2": 0.012,
+        "gap_m": 0.6,
+        "last_3s_max_z_m": 0.607620585,
+        "last_3s_min_z_m": 0.388658975,
+        "profile": "esp-fly-class",
+        "saturated_steps": 0,
+        "steps": 1000
+      }
+    ]
+  },
   "ground_effect": {
     "cells": [
       {
@@ -97,7 +326,7 @@
   "gust_ratio_explanation": {
     "committed_plain_rms_check": {
       "pass": true,
-      "rows_checked": 80
+      "rows_checked": 400
     },
     "monte_carlo": [
       {
@@ -127,91 +356,151 @@
       6,
       7,
       8,
-      9
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49
     ],
     "run_summary": [
       {
         "mean_offset_m": {
           "0.0": [
-            0.000805501864,
-            0.000517044386,
-            1.00051378
+            0.00014343967,
+            0.000208083837,
+            0.999952508
           ],
           "1.5": [
-            0.133890536,
-            0.00125125215,
-            1.00189902
+            0.129875096,
+            0.000677349752,
+            0.999795611
           ]
         },
         "median_rms_about_mean_m": {
-          "0.0": 0.0094412665,
-          "1.5": 0.0382418707
+          "0.0": 0.0106980483,
+          "1.5": 0.0398766897
         },
+        "n_seeds": 50,
         "profile": "crazyflie-class",
-        "rms_ratio": 4.05050219,
+        "rms_ratio": 3.72747333,
+        "rms_ratio_ci95": [
+          3.60361322,
+          3.98349176
+        ],
         "sigma_mps": 0.25
       },
       {
         "mean_offset_m": {
           "0.0": [
-            0.00314234202,
-            0.00202093258,
-            1.00202717
+            0.000552813222,
+            0.000825947198,
+            0.999805559
           ],
           "1.5": [
-            0.155635072,
-            0.00341432198,
-            1.00411555
+            0.148033655,
+            0.00173885013,
+            0.999469186
           ]
         },
         "median_rms_about_mean_m": {
-          "0.0": 0.0364877702,
-          "1.5": 0.0791447915
+          "0.0": 0.041256166,
+          "1.5": 0.0835948296
         },
+        "n_seeds": 50,
         "profile": "crazyflie-class",
-        "rms_ratio": 2.16907723,
+        "rms_ratio": 2.02623845,
+        "rms_ratio_ci95": [
+          1.9595876,
+          2.17142169
+        ],
         "sigma_mps": 0.5
       },
       {
         "mean_offset_m": {
           "0.0": [
-            0.000899395444,
-            0.000577413438,
-            1.00057434
+            0.000159900143,
+            0.000232821604,
+            0.999946757
           ],
           "1.5": [
-            0.149850791,
-            0.00139627754,
-            1.00212573
+            0.145377638,
+            0.000759198053,
+            0.99977002
           ]
         },
         "median_rms_about_mean_m": {
-          "0.0": 0.0105329151,
-          "1.5": 0.0423619738
+          "0.0": 0.0119243207,
+          "1.5": 0.0442864372
         },
+        "n_seeds": 50,
         "profile": "esp-fly-class",
-        "rms_ratio": 4.02186608,
+        "rms_ratio": 3.71395892,
+        "rms_ratio_ci95": [
+          3.58808152,
+          3.96218002
+        ],
         "sigma_mps": 0.25
       },
       {
         "mean_offset_m": {
           "0.0": [
-            0.00349919043,
-            0.00225166687,
-            1.00226243
+            0.00061419205,
+            0.000923466692,
+            0.999781491
           ],
           "1.5": [
-            0.173962071,
-            0.00379658139,
-            1.00460471
+            0.165487586,
+            0.00194436583,
+            0.999402332
           ]
         },
         "median_rms_about_mean_m": {
-          "0.0": 0.0405224468,
-          "1.5": 0.0876325857
+          "0.0": 0.0458123346,
+          "1.5": 0.0926570915
         },
+        "n_seeds": 50,
         "profile": "esp-fly-class",
-        "rms_ratio": 2.16256896,
+        "rms_ratio": 2.0225359,
+        "rms_ratio_ci95": [
+          1.9561736,
+          2.16519229
+        ],
         "sigma_mps": 0.5
       }
     ]
