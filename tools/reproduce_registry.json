@@ -46,5 +46,16 @@
       "s6_sensitivity_oat.png": "3e94d52e9f9b4dc7bb70a63e7cb398e4c580699a3c5c68625a932469784fdf68",
       "summary.json": "95134027efcedb2551cc6ff58dd04b5f2830b739dabe38a8b37e6281907e6115"
     }
+  },
+  {
+    "run_dir": "runs/s6-turn",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_turn.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. ./.venv/bin/python tools/make_s6_turn_figure.py {out}",
+    "outputs": {
+      "cells.csv": "3ad6a257fdb738d407d57b841ac7a500b281faafb022f2b68c5696fcebb89175",
+      "per_seed.csv.gz": "2c36ea0cb8134ae249b3e2e5aa9339e4c5708537042658d3f325ae6dbeb88f2e",
+      "s6_turn.png": "26900a81ca8e3de718342b5797a853af16695b47228b124d7670ca6444a4f61b",
+      "s6_turn_phases.png": "ed9be05de9362700fd42928263c7135feb484ead4b3a0d9fa72d08229a6abe07",
+      "summary.json": "9580d36b69a08e6f6323e135b8ddfc443d0edb676adb6e99d8c80b7de1f8207c"
+    }
   }
 ]
