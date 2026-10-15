@@ -43,6 +43,7 @@ class LinkedDrone:
         self._goal: np.ndarray | None = None
         self._cmd_seq = 0
         self._last_cmd_receive = 0.0
+        self._newest_cmd_seq: int | None = None
         self._loss_window = SequenceLossWindow()
         self._last_cmd_due = -1
         self._last_tel_due = -1
@@ -88,17 +89,31 @@ class LinkedDrone:
             else:
                 seq = int(packet.seq)
             self._loss_window.record(seq)
+            if self._newest_cmd_seq is None or seq > self._newest_cmd_seq:
+                self._newest_cmd_seq = seq
         age = max(0.0, now - self._last_cmd_receive)
         step = self.adapter.step
         kwargs = {"link_age_s": age}
         if "recent_loss_fraction" in inspect.signature(step).parameters:
-            kwargs["recent_loss_fraction"] = self._loss_window.loss_fraction(self._cmd_seq)
+            kwargs["recent_loss_fraction"] = self._loss_window.loss_fraction(self._expected_next_seq(now))
         state = step(dt, **kwargs)
         tel_due = int(math.floor((now + dt) * self.telemetry_rate_hz + 1e-9))
         if tel_due > self._last_tel_due:
             self.tel_link.send(tel_due, now + dt, state)
             self._last_tel_due = tel_due
         return state
+
+    def _expected_next_seq(self, now: float) -> int | None:
+        """Sequence number the drone expects next, from what it can know.
+
+        The drone knows the command rate but not the ground station's counter:
+        each full command period since the newest arrival counts as one missing
+        packet.  A packet still in flight is therefore never counted as lost.
+        """
+        if self._newest_cmd_seq is None:
+            return None
+        missed = int(math.floor((now - self._last_cmd_receive) * self.command_rate_hz + 1e-9))
+        return self._newest_cmd_seq + 1 + max(0, missed)
 
     def telemetry_view(self, t: float):
         now = float(t)
