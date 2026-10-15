@@ -121,14 +121,21 @@ def _downwash_cell(job):
     thrust = profile.mass_kg * GRAVITY
     vehicle = _trimmed_vehicle(profile, target, drag_area,
                                _DownwashSource(source, thrust, profile.rotor_count, profile.rotor.prop_radius_m))
-    saturated_steps = 0; heights = []
+    saturated_steps = 0; heights = []; min_z = math.inf; min_z_time = 0.0; below_floor_steps = 0
     for i in range(n):
         step = vehicle.step(target, dt)
         saturated_steps += int(step.mixer.saturated)
+        z = float(vehicle.drone.position[2])
+        # No floor is modeled, so record how far below z = 0 the run would go.
+        below_floor_steps += int(z < 0.0)
+        if z < min_z:
+            min_z, min_z_time = z, (i + 1) * dt
         if i + 1 > n - 300:
-            heights.append(float(vehicle.drone.position[2]))
+            heights.append(z)
     return {"profile": profile_id, "drag_area_m2": drag_area, "gap_m": gap, "saturated_steps": saturated_steps,
-            "steps": n, "last_3s_min_z_m": min(heights), "last_3s_max_z_m": max(heights)}
+            "steps": n, "last_3s_min_z_m": min(heights), "last_3s_max_z_m": max(heights),
+            "whole_run_min_z_m": min_z, "whole_run_min_z_time_s": min_z_time,
+            "steps_below_z0": below_floor_steps}
 
 
 def downwash_thrust_margin(workers=None):
@@ -146,7 +153,7 @@ def downwash_thrust_margin(workers=None):
                          "max_thrust_n": max_thrust, "spare_thrust_n": max_thrust - weight,
                          "wake_push_n": push, "push_over_weight": push / weight,
                          "push_exceeds_spare_thrust": bool(push > max_thrust - weight)})
-    jobs = [(p, a, g) for p in PROFILES for a in (0.002, 0.005, 0.012) for g in (0.2, 0.4, 0.6)]
+    jobs = [(p, a, g) for p in PROFILES for a in (0.002, 0.005, 0.012) for g in (0.2, 0.4, 0.6, 1.0)]
     if workers is None: workers = max(1, (os.cpu_count() or 1) // 3)
     if workers <= 1:
         cells = [_downwash_cell(job) for job in jobs]
@@ -154,7 +161,7 @@ def downwash_thrust_margin(workers=None):
         with ProcessPoolExecutor(max_workers=workers) as pool:
             cells = list(pool.map(_downwash_cell, jobs))
     cells.sort(key=lambda r: (r["profile"], r["drag_area_m2"], r["gap_m"]))
-    return {"note": "on-axis follower, same 10 s run as the main downwash cells; no floor is modeled",
+    return {"note": "on-axis follower starting at rest inside the wake (the wake switches on as a step), same 10 s run as the main downwash cells; no floor is modeled",
             "margins": rows, "on_axis_cells": cells}
 
 

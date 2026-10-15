@@ -96,3 +96,5 @@ def test_downwash_cell_reports_saturation_count_and_height_range():
     assert cell["steps"] == 1000
     assert 0 <= cell["saturated_steps"] <= cell["steps"]
     assert cell["last_3s_min_z_m"] <= cell["last_3s_max_z_m"]
+    assert cell["whole_run_min_z_m"] <= cell["last_3s_min_z_m"]
+    assert 0 <= cell["steps_below_z0"] <= cell["steps"]
