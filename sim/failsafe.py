@@ -237,6 +237,8 @@ class FailsafeController:
         age = self._link_age(link_age_s)
         battery = self._battery(battery_pct)
         if recent_loss_fraction is not None:
+            if isinstance(recent_loss_fraction, bool):
+                raise ValueError("recent_loss_fraction must be a number, not a bool")
             loss = float(recent_loss_fraction)
             if not math.isfinite(loss) or loss < 0.0 or loss > 1.0:
                 raise ValueError("recent_loss_fraction must be finite and between zero and one")
@@ -382,7 +384,17 @@ class FailsafeController:
 
 
 class SequenceLossWindow:
-    """Track received sequence numbers and estimate a trailing loss fraction."""
+    """Track received sequence numbers and estimate a trailing loss fraction.
+
+    The sender numbers its packets 0, 1, 2, ... so the receiver can count
+    gaps.  Two simplifications are deliberate:
+
+    * A packet that arrives after a newer one (reordered or late) is ignored,
+      so it counts as lost.  So are duplicates.
+    * At startup the window is partial: before ``window_packets`` sequence
+      numbers have been expected, the denominator is the number expected so
+      far (``end + 1``), not ``window_packets``.
+    """
 
     def __init__(self, window_packets: int = 20) -> None:
         if isinstance(window_packets, bool) or int(window_packets) != window_packets or int(window_packets) <= 0:
@@ -404,6 +416,15 @@ class SequenceLossWindow:
             self._received = {item for item in self._received if item >= floor}
 
     def loss_fraction(self, expected_next_seq: int | None = None) -> float | None:
+        """Missing fraction of the last ``window_packets`` expected sequence numbers.
+
+        The window ends at the newest received number, or at
+        ``expected_next_seq - 1`` when given (so trailing misses count).
+        ``expected_next_seq`` must be greater than the newest received number:
+        an earlier window may reach numbers that were already pruned, so it
+        raises ``ValueError`` instead of returning a wrong value.  Returns
+        None until a packet has arrived.
+        """
         if self._newest is None:
             return None
         if expected_next_seq is None:
@@ -411,9 +432,9 @@ class SequenceLossWindow:
         else:
             if isinstance(expected_next_seq, bool) or int(expected_next_seq) != expected_next_seq or int(expected_next_seq) < 0:
                 raise ValueError("expected_next_seq must be a nonnegative integer")
+            if int(expected_next_seq) <= self._newest:
+                raise ValueError("expected_next_seq must be greater than the newest received sequence number")
             end = int(expected_next_seq) - 1
-        if end < 0:
-            return 0.0
         start = max(0, end - self.window_packets + 1)
         total = end - start + 1
         received = sum(seq in self._received for seq in range(start, end + 1))

@@ -1,257 +1,298 @@
-"""Actuated vehicle adapter for the simulated mission seam."""
+"""Simulated rigid-body adapter for the mission seam (Run A vehicle chain).
+
+``PhysicsAdapter`` drives ``sim.vehicle.ActuatedQuadrotor`` with a v2
+rotorcraft profile.  The profile values are literature-derived (none were
+measured), aerodynamic drag is off because the profile drag is zero, and the
+floor is modelled here because the vehicle chain has none.  Everything is
+simulated only: no drone was flown.
+
+Authority, failsafe, geofence latch, link telemetry and events come from
+``sim.adapters.SimulatedAdapterCore``, the same code ``SimAdapter`` uses.
+
+Carrot setpoint.  The vehicle chain only takes a position setpoint and its PD
+position loop has no velocity limit, so the adapter feeds it a carrot:
+
+* POSITION: the carrot moves toward the commanded point at most
+  ``capabilities.max_speed_mps * dt`` per step.  This limits the carrot, not
+  the body: the PD loop lags a moving carrot and then catches up, so the true
+  speed can overshoot the carrot limit (about 21 % for the Crazyflie-class
+  profile: 1.82 m/s against a 1.5 m/s carrot, measured in
+  tests/test_e_adapters_redo.py).
+* SLOW (weak link policy): the carrot moves at most ``slow_speed_mps * dt``
+  per step AND stays within ``slow_speed_mps * min(Kd / Kp)`` of the sensed
+  position.  That lead is the PD loop's steady lag at the slow speed, so the
+  loop's steady speed cannot exceed the slow speed and the overshoot of a
+  speed-only carrot (0.36 m/s against 0.3 m/s) does not happen.  The rigid
+  body state is never edited; only the carrot is limited.
+* HOLD (or no command): the carrot is frozen at the sensed position where the
+  hold began.
+* Whenever the mode changes (position, hold, land, unpowered) the carrot
+  restarts at the sensed position.
+* LAND: the carrot is frozen at the sensed position where the landing began,
+  then its z drops at ``land_speed_mps`` until the floor.  Touchdown is
+  declared when the TRUE z is within 0.02 m of the floor and the true speed is
+  below 0.05 m/s; the body is then set on the floor (z pinned, velocity and
+  spin zeroed) and the rotors stop.
+
+Floor.  After every step a true z below ``ground_plane_z_m`` is set to the
+floor.  In powered flight only the downward velocity is removed.  While the
+kill switch is latched or after touchdown the floor is inelastic and
+no-slide: the full velocity and angular velocity are zeroed, so a body that
+hits the floor stays where it hit.
+
+Unpowered (kill switch, or landed): the rotor speeds are held at zero, the
+controller is not called, and the body moves under gravity alone (drag is off,
+so a fall from height h takes sqrt(2 h / g)).  ``vehicle.time_s`` advances by
+the same dt as the adapter clock on every step, powered or not.
+
+Feedback.  ``feedback="onboard"`` gives the controller the true state.
+``feedback="offboard"`` gives it the newest position fix from
+``set_position_fix`` (held; the initial position before the first fix) and a
+velocity from the last two fixes (zero before that); attitude and spin stay
+true.  Geofence checks, the floor and touchdown always use the TRUE state.
+"""
 from __future__ import annotations
 
 from pathlib import Path
 import math
-from types import SimpleNamespace
 from typing import Any, Iterable
 
 import numpy as np
 
-from sim.adapters import Capabilities, DroneAdapter, DroneState, Geofence, _finite_nonnegative, _vector3
-from sim.authority import AuthorityArbiter, AuthorityDecision, CommandKind, CommandSource, ControlCommand
-from sim.failsafe import FailsafeAction, FailsafeConfig, FailsafeController, FailsafeDecision, FailsafeState
+from sim.adapters import (
+    Capabilities,
+    DroneState,
+    Geofence,
+    PositionFixHold,
+    SimulatedAdapterCore,
+    _limited,
+    _vector3,
+)
+from sim.authority import CommandKind, ControlCommand
+from sim.failsafe import FailsafeAction, FailsafeConfig, FailsafeDecision, FailsafeState
 from sim.hardware import RotorcraftProfile, load_hardware_profile
 from sim.vehicle import ActuatedQuadrotor
 
+DEFAULT_PROFILE = Path(__file__).resolve().parents[1] / "physics" / "profiles" / "crazyflie_class.json"
+TOUCHDOWN_HEIGHT_M = 0.02
+TOUCHDOWN_SPEED_MPS = 0.05
 
-class _FeedbackController:
-    def __init__(self, inner: Any, adapter: "PhysicsAdapter") -> None:
+
+class _SensedDrone:
+    """Controller view of the simulated body: sensed position and velocity, true attitude."""
+
+    def __init__(self, drone: Any, position: np.ndarray, velocity: np.ndarray) -> None:
+        self.position = np.asarray(position, dtype=float).copy()
+        self.velocity = np.asarray(velocity, dtype=float).copy()
+        self.quaternion = drone.quaternion.copy()
+        self.angular_velocity = drone.angular_velocity.copy()
+        self.mass = float(drone.mass)
+        self.I_x = float(drone.I_x)
+        self.I_y = float(drone.I_y)
+        self.I_z = float(drone.I_z)
+
+
+class _OffboardFeedback:
+    """Wraps the flight controller so its position loop sees the held fix."""
+
+    def __init__(self, inner: Any, fix: PositionFixHold) -> None:
         self.inner = inner
-        self.adapter = adapter
+        self.fix = fix
 
-    def update_control(self, drone: Any, target: np.ndarray, dt: float, **kwargs: Any):
-        fix = self.adapter._position_fix
-        if self.adapter.feedback == "offboard" and fix is not None:
-            proxy = SimpleNamespace(
-                position=fix.copy(),
-                velocity=self.adapter._fix_velocity.copy(),
-                quaternion=drone.quaternion,
-                angular_velocity=drone.angular_velocity,
-                mass=drone.mass,
-                I_x=drone.I_x,
-                I_y=drone.I_y,
-                I_z=drone.I_z,
-            )
-            return self.inner.update_control(proxy, target, dt, **kwargs)
-        return self.inner.update_control(drone, target, dt, **kwargs)
+    def update_control(self, drone: Any, target_position: np.ndarray, dt: float, **kwargs: Any):
+        sensed = _SensedDrone(drone, self.fix.position, self.fix.velocity)
+        return self.inner.update_control(sensed, target_position, dt, **kwargs)
 
 
-class PhysicsAdapter(DroneAdapter):
-    """Simulated v2 vehicle using a literature-derived profile, drag off, and a modelled floor.
+def _step_toward(point: np.ndarray, goal: np.ndarray, max_step: float) -> np.ndarray:
+    return point + _limited(goal - point, max_step)
 
-    This adapter is simulated only and does not represent flight validation.
+
+class PhysicsAdapter(SimulatedAdapterCore):
+    """Simulated v2 rotorcraft (literature-derived profile, drag off, modelled floor).
+
+    Simulated only; this is not flight validation.  See the module docstring
+    for the carrot, floor, unpowered and feedback rules.
     """
 
-    def __init__(self, adapter_id: str, *, profile: str | Path | RotorcraftProfile | None = None,
-                 capabilities: Capabilities | None = None, initial_position_m: Iterable[float] = (0.0, 0.0, 1.0),
-                 dt_s: float = 0.01, ground_plane_z_m: float = 0.0, initial_battery_pct: float = 100.0,
-                 failsafe_config: FailsafeConfig | None = None, geofence: Geofence | None = None,
-                 feedback: str = "onboard", land_speed_mps: float = 0.3) -> None:
-        if not isinstance(adapter_id, str) or not adapter_id:
-            raise ValueError("adapter_id must be a non-empty string")
+    def __init__(
+        self,
+        adapter_id: str,
+        *,
+        profile: str | Path | RotorcraftProfile | None = None,
+        capabilities: Capabilities | None = None,
+        initial_position_m: Iterable[float] = (0.0, 0.0, 1.0),
+        dt_s: float = 0.01,
+        ground_plane_z_m: float = 0.0,
+        initial_battery_pct: float = 100.0,
+        failsafe_config: FailsafeConfig | None = None,
+        geofence: Geofence | None = None,
+        feedback: str = "onboard",
+        land_speed_mps: float = 0.3,
+    ) -> None:
+        self._init_core(
+            adapter_id,
+            capabilities=capabilities or Capabilities(max_speed_mps=1.5),
+            dt_s=dt_s,
+            initial_battery_pct=initial_battery_pct,
+            failsafe_config=failsafe_config,
+            geofence=geofence,
+        )
         if feedback not in {"onboard", "offboard"}:
             raise ValueError("feedback must be 'onboard' or 'offboard'")
         if profile is None:
-            profile = Path(__file__).resolve().parents[1] / "physics" / "profiles" / "crazyflie_class.json"
+            profile = DEFAULT_PROFILE
         loaded = load_hardware_profile(profile) if isinstance(profile, (str, Path)) else profile
         if not isinstance(loaded, RotorcraftProfile):
             raise ValueError("profile must be a v2 RotorcraftProfile")
-        if not math.isfinite(float(land_speed_mps)) or float(land_speed_mps) <= 0:
+        land_speed = float(land_speed_mps)
+        if not math.isfinite(land_speed) or land_speed <= 0.0:
             raise ValueError("land_speed_mps must be finite and positive")
-        self._adapter_id = adapter_id
+        ground = float(ground_plane_z_m)
+        if not math.isfinite(ground):
+            raise ValueError("ground_plane_z_m must be finite")
+        start = _vector3(initial_position_m, name="initial_position_m")
+
         self.profile = loaded
-        self._capabilities = capabilities or Capabilities(max_speed_mps=1.5)
-        self._dt_s = _finite_nonnegative("dt_s", dt_s)
-        if self._dt_s <= 0:
-            raise ValueError("dt_s must be positive")
-        self._ground = float(ground_plane_z_m)
-        self._battery_pct = float(initial_battery_pct)
-        if not math.isfinite(self._battery_pct) or not 0 <= self._battery_pct <= 100:
-            raise ValueError("initial_battery_pct must be between zero and 100")
         self.feedback = feedback
-        self._land_speed = float(land_speed_mps)
-        self._geofence = geofence
-        self.vehicle = ActuatedQuadrotor(loaded, initial_position=initial_position_m, substeps=1)
+        self._ground = ground
+        self._land_speed = land_speed
+        self.vehicle = ActuatedQuadrotor(loaded, initial_position=start, substeps=1)
         self.vehicle.actuator.speed_rad_s[:] = loaded.hover_speed_rad_s()
-        self.vehicle.controller = _FeedbackController(self.vehicle.controller, self)
-        self.authority = AuthorityArbiter()
-        self.failsafe = FailsafeController(failsafe_config)
-        self._connected = False
-        self._time_s = 0.0
-        self._link_age_s: float | None = 0.0
-        self._link_delay_ms = 0.0
-        self._link_loss_pct = 0.0
-        self._landed = False
-        self._carrot = _vector3(initial_position_m, name="initial_position_m")
-        self._hold_carrot = self._carrot.copy()
-        self._position_fix: np.ndarray | None = None
-        self._fix_velocity = np.zeros(3)
-        self._fix_time_s: float | None = None
-        self._events: list[dict[str, Any]] = []
-        self._last_authority: str | None = None
-        self._last_command_kind: CommandKind | None = None
-        self._last_failsafe = self.failsafe.last_decision
+        controller = self.vehicle.controller
+        # Steady lag of the PD position loop per m/s of carrot speed (Kd / Kp,
+        # the most restrictive axis).  Used for the SLOW lead limit.
+        self._lag_s_per_mps = float(np.min(np.asarray(controller.K_d_pos, dtype=float) / np.asarray(controller.K_p_pos, dtype=float)))
+        self._fix = PositionFixHold(start)
+        if feedback == "offboard":
+            self.vehicle.controller = _OffboardFeedback(controller, self._fix)
+        self._carrot = start.copy()
+        self._carrot_mode = "hold"
+
+    # Read-only views ----------------------------------------------------------
 
     @property
-    def adapter_id(self) -> str: return self._adapter_id
-    @property
-    def capabilities(self) -> Capabilities: return self._capabilities
-    @property
-    def connected(self) -> bool: return self._connected
-    @property
-    def time_s(self) -> float: return self._time_s
-    @property
-    def geofence(self) -> Geofence | None: return self._geofence
+    def carrot_m(self) -> np.ndarray:
+        """Copy of the setpoint handed to the vehicle controller on the last step."""
+        return self._carrot.copy()
 
-    def drain_events(self) -> list[dict[str, Any]]:
-        events, self._events = self._events, []
-        return events
-
-    def _event(self, kind: str, detail: dict[str, Any] | None = None) -> None:
-        self._events.append({"time_s": self._time_s, "kind": kind, "agent": self._adapter_id, "detail": detail or {}})
-
-    def connect(self) -> None: self._connected = True
-    def disconnect(self) -> None: self._connected = False
-    def _require(self) -> None:
-        if not self._connected: raise RuntimeError("adapter is disconnected")
+    @property
+    def position_fix_m(self) -> np.ndarray:
+        """Copy of the held position fix (offboard feedback)."""
+        return self._fix.position.copy()
 
     def set_position_fix(self, position_m: Iterable[float], timestamp_s: float) -> None:
-        stamp = _finite_nonnegative("timestamp_s", timestamp_s)
-        if self._fix_time_s is not None and stamp < self._fix_time_s: raise ValueError("timestamp_s must be nondecreasing")
-        point = _vector3(position_m, name="position_m")
-        if self._position_fix is not None and stamp > self._fix_time_s:
-            self._fix_velocity = (point - self._position_fix) / (stamp - self._fix_time_s)
-        self._position_fix, self._fix_time_s = point, stamp
+        self._fix.update(position_m, timestamp_s)
 
-    def set_link_metrics(self, *, delay_ms: float, loss_pct: float, age_s: float | None) -> None:
-        self._link_delay_ms = _finite_nonnegative("delay_ms", delay_ms)
-        self._link_loss_pct = float(loss_pct)
-        if not 0 <= self._link_loss_pct <= 100 or not math.isfinite(self._link_loss_pct): raise ValueError("loss_pct out of range")
-        self._link_age_s = None if age_s is None else _finite_nonnegative("age_s", age_s)
-    def set_battery_pct(self, battery_pct: float) -> None:
-        value = float(battery_pct)
-        if not math.isfinite(value) or not 0 <= value <= 100: raise ValueError("battery_pct out of range")
-        self._battery_pct = value
+    def _truth_position(self) -> np.ndarray:
+        return self.vehicle.drone.position
 
-    def request_command(self, command: ControlCommand, *, source: CommandSource, ttl_s: float | None = 0.5,
-                        timestamp_s: float | None = None) -> AuthorityDecision:
-        self._require()
-        if not isinstance(command, ControlCommand): raise ValueError("command must be a ControlCommand")
-        src = source if isinstance(source, CommandSource) else CommandSource(source)
-        if command.kind in {CommandKind.LAND, CommandKind.KILL} and src is not CommandSource.FAILSAFE:
-            return AuthorityDecision(False, None, None, "safety_command_requires_failsafe", self._time_s)
-        now = self._time_s if timestamp_s is None else float(timestamp_s)
-        if now < self._time_s or not math.isfinite(now): raise ValueError("timestamp_s must be nondecreasing")
-        self._time_s = now
-        return self.authority.submit(src, command, timestamp_s=now, ttl_s=ttl_s)
+    def _sensed_position(self) -> np.ndarray:
+        if self.feedback == "offboard":
+            return self._fix.position.copy()
+        return self.vehicle.drone.position.copy()
 
-    def send_setpoint(self, position: np.ndarray) -> AuthorityDecision:
-        if not self.capabilities.supports_position_setpoint:
-            return AuthorityDecision(False, None, None, "position_setpoint_unsupported", self._time_s)
-        point = _vector3(position, name="position")
-        if self._geofence is not None:
-            clipped = self._geofence.clip(point)
-            if not np.array_equal(point, clipped): self._event("geofence_clip", {"requested_m": point.tolist(), "clipped_m": clipped.tolist()})
-            point = clipped
-        return self.request_command(ControlCommand.position(point), source=CommandSource.MISSION, ttl_s=0.5)
+    # Motion -------------------------------------------------------------------
 
-    def _sync(self, decision: FailsafeDecision) -> None:
-        if decision.state is FailsafeState.NOMINAL or decision.action is FailsafeAction.SLOW:
-            self.authority.release(CommandSource.FAILSAFE, timestamp_s=self._time_s); return
-        command = ControlCommand.hold() if decision.state is FailsafeState.LANDED else decision.command
-        if command is not None:
-            self.authority.submit(CommandSource.FAILSAFE, command, timestamp_s=self._time_s, ttl_s=None, request_id=f"failsafe-{decision.state.value}")
-
-    def _observe(self, *, kill_requested=False, recent_loss_fraction=None) -> FailsafeDecision:
-        decision = self.failsafe.observe(self._time_s, link_age_s=self._link_age_s, battery_pct=self._battery_pct,
-                                         kill_requested=kill_requested, landed=self._landed,
-                                         recent_loss_fraction=recent_loss_fraction)
-        if decision.changed:
-            self._event("failsafe_transition", decision.as_dict())
-            if decision.state is FailsafeState.KILLED: self._event("kill", {})
-        self._last_failsafe = decision; self._sync(decision); return decision
-
-    def land(self) -> FailsafeDecision:
-        self._require()
-        if not self.capabilities.supports_land: raise RuntimeError("landing is unsupported by this adapter")
-        decision = self.failsafe.force_land(self._time_s, link_age_s=self._link_age_s, battery_pct=self._battery_pct)
-        self._last_failsafe = decision
-        if decision.changed: self._event("failsafe_transition", decision.as_dict())
-        self._sync(decision); return decision
-    def kill(self) -> FailsafeDecision:
-        self._require()
-        if not self.capabilities.supports_kill: raise RuntimeError("kill is unsupported by this adapter")
-        decision = self.failsafe.force_kill(self._time_s, link_age_s=self._link_age_s, battery_pct=self._battery_pct)
-        self._last_failsafe = decision
-        if decision.changed: self._event("failsafe_transition", decision.as_dict())
-        self._sync(decision); self._event("kill", {}); return decision
-    def reset_failsafe(self) -> FailsafeDecision:
-        self._require(); decision = self.failsafe.reset(self._time_s, link_age_s=self._link_age_s, battery_pct=self._battery_pct); self._landed = False; self._last_failsafe = decision
-        if decision.changed: self._event("failsafe_transition", decision.as_dict())
-        self._sync(decision); return decision
-
-    def step(self, dt_s: float | None = None, *, link_age_s: float | None = None, battery_pct: float | None = None,
-             kill_requested: bool = False, recent_loss_fraction: float | None = None) -> DroneState:
-        self._require()
-        dt = self._dt_s if dt_s is None else float(dt_s)
-        if not math.isfinite(dt) or dt <= 0: raise ValueError("dt_s must be positive")
-        if link_age_s is not None: self._link_age_s = _finite_nonnegative("link_age_s", link_age_s)
-        if battery_pct is not None: self.set_battery_pct(battery_pct)
-        self._time_s += dt
-        decision = self._observe(kill_requested=kill_requested, recent_loss_fraction=recent_loss_fraction)
-        winner = self.authority.select(self._time_s)
-        source = None if winner.source is None else winner.source.value
-        if source != self._last_authority:
-            self._last_authority = source; self._event("authority_change", {"source": source})
-        if self._geofence is not None and not self._geofence.contains(self.vehicle.drone.position):
-            self._event("geofence_breach", {"position_m": self.vehicle.drone.position.tolist()})
-            self.authority.submit(CommandSource.FAILSAFE, ControlCommand.hold(), timestamp_s=self._time_s, ttl_s=None, request_id="geofence-breach")
-            winner = self.authority.select(self._time_s)
-        command = winner.command
-        if decision.action is FailsafeAction.KILL or (command is not None and command.kind is CommandKind.KILL):
-            self.vehicle.actuator.speed_rad_s[:] = 0.0
-            self.vehicle.drone.step_physics(np.zeros(3), np.zeros(3), dt)
+    def _update_carrot(self, command: ControlCommand | None, decision: FailsafeDecision, dt: float) -> None:
+        sensed = self._sensed_position()
+        kind = None if command is None else command.kind
+        if kind is CommandKind.POSITION:
+            mode = "position"
+        elif kind is CommandKind.LAND:
+            mode = "land"
         else:
-            if command is not None and command.kind is CommandKind.POSITION:
-                desired = np.asarray(command.position_m, dtype=float)
-                speed = self.failsafe.config.slow_speed_mps if decision.action is FailsafeAction.SLOW else self.capabilities.max_speed_mps
-                delta = desired - self._carrot
-                norm = float(np.linalg.norm(delta))
-                self._carrot += delta if norm <= speed * dt else delta * ((speed * dt) / norm)
-            elif command is not None and command.kind is CommandKind.HOLD:
-                if self._last_command_kind is not CommandKind.HOLD:
-                    self._hold_carrot = self.vehicle.drone.position.copy()
-                self._carrot = self._hold_carrot.copy()
-            elif command is not None and command.kind is CommandKind.LAND:
-                self._carrot[:2] = self.vehicle.drone.position[:2]
-                self._carrot[2] = max(self._ground, self._carrot[2] - self._land_speed * dt)
-            else:
-                self._hold_carrot = self.vehicle.drone.position.copy(); self._carrot = self._hold_carrot.copy()
-            self._last_command_kind = None if command is None else command.kind
+            mode = "hold"
+        if mode != self._carrot_mode:
+            # Every new mode starts the carrot at the sensed position: a hold
+            # or landing is anchored where it began, and a position command
+            # after a hold or a reset starts from where the vehicle is.
+            self._carrot = sensed
+        self._carrot_mode = mode
+
+        if mode == "position":
+            assert command is not None and command.position_m is not None
+            slow = decision.action is FailsafeAction.SLOW
+            speed = self.failsafe.config.slow_speed_mps if slow else self.capabilities.max_speed_mps
+            self._carrot = _step_toward(self._carrot, np.asarray(command.position_m, dtype=float), speed * dt)
+            if slow:
+                lead_limit = speed * self._lag_s_per_mps
+                self._carrot = sensed + _limited(self._carrot - sensed, lead_limit)
+        elif mode == "land":
+            self._carrot = self._carrot.copy()
+            self._carrot[2] = max(self._ground, self._carrot[2] - self._land_speed * dt)
+
+    def _unpowered_step(self, dt: float) -> None:
+        """Kill switch or landed: rotors at zero, no controller, gravity only."""
+        self.vehicle.actuator.speed_rad_s[:] = 0.0
+        self._carrot_mode = "unpowered"
+        self.vehicle.drone.step_physics(np.zeros(3), np.zeros(3), dt)
+        self.vehicle.time_s += dt
+
+    def _rest_on_floor(self) -> None:
+        drone = self.vehicle.drone
+        drone.position[2] = self._ground
+        drone.velocity[:] = 0.0
+        drone.angular_velocity[:] = 0.0
+
+    def _floor_contact(self) -> None:
+        drone = self.vehicle.drone
+        if drone.position[2] >= self._ground:
+            return
+        if self.failsafe.state in {FailsafeState.KILLED, FailsafeState.LANDED}:
+            # Inelastic, no-slide floor for an unpowered body.
+            self._rest_on_floor()
+        else:
+            drone.position[2] = self._ground
+            drone.velocity[2] = max(0.0, drone.velocity[2])
+
+    def step(
+        self,
+        dt_s: float | None = None,
+        *,
+        link_age_s: float | None = None,
+        battery_pct: float | None = None,
+        kill_requested: bool = False,
+        recent_loss_fraction: float | None = None,
+    ) -> DroneState:
+        """Advance the simulated vehicle one control step and return normalized state."""
+        dt, decision, winner = self._begin_step(
+            dt_s,
+            link_age_s=link_age_s,
+            battery_pct=battery_pct,
+            kill_requested=kill_requested,
+            recent_loss_fraction=recent_loss_fraction,
+        )
+        if self.failsafe.state in {FailsafeState.KILLED, FailsafeState.LANDED}:
+            self._unpowered_step(dt)
+        else:
+            self._update_carrot(winner.command, decision, dt)
             self.vehicle.step(self._carrot, dt)
-            if decision.action is FailsafeAction.SLOW:
-                speed = float(np.linalg.norm(self.vehicle.drone.velocity))
-                cap = self.failsafe.config.slow_speed_mps
-                if speed > cap:
-                    self.vehicle.drone.velocity *= cap / speed
-        if self.vehicle.drone.position[2] < self._ground:
-            self.vehicle.drone.position[2] = self._ground
-            self.vehicle.drone.velocity[2] = max(0.0, self.vehicle.drone.velocity[2])
-        if decision.state is FailsafeState.LANDING and self.vehicle.drone.position[2] <= self._ground + 0.02 and np.linalg.norm(self.vehicle.drone.velocity) < 0.05:
-            self._landed = True; self._event("landed", {}); self._observe(recent_loss_fraction=recent_loss_fraction)
+        self._floor_contact()
+
+        drone = self.vehicle.drone
+        if (
+            self.failsafe.state is FailsafeState.LANDING
+            and drone.position[2] <= self._ground + TOUCHDOWN_HEIGHT_M
+            and float(np.linalg.norm(drone.velocity)) < TOUCHDOWN_SPEED_MPS
+        ):
+            self._rest_on_floor()
             self.vehicle.actuator.speed_rad_s[:] = 0.0
+            self._carrot_mode = "unpowered"
+            self._mark_landed(recent_loss_fraction)
         return self.get_state()
 
     def get_state(self) -> DroneState:
-        authority = self.authority.select(self._time_s)
-        return DroneState(position=self.vehicle.drone.position.copy(), velocity=self.vehicle.drone.velocity.copy(),
-                          battery_pct=self._battery_pct, link_delay_ms=self._link_delay_ms, link_loss_pct=self._link_loss_pct,
-                          timestamp_s=self._time_s, connected=self._connected,
-                          command_authority=None if authority.source is None else authority.source.value,
-                          failsafe_state=self.failsafe.state.value, link_age_s=self._link_age_s, landed=self._landed)
+        """Return the true simulated position and velocity plus injected link and battery fields."""
+        return self._state(self.vehicle.drone.position, self.vehicle.drone.velocity)
 
     def model_provenance(self) -> dict[str, Any]:
         result = self.vehicle.model_provenance()
-        result.update({"profile_id": self.profile.profile_id, "floor": "modelled", "drag": "off", "simulated_only": True})
+        result.update({
+            "profile_id": self.profile.profile_id,
+            "floor": "modelled",
+            "drag": "off",
+            "feedback": self.feedback,
+            "simulated_only": True,
+        })
         return result

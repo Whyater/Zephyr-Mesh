@@ -5,6 +5,11 @@ into a vendor API.  ``SimAdapter`` is the first implementation: it integrates
 a bounded point-mass response so authority, stale-link, and failsafe behavior
 can be tested without a live radio or motor.  Its values are synthetic
 scenario inputs and are not flight-performance claims.
+
+``SimulatedAdapterCore`` holds the authority, failsafe, geofence latch, link
+and event rules shared by every simulated adapter (this module's point-mass
+adapters and ``sim.missions.physics_adapter.PhysicsAdapter``).  Everything here
+is simulated.
 """
 from __future__ import annotations
 
@@ -279,71 +284,95 @@ class DroneAdapter(ABC):
         return None
 
 
-class SimAdapter(DroneAdapter):
-    """Deterministic point-mass adapter for one synthetic vehicle.
+def _limited(vector: np.ndarray, limit: float) -> np.ndarray:
+    """Return ``vector`` scaled down so its length is at most ``limit``."""
+    norm = float(np.linalg.norm(vector))
+    if norm <= limit or norm == 0.0:
+        return vector
+    return vector * (limit / norm)
 
-    The adapter is intentionally modest: a bounded acceleration response moves
-    the vehicle toward the winning position command.  It provides the seam for
-    testing command ownership and recovery before a measured actuator model
-    or hardware transport exists.  There is no gravity or ground contact
-    model beyond a floor clamp, so a killed (motor-stopped) vehicle freezes
-    where it is rather than falling.
+
+class PositionFixHold:
+    """Newest externally supplied position fix, held between fixes.
+
+    Used by the simulated offboard adapters, where a laptop closes the
+    position loop from camera fixes.  Before the first fix arrives the held
+    fix is the initial position with zero velocity.  The velocity estimate is
+    the difference of the last two fixes over their time gap (zero until two
+    fixes with different timestamps have arrived).  A fix with the same
+    timestamp as the previous one replaces the position and keeps the old
+    velocity estimate.
     """
 
-    def __init__(
+    def __init__(self, initial_position_m: Iterable[float]) -> None:
+        self.position = _vector3(initial_position_m, name="initial_position_m")
+        self.velocity = np.zeros(3, dtype=float)
+        self.time_s: float | None = None
+
+    def update(self, position_m: Iterable[float], timestamp_s: float) -> None:
+        stamp = _finite_nonnegative("timestamp_s", timestamp_s)
+        if self.time_s is not None and stamp < self.time_s:
+            raise ValueError("timestamp_s must be nondecreasing")
+        point = _vector3(position_m, name="position_m")
+        if self.time_s is not None and stamp > self.time_s:
+            self.velocity = (point - self.position) / (stamp - self.time_s)
+        self.position = point
+        self.time_s = stamp
+
+
+class SimulatedAdapterCore(DroneAdapter):
+    """Authority, failsafe, geofence, link and event plumbing shared by the simulated adapters.
+
+    ``SimAdapter`` (point mass) and ``PhysicsAdapter`` (rigid body) both
+    inherit this class so the safety rules are written once:
+
+    * LAND and KILL commands are accepted only from the FAILSAFE source.
+    * Failsafe states map to a FAILSAFE-source request with no expiry: HOLD
+      for a degraded link (unless the policy says SLOW), LAND while landing,
+      HOLD once landed, KILL after the kill switch.
+    * Geofence breach latch: the first step whose TRUE position is outside
+      ``geofence.contains`` records one "geofence_breach" event and latches a
+      FAILSAFE-source HOLD.  The latch survives the vehicle coming back inside
+      and is released only by :meth:`reset_failsafe`.  A landing or kill
+      switch request still outranks the latched hold.  While latched, no
+      further breach events are recorded; a breach after a reset is a new
+      episode with a new event.
+    * Events are recorded with the adapter clock in ``drain_events`` order.
+
+    Subclasses provide the motion model through ``step`` and ``get_state``
+    and report their true position through ``_truth_position``.  Everything
+    here is simulated; no radio or flight controller is involved.
+    """
+
+    def _init_core(
         self,
         adapter_id: str,
         *,
-        profile: HardwareProfile | None = None,
-        capabilities: Capabilities | None = None,
-        initial_position_m: Iterable[float] = (0.0, 0.0, 1.0),
-        dt_s: float = 0.05,
-        response_time_s: float = 0.25,
-        max_acceleration_mps2: float = 4.0,
-        ground_plane_z_m: float = 0.0,
-        initial_battery_pct: float = 100.0,
-        failsafe_config: FailsafeConfig | None = None,
-        geofence: Geofence | None = None,
+        capabilities: Capabilities,
+        dt_s: float,
+        initial_battery_pct: float,
+        failsafe_config: FailsafeConfig | None,
+        geofence: Geofence | None,
     ) -> None:
         if not isinstance(adapter_id, str) or not adapter_id:
             raise ValueError("adapter_id must be a non-empty string")
-        self._adapter_id = adapter_id
-        self.profile = profile or default_hardware_profile(adapter_id)
-        if not isinstance(self.profile, HardwareProfile):
-            raise ValueError("profile must be a HardwareProfile")
-        self._capabilities = capabilities or Capabilities()
-        if not isinstance(self._capabilities, Capabilities):
+        if not isinstance(capabilities, Capabilities):
             raise ValueError("capabilities must be Capabilities")
-        self.position = _vector3(initial_position_m, name="initial_position_m")
         if geofence is not None and not isinstance(geofence, Geofence):
             raise ValueError("geofence must be Geofence or None")
-        self._geofence = geofence
-        self.velocity = np.zeros(3, dtype=float)
-        self._dt_s = _finite_nonnegative("dt_s", dt_s)
-        if self._dt_s <= 0.0:
+        if failsafe_config is not None and not isinstance(failsafe_config, FailsafeConfig):
+            raise ValueError("failsafe_config must be FailsafeConfig or None")
+        dt = _finite_nonnegative("dt_s", dt_s)
+        if dt <= 0.0:
             raise ValueError("dt_s must be positive")
-        self._response_time_s = float(response_time_s)
-        if not math.isfinite(self._response_time_s) or self._response_time_s <= 0.0:
-            raise ValueError("response_time_s must be finite and positive")
-        requested_acceleration = float(max_acceleration_mps2)
-        if not math.isfinite(requested_acceleration) or requested_acceleration <= 0.0:
-            raise ValueError("max_acceleration_mps2 must be finite and positive")
-        # The point-mass adapter does not integrate per-rotor RPM.  It still
-        # respects the profile's declared static thrust and mass by capping
-        # the synthetic acceleration envelope at T_max / m.  The full motor
-        # and rotor coupling remains in ``sim.vehicle``.
-        profile_acceleration = self.profile.estimated_max_thrust_n() / self.profile.total_mass_kg
-        if not math.isfinite(profile_acceleration) or profile_acceleration <= 0.0:
-            raise ValueError("profile must provide a finite positive thrust-to-mass limit")
-        self._profile_acceleration_mps2 = profile_acceleration
-        self._max_acceleration_mps2 = min(requested_acceleration, profile_acceleration)
-        self._ground_plane_z_m = float(ground_plane_z_m)
-        if not math.isfinite(self._ground_plane_z_m):
-            raise ValueError("ground_plane_z_m must be finite")
-        self._battery_pct = float(initial_battery_pct)
-        if not math.isfinite(self._battery_pct) or self._battery_pct < 0.0 or self._battery_pct > 100.0:
+        battery = float(initial_battery_pct)
+        if not math.isfinite(battery) or battery < 0.0 or battery > 100.0:
             raise ValueError("initial_battery_pct must be finite and between zero and 100")
-
+        self._adapter_id = adapter_id
+        self._capabilities = capabilities
+        self._geofence = geofence
+        self._dt_s = dt
+        self._battery_pct = battery
         self.authority = AuthorityArbiter()
         self.failsafe = FailsafeController(failsafe_config)
         self._connected = False
@@ -352,9 +381,12 @@ class SimAdapter(DroneAdapter):
         self._link_loss_pct = 0.0
         self._link_age_s: float | None = 0.0
         self._landed = False
+        self._geofence_latched = False
         self._last_failsafe = self.failsafe.last_decision
         self._events: list[dict[str, Any]] = []
         self._last_authority_source: str | None = None
+
+    # Identity and session ---------------------------------------------------
 
     @property
     def adapter_id(self) -> str:
@@ -376,6 +408,41 @@ class SimAdapter(DroneAdapter):
     def geofence(self) -> Geofence | None:
         return self._geofence
 
+    @property
+    def geofence_latched(self) -> bool:
+        """True while a geofence breach hold is latched (until ``reset_failsafe``)."""
+        return self._geofence_latched
+
+    @property
+    def failsafe_state(self) -> FailsafeState:
+        return self.failsafe.state
+
+    @property
+    def last_failsafe(self) -> FailsafeDecision:
+        return self._last_failsafe
+
+    def connect(self) -> None:
+        self._connected = True
+
+    def disconnect(self) -> None:
+        """Close the simulated session; no hardware operation is implied."""
+        self._connected = False
+
+    def _require_connected(self) -> None:
+        if not self._connected:
+            raise RuntimeError("adapter is disconnected")
+
+    def _rejected(self, reason: str) -> AuthorityDecision:
+        return AuthorityDecision(
+            accepted=False,
+            source=None,
+            command=None,
+            reason=reason,
+            evaluated_at_s=self._time_s,
+        )
+
+    # Events -------------------------------------------------------------------
+
     def drain_events(self) -> list[dict[str, Any]]:
         events = self._events
         self._events = []
@@ -390,41 +457,10 @@ class SimAdapter(DroneAdapter):
             self._last_authority_source = source
             self._event("authority_change", {"source": source})
 
-    @property
-    def profile_acceleration_limit_mps2(self) -> float:
-        """Synthetic ``T_max / mass`` cap derived from the typed profile."""
-        return self._profile_acceleration_mps2
-
-    @property
-    def failsafe_state(self) -> FailsafeState:
-        return self.failsafe.state
-
-    @property
-    def last_failsafe(self) -> FailsafeDecision:
-        return self._last_failsafe
-
-    def connect(self) -> None:
-        self._connected = True
-
-    def disconnect(self) -> None:
-        """Close the synthetic session; no hardware operation is implied."""
-        self._connected = False
-
-    def _rejected(self, reason: str) -> AuthorityDecision:
-        return AuthorityDecision(
-            accepted=False,
-            source=None,
-            command=None,
-            reason=reason,
-            evaluated_at_s=self._time_s,
-        )
-
-    def _require_connected(self) -> None:
-        if not self._connected:
-            raise RuntimeError("adapter is disconnected")
+    # Injected telemetry -------------------------------------------------------
 
     def set_link_metrics(self, *, delay_ms: float, loss_pct: float, age_s: float | None) -> None:
-        """Set synthetic link telemetry used by the failsafe policy."""
+        """Set simulated link telemetry used by the failsafe policy."""
         delay = _finite_nonnegative("delay_ms", delay_ms)
         loss = float(loss_pct)
         if not math.isfinite(loss) or loss < 0.0 or loss > 100.0:
@@ -440,6 +476,8 @@ class SimAdapter(DroneAdapter):
         if not math.isfinite(value) or value < 0.0 or value > 100.0:
             raise ValueError("battery_pct must be finite and between zero and 100")
         self._battery_pct = value
+
+    # Commands -----------------------------------------------------------------
 
     def request_command(
         self,
@@ -480,33 +518,39 @@ class SimAdapter(DroneAdapter):
             ttl_s=0.5,
         )
 
+    # Failsafe and authority ---------------------------------------------------
+
     def _sync_failsafe_authority(self, decision: FailsafeDecision) -> None:
-        if decision.state is FailsafeState.NOMINAL or decision.action is FailsafeAction.SLOW:
-            self.authority.release(CommandSource.FAILSAFE, timestamp_s=self._time_s)
-            return
-        # Degraded hold, landing, landed hold, and kill are all safety-owned.
-        command = decision.command
+        """Publish (or release) the FAILSAFE-source request for ``decision``."""
+        command: ControlCommand | None
         if decision.state is FailsafeState.LANDED:
             command = ControlCommand.hold()
+            request_id = "failsafe-landed"
+        elif decision.action in {FailsafeAction.NONE, FailsafeAction.SLOW}:
+            # Nominal, or SLOW: the mission keeps authority.
+            command = None
+            request_id = ""
+        else:
+            # Degraded hold, landing, and kill are safety-owned.
+            command = decision.command
+            request_id = f"failsafe-{decision.state.value}"
+            if command is None:
+                raise RuntimeError(f"failsafe state {decision.state.value} has no safety command")
+        if command is None and self._geofence_latched:
+            command = ControlCommand.hold()
+            request_id = "geofence-breach"
         if command is None:
-            raise RuntimeError(f"failsafe state {decision.state.value} has no safety command")
+            self.authority.release(CommandSource.FAILSAFE, timestamp_s=self._time_s)
+            return
         self.authority.submit(
             CommandSource.FAILSAFE,
             command,
             timestamp_s=self._time_s,
             ttl_s=None,
-            request_id=f"failsafe-{decision.state.value}",
+            request_id=request_id,
         )
 
-    def _observe_failsafe(self, *, kill_requested: bool = False, landed: bool = False, recent_loss_fraction: float | None = None) -> FailsafeDecision:
-        decision = self.failsafe.observe(
-            self._time_s,
-            link_age_s=self._link_age_s,
-            battery_pct=self._battery_pct,
-            kill_requested=kill_requested,
-            landed=landed,
-            recent_loss_fraction=recent_loss_fraction,
-        )
+    def _apply_failsafe_decision(self, decision: FailsafeDecision) -> FailsafeDecision:
         self._last_failsafe = decision
         if decision.changed:
             self._event("failsafe_transition", decision.as_dict())
@@ -514,6 +558,17 @@ class SimAdapter(DroneAdapter):
                 self._event("kill", {})
         self._sync_failsafe_authority(decision)
         return decision
+
+    def _observe_failsafe(self, *, kill_requested: bool = False, recent_loss_fraction: float | None = None) -> FailsafeDecision:
+        decision = self.failsafe.observe(
+            self._time_s,
+            link_age_s=self._link_age_s,
+            battery_pct=self._battery_pct,
+            kill_requested=kill_requested,
+            landed=self._landed,
+            recent_loss_fraction=recent_loss_fraction,
+        )
+        return self._apply_failsafe_decision(decision)
 
     def land(self) -> FailsafeDecision:
         self._require_connected()
@@ -524,11 +579,7 @@ class SimAdapter(DroneAdapter):
             link_age_s=self._link_age_s,
             battery_pct=self._battery_pct,
         )
-        self._last_failsafe = decision
-        if decision.changed:
-            self._event("failsafe_transition", decision.as_dict())
-        self._sync_failsafe_authority(decision)
-        return decision
+        return self._apply_failsafe_decision(decision)
 
     def kill(self) -> FailsafeDecision:
         self._require_connected()
@@ -539,15 +590,10 @@ class SimAdapter(DroneAdapter):
             link_age_s=self._link_age_s,
             battery_pct=self._battery_pct,
         )
-        self._last_failsafe = decision
-        if decision.changed:
-            self._event("failsafe_transition", decision.as_dict())
-            self._event("kill", {})
-        self._sync_failsafe_authority(decision)
-        return decision
+        return self._apply_failsafe_decision(decision)
 
     def reset_failsafe(self) -> FailsafeDecision:
-        """Explicitly clear a latched failsafe after healthy synthetic checks."""
+        """Explicitly clear a latched failsafe or geofence hold after healthy checks."""
         self._require_connected()
         decision = self.failsafe.reset(
             self._time_s,
@@ -555,29 +601,37 @@ class SimAdapter(DroneAdapter):
             battery_pct=self._battery_pct,
         )
         self._landed = False
-        self._last_failsafe = decision
-        if decision.changed:
-            self._event("failsafe_transition", decision.as_dict())
-        self._sync_failsafe_authority(decision)
-        return decision
+        self._geofence_latched = False
+        return self._apply_failsafe_decision(decision)
 
-    @staticmethod
-    def _limited(vector: np.ndarray, limit: float) -> np.ndarray:
-        norm = float(np.linalg.norm(vector))
-        if norm <= limit or norm == 0.0:
-            return vector
-        return vector * (limit / norm)
+    # Step plumbing ------------------------------------------------------------
 
-    def step(
+    def _truth_position(self) -> np.ndarray:
+        """True simulated position used for geofence and floor checks."""
+        raise NotImplementedError
+
+    def _check_geofence(self) -> None:
+        if self._geofence is None or self._geofence_latched:
+            return
+        truth = self._truth_position()
+        if not self._geofence.contains(truth):
+            self._geofence_latched = True
+            self._event("geofence_breach", {"position_m": truth.tolist()})
+
+    def _begin_step(
         self,
-        dt_s: float | None = None,
+        dt_s: float | None,
         *,
-        link_age_s: float | None = None,
-        battery_pct: float | None = None,
-        kill_requested: bool = False,
-        recent_loss_fraction: float | None = None,
-    ) -> DroneState:
-        """Advance the synthetic adapter and return normalized state."""
+        link_age_s: float | None,
+        battery_pct: float | None,
+        kill_requested: bool,
+        recent_loss_fraction: float | None,
+    ) -> tuple[float, FailsafeDecision, AuthorityDecision]:
+        """Advance the clock, evaluate safety, and select this step's command.
+
+        The geofence check runs before the authority selection, so a breach
+        hold and its "authority_change" event take effect in the same step.
+        """
         self._require_connected()
         dt = self._dt_s if dt_s is None else float(dt_s)
         if not math.isfinite(dt) or dt <= 0.0:
@@ -587,63 +641,23 @@ class SimAdapter(DroneAdapter):
         if battery_pct is not None:
             self.set_battery_pct(battery_pct)
         self._time_s += dt
-        decision = self._observe_failsafe(kill_requested=kill_requested, landed=self._landed, recent_loss_fraction=recent_loss_fraction)
+        self._check_geofence()
+        decision = self._observe_failsafe(kill_requested=kill_requested, recent_loss_fraction=recent_loss_fraction)
         winner = self.authority.select(self._time_s)
         self._record_authority(winner)
+        return dt, decision, winner
 
-        if self._geofence is not None and not self._geofence.contains(self.position):
-            self._event("geofence_breach", {"position_m": self.position.tolist()})
-            self.authority.submit(CommandSource.FAILSAFE, ControlCommand.hold(), timestamp_s=self._time_s, ttl_s=None, request_id="geofence-breach")
-            winner = self.authority.select(self._time_s)
+    def _mark_landed(self, recent_loss_fraction: float | None) -> FailsafeDecision:
+        """Acknowledge touchdown to the failsafe policy (LANDING to LANDED)."""
+        self._landed = True
+        self._event("landed", {})
+        return self._observe_failsafe(recent_loss_fraction=recent_loss_fraction)
 
-        if winner.command is None or winner.command.kind is CommandKind.KILL:
-            self.velocity[:] = 0.0
-        else:
-            command = winner.command
-            if command.kind is CommandKind.POSITION:
-                assert command.position_m is not None
-                desired = np.asarray(command.position_m, dtype=float)
-            elif command.kind is CommandKind.LAND:
-                desired = self.position.copy()
-                desired[2] = self._ground_plane_z_m
-            else:  # HOLD
-                desired = self.position.copy()
-            desired_velocity = (desired - self.position) / self._response_time_s
-            speed_limit = self.capabilities.max_speed_mps
-            if decision.action is FailsafeAction.SLOW:
-                speed_limit = min(speed_limit, self.failsafe.config.slow_speed_mps)
-            desired_velocity = self._limited(desired_velocity, speed_limit)
-            acceleration = self._limited(
-                (desired_velocity - self.velocity) / dt,
-                self._max_acceleration_mps2,
-            )
-            self.velocity = self._limited(self.velocity + acceleration * dt, speed_limit)
-            self.position = self.position + self.velocity * dt
-            if self.position[2] < self._ground_plane_z_m:
-                self.position[2] = self._ground_plane_z_m
-                self.velocity[2] = max(0.0, self.velocity[2])
-            if command.kind is CommandKind.LAND and (
-                self.position[2] <= self._ground_plane_z_m + 1e-9
-                and np.linalg.norm(self.velocity) <= 1e-6
-            ):
-                self.position[2] = self._ground_plane_z_m
-                self._landed = True
-                self._event("landed", {})
-                decision = self._observe_failsafe(landed=True, recent_loss_fraction=recent_loss_fraction)
-
-        # A killed vehicle is stopped immediately and frozen in place (this
-        # point-mass model has no gravity, so it does not fall).  A landed one
-        # remains held.
-        if decision.action is FailsafeAction.KILL:
-            self.velocity[:] = 0.0
-        return self.get_state()
-
-    def get_state(self) -> DroneState:
-        """Return a normalized, serializable state snapshot."""
+    def _state(self, position: np.ndarray, velocity: np.ndarray) -> DroneState:
         authority = self.authority.select(self._time_s)
         return DroneState(
-            position=self.position.copy(),
-            velocity=self.velocity.copy(),
+            position=position.copy(),
+            velocity=velocity.copy(),
             battery_pct=self._battery_pct,
             link_delay_ms=self._link_delay_ms,
             link_loss_pct=self._link_loss_pct,
@@ -656,29 +670,175 @@ class SimAdapter(DroneAdapter):
         )
 
 
+class SimAdapter(SimulatedAdapterCore):
+    """Deterministic point-mass adapter for one simulated vehicle.
+
+    The adapter is intentionally modest: a bounded acceleration response moves
+    the vehicle toward the winning position command.  It provides the seam for
+    testing command ownership and recovery before a measured actuator model
+    or hardware transport exists.  There is no gravity or ground contact
+    model beyond a floor clamp, so a killed (motor-stopped) vehicle freezes
+    where it is rather than falling.
+    """
+
+    def __init__(
+        self,
+        adapter_id: str,
+        *,
+        profile: HardwareProfile | None = None,
+        capabilities: Capabilities | None = None,
+        initial_position_m: Iterable[float] = (0.0, 0.0, 1.0),
+        dt_s: float = 0.05,
+        response_time_s: float = 0.25,
+        max_acceleration_mps2: float = 4.0,
+        ground_plane_z_m: float = 0.0,
+        initial_battery_pct: float = 100.0,
+        failsafe_config: FailsafeConfig | None = None,
+        geofence: Geofence | None = None,
+    ) -> None:
+        if not isinstance(adapter_id, str) or not adapter_id:
+            raise ValueError("adapter_id must be a non-empty string")
+        self.profile = profile or default_hardware_profile(adapter_id)
+        if not isinstance(self.profile, HardwareProfile):
+            raise ValueError("profile must be a HardwareProfile")
+        self._init_core(
+            adapter_id,
+            capabilities=capabilities or Capabilities(),
+            dt_s=dt_s,
+            initial_battery_pct=initial_battery_pct,
+            failsafe_config=failsafe_config,
+            geofence=geofence,
+        )
+        self.position = _vector3(initial_position_m, name="initial_position_m")
+        self.velocity = np.zeros(3, dtype=float)
+        self._response_time_s = float(response_time_s)
+        if not math.isfinite(self._response_time_s) or self._response_time_s <= 0.0:
+            raise ValueError("response_time_s must be finite and positive")
+        requested_acceleration = float(max_acceleration_mps2)
+        if not math.isfinite(requested_acceleration) or requested_acceleration <= 0.0:
+            raise ValueError("max_acceleration_mps2 must be finite and positive")
+        # The point-mass adapter does not integrate per-rotor RPM.  It still
+        # respects the profile's declared static thrust and mass by capping
+        # the simulated acceleration envelope at T_max / m.  The full motor
+        # and rotor coupling remains in ``sim.vehicle``.
+        profile_acceleration = self.profile.estimated_max_thrust_n() / self.profile.total_mass_kg
+        if not math.isfinite(profile_acceleration) or profile_acceleration <= 0.0:
+            raise ValueError("profile must provide a finite positive thrust-to-mass limit")
+        self._profile_acceleration_mps2 = profile_acceleration
+        self._max_acceleration_mps2 = min(requested_acceleration, profile_acceleration)
+        self._ground_plane_z_m = float(ground_plane_z_m)
+        if not math.isfinite(self._ground_plane_z_m):
+            raise ValueError("ground_plane_z_m must be finite")
+
+    @property
+    def profile_acceleration_limit_mps2(self) -> float:
+        """Simulated ``T_max / mass`` cap derived from the typed profile."""
+        return self._profile_acceleration_mps2
+
+    _limited = staticmethod(_limited)
+
+    def _truth_position(self) -> np.ndarray:
+        return self.position
+
+    def _sensed_position(self) -> np.ndarray:
+        """Position the motion law steers from.  Onboard, this is the truth."""
+        return self.position
+
+    def _move_point_mass(self, command: ControlCommand, *, sensed: np.ndarray, speed_limit: float, dt: float) -> None:
+        """Point-mass motion law.
+
+        The velocity request comes from the error between the goal and the
+        ``sensed`` position; the TRUE position integrates the resulting
+        velocity and is clamped to the floor.  With ``sensed`` equal to the
+        truth this is the original ``SimAdapter`` law.
+        """
+        if command.kind is CommandKind.POSITION:
+            assert command.position_m is not None
+            desired = np.asarray(command.position_m, dtype=float)
+        elif command.kind is CommandKind.LAND:
+            desired = sensed.copy()
+            desired[2] = self._ground_plane_z_m
+        else:  # HOLD
+            desired = sensed.copy()
+        desired_velocity = (desired - sensed) / self._response_time_s
+        desired_velocity = _limited(desired_velocity, speed_limit)
+        acceleration = _limited(
+            (desired_velocity - self.velocity) / dt,
+            self._max_acceleration_mps2,
+        )
+        self.velocity = _limited(self.velocity + acceleration * dt, speed_limit)
+        self.position = self.position + self.velocity * dt
+        if self.position[2] < self._ground_plane_z_m:
+            self.position[2] = self._ground_plane_z_m
+            self.velocity[2] = max(0.0, self.velocity[2])
+
+    def step(
+        self,
+        dt_s: float | None = None,
+        *,
+        link_age_s: float | None = None,
+        battery_pct: float | None = None,
+        kill_requested: bool = False,
+        recent_loss_fraction: float | None = None,
+    ) -> DroneState:
+        """Advance the simulated adapter and return normalized state."""
+        dt, decision, winner = self._begin_step(
+            dt_s,
+            link_age_s=link_age_s,
+            battery_pct=battery_pct,
+            kill_requested=kill_requested,
+            recent_loss_fraction=recent_loss_fraction,
+        )
+        command = winner.command
+        if command is None or command.kind is CommandKind.KILL:
+            self.velocity[:] = 0.0
+        else:
+            speed_limit = self.capabilities.max_speed_mps
+            if decision.action is FailsafeAction.SLOW:
+                speed_limit = min(speed_limit, self.failsafe.config.slow_speed_mps)
+            self._move_point_mass(command, sensed=self._sensed_position(), speed_limit=speed_limit, dt=dt)
+            # Touchdown is judged on the true position and velocity.
+            if command.kind is CommandKind.LAND and (
+                self.position[2] <= self._ground_plane_z_m + 1e-9
+                and np.linalg.norm(self.velocity) <= 1e-6
+            ):
+                self.position[2] = self._ground_plane_z_m
+                decision = self._mark_landed(recent_loss_fraction)
+
+        # A killed vehicle is stopped immediately and frozen in place (this
+        # point-mass model has no gravity, so it does not fall).  A landed one
+        # remains held.
+        if decision.action is FailsafeAction.KILL:
+            self.velocity[:] = 0.0
+        return self.get_state()
+
+    def get_state(self) -> DroneState:
+        """Return a normalized, serializable state snapshot."""
+        return self._state(self.position, self.velocity)
+
+
 class OffboardPointMassAdapter(SimAdapter):
-    """Point-mass adapter whose controller uses externally supplied fixes."""
+    """Simulated point mass whose position loop uses externally supplied fixes.
+
+    This is the "laptop closes the position loop from camera fixes" case.
+    The motion law steers from the newest fix given to
+    :meth:`set_position_fix` (held between fixes; the initial position before
+    the first fix).  The true position still integrates the commanded
+    velocity, sits on the floor clamp, and is what geofence checks, touchdown
+    detection and ``get_state()`` use.
+    """
 
     def __init__(self, adapter_id: str, **kwargs: Any) -> None:
         super().__init__(adapter_id, **kwargs)
-        self._position_fix: np.ndarray | None = None
-        self._position_fix_time_s: float | None = None
+        self._fix = PositionFixHold(self.position)
+
+    @property
+    def position_fix_m(self) -> np.ndarray:
+        """Copy of the fix the motion law currently steers from."""
+        return self._fix.position.copy()
 
     def set_position_fix(self, position_m: Iterable[float], timestamp_s: float) -> None:
-        stamp = _finite_nonnegative("timestamp_s", timestamp_s)
-        if stamp < (self._position_fix_time_s or 0.0):
-            raise ValueError("timestamp_s must be nondecreasing")
-        self._position_fix = _vector3(position_m, name="position_m")
-        self._position_fix_time_s = stamp
+        self._fix.update(position_m, timestamp_s)
 
-    def step(self, dt_s: float | None = None, **kwargs: Any) -> DroneState:
-        if self._position_fix is None:
-            return super().step(dt_s, **kwargs)
-        truth = self.position.copy()
-        sensed = self._position_fix.copy()
-        self.position = sensed
-        state = super().step(dt_s, **kwargs)
-        dt = self._dt_s if dt_s is None else float(dt_s)
-        moved = self.velocity * dt
-        self.position = truth + moved
-        return self.get_state()
+    def _sensed_position(self) -> np.ndarray:
+        return self._fix.position.copy()
