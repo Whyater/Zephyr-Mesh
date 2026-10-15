@@ -86,7 +86,7 @@ PARAMS: dict[str, SourcedValue] = {
                  "31 for DSSS/CCK, 15 for OFDM; ESP32 value for ESP-NOW UNCONFIRMED"),
     "cw_max": _v(1023, 1023, 1023, "slots", _FREEBSD_PHY, "standard"),
     "ack_bytes": _v(14, 14, 14, "bytes", _HU_BERLIN, "standard", "sent at a basic rate, 1 Mbps for 1 Mbps data"),
-    # ---- ACK and retries (the prompt's "do not assume" item) ----
+    # ---- ACK and retries (not documented by Espressif; swept) ----
     "unicast_retry_limit": _v(5, 0, 10, "retransmissions", _IDF_ISSUE_9383, "partial",
                               "Espressif documents that unicast success means 'received successfully on the MAC "
                               "layer' and offers no retry setting. The count is reported only in a GitHub issue "
