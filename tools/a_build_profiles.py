@@ -128,5 +128,5 @@ if __name__ == "__main__":
     out = Path(sys.argv[1])
     out.mkdir(parents=True, exist_ok=True)
     for name, doc in (("crazyflie_class.json", crazyflie()), ("esp_fly_class.json", espfly())):
-        (out / name).write_text(json.dumps(doc, indent=2, sort_keys=False) + "\n")
+        (out / name).write_text(json.dumps(doc, indent=2, sort_keys=False) + "\n", encoding="utf-8", newline="\n")
         print(out / name)
