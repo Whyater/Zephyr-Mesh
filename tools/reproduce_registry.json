@@ -1,1 +1,50 @@
-[]
+[
+  {
+    "run_dir": "runs/s6-retro",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_retro.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. ./.venv/bin/python tools/make_s6_retro_figure.py {out}",
+    "outputs": {
+      "cells.csv": "518a561843ae94ea070964959c7bbb26c5e468ad3cae522feef42eba81cd27c8",
+      "per_seed.csv.gz": "fb3bf0e7d231e6ff5ef6f93da9631ba94a1a49d078e5e99e25c7ad5d72b520b4",
+      "s6_retro.png": "44b4ef48399782668c7db28ab8caa19a3d8df1b7a1327f752509a4da2e66b2a6",
+      "s6_retro_reorder.png": "cc93948923b6e44339a9c84e132be4160bccb0ca68dd67107b999b790a4a1437",
+      "summary.json": "b5b0167215e8de3de67a58209ae2610ebc79d7f7ba1439a3bbefcc5e533c76d5"
+    }
+  },
+  {
+    "run_dir": "runs/s6-tuning",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_tuning.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. ./.venv/bin/python tools/make_s6_tuning_figure.py {out}",
+    "outputs": {
+      "cells.csv": "4719f190d14be9b19a2e4b566b5ac0ea0e9d8063c3d20d7b161f63c2e8213f88",
+      "consistency_check.json": "8f3c881baee699fbf6841feaf7f88fecc029301a3bf12f41c43a60abea6c3602",
+      "per_seed.csv.gz": "b6f6a98b80c3c8990e87f11243bcc11c614b7cea1c905efa86baf7735e9cc6dd",
+      "s6_tuning.png": "cb38d028423e1730857682a3d915f5fe348d542036399c28070a8725d4286a94",
+      "s6_tuning_monitor.png": "09b1a5c3aabec2898c8f4e078b65a0e10f530951aa0e4db12c29c9b08d442c1f",
+      "summary.json": "b209e00b6468fa028e2bf4c2f0ed93c9484e70e07be10026f2404cb2165fc8b9"
+    }
+  },
+  {
+    "run_dir": "runs/s6-clocks",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_clocks.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. ./.venv/bin/python tools/make_s6_clocks_figure.py {out}",
+    "outputs": {
+      "cells.csv": "4f94eee41e251af64d001cc930b5e66b481daccb31135236d21fd44a417ba8d1",
+      "per_seed.csv.gz": "2ac3924db9e555899f586147735d0d6eb518a68d4233ef37657f5ef1e8c755be",
+      "s6_clocks.png": "15c2a2a65e042fb6e601337208fdfaa1e8a5af7c206135c7941e887c92240e37",
+      "s6_clocks_sync.png": "498a6c8a7ff5d5093fa812b743634e7bef59d13c9639225fff13c2d9778cba15",
+      "summary.json": "795992765aef597aafdfdac8c62e8930e08ac9ebfae430f60338116e2f136f17"
+    }
+  },
+  {
+    "run_dir": "runs/s6-sensitivity",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_sensitivity.py --output {out} --no-checkpoint && PYTHONPATH=. ./.venv/bin/python tools/make_s6_sensitivity_figure.py {out}",
+    "outputs": {
+      "morris.json": "0fcbdbbd8116fb658050bd543321feec43a3b57a657d687f7facc53776130c73",
+      "oat.csv": "be5dabd69d8d57c98c80c7cb2ca390fe87fabc092f11c8f4a4ff66bb5261677f",
+      "oat.json": "135743ba978143d089d2c6cb120103c013ed7228a8f731910bf0526f102c7517",
+      "per_seed.csv.gz": "9f12f7938b5d2384a1c5312c12a251917784a2c1cdcf35c088e9c8143c9b0c75",
+      "ranking.json": "54c9bf1c46ec2a4f0d56e806ba8d3f4c535b2a929db82d473288f5fae1b27e3f",
+      "s6_sensitivity_morris.png": "17a8e21d9132897cbbe91e6306389d0ffa3b877f947c97d719f97fc4a9b3da5f",
+      "s6_sensitivity_oat.png": "3e94d52e9f9b4dc7bb70a63e7cb398e4c580699a3c5c68625a932469784fdf68",
+      "summary.json": "95134027efcedb2551cc6ff58dd04b5f2830b739dabe38a8b37e6281907e6115"
+    }
+  }
+]

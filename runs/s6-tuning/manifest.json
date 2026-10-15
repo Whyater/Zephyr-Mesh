@@ -22,6 +22,8 @@
     "cells.csv": "4719f190d14be9b19a2e4b566b5ac0ea0e9d8063c3d20d7b161f63c2e8213f88",
     "consistency_check.json": "8f3c881baee699fbf6841feaf7f88fecc029301a3bf12f41c43a60abea6c3602",
     "per_seed.csv.gz": "b6f6a98b80c3c8990e87f11243bcc11c614b7cea1c905efa86baf7735e9cc6dd",
+    "s6_tuning.png": "cb38d028423e1730857682a3d915f5fe348d542036399c28070a8725d4286a94",
+    "s6_tuning_monitor.png": "09b1a5c3aabec2898c8f4e078b65a0e10f530951aa0e4db12c29c9b08d442c1f",
     "summary.json": "b209e00b6468fa028e2bf4c2f0ed93c9484e70e07be10026f2404cb2165fc8b9"
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",

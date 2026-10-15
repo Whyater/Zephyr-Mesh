@@ -23,6 +23,8 @@
   "outputs": {
     "cells.csv": "4f94eee41e251af64d001cc930b5e66b481daccb31135236d21fd44a417ba8d1",
     "per_seed.csv.gz": "2ac3924db9e555899f586147735d0d6eb518a68d4233ef37657f5ef1e8c755be",
+    "s6_clocks.png": "15c2a2a65e042fb6e601337208fdfaa1e8a5af7c206135c7941e887c92240e37",
+    "s6_clocks_sync.png": "498a6c8a7ff5d5093fa812b743634e7bef59d13c9639225fff13c2d9778cba15",
     "summary.json": "795992765aef597aafdfdac8c62e8930e08ac9ebfae430f60338116e2f136f17"
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
