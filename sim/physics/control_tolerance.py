@@ -217,7 +217,7 @@ def run_episode(profile, arm: str, reference: str, delay_s: float, loss_p: float
     vehicle.actuator.speed_rad_s[:] = p.hover_speed_rad_s()
     vehicle.controller = _controller_for(arm, delay, loss, rng, vehicle.drone)
 
-    times, positions, references = [], [], []
+    times, positions, references, tilts = [], [], [], []
     unstable = False
     reason = None
     unstable_time = None
@@ -243,6 +243,7 @@ def run_episode(profile, arm: str, reference: str, delay_s: float, loss_p: float
         times.append(t)
         positions.append(vehicle.drone.position.copy())
         references.append(reference_position(reference, t))
+        tilts.append(_tilt_angle(vehicle.drone) if np.all(np.isfinite(vehicle.drone.quaternion)) else math.nan)
         if unstable:
             break
 
@@ -307,6 +308,11 @@ def run_episode(profile, arm: str, reference: str, delay_s: float, loss_p: float
         "unstable_reason": reason,
         "unstable_time_s": None if unstable_time is None else float(unstable_time),
         "n_steps": int(len(t_arr)),
+        # Diagnostics over the whole run. They do not change the pre-registered
+        # instability rules; they show runs that pass those rules while flying badly.
+        "whole_run_max_error_m": float(np.max(errors)) if len(errors) else float("nan"),
+        "whole_run_max_tilt_deg": float(np.degrees(np.nanmax(tilts))) if len(tilts) else float("nan"),
+        "whole_run_min_z_m": float(np.min(pos_arr[:, 2])) if len(pos_arr) else float("nan"),
     }
     if response is not None:
         result.update({"step_overshoot_pct": response["overshoot_pct"], "settling_time_s": response["settling_time_s"], "step_response": response})
@@ -335,8 +341,11 @@ def find_d_crit(profile, *, arm: str = "b", resolution_s: float = CONTROL_DT_S,
     if scoring_windows is not None:
         run_kwargs["scoring_windows"] = scoring_windows
 
+    results: dict[int, dict[str, Any]] = {}
+
     def _run(step: int) -> dict[str, Any]:
-        return run_episode(p, arm, "step", step * CONTROL_DT_S, 0.0, seed, **run_kwargs)
+        results[step] = run_episode(p, arm, "step", step * CONTROL_DT_S, 0.0, seed, **run_kwargs)
+        return results[step]
 
     low_result = _run(low_step)
     high_result = _run(high_step)
@@ -361,7 +370,15 @@ def find_d_crit(profile, *, arm: str = "b", resolution_s: float = CONTROL_DT_S,
         "unstable_delay_s": float(unstable_delay),
         "resolution_s": float(CONTROL_DT_S),
         "effective_delay_grid_s": float(CONTROL_DT_S),
+        "stable_side": _diagnostics(results[low_step]),
+        "unstable_side": _diagnostics(results[high_step]),
     }
+
+
+def _diagnostics(result: Mapping[str, Any]) -> dict[str, Any]:
+    keys = ("rms_error_m", "max_error_m", "whole_run_max_error_m", "whole_run_max_tilt_deg",
+            "whole_run_min_z_m", "unstable_reason", "unstable_time_s")
+    return {key: result.get(key) for key in keys}
 
 # Alternate descriptive name used by sweep code.
 d_crit_search = find_d_crit
