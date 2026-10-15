@@ -24,9 +24,10 @@ class GeometricFlightController:
         # K_d_att * dt < 2, which is dt < 0.11 s here.  The old fixed gains
         # (2.5 N m s on I = 0.0023 kg m^2, so 1087 per s) needed dt < 0.0018 s
         # and diverged at the 0.01 s baseline step for any sideways command.
-        # The yaw entry of K_p_att has no effect: the body-frame tilt error is
-        # always perpendicular to body z, so its yaw part is exactly zero.  Yaw
-        # is rate damping only (there is no heading setpoint).
+        # Without a target yaw, the yaw entry of K_p_att has no effect: the
+        # body-frame tilt error is always perpendicular to body z, so its yaw
+        # part is exactly zero, and yaw is rate damping only.  With
+        # target_yaw_rad it is the heading gain.
         self.K_p_att = np.array([100.0, 100.0, 100.0])  # Roll, Pitch, Yaw (per s^2)
         self.K_d_att = np.array([18.0, 18.0, 18.0])     # Roll, Pitch, Yaw (per s)
 

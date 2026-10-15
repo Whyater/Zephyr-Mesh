@@ -386,7 +386,9 @@ def run_sweep(output: str | Path, pilot: bool = False, workers: int | None = Non
     elapsed = time.perf_counter() - started
     manifest = write_manifest(
         output / "manifest.json", schema="zephyr-a6-control-tolerance-manifest-1", config=config,
-        seeds=seeds, limits=["simulated only", "literature-derived profiles", "linear hover hand model"],
+        seeds=seeds, limits=["simulated only", "literature-derived profiles", "linear hover hand model",
+                        "d_crit_s uses a 20 s growth rule that can miss slow growth; runs/a6-long-check (80 s) shows arm b decaying at 0.33 s and growing at 0.34 s for both profiles.",
+                        "esp-fly-class slice c at 0.03 s passes the 20 s rule but falls 3.2 m with a 68 degree tilt; treat the whole-state delay limit as 20 to 30 ms for both profiles."],
         outputs={"per_run.csv": output / "per_run.csv", "summary.json": output / "summary.json",
                  "d_crit.json": output / "d_crit.json", "a6_control_tolerance.png": output / "a6_control_tolerance.png"},
         output_dir=output, runtime_s=elapsed, n_processes=workers,

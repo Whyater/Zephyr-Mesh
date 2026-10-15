@@ -17,6 +17,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from sim.baseline import KNOWN_LIMITS, run_scenario_v2, scenario_v2_spec
+
+# The v1 limits describe the v1 baseline; this run adds the heading setpoint and
+# the sideways and yaw cases, so two of them are replaced here.
+_V2_REPLACED = {
+    'No heading setpoint: the controller damps yaw rate but does not hold or command a yaw angle.':
+        'Optional heading setpoint: the controller holds a yaw angle only when a target yaw is given (this run commands a 90 degree yaw step); with no target yaw it damps yaw rate only.',
+    'This artifact only runs the vertical step to (0, 0, 3) m; sideways and yawed cases are covered by tests, not by this run.':
+        'This artifact runs three cases: a vertical step to (0, 0, 3) m, a 1 m sideways step, and a 90 degree yaw step. Other cases are covered by tests, not by this run.',
+}
+V2_LIMITS = [_V2_REPLACED.get(item, item) for item in KNOWN_LIMITS]
 from sim.metrics import step_response
 from sim.physics.run_manifest import write_manifest
 from tools import horizon_mpl
@@ -104,7 +114,7 @@ def generate(output_dir: Path, *, dt: float = 0.01, overwrite: bool = False) -> 
         argv=sys.argv[1:],
         config={"dt_s": float(dt), "scenarios": {name: scenario_v2_spec(name, dt) for name in SCENARIOS}},
         seeds=[],
-        limits=list(KNOWN_LIMITS),
+        limits=V2_LIMITS,
         outputs=written,
         output_dir=output_dir,
         replay_command="PYTHONPATH=. " + " ".join(

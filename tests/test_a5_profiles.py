@@ -1,4 +1,4 @@
-"""Checks on the two literature-derived micro-quad profiles (Run A, A5).
+"""Checks on the two literature-derived micro-quad profiles.
 
 The derived numbers are worked by hand from the profile fields, so a typo in
 a profile value or in the loader shows up here.

@@ -1484,7 +1484,9 @@
   "limits": [
     "simulated only",
     "literature-derived profiles",
-    "linear hover hand model"
+    "linear hover hand model",
+    "d_crit_s uses a 20 s growth rule that can miss slow growth; runs/a6-long-check (80 s) shows arm b decaying at 0.33 s and growing at 0.34 s for both profiles.",
+    "esp-fly-class slice c at 0.03 s passes the 20 s rule but falls 3.2 m with a 68 degree tilt; treat the whole-state delay limit as 20 to 30 ms for both profiles."
   ],
   "n_processes": 2,
   "numpy": "2.5.1",

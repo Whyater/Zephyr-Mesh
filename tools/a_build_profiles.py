@@ -118,8 +118,8 @@ def espfly():
                                       "Ratio scales with diameter: 5.25e-3 m (median Crazyflie value) x 30 / 46.27 = 3.4e-3 m.")
     P["rotor.max_speed_rad_s"] = p(6450.0, [5720.0, 7330.0], "vendor 17 g thrust per motor (Seeed README) with the scaled k_f; vendor 70,000 rpm read as a no-load ceiling", SEEED, "SCALED",
                                    "w_max = sqrt(0.1668 N / 4.0e-9) = 6450 rad/s, so k_f w_max^2 matches the vendor max thrust.")
-    P["rotor.motor_time_constant_s"] = p(0.07, [0.05, 0.16], "Crazyflie brushed-motor identification (no 615-motor source): Eschmann fitted 0.072 s; landing paper tau_up 0.05, tau_down 0.16", ESCHMANN, "SCALED",
-                                         "Borrowed from the Crazyflie class; no ESP-FLY specific value exists.")
+    P["rotor.motor_time_constant_s"] = p(0.07, [0.05, 0.16], "Crazyflie brushed-motor identification (no 615-motor source): Eschmann fitted 0.072 s; the range comes from the landing paper (" + LANDING + ", Appendix A, Crazyflie 2.1 with upgraded motors): tau_up 0.05 s, tau_down 0.16 s", ESCHMANN, "SCALED",
+                                         "Borrowed from the Crazyflie class; no ESP-FLY specific value exists. 0.16 s is a spin-down constant, used here as a symmetric upper bound on the lag.")
     P["rotor.prop_radius_m"] = p(0.015, [0.015, 0.0155], "Seeed README parts list: 30 mm tri-blade props", SEEED, "CONFIRMED")
     return doc
 
