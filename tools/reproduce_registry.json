@@ -81,5 +81,15 @@
       "sensitivity.csv": "f4a7fc561790f5a291609df463442c759fa667ce8ef99dac75fff590f2154fa5",
       "sensitivity.json": "284891779179ac180eb8ca2adf65fc830d44185b87a1d0a69a7b69adce32825b"
     }
+  },
+  {
+    "run_dir": "runs/a6-control-tolerance",
+    "command": "PYTHONPATH=. {python} tools/a_run_control_tolerance.py --output-dir {out} --workers 2",
+    "outputs": {
+      "a6_control_tolerance.png": "45eeef9f051636afdd774f74362ac12f91e8769fdd3afbd6512e9f7b58490d7c",
+      "d_crit.json": "3de04b8235f2ad8f89968acb77424f7eb3dd852c07a5498c99fb6f18e41a831d",
+      "per_run.csv": "5949fd0e864fa501d52cd9ffddb5f54288b6d7f62e98ab532df427d237cc45f8",
+      "summary.json": "4544173d3d292f5e86c9f7089cb25cbe318244804519fb27e4ed6f49f3c44056"
+    }
   }
 ]
