@@ -55,6 +55,7 @@ def summarize_bench_trace(trace: BenchTrace) -> dict[str, Any]:
             "status": trace.status,
             "source": trace.source,
             "calibration_id": trace.calibration_id,
+            "provenance_block": trace.provenance,
             "code_revision": trace.code_revision,
             "notes": trace.notes,
             "profile_id": trace.profile_id,

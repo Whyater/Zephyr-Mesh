@@ -1,0 +1,96 @@
+{
+  "argv": [
+    "--output-dir",
+    "runs/s0-baseline-v2"
+  ],
+  "config": {
+    "dt_s": 0.01,
+    "scenarios": {
+      "lateral": {
+        "dt": 0.01,
+        "initial_position": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "name": "lateral",
+        "target_position": [
+          1.0,
+          0.0,
+          1.0
+        ],
+        "target_yaw_rad": null,
+        "total_time": 10.0
+      },
+      "vertical": {
+        "dt": 0.01,
+        "initial_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "name": "vertical",
+        "target_position": [
+          0.0,
+          0.0,
+          3.0
+        ],
+        "target_yaw_rad": null,
+        "total_time": 7.0
+      },
+      "yaw": {
+        "dt": 0.01,
+        "initial_position": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "name": "yaw",
+        "target_position": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "target_yaw_rad": 1.5707963267948966,
+        "total_time": 3.0
+      }
+    }
+  },
+  "config_sha256": "4d290b2ae17dbf388d347691c80463e48012d10f224fafda4914fa19b26ea21e",
+  "git_revision": "2ab4ce5712073340a4b851a32b1124eb13842c4b",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Sampled-controller limit: attitude rate damping of 18 per second needs dt < 2/18 = 0.111 s (necessary condition; the controller rejects larger steps). Sideways steps are tested to converge at dt 0.01 s for four targets and four starting yaw angles, not at every dt below the limit.",
+    "No heading setpoint: the controller damps yaw rate but does not hold or command a yaw angle.",
+    "No ground plane: the body can descend below z = 0 without contact.",
+    "No integral action: a steady thrust shortfall leaves a small steady position error.",
+    "Default inertia (0.0023, 0.0023, 0.0040 kg m^2) is a fixed estimate for a 450 g 5-inch frame and is not derived from mass. Hardware-profile vehicles use a point-mass plus plate estimate. Neither is measured.",
+    "Drag coefficient, reference area, and controller gains are synthetic scenario inputs, not measured values.",
+    "This artifact only runs the vertical step to (0, 0, 3) m; sideways and yawed cases are covered by tests, not by this run.",
+    "RK4 stages use the attitude quaternion without renormalizing it inside a step (it is renormalized after each step). The effect is small: the measured convergence ratio is still about 16 per halving of dt."
+  ],
+  "n_processes": null,
+  "numpy": "2.5.1",
+  "outputs": {
+    "a_s0_baseline_v2.png": "06b64aa6d60e7d5725f7154472627765b4e6f3e5dab37109070826929bff784f",
+    "lateral.csv": "33b12e8b7f740f266f7e217969a5fc83f5835f8191012d2d28880f8e9885a8bf",
+    "report.json": "d41207d8310b16719cc78672fca977d9186cb9ce79e5b1ce668b719f68a051dc",
+    "vertical.csv": "a59202c84ecfeb06ce523c7e37cd9621c2092c16bd20c4dd3cd2bb58181b3337",
+    "yaw.csv": "b95f74b18961f30f2d77b7873f2e9f42614ca31b4c1b3bbe8ed17781b6ce7416"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. '/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python' tools/a_make_s0_baseline_v2.py --output-dir runs/s0-baseline-v2",
+  "runtime_s": 10.39796829199986,
+  "schema": "zephyr-s0-baseline-v2-manifest-1",
+  "seeds": [],
+  "volatile_fields": [
+    "runtime_s",
+    "git_revision",
+    "git_tree_state",
+    "platform",
+    "python",
+    "numpy",
+    "n_processes"
+  ]
+}

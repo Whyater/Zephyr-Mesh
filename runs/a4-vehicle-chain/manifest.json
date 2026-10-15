@@ -1,0 +1,41 @@
+{
+  "argv": [
+    "--output-dir",
+    "runs/a4-vehicle-chain"
+  ],
+  "config": {
+    "profiles": [
+      "crazyflie-class",
+      "esp-fly-class"
+    ]
+  },
+  "config_sha256": "23c8765a7fb3090ea19cc49043950edf115210ba7ded9bd8abbebd1b7dfcf25a",
+  "git_revision": "9a2839d2c9fa9d733a5a8caeacc95e3462b6f581",
+  "git_tree_state": "dirty",
+  "limits": [
+    "simulated only",
+    "literature-derived profiles",
+    "illustrative battery"
+  ],
+  "n_processes": null,
+  "numpy": "2.5.1",
+  "outputs": {
+    "a4_vehicle_chain.png": "139104752678bdd566c98d45e14a2c126a6e0fdf7b0d897e4d2f6fc707d2f0ef",
+    "report.json": "f850c4c546fb828247f76bbe15d593b0fdacb298162dbcbae85378f8ab5d3d89"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "--output-dir runs/a4-vehicle-chain",
+  "runtime_s": 166.55035329100065,
+  "schema": "zephyr-exp-020-vehicle-chain-manifest-1",
+  "seeds": [],
+  "volatile_fields": [
+    "runtime_s",
+    "git_revision",
+    "git_tree_state",
+    "platform",
+    "python",
+    "numpy",
+    "n_processes"
+  ]
+}

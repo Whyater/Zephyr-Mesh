@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "zephyr-mesh-exp-021-d-crit-1",
+  "title": "EXP-021 d_crit results",
+  "description": "Synthetic control-tolerance results. Delay searches are quantized to the 10 ms control grid, so the reported boundary is the first unstable control-grid multiple.",
+  "type": "object",
+  "required": ["schema", "pilot", "episode_duration_s", "effective_delay_grid_s", "profiles"],
+  "properties": {
+    "schema": {"const": "zephyr-mesh-exp-021-d-crit-1"},
+    "pilot": {"type": "boolean"},
+    "episode_duration_s": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Episode duration used by each d_crit search."
+    },
+    "effective_delay_grid_s": {
+      "const": 0.01,
+      "description": "The simulator realizes transport delays on the 10 ms control grid."
+    },
+    "profiles": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/profile"}
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "profile": {
+      "type": "object",
+      "properties": {
+        "arm_b": {
+          "type": "object",
+          "properties": {
+            "p0": {"$ref": "#/$defs/zero_loss_dcrit"},
+            "p_gt_0": {
+              "type": "object",
+              "additionalProperties": {"$ref": "#/$defs/positive_loss_dcrit"}
+            }
+          },
+          "additionalProperties": true
+        },
+        "slice_c": {
+          "allOf": [{"$ref": "#/$defs/zero_loss_dcrit"}],
+          "properties": {
+            "hand_attitude_whole_state": {
+              "type": "object",
+              "description": "Hand estimate for slice c, recorded beside the simulated boundary."
+            }
+          }
+        },
+        "arm_a": {
+          "type": "object",
+          "properties": {
+            "steady_ramp_rms_slope_m_per_s": {
+              "type": "number",
+              "description": "Slope fitted to the 3-D RMS error over the steady ramp, not an along-track lag."
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "zero_loss_dcrit": {
+      "type": "object",
+      "required": [
+        "d_crit_s",
+        "stable_delay_s",
+        "unstable_delay_s",
+        "resolution_s",
+        "effective_delay_grid_s",
+        "episode_duration_s"
+      ],
+      "properties": {
+        "d_crit_s": {
+          "type": "number",
+          "minimum": 0,
+          "description": "First unstable delay on the 10 ms control-grid quantization."
+        },
+        "stable_delay_s": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Largest stable delay tested, expressed as a multiple of the 10 ms control grid."
+        },
+        "unstable_delay_s": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Smallest unstable delay tested, expressed as a multiple of the 10 ms control grid."
+        },
+        "resolution_s": {
+          "const": 0.01,
+          "description": "Search resolution is one 10 ms control-grid step."
+        },
+        "effective_delay_grid_s": {
+          "const": 0.01,
+          "description": "Actual delay realization grid. Values such as 0.341 s and 0.345 s can share the same held packet age."
+        },
+        "episode_duration_s": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Episode duration used for this d_crit search."
+        }
+      },
+      "additionalProperties": true
+    },
+    "positive_loss_dcrit": {
+      "type": "object",
+      "required": [
+        "smallest_grid_delay_half_unstable_s",
+        "first_delay_any_unstable_s",
+        "unstable_rate_interval"
+      ],
+      "properties": {
+        "smallest_grid_delay_half_unstable_s": {"type": ["number", "null"], "minimum": 0},
+        "first_delay_any_unstable_s": {"type": ["number", "null"], "minimum": 0},
+        "unstable_rate_interval": {
+          "type": "array",
+          "prefixItems": [
+            {"type": ["number", "null"]},
+            {"type": ["number", "null"]}
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

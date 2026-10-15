@@ -1,0 +1,3389 @@
+{
+  "median_interval_method": "order-statistic (binomial) interval, sim.s6_recovery.median_interval",
+  "pilot": false,
+  "rows": [
+    {
+      "arm": "a",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.40567916223933415,
+        0.40567916223933415
+      ],
+      "median_rms_error_m": 0.40567916223933415,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.457984361560662,
+        0.457984361560662
+      ],
+      "median_rms_error_m": 0.457984361560662,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.507593628823169,
+        0.507593628823169
+      ],
+      "median_rms_error_m": 0.507593628823169,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.5569472254953409,
+        0.5569472254953409
+      ],
+      "median_rms_error_m": 0.5569472254953409,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.6547086251842935,
+        0.6547086251842935
+      ],
+      "median_rms_error_m": 0.6547086251842935,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.40567916223933415,
+        0.40567916223933415
+      ],
+      "median_rms_error_m": 0.40567916223933415,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.3471838431202272,
+        0.3471838431202272
+      ],
+      "median_rms_error_m": 0.3471838431202272,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2912737062798091,
+        0.2912737062798091
+      ],
+      "median_rms_error_m": 0.2912737062798091,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.26364770431044426,
+        0.26364770431044426
+      ],
+      "median_rms_error_m": 0.26364770431044426,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.23987615693845388,
+        0.23987615693845388
+      ],
+      "median_rms_error_m": 0.23987615693845388,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.26572777149369914,
+        0.26572777149369914
+      ],
+      "median_rms_error_m": 0.26572777149369914,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.4270958467228488,
+        0.4270958467228488
+      ],
+      "median_rms_error_m": 0.4270958467228488,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        1.3663131926850693,
+        1.3663131926850693
+      ],
+      "median_rms_error_m": 1.3663131926850693,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        2.3459276443063994,
+        2.3459276443063994
+      ],
+      "median_rms_error_m": 2.3459276443063994,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        1.6133813257781546,
+        1.6133813257781546
+      ],
+      "median_rms_error_m": 1.6133813257781546,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "circle",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.37502293162270617,
+        0.37502293162270617
+      ],
+      "median_rms_error_m": 0.37502293162270617,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.0,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.38151441360441757,
+        0.38196752300155273
+      ],
+      "median_rms_error_m": 0.3816848453027475,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.42751916858233807,
+        0.42751916858233807
+      ],
+      "median_rms_error_m": 0.42751916858233807,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.4315143883066321,
+        0.4319846560441972
+      ],
+      "median_rms_error_m": 0.43168685430814124,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.4775144508851272,
+        0.4775144508851272
+      ],
+      "median_rms_error_m": 0.4775144508851272,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.4815224620891818,
+        0.4819986383055611
+      ],
+      "median_rms_error_m": 0.4816892926578722,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.5275085947815752,
+        0.5275085947815752
+      ],
+      "median_rms_error_m": 0.5275085947815752,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.5315066660144544,
+        0.5320086629777946
+      ],
+      "median_rms_error_m": 0.5316856683779315,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.6274934813012796,
+        0.6274934813012796
+      ],
+      "median_rms_error_m": 0.6274934813012796,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.6314926705669343,
+        0.632015795592674
+      ],
+      "median_rms_error_m": 0.6316665167459282,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.37502293162270617,
+        0.37502293162270617
+      ],
+      "median_rms_error_m": 0.37502293162270617,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.32253341828316107,
+        0.32253341828316107
+      ],
+      "median_rms_error_m": 0.32253341828316107,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2719211583443958,
+        0.2719211583443958
+      ],
+      "median_rms_error_m": 0.2719211583443958,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.24605843612575704,
+        0.24605843612575704
+      ],
+      "median_rms_error_m": 0.24605843612575704,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.22680487286131995,
+        0.22680487286131995
+      ],
+      "median_rms_error_m": 0.22680487286131995,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2507861949562503,
+        0.2507861949562503
+      ],
+      "median_rms_error_m": 0.2507861949562503,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.32822179725009853,
+        0.32822179725009853
+      ],
+      "median_rms_error_m": 0.32822179725009853,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.6417371789412251,
+        0.6417371789412251
+      ],
+      "median_rms_error_m": 0.6417371789412251,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        1.0377283784541729,
+        1.0377283784541729
+      ],
+      "median_rms_error_m": 1.0377283784541729,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        2.5139714460106264,
+        2.5139714460106264
+      ],
+      "median_rms_error_m": 2.5139714460106264,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "ramp",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.20740375529173202,
+        0.20740375529173202
+      ],
+      "median_rms_error_m": 0.20740375529173202,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.21971960990752237,
+        0.21971960990752237
+      ],
+      "median_rms_error_m": 0.21971960990752237,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.23138084675857792,
+        0.23138084675857792
+      ],
+      "median_rms_error_m": 0.23138084675857792,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.24248192822460152,
+        0.24248192822460152
+      ],
+      "median_rms_error_m": 0.24248192822460152,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.26328361903683273,
+        0.26328361903683273
+      ],
+      "median_rms_error_m": 0.26328361903683273,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.26328361903683273,
+        0.26527408826889437
+      ],
+      "median_rms_error_m": 0.26527408826889437,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.20740375529173202,
+        0.20740375529173202
+      ],
+      "median_rms_error_m": 0.20740375529173202,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.0,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.20725313823532815,
+        0.2073058767839951
+      ],
+      "median_rms_error_m": 0.20728007894517186,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.0,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.20710002924675147,
+        0.20725694080901796
+      ],
+      "median_rms_error_m": 0.20718664107355486,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.0,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.206989470930007,
+        0.20728660394722534
+      ],
+      "median_rms_error_m": 0.2070922402461271,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2091854030286222,
+        0.2091854030286222
+      ],
+      "median_rms_error_m": 0.2091854030286222,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.2092732217926343,
+        0.20937090820680124
+      ],
+      "median_rms_error_m": 0.20932519233326008,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.2097076256294792,
+        0.20987868112136832
+      ],
+      "median_rms_error_m": 0.2097570823213128,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.21033044889151567,
+        0.21112405893539385
+      ],
+      "median_rms_error_m": 0.2108245197604142,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.22847819030303454,
+        0.22847819030303454
+      ],
+      "median_rms_error_m": 0.22847819030303454,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.22915100409075007,
+        0.22946934913043884
+      ],
+      "median_rms_error_m": 0.229257469902313,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.23155981841405376,
+        0.2322176124223898
+      ],
+      "median_rms_error_m": 0.23199159447507522,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.23655545734066866,
+        0.23800185861111056
+      ],
+      "median_rms_error_m": 0.23757154620285353,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.26019827063283074,
+        0.26019827063283074
+      ],
+      "median_rms_error_m": 0.26019827063283074,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.2621245886848324,
+        0.2626162669602362
+      ],
+      "median_rms_error_m": 0.26233912892610495,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.2684042198937647,
+        0.2699614619215234
+      ],
+      "median_rms_error_m": 0.26948982580952363,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.2828692865624105,
+        0.2863625826283526
+      ],
+      "median_rms_error_m": 0.28436963328259635,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.3574999052901109,
+        0.3574999052901109
+      ],
+      "median_rms_error_m": 0.3574999052901109,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.3651000033449376,
+        0.3662250584216094
+      ],
+      "median_rms_error_m": 0.3655742917888679,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.3896229117696562,
+        0.3937859255369886
+      ],
+      "median_rms_error_m": 0.3918555747994575,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.44612933036489794,
+        0.45922114671881936
+      ],
+      "median_rms_error_m": 0.45340192274812574,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.5304496139171384,
+        0.5304496139171384
+      ],
+      "median_rms_error_m": 0.5304496139171384,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.5481513651007425,
+        0.5518384142701176
+      ],
+      "median_rms_error_m": 0.5503891904181093,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.6082141277565247,
+        0.6172732295954476
+      ],
+      "median_rms_error_m": 0.6123931626138637,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.7368658836746566,
+        0.7665594938969827
+      ],
+      "median_rms_error_m": 0.7556067983153346,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 11,
+      "unstable_interval": [
+        0.21873920806100708,
+        0.5448643634520511
+      ],
+      "unstable_rate": 0.36666666666666664
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.7596991038133817,
+        0.7596991038133817
+      ],
+      "median_rms_error_m": 0.7596991038133817,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.7899955256373044,
+        0.7957881594784261
+      ],
+      "median_rms_error_m": 0.7938868429655797,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 28,
+      "unstable_interval": [
+        0.7867654163738308,
+        0.9815229762087295
+      ],
+      "unstable_rate": 0.9333333333333333
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.8895547795778858,
+        0.9030741140340306
+      ],
+      "median_rms_error_m": 0.8947778506787872,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        1.1017140784150055,
+        1.140517889296575
+      ],
+      "median_rms_error_m": 1.115394253864979,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        1.3820046528888719,
+        1.3820046528888719
+      ],
+      "median_rms_error_m": 1.3820046528888719,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        1.4368653414650454,
+        1.447715206054235
+      ],
+      "median_rms_error_m": 1.4451443860045767,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        1.6213373896305825,
+        1.6471171589984284
+      ],
+      "median_rms_error_m": 1.6304742396402125,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        1.967893819893193,
+        2.02901357602782
+      ],
+      "median_rms_error_m": 2.005690584756648,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        2.048259249214645,
+        2.048259249214645
+      ],
+      "median_rms_error_m": 2.048259249214645,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        2.006342749795875,
+        2.0164689940517375
+      ],
+      "median_rms_error_m": 2.0127879238197455,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        1.950165124764692,
+        1.980292143910248
+      ],
+      "median_rms_error_m": 1.9677579061335893,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        1.9729830883095494,
+        2.0355948513477946
+      ],
+      "median_rms_error_m": 2.016325998250614,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        1.8635306556529718,
+        1.8635306556529718
+      ],
+      "median_rms_error_m": 1.8635306556529718,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        1.8690685895778258,
+        1.8720953489020933
+      ],
+      "median_rms_error_m": 1.8710139525357423,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        1.9006260503822587,
+        1.9121027714653471
+      ],
+      "median_rms_error_m": 1.9052975776425112,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        1.9750937809476135,
+        2.0106829351134987
+      ],
+      "median_rms_error_m": 1.9864724523279405,
+      "n": 30,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.20740375529173202,
+        0.20740375529173202
+      ],
+      "median_rms_error_m": 0.20740375529173202,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.01,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.20614080016696604,
+        0.20614080016696604
+      ],
+      "median_rms_error_m": 0.20614080016696604,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.02,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.20493060559876977,
+        0.20493060559876977
+      ],
+      "median_rms_error_m": 0.20493060559876977,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.03,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        1.016565704566362,
+        1.016565704566362
+      ],
+      "median_rms_error_m": 1.016565704566362,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.04,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.6507417250964351,
+        0.6507417250964351
+      ],
+      "median_rms_error_m": 0.6507417250964351,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.05,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.7439997732693806,
+        0.7439997732693806
+      ],
+      "median_rms_error_m": 0.7439997732693806,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.06,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.8061494671454874,
+        0.8061494671454874
+      ],
+      "median_rms_error_m": 0.8061494671454874,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.08,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.8618263078486691,
+        0.8618263078486691
+      ],
+      "median_rms_error_m": 0.8618263078486691,
+      "n": 1,
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.4056789014503566,
+        0.4056789014503566
+      ],
+      "median_rms_error_m": 0.4056789014503566,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.45798410317819044,
+        0.45798410317819044
+      ],
+      "median_rms_error_m": 0.45798410317819044,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.5075933736208187,
+        0.5075933736208187
+      ],
+      "median_rms_error_m": 0.5075933736208187,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.5569469740547371,
+        0.5569469740547371
+      ],
+      "median_rms_error_m": 0.5569469740547371,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.654708382608381,
+        0.654708382608381
+      ],
+      "median_rms_error_m": 0.654708382608381,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.4056789014503566,
+        0.4056789014503566
+      ],
+      "median_rms_error_m": 0.4056789014503566,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.3471835625338517,
+        0.3471835625338517
+      ],
+      "median_rms_error_m": 0.3471835625338517,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2912735532890812,
+        0.2912735532890812
+      ],
+      "median_rms_error_m": 0.2912735532890812,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.26364834739115817,
+        0.26364834739115817
+      ],
+      "median_rms_error_m": 0.26364834739115817,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.23989156754417387,
+        0.23989156754417387
+      ],
+      "median_rms_error_m": 0.23989156754417387,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2659095395688781,
+        0.2659095395688781
+      ],
+      "median_rms_error_m": 0.2659095395688781,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.42760078891778447,
+        0.42760078891778447
+      ],
+      "median_rms_error_m": 0.42760078891778447,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        1.3646159792213375,
+        1.3646159792213375
+      ],
+      "median_rms_error_m": 1.3646159792213375,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        2.3448604608073977,
+        2.3448604608073977
+      ],
+      "median_rms_error_m": 2.3448604608073977,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        1.612170655758366,
+        1.612170655758366
+      ],
+      "median_rms_error_m": 1.612170655758366,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "circle",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.37502295521084084,
+        0.37502295521084084
+      ],
+      "median_rms_error_m": 0.37502295521084084,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.0,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.3815144570564434,
+        0.38196756208664706
+      ],
+      "median_rms_error_m": 0.3816848435787292,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.4275191983918946,
+        0.4275191983918946
+      ],
+      "median_rms_error_m": 0.4275191983918946,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.43151439849950457,
+        0.43198470806479355
+      ],
+      "median_rms_error_m": 0.4316868745219783,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.47751448654644807,
+        0.47751448654644807
+      ],
+      "median_rms_error_m": 0.47751448654644807,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.48152251336918983,
+        0.4819986982639693
+      ],
+      "median_rms_error_m": 0.4816893314430797,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.5275086360507664,
+        0.5275086360507664
+      ],
+      "median_rms_error_m": 0.5275086360507664,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.5315066667588824,
+        0.5320086930493563
+      ],
+      "median_rms_error_m": 0.5316857023161247,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.6274935323086448,
+        0.6274935323086448
+      ],
+      "median_rms_error_m": 0.6274935323086448,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.6314927249548677,
+        0.6320157970114012
+      ],
+      "median_rms_error_m": 0.63166656083628,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.37502295521084084,
+        0.37502295521084084
+      ],
+      "median_rms_error_m": 0.37502295521084084,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.3225333191286903,
+        0.3225333191286903
+      ],
+      "median_rms_error_m": 0.3225333191286903,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2719201970464553,
+        0.2719201970464553
+      ],
+      "median_rms_error_m": 0.2719201970464553,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.24605752272845732,
+        0.24605752272845732
+      ],
+      "median_rms_error_m": 0.24605752272845732,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.226828938865936,
+        0.226828938865936
+      ],
+      "median_rms_error_m": 0.226828938865936,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.25090370277003254,
+        0.25090370277003254
+      ],
+      "median_rms_error_m": 0.25090370277003254,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.32844782184894944,
+        0.32844782184894944
+      ],
+      "median_rms_error_m": 0.32844782184894944,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.6418100214412649,
+        0.6418100214412649
+      ],
+      "median_rms_error_m": 0.6418100214412649,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        1.0367551467774845,
+        1.0367551467774845
+      ],
+      "median_rms_error_m": 1.0367551467774845,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        2.5097163782368552,
+        2.5097163782368552
+      ],
+      "median_rms_error_m": 2.5097163782368552,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2074037838788519,
+        0.2074037838788519
+      ],
+      "median_rms_error_m": 0.2074037838788519,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2197196368922601,
+        0.2197196368922601
+      ],
+      "median_rms_error_m": 0.2197196368922601,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.23138087238332666,
+        0.23138087238332666
+      ],
+      "median_rms_error_m": 0.23138087238332666,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.242481952676222,
+        0.242481952676222
+      ],
+      "median_rms_error_m": 0.242481952676222,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2632836415565632,
+        0.2632836415565632
+      ],
+      "median_rms_error_m": 0.2632836415565632,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.2632836415565632,
+        0.26527411061964934
+      ],
+      "median_rms_error_m": 0.26527411061964934,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2074037838788519,
+        0.2074037838788519
+      ],
+      "median_rms_error_m": 0.2074037838788519,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.0,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.20725292406814905,
+        0.2073061866537719
+      ],
+      "median_rms_error_m": 0.20728024076627316,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.0,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.2070997364662634,
+        0.20725729656108616
+      ],
+      "median_rms_error_m": 0.20718723758914093,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.0,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.20699125174087046,
+        0.207288190828403
+      ],
+      "median_rms_error_m": 0.20709228243761496,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2091901432467321,
+        0.2091901432467321
+      ],
+      "median_rms_error_m": 0.2091901432467321,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.20927790684115538,
+        0.2093764032313006
+      ],
+      "median_rms_error_m": 0.20933004100819624,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.20971228411504295,
+        0.20988218505052866
+      ],
+      "median_rms_error_m": 0.20976268471764759,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.21033825300609282,
+        0.21112954796626193
+      ],
+      "median_rms_error_m": 0.2108326185413111,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.22849477563666815,
+        0.22849477563666815
+      ],
+      "median_rms_error_m": 0.22849477563666815,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.22916886746555742,
+        0.22948644354038147
+      ],
+      "median_rms_error_m": 0.22927525604353027,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.2315786960158778,
+        0.23223644615178124
+      ],
+      "median_rms_error_m": 0.23201125520713128,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.2365758039118329,
+        0.23803268412873302
+      ],
+      "median_rms_error_m": 0.23759670498925645,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.260232987561729,
+        0.260232987561729
+      ],
+      "median_rms_error_m": 0.260232987561729,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.26216019074846036,
+        0.26265566764669857
+      ],
+      "median_rms_error_m": 0.2623741702109607,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.2684447968631588,
+        0.26999746236560135
+      ],
+      "median_rms_error_m": 0.26953576911927124,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.28293252427333226,
+        0.2863981230024698
+      ],
+      "median_rms_error_m": 0.28441301693752025,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.35756967931097655,
+        0.35756967931097655
+      ],
+      "median_rms_error_m": 0.35756967931097655,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.36516665778702884,
+        0.366296195551804
+      ],
+      "median_rms_error_m": 0.3656440982488304,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.3896754851415058,
+        0.39385533174094756
+      ],
+      "median_rms_error_m": 0.3919314303083885,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.4461767852685956,
+        0.4592839831503835
+      ],
+      "median_rms_error_m": 0.4534098409383741,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.5303625321726428,
+        0.5303625321726428
+      ],
+      "median_rms_error_m": 0.5303625321726428,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.5480259614881356,
+        0.5517075085626556
+      ],
+      "median_rms_error_m": 0.550270454654727,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.6079277083894103,
+        0.6169878637245245
+      ],
+      "median_rms_error_m": 0.6120911810719918,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.11351339317396876
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        0.7361320079159139,
+        0.7657498535218737
+      ],
+      "median_rms_error_m": 0.7548017167347887,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 11,
+      "unstable_interval": [
+        0.21873920806100708,
+        0.5448643634520511
+      ],
+      "unstable_rate": 0.36666666666666664
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.7588893037318993,
+        0.7588893037318993
+      ],
+      "median_rms_error_m": 0.7588893037318993,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        0.7890427304425054,
+        0.7948170094691761
+      ],
+      "median_rms_error_m": 0.792923603178658,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 28,
+      "unstable_interval": [
+        0.7867654163738308,
+        0.9815229762087295
+      ],
+      "unstable_rate": 0.9333333333333333
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        0.8880614014822014,
+        0.9015777431670045
+      ],
+      "median_rms_error_m": 0.8932303574671329,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        1.0989255137497989,
+        1.1374094592713166
+      ],
+      "median_rms_error_m": 1.112408253881099,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        1.3767427544926338,
+        1.3767427544926338
+      ],
+      "median_rms_error_m": 1.3767427544926338,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        1.4310896694270303,
+        1.4418103200401904
+      ],
+      "median_rms_error_m": 1.439282022766911,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        1.6136527377129561,
+        1.6392337689457743
+      ],
+      "median_rms_error_m": 1.6228084437765995,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        1.9630013395244739,
+        2.0167103426460207
+      ],
+      "median_rms_error_m": 1.9935126964816814,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        2.035448396183705,
+        2.035448396183705
+      ],
+      "median_rms_error_m": 2.035448396183705,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        2.003385743498737,
+        2.01327528816316
+      ],
+      "median_rms_error_m": 2.007934721167226,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        1.946977814162913,
+        1.9742726765982335
+      ],
+      "median_rms_error_m": 1.9620844734279541,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        1.9872940037136877,
+        2.0360212293912756
+      ],
+      "median_rms_error_m": 2.0189143919135466,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        1.861061519844448,
+        1.861061519844448
+      ],
+      "median_rms_error_m": 1.861061519844448,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.1,
+      "median_interval_m": [
+        1.8675444141323534,
+        1.8709881640384636
+      ],
+      "median_rms_error_m": 1.869443912168148,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.3,
+      "median_interval_m": [
+        1.9005880863062559,
+        1.9099701008635004
+      ],
+      "median_rms_error_m": 1.9053603154417935,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.5,
+      "median_interval_m": [
+        1.9724549218875032,
+        2.007944955811606
+      ],
+      "median_rms_error_m": 1.9838734883428044,
+      "n": 30,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 30,
+      "unstable_interval": [
+        0.8864866068260312,
+        0.9999999999999999
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.0,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.2074037838788519,
+        0.2074037838788519
+      ],
+      "median_rms_error_m": 0.2074037838788519,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.01,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.20613806219388695,
+        0.20613806219388695
+      ],
+      "median_rms_error_m": 0.20613806219388695,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.02,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.20491560689744778,
+        0.20491560689744778
+      ],
+      "median_rms_error_m": 0.20491560689744778,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.03,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        3.261379558572523,
+        3.261379558572523
+      ],
+      "median_rms_error_m": 3.261379558572523,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 0,
+      "unstable_interval": [
+        0.0,
+        0.7934506856227626
+      ],
+      "unstable_rate": 0.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.04,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.6806289950542532,
+        0.6806289950542532
+      ],
+      "median_rms_error_m": 0.6806289950542532,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.05,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.7271664975901876,
+        0.7271664975901876
+      ],
+      "median_rms_error_m": 0.7271664975901876,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.06,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.8080365444043452,
+        0.8080365444043452
+      ],
+      "median_rms_error_m": 0.8080365444043452,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    },
+    {
+      "arm": "c",
+      "delay_s": 0.08,
+      "loss_probability": 0.0,
+      "median_interval_m": [
+        0.8624308177233521,
+        0.8624308177233521
+      ],
+      "median_rms_error_m": 0.8624308177233521,
+      "n": 1,
+      "profile_id": "esp-fly-class",
+      "reference": "step",
+      "unstable_count": 1,
+      "unstable_interval": [
+        0.20654931437723745,
+        1.0
+      ],
+      "unstable_rate": 1.0
+    }
+  ],
+  "schema": "zephyr-a6-control-tolerance-summary-1"
+}

@@ -15,6 +15,7 @@ import numpy as np
 
 from sim.hardware import HardwareProfile
 from sim.vehicle import ActuatedQuadrotor, VehicleStep
+from sim.physics.disturbance_api import DisturbanceSample
 
 
 def _target(value: Iterable[float], *, agent_id: str) -> tuple[float, float, float]:
@@ -69,22 +70,43 @@ class ActuatedVehicleFleet:
 
     def __init__(
         self,
-        profiles: Mapping[str, HardwareProfile],
+        profiles: Mapping[str, Any],
         *,
         initial_positions: Mapping[str, Iterable[float]] | None = None,
-        drag_coefficient: float = 1.3,
-        cross_sectional_area: float = 0.05,
+        drag_coefficient: float | None = None,
+        cross_sectional_area: float | None = None,
         wind_velocity: Iterable[float] = (0.0, 0.0, 0.0),
+        substeps: int = 1,
+        disturbances: Mapping[str, Any] | None = None,
+        interaction: Any = None,
     ) -> None:
         if not isinstance(profiles, Mapping) or not profiles:
             raise ValueError("profiles must be a non-empty mapping")
         if any(not isinstance(agent_id, str) or not agent_id for agent_id in profiles):
             raise ValueError("profile ids must be non-empty strings")
         for agent_id, profile in profiles.items():
-            if not isinstance(profile, HardwareProfile):
+            if not isinstance(profile, HardwareProfile) and not (hasattr(profile, "airframe") and hasattr(profile, "rotor")):
                 raise ValueError(f"profile for {agent_id} must be a HardwareProfile")
-            if profile.motor_count != 4:
+            count = profile.motor_count if isinstance(profile, HardwareProfile) else profile.rotor.count
+            if count != 4:
                 raise ValueError(f"profile for {agent_id} must describe four motors")
+        v1_agents = {
+            agent_id for agent_id, profile in profiles.items()
+            if isinstance(profile, HardwareProfile)
+        }
+        if disturbances is not None and (not isinstance(disturbances, Mapping) or set(disturbances) - set(profiles)):
+            raise ValueError("disturbances contains an unknown agent")
+        if interaction is not None and not callable(interaction):
+            raise ValueError("interaction must be callable")
+        if v1_agents and (
+            substeps != 1
+            or interaction is not None
+            or (disturbances is not None and bool(set(disturbances) & v1_agents))
+        ):
+            raise ValueError("substeps and disturbance require a v2 profile")
+        self._disturbances = {} if disturbances is None else dict(disturbances)
+        self._interaction = interaction
+        self.substeps = substeps
         self._profiles = {agent_id: profiles[agent_id] for agent_id in sorted(profiles)}
         positions = {} if initial_positions is None else initial_positions
         if not isinstance(positions, Mapping):
@@ -104,6 +126,8 @@ class ActuatedVehicleFleet:
                 drag_coefficient=drag_coefficient,
                 cross_sectional_area=cross_sectional_area,
                 wind_velocity=wind_velocity,
+                substeps=substeps,
+                disturbance=self._disturbances.get(agent_id),
             )
         self.time_s = 0.0
         self.step_index = 0
@@ -148,11 +172,31 @@ class ActuatedVehicleFleet:
         if not math.isfinite(dt_s) or dt_s <= 0.0:
             raise ValueError("dt_s must be finite and positive")
         validated = self._validated_targets(targets)
+        interaction_samples: dict[str, Any] = {}
+        if self._interaction is not None:
+            positions = {agent_id: vehicle.drone.position.copy() for agent_id, vehicle in self._vehicles.items()}
+            velocities = {agent_id: vehicle.drone.velocity.copy() for agent_id, vehicle in self._vehicles.items()}
+            raw_samples = self._interaction(positions, velocities)
+            if not isinstance(raw_samples, Mapping) or set(raw_samples) != set(self._vehicles):
+                raise ValueError("interaction must return one DisturbanceSample per agent")
+            for agent_id, sample in raw_samples.items():
+                if not isinstance(sample, DisturbanceSample):
+                    raise ValueError("interaction values must be DisturbanceSample instances")
+                interaction_samples[agent_id] = sample
+        def advance(agent_id: str) -> VehicleStep:
+            vehicle = self._vehicles[agent_id]
+            interaction_sample = interaction_samples.get(agent_id)
+            # Preserve the original v1 fleet call sequence exactly when no
+            # optional disturbance source is active.
+            if interaction_sample is None and agent_id not in self._disturbances:
+                return vehicle.step(validated[agent_id], dt_s)
+            return vehicle._step_with_extra_disturbance(validated[agent_id], dt_s, interaction_sample)
+
         observations = tuple(
             FleetVehicleStep(
                 agent_id=agent_id,
                 profile_id=self._profiles[agent_id].profile_id,
-                vehicle=self._vehicles[agent_id].step(validated[agent_id], dt_s),
+                vehicle=advance(agent_id),
             )
             for agent_id in self.agent_ids
         )

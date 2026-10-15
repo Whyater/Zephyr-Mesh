@@ -108,11 +108,18 @@ def build_convergence() -> dict:
 def main(argv=None) -> Path:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="write convergence.json beneath this directory (default behavior is unchanged)",
+    )
     args = parser.parse_args(argv)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(build_convergence(), indent=2) + "\n")
-    print(args.output)
-    return args.output
+    output = args.output if args.output_dir is None else args.output_dir / "convergence.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(build_convergence(), indent=2) + "\n")
+    print(output)
+    return output
 
 
 if __name__ == "__main__":

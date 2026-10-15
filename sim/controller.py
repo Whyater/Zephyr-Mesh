@@ -30,10 +30,16 @@ class GeometricFlightController:
         self.K_p_att = np.array([100.0, 100.0, 100.0])  # Roll, Pitch, Yaw (per s^2)
         self.K_d_att = np.array([18.0, 18.0, 18.0])     # Roll, Pitch, Yaw (per s)
 
-    def update_control(self, drone, target_position, dt):
+    def update_control(self, drone, target_position, dt, *, target_yaw_rad=None):
         """
         Executes the cascaded control loop. Takes current drone state and target,
         outputs the required collective thrust force and 3D body torque vector.
+
+        ``target_yaw_rad`` optionally sets a heading in radians.  The heading
+        error follows the shortest angular path in ``(-pi, pi]`` and adds a
+        body-z torque while leaving the roll and pitch tilt control unchanged.
+        When it is ``None``, the controller uses the original yaw-rate damping
+        path.
         """
         dt = float(dt)
         if not np.isfinite(dt) or dt <= 0:
@@ -105,6 +111,21 @@ class GeometricFlightController:
         # Required body torque: per-axis inertia times the desired angular acceleration.
         inertia = np.array([drone.I_x, drone.I_y, drone.I_z])
         desired_torque = inertia * ((self.K_p_att * tilt_error_body) + (self.K_d_att * rate_error))
+
+        if target_yaw_rad is not None:
+            target_yaw_rad = float(target_yaw_rad)
+            if not np.isfinite(target_yaw_rad):
+                raise ValueError("target_yaw_rad must be finite")
+            current_yaw = np.arctan2(
+                2.0 * (qw * qz + qx * qy),
+                1.0 - 2.0 * (qy**2 + qz**2),
+            )
+            yaw_error = (target_yaw_rad - current_yaw + np.pi) % (2.0 * np.pi) - np.pi
+            if yaw_error <= -np.pi:
+                yaw_error += 2.0 * np.pi
+            desired_torque[2] = drone.I_z * (
+                self.K_p_att[2] * yaw_error - self.K_d_att[2] * drone.angular_velocity[2]
+            )
 
         # Package outputs for the physics engine
         # Thrust force vector acts strictly upward relative to the drone's own floor [0, 0, Thrust]

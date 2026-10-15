@@ -1,0 +1,57 @@
+{
+  "dt_s": 0.01,
+  "scenarios": {
+    "lateral": {
+      "censored": {
+        "overshoot_pct": false,
+        "rise_time_s": false,
+        "settling_time_s": false
+      },
+      "count": 1000,
+      "definitions": {
+        "overshoot": "peak beyond goal divided by step amplitude",
+        "rise": "first sample at rise_fraction of step amplitude",
+        "settling": "first sample after which all samples stay within tolerance of goal"
+      },
+      "final_error": 0.0001429478661194583,
+      "overshoot_pct": 19.045646582170566,
+      "rise_time_s": 0.48,
+      "settling_time_s": 3.41
+    },
+    "vertical": {
+      "censored": {
+        "overshoot_pct": false,
+        "rise_time_s": false,
+        "settling_time_s": false
+      },
+      "count": 700,
+      "definitions": {
+        "overshoot": "peak beyond goal divided by step amplitude",
+        "rise": "first sample at rise_fraction of step amplitude",
+        "settling": "first sample after which all samples stay within tolerance of goal"
+      },
+      "final_error": -0.002708854740323119,
+      "overshoot_pct": 8.352685040847744,
+      "rise_time_s": 0.27999999999999997,
+      "settling_time_s": 2.99
+    },
+    "yaw": {
+      "censored": {
+        "overshoot_pct": false,
+        "rise_time_s": false,
+        "settling_time_s": false
+      },
+      "count": 300,
+      "definitions": {
+        "overshoot": "peak beyond goal divided by step amplitude",
+        "rise": "first sample at rise_fraction of step amplitude",
+        "settling": "first sample after which all samples stay within tolerance of goal"
+      },
+      "final_error": 4.4786396813378815e-13,
+      "overshoot_pct": 0.07344864860038895,
+      "rise_time_s": 0.049999999999999996,
+      "settling_time_s": 0.39
+    }
+  },
+  "schema": "zephyr-s0-baseline-v2-report-1"
+}

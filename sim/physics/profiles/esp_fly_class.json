@@ -1,0 +1,209 @@
+{
+  "schema": "zephyr-hardware-profile-2",
+  "profile_id": "esp-fly-class",
+  "status": "literature-derived",
+  "notes": "Seeed ESP-FLY kit as sold (XIAO ESP32-S3, 615 coreless motors, 30 mm tri-blade props, 1S 250 mAh). Mass and prop size are vendor numbers; inertia, thrust and torque coefficients and motor lag are SCALED from Crazyflie identification data with the formula given per field. Not measured by this project. Battery sag is off by default because the cell's internal resistance is UNCONFIRMED.",
+  "airframe": {
+    "mass_kg": 0.025,
+    "inertia_kg_m2": [
+      4.4e-06,
+      5.2e-06,
+      8.4e-06
+    ],
+    "arm_length_m": 0.026,
+    "drag_coefficient": 0.0,
+    "cross_sectional_area_m2": 0.001
+  },
+  "rotor": {
+    "count": 4,
+    "layout": "x",
+    "thrust_coefficient_n_s2": 4e-09,
+    "torque_to_thrust_m": 0.0034,
+    "max_speed_rad_s": 6450.0,
+    "motor_time_constant_s": 0.07,
+    "prop_radius_m": 0.015,
+    "spin_directions": [
+      1,
+      -1,
+      1,
+      -1
+    ]
+  },
+  "battery": null,
+  "parameters": {
+    "airframe.mass_kg": {
+      "value": 0.025,
+      "range": [
+        0.025,
+        0.028
+      ],
+      "source": "Seeed ESP-FLY README specifications: about 25 g with LiPo, 28 g with FPV camera",
+      "url": "https://raw.githubusercontent.com/Seeed-Projects/Co-Create_ESP-FLY/main/README.md",
+      "accessed": "2026-10-14",
+      "status": "CONFIRMED"
+    },
+    "airframe.inertia_kg_m2": {
+      "value": [
+        4.4e-06,
+        5.2e-06,
+        8.4e-06
+      ],
+      "range": [
+        [
+          3.3e-06,
+          6.1e-06
+        ],
+        [
+          4e-06,
+          7.3e-06
+        ],
+        [
+          7e-06,
+          1.2e-05
+        ]
+      ],
+      "source": "scaled from the measured Crazyflie 2.1 inertia (landing paper Table II, bifilar pendulum, 30.0 g)",
+      "url": "https://arxiv.org/pdf/2403.00128",
+      "accessed": "2026-10-14",
+      "status": "SCALED",
+      "note": "I = I_cf (m / 0.030) (L / 0.0397)^2 with I_cf = (12.19, 14.55, 23.55)e-6, m = 0.025 kg, L = 0.026 m."
+    },
+    "airframe.arm_length_m": {
+      "value": 0.026,
+      "range": [
+        0.025,
+        0.028
+      ],
+      "source": "Seeed README dimensions 67 x 67 mm with 30 mm props",
+      "url": "https://raw.githubusercontent.com/Seeed-Projects/Co-Create_ESP-FLY/main/README.md",
+      "accessed": "2026-10-14",
+      "status": "SCALED",
+      "note": "Motor axis spacing (67 - 30) mm = 37 mm; L = 37 / sqrt(2) = 26.2 mm."
+    },
+    "airframe.drag_coefficient": {
+      "value": 0.0,
+      "range": [
+        0.0,
+        0.0
+      ],
+      "source": "no body-drag source found for this class",
+      "url": "none",
+      "accessed": "2026-10-14",
+      "status": "EXCLUDED",
+      "note": "Body drag is UNCONFIRMED (no sourced value), so it is switched off by default. Sweep it separately if needed."
+    },
+    "airframe.cross_sectional_area_m2": {
+      "value": 0.001,
+      "range": [
+        0.001,
+        0.001
+      ],
+      "source": "placeholder, unused while drag_coefficient is 0",
+      "url": "none",
+      "accessed": "2026-10-14",
+      "status": "EXCLUDED",
+      "note": "Irrelevant while drag is off; kept only because the schema requires the field."
+    },
+    "rotor.count": {
+      "value": 4,
+      "range": [
+        4,
+        4
+      ],
+      "source": "Seeed ESP-FLY has 4 motors in an X frame",
+      "url": "https://raw.githubusercontent.com/Seeed-Projects/Co-Create_ESP-FLY/main/README.md",
+      "accessed": "2026-10-14",
+      "status": "CONFIRMED"
+    },
+    "rotor.spin_directions": {
+      "value": [
+        1,
+        -1,
+        1,
+        -1
+      ],
+      "range": [
+        [
+          1,
+          1
+        ],
+        [
+          -1,
+          -1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ],
+      "source": "standard X quad, diagonal pairs spin the same way",
+      "url": "https://raw.githubusercontent.com/Seeed-Projects/Co-Create_ESP-FLY/main/README.md",
+      "accessed": "2026-10-14",
+      "status": "CONFIRMED",
+      "note": "Order front-left, front-right, rear-right, rear-left; +1 is counterclockwise seen from above."
+    },
+    "rotor.thrust_coefficient_n_s2": {
+      "value": 4e-09,
+      "range": [
+        3.1e-09,
+        5.1e-09
+      ],
+      "source": "scaled from Bitcraze thrust-stand data by prop diameter",
+      "url": "https://www.bitcraze.io/documentation/repository/crazyflie-firmware/master/functional-areas/pwm-to-thrust/",
+      "accessed": "2026-10-14",
+      "status": "SCALED",
+      "note": "k_f = 2.27e-8 (D / 0.04627 m)^4 with D = 0.030 m (T = k_T rho n^2 D^4, Luis and Le Ny eq 2.3.1)."
+    },
+    "rotor.torque_to_thrust_m": {
+      "value": 0.0034,
+      "range": [
+        0.0024,
+        0.016
+      ],
+      "source": "scaled from identified Crazyflie values (Eschmann Sec IV-A)",
+      "url": "https://arxiv.org/html/2404.07837v2",
+      "accessed": "2026-10-14",
+      "status": "SCALED",
+      "note": "Ratio scales with diameter: 5.25e-3 m (median Crazyflie value) x 30 / 46.27 = 3.4e-3 m."
+    },
+    "rotor.max_speed_rad_s": {
+      "value": 6450.0,
+      "range": [
+        5720.0,
+        7330.0
+      ],
+      "source": "vendor 17 g thrust per motor (Seeed README) with the scaled k_f; vendor 70,000 rpm read as a no-load ceiling",
+      "url": "https://raw.githubusercontent.com/Seeed-Projects/Co-Create_ESP-FLY/main/README.md",
+      "accessed": "2026-10-14",
+      "status": "SCALED",
+      "note": "w_max = sqrt(0.1668 N / 4.0e-9) = 6450 rad/s, so k_f w_max^2 matches the vendor max thrust."
+    },
+    "rotor.motor_time_constant_s": {
+      "value": 0.07,
+      "range": [
+        0.05,
+        0.16
+      ],
+      "source": "Crazyflie brushed-motor identification (no 615-motor source): Eschmann fitted 0.072 s; landing paper tau_up 0.05, tau_down 0.16",
+      "url": "https://arxiv.org/html/2404.07837v2",
+      "accessed": "2026-10-14",
+      "status": "SCALED",
+      "note": "Borrowed from the Crazyflie class; no ESP-FLY specific value exists."
+    },
+    "rotor.prop_radius_m": {
+      "value": 0.015,
+      "range": [
+        0.015,
+        0.0155
+      ],
+      "source": "Seeed README parts list: 30 mm tri-blade props",
+      "url": "https://raw.githubusercontent.com/Seeed-Projects/Co-Create_ESP-FLY/main/README.md",
+      "accessed": "2026-10-14",
+      "status": "CONFIRMED"
+    }
+  }
+}
