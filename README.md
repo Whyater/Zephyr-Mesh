@@ -25,30 +25,50 @@ PYTHONPATH=. python tools/make_s6_figure.py runs/s6-recovery/summary.json --outp
 
 In simulation, each idea below was tried against the capture-time tracker above, with the same 0.25 m p95 research line. In the map, a cell fails when at least half its seeds fail; that rule is proposed, not yet adopted.
 
-- Late packets: putting out-of-order packets back into the filter gains under 1 cm (paired median, at most 0.94 cm), so dropping them costs very little.
-- Turns: on a 1 m radius turn at 300 ms delay and 30 % loss, a turn-rate model stays under the line (0.20 m) where the straight-line recovery tracker fails (0.40 m). The price is 1 to 2 cm on straight lines, and no single turn-aware tracker is best on every path.
-- Tuning check: a consistency check on the filter (NIS) flags a wrongly guessed sensor noise without knowing the truth, but it cannot see pure link delay.
-- Clock sync: a simple sync exchange every 0.1 to 1 s keeps the extra error within 1 cm of perfect clocks. It only misses with a 10 s interval and half the sync messages lost.
-- Sending fewer packets: at the same packet rate, sending only when the target has moved beats periodic sending on a turn (10 to 15 % lower p95 with no loss) but not on a straight line with 30 % loss (2 to 6 % worse). Positions as 16-bit numbers at 1 mm cost nothing measurable and save about 10 % of the bytes on air.
-- The map: most cells are ties between trackers (39 of the 55 cells where any tracker passes). In 8 of 63 cells nothing works even at zero delay, all with 30 to 50 % bursty loss.
+- Late packets: putting out-of-order packets back into the filter gains under 1 cm (paired median, at most 0.94 cm), so dropping them costs very little (`runs/s6-retro`).
+- Turns: on a 1 m radius turn at 300 ms delay and 30 % loss, a turn-rate model stays under the line (0.20 m) where the straight-line recovery tracker fails (0.40 m). The price on straight lines is 1 to 2 cm with no loss, up to 3 cm with random loss, and up to 10 cm with 50 % bursty loss, and no single turn-aware tracker is best on every path (`runs/s6-turn`).
+- Tuning check: a consistency check on the filter (NIS) flags a wrongly guessed sensor noise without knowing the truth, but it cannot see pure link delay (`runs/s6-tuning`).
+- Clock sync: a simple sync exchange every 0.1 to 1 s keeps the extra error within 1 cm of perfect clocks. It only misses with a 10 s interval and half the sync exchanges lost (about 29 % of sync messages) (`runs/s6-clocks`).
+- Sending fewer packets: sending only when the target has moved can stand in for a faster periodic rate on a turn, but not on a lossy straight line. With 5 cm noise and 100 ms delay on the turn with no loss, sending after every 10 cm of movement (about 20 packets/s) gives 11.6 cm p95, against 16.9 cm at 10 packets/s and 12.1 cm at 25 packets/s. On a straight line with 30 % loss, about 19 packets/s gives 12.2 cm, against 13.9 cm at 10 packets/s and 9.7 cm at 25 packets/s. Sending positions as 16-bit numbers at 1 mm saves about 10 % of the bytes on air and moves p95 by at most 2 % with periodic sending, and up to 6 % either way with event sending (`runs/s6-sending`).
+- The map: most cells are ties between trackers (39 of the 55 cells where any tracker passes). In 8 of 63 cells nothing works even at zero delay, all with 30 to 50 % bursty loss (`runs/s6-atlas`).
 
 Limits: simulated link and sensor, not measured; the map uses 20 seeds per cell and 5 cm noise at 10 Hz; the clock test uses one 100 ms link; the packet size on air comes from the literature, not from a measurement.
 
 ```bash
+# Writes a fresh copy to /tmp; the checked-in map is runs/s6-atlas.
 PYTHONPATH=. python tools/run_s6_atlas.py --output /tmp/s6-atlas --seeds 20 --imm-strata central,student_t,jitter --speed-variants-central-only --no-checkpoint
 PYTHONPATH=. python tools/make_s6_atlas_figure.py /tmp/s6-atlas
 ```
+
+### How much delay the drone's own control loop can take
+
+In simulation, with two micro-quad profiles built from published specs (not measured):
+
+- Delaying only the position the drone is told to fly to never made it unstable. It only adds lag error, in proportion to the delay.
+- Delaying the drone's own position and velocity feedback is different. In an 80 s check both profiles settle at 0.33 s of delay and start a growing wobble at 0.34 s. A hand calculation from the controller's phase margin predicts about 0.32 to 0.34 s.
+- If the whole state is delayed, attitude included, the limit drops to about 20 to 30 ms.
+
+Limits: simulated, with literature-derived profiles and one controller tuning; the 80 s check uses one seed per case; ground contact is not modeled. Data: `runs/a6-long-check`, `runs/a6-control-tolerance`.
+
+### How the radio itself behaves
+
+In a simulated ESP-NOW-style link (parameters from the literature, not measured):
+
+- Radio delay stays small. The worst p95 radio latency in the tracker test was about 28 ms, well under the 150 to 200 ms where the tracker starts failing from delay. In this model the tracker fails from lost packets, not from radio delay.
+- Twelve drones each sending 32-byte packets 50 times a second keep the channel about two thirds busy. With retries every packet arrives, with a p95 latency of 4.4 ms. Without retries about 98 % arrive.
+
+Limits: no outside Wi-Fi or Bluetooth traffic, every drone hears every other drone, carrier sense is perfect, and the model's top packet rate is about 13 % below the one published measurement. Data: `runs/c-exp014-mac-r2`, `runs/c-exp017-tolerance-r2`.
 
 ## Download
 
 ### macOS
 
-The native app requires macOS 14 or newer. Download the architecture that matches your Mac from [Zephyr Mesh v0.2.2](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.2):
+The native app requires macOS 14 or newer. Download the architecture that matches your Mac from [Zephyr Mesh v0.2.3](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.3):
 
-- [Apple Silicon](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.2/ZephyrMesh-macos-arm64-v0.2.2.zip)
-- [Intel](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.2/ZephyrMesh-macos-x86_64-v0.2.2.zip)
+- [Apple Silicon](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.3/ZephyrMesh-macos-arm64-v0.2.3.zip)
+- [Intel](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.3/ZephyrMesh-macos-x86_64-v0.2.3.zip)
 
-Known issue: the v0.2.2 Mac app crashes at launch on any Mac other than the one that built it, because it cannot find its bundled replay file. The fix is in the source code (build it locally as shown below) and is not in a published release yet.
+If you downloaded v0.2.2: that Mac build crashes at launch on any Mac other than the one that built it, because it cannot find its bundled replay file. v0.2.3 fixes this.
 
 Unzip the download and open `ZephyrMesh.app`. SHA-256 sidecars are attached to the release. The package is ad hoc signed and may require a one-time confirmation in macOS Privacy & Security. To build the local bundle instead, install the Xcode Command Line Tools and run:
 
@@ -64,9 +84,9 @@ The app does not require a server or network connection to show the bundled repl
 
 ### Windows
 
-Download the [Windows x86_64 package](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.2/ZephyrMesh-windows-x86_64-v0.2.2.zip) from [Zephyr Mesh v0.2.2](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.2). Extract the complete ZIP before opening `ZephyrMeshWindows\ZephyrMeshWindows.exe`; keep the `_internal` folder beside it. The release also provides a separate .zip.sha256 asset for verification.
+Download the [Windows x86_64 package](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.3/ZephyrMesh-windows-x86_64-v0.2.3.zip) from [Zephyr Mesh v0.2.3](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.3). Extract the complete ZIP before opening `ZephyrMeshWindows\ZephyrMeshWindows.exe`; keep the `_internal` folder beside it. The release also provides a separate .zip.sha256 asset for verification.
 
-The Windows download is unsigned, so Windows SmartScreen may show a warning the first time you run it. Release v0.2.2 predates the Windows startup diagnostics (`startup.log` and `README-Windows.txt`); they are in the source and are not in a published release yet. They are extra diagnostics for Windows startup failures; startup problems have not been reproduced on a Windows machine or confirmed fixed.
+The Windows download is unsigned, so Windows SmartScreen may show a warning the first time you run it. Release v0.2.3 adds Windows startup diagnostics (`startup.log` and `README-Windows.txt`) to help with startup failures. Startup problems have not been reproduced on a Windows machine or confirmed fixed.
 
 To build locally, install Python 3.11 or newer, open PowerShell at the repository root, and run:
 
@@ -128,7 +148,7 @@ from the File menu. Reports are read-only. Their declared status and
 limitations stay attached to the source summary. A digest identifies the
 input file without establishing flight performance.
 
-The published v0.2.2 binaries are the replay baseline. The scenario-run CLI and strict scenario inspectors documented below are in the current source checkout and will be included in a later desktop release after target-host validation.
+The scenario-run CLI and strict scenario inspectors described above are built into v0.2.3 but have not yet been checked on separate target machines.
 
 ## Planned features
 
@@ -145,7 +165,7 @@ The published v0.2.2 binaries are the replay baseline. The scenario-run CLI and 
 
 - The checked-in event logs and desktop views are synthetic replays. They do not represent a measured radio link, camera, motor, controller, or flight test.
 - The recovery tracker drops late, out-of-order packets instead of re-filtering them. Its results come from a simulated link and sensor; no measured ESP-NOW or camera data feeds them yet.
-- The single-drone controller has no heading setpoint and no integral action, and the simulator has no ground plane. Default rigid-body inertia is a fixed estimate for a 450 g frame; hardware-profile vehicles use a geometry estimate. Neither is measured. The full list is `known_issues` in `runs/s0-baseline/manifest.json`.
+- The single-drone controller has only an optional heading setpoint and no integral action, and the simulator has no ground plane. Default rigid-body inertia is a fixed estimate for a 450 g frame; hardware-profile vehicles use a geometry estimate. Neither is measured. The full list is `known_issues` in `runs/s0-baseline/manifest.json`.
 - No measured ESP-NOW or camera trace is included yet. The versioned schemas are ready for documented hardware captures, but no measured radio tolerance, camera calibration, tracker, or flight-performance result is claimed.
 - Motor, propeller, battery, drag, and airflow values are scenario inputs or calibration placeholders. The profile document loader validates units, provenance fields, and schema structure, but it does not calibrate coefficients. Its thrust field is a declared-coefficient estimate at the lower motor/propeller RPM limit and does not apply torque or electrical power limits. Downwash, ground effect, propeller wake interaction, and venue airflow still need measured models.
 - The bench trace boundary and electrical input power summary are synthetic until a documented run records instruments, part identity, calibration, units, clock conditions, and repeatable test settings. No fitted motor map is included.
@@ -153,7 +173,7 @@ The published v0.2.2 binaries are the replay baseline. The scenario-run CLI and 
 - Scenario runs are deterministic point-mass coordination fixtures over abstract links. They support reproducible replay and contract testing, but do not establish radio tolerance, tracker performance, safety thresholds, or flight performance. The same scenario, seed, and environment (Python and NumPy versions) give identical bytes; across machines compare `payload_sha256`, not file bytes.
 - Scenario temporal integrity uses an absolute 1e-9 second contract tolerance, and `code_revision` is, by default, the git commit hash (or the value of the `ZEPHYR_CODE_REVISION` environment variable when it is set), with `-dirty` appended when the working tree had uncommitted changes or untracked files and `-unchecked` when that check could not run; it is not a fingerprint of the edits. These are integrity and provenance fields, not performance measurements.
 - The altitude profile is a bounded selected-frame projection, not a full 3D scene or a live vehicle view. Swarm profile provenance records declared parts only; it does not synthesize motor power, battery depletion, actuator state, or flight results.
-- The v0.2.2 macOS package is not notarized. Broad distribution still needs a Developer ID signature and notarization.
+- The macOS package is not notarized. Broad distribution still needs a Developer ID signature and notarization.
 
 ## Contributing
 
