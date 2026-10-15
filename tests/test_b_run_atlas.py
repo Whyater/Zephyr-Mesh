@@ -30,7 +30,7 @@ def test_imm_strata_restricts_only_imm_arms():
     # Cell enumeration is independent of which estimator arms are enabled.
     assert len(runner.build_cells(imm_strata="central")) == 3969
     assert [a.name for a in runner.build_arms("central", imm_strata="central")] == [
-        "naive", "recovery", "imm", "adaptive"
+        "naive", "recovery", "imm", "ct", "adaptive"
     ]
     assert [a.name for a in runner.build_arms("rate5", imm_strata="central")] == [
         "naive", "recovery", "adaptive"
@@ -38,10 +38,10 @@ def test_imm_strata_restricts_only_imm_arms():
 
 
 def test_arm_sets():
-    assert [a.name for a in runner.build_arms("central")] == ["naive", "recovery", "imm", "adaptive"]
-    assert [a.name for a in runner.build_arms("jitter")] == ["naive", "recovery", "imm", "adaptive", "retro"]
+    assert [a.name for a in runner.build_arms("central")] == ["naive", "recovery", "imm", "ct", "adaptive"]
+    assert [a.name for a in runner.build_arms("jitter")] == ["naive", "recovery", "imm", "ct", "adaptive", "retro"]
     assert [a.name for a in runner.build_arms("student_t")] == [
-        "naive", "recovery", "imm", "adaptive", "recovery_gated", "imm_gated"
+        "naive", "recovery", "imm", "ct", "adaptive", "recovery_gated", "imm_gated", "ct_gated"
     ]
 
 

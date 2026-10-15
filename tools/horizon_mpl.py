@@ -168,6 +168,7 @@ def arm_style(name: str, pal: dict) -> dict:
         "ca_q10": (_arm_fade(pal["target"], pal), ":", "^"),
         "ct": (pal["ok"], "-", "s"),
         "ct_q10": (_arm_fade(pal["ok"], pal), ":", "s"),
+        "ct_gated": (_arm_fade(pal["ok"], pal), "-.", "s"),
         "imm": (pal["keepOut"], "-", "v"),
         "imm_gated": (_arm_fade(pal["keepOut"], pal), "-.", "v"),
         "adaptive": (mix(pal["target"], pal["keepOut"], 0.5), "-", "P"),

@@ -55,15 +55,17 @@ GROUP_GAP = 0.35  # extra horizontal space between the random and burst loss gro
 
 VARIANT_ORDER = ("cv_0.5", "cv_1", "cv_2", "ct_r0.5", "ct_r1", "ct_r3", "jink", "figure8",
                  "start_stop")
-ARM_ORDER = ("naive", "recovery", "imm", "adaptive", "retro", "recovery_gated", "imm_gated")
+ARM_ORDER = ("naive", "recovery", "imm", "ct", "adaptive", "retro", "recovery_gated", "imm_gated", "ct_gated")
 ARM_LABELS = {
     "naive": "Naive",
     "recovery": "Recovery",
     "imm": "IMM",
+    "ct": "Turn-rate (CT)",
     "adaptive": "Adaptive",
     "retro": "Retro",
     "recovery_gated": "Recovery gated",
     "imm_gated": "IMM gated",
+    "ct_gated": "CT gated",
 }
 
 

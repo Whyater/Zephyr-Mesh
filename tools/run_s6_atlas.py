@@ -110,13 +110,17 @@ def _arm_specs(stratum: str, imm_strata: str | list[str] | tuple[str, ...] | set
         ArmSpec("adaptive", model="cv", stamping="capture", late_policy="drop", adaptive="q"),
     ]
     if stratum in selected_imm_strata:
+        # Two turn-aware arms: in the turn sweep the turn-rate model was best on the steady
+        # turn and the two-model mix slightly better when turns start and stop.
         arms.insert(2, ArmSpec("imm", model="imm", stamping="capture", late_policy="drop"))
+        arms.insert(3, ArmSpec("ct", model="ct", stamping="capture", late_policy="drop"))
     if stratum == "jitter":
         arms.append(ArmSpec("retro", model="cv", stamping="capture", late_policy="retrodict"))
     if stratum == "student_t":
         arms.append(ArmSpec("recovery_gated", model="cv", stamping="capture", late_policy="drop", gate_probability=0.99))
         if stratum in selected_imm_strata:
             arms.append(ArmSpec("imm_gated", model="imm", stamping="capture", late_policy="drop", gate_probability=0.99))
+            arms.append(ArmSpec("ct_gated", model="ct", stamping="capture", late_policy="drop", gate_probability=0.99))
     return arms
 
 
@@ -468,7 +472,7 @@ def run_sweep(output: Path, *, pilot: bool = False, seeds_count: int = 50, proce
                "design": design, "design_reason": design["reason"],
                "strata": _strata_document(), "cells": summary_cells,
                "limits": ["simulated link and sensor only", "failure labels are research criteria", "no hardware measurements",
-                          "imm is a placeholder for the best maneuver arm from the turn experiment"]}
+                          "imm and ct are the two turn-aware arms; the turn sweep found no single best one"]}
     write_json(output / "summary.json", summary)
     per_seed_by_key = {str(result["key"]): list(result.get("per_seed", [])) for result in results}
     cell_rows = _csv_rows(summary_cells, per_seed_by_key)
@@ -520,7 +524,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--processes", type=int)
     parser.add_argument("--checkpoint-dir", type=Path)
     parser.add_argument("--no-checkpoint", action="store_true")
-    parser.add_argument("--imm-strata", default="all", help="comma-separated strata that run IMM arms")
+    parser.add_argument("--imm-strata", default="all", help="comma-separated strata that run the turn-aware arms (imm and ct)")
     parser.add_argument("--speed-variants-central-only", action="store_true",
                         help="run cv_0.5 and cv_2 only in the central stratum")
     args = parser.parse_args(argv)
