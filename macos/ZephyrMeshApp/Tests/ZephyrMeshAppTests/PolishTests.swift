@@ -229,7 +229,7 @@ final class RoundTwoTests: XCTestCase {
     }
 }
 
-final class CodeCriticFixTests: XCTestCase {
+final class PolishFixTests: XCTestCase {
     private func editedScenario(_ edit: (inout [[String: Any]]) -> Void) throws -> URL {
         let url = fixturesDirectory.appendingPathComponent("zephyr-s7-moving-scenario-run-1.json")
         var document = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])

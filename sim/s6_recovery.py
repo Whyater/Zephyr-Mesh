@@ -289,7 +289,7 @@ def median_interval(values, confidence: float = 0.95) -> tuple[float, float, flo
 
 
 def wilson_interval(successes: int, n: int, confidence: float = 0.95) -> tuple[float, float]:
-    """Wilson score interval for a proportion (R-P3-TEST-01)."""
+    """Wilson score interval for a proportion."""
     if n <= 0:
         raise ValueError("n must be positive")
     z = float(norm.ppf(1.0 - (1.0 - confidence) / 2.0))
