@@ -1,0 +1,413 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "zephyr-mission-log-1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "simulated",
+    "mission",
+    "scenario",
+    "scenario_sha256",
+    "code_revision",
+    "adapter",
+    "preset",
+    "seed",
+    "policy",
+    "limits",
+    "dt_s",
+    "log_every",
+    "agents",
+    "frames",
+    "events",
+    "link_stats",
+    "metrics"
+  ],
+  "properties": {
+    "schema": {
+      "const": "zephyr-mission-log-1"
+    },
+    "simulated": {
+      "const": true
+    },
+    "mission": {
+      "type": "string",
+      "enum": [
+        "tag",
+        "sweep",
+        "relay",
+        "monitor",
+        "formation",
+        "failsafe"
+      ]
+    },
+    "scenario": {
+      "type": "object"
+    },
+    "scenario_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "code_revision": {
+      "type": "string"
+    },
+    "adapter": {
+      "type": "string",
+      "enum": [
+        "point_mass",
+        "physics",
+        "point_mass_offboard",
+        "physics_offboard"
+      ]
+    },
+    "preset": {
+      "type": "string"
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "weak_rule": {
+          "type": [
+            "number",
+            "string",
+            "boolean",
+            "null"
+          ]
+        },
+        "loss_window_packets": {
+          "type": [
+            "number",
+            "string",
+            "boolean",
+            "null"
+          ]
+        },
+        "weak_loss_fraction": {
+          "type": [
+            "number",
+            "string",
+            "boolean",
+            "null"
+          ]
+        },
+        "degraded_action": {
+          "type": [
+            "number",
+            "string",
+            "boolean",
+            "null"
+          ]
+        },
+        "slow_speed_mps": {
+          "type": [
+            "number",
+            "string",
+            "boolean",
+            "null"
+          ]
+        },
+        "degraded_after_s": {
+          "type": [
+            "number",
+            "string",
+            "boolean",
+            "null"
+          ]
+        },
+        "land_after_s": {
+          "type": [
+            "number",
+            "string",
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "limits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dt_s": {
+      "type": "number",
+      "minimum": 0
+    },
+    "log_every": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "agents": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "frames": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "time_s",
+        "target_position_m",
+        "agents"
+      ],
+      "properties": {
+        "time_s": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "target_position_m": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "agents": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/agent_series"
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "link_stats": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/link_stat"
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "number",
+          "boolean",
+          "string",
+          "null"
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "agent_series": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position_m",
+        "velocity_mps",
+        "failsafe_state",
+        "authority",
+        "link_age_s",
+        "estimate_position_m",
+        "estimate_age_s"
+      ],
+      "properties": {
+        "position_m": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "velocity_mps": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "failsafe_state": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "authority": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "link_age_s": {
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "estimate_position_m": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "estimate_age_s": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "time_s",
+        "kind",
+        "agent",
+        "detail"
+      ],
+      "properties": {
+        "time_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "failsafe_transition",
+            "authority_change",
+            "geofence_clip",
+            "geofence_breach",
+            "kill",
+            "landed",
+            "outage_start",
+            "outage_end",
+            "tag_zone_enter",
+            "tag_zone_exit",
+            "tag_complete",
+            "separation_violation",
+            "alert_raised",
+            "alert_cleared",
+            "coverage_update",
+            "replan",
+            "drone_dropout",
+            "mission_end"
+          ]
+        },
+        "agent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "detail": {
+          "type": "object"
+        }
+      }
+    },
+    "link_stat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sent",
+        "delivered",
+        "lost_loss",
+        "lost_outage"
+      ],
+      "properties": {
+        "sent": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "delivered": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lost_loss": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lost_outage": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

@@ -41,6 +41,36 @@ def _finite_nonnegative(name: str, value: float) -> float:
 
 
 @dataclass(frozen=True)
+class Geofence:
+    """Axis-aligned simulated flight volume."""
+
+    min_m: tuple[float, float, float]
+    max_m: tuple[float, float, float]
+    margin_m: float = 0.5
+
+    def __post_init__(self) -> None:
+        lo = _vector3(self.min_m, name="min_m")
+        hi = _vector3(self.max_m, name="max_m")
+        margin = float(self.margin_m)
+        if not math.isfinite(margin) or margin < 0.0 or np.any(lo >= hi - 2.0 * margin):
+            raise ValueError("geofence requires min_m < max_m - 2*margin_m on every axis")
+        object.__setattr__(self, "min_m", tuple(float(v) for v in lo))
+        object.__setattr__(self, "max_m", tuple(float(v) for v in hi))
+        object.__setattr__(self, "margin_m", margin)
+
+    def contains(self, p: Iterable[float]) -> bool:
+        value = _vector3(p, name="p")
+        return bool(np.all(value >= np.asarray(self.min_m)) and np.all(value <= np.asarray(self.max_m)))
+
+    def clip(self, p: Iterable[float]) -> np.ndarray:
+        value = _vector3(p, name="p")
+        return np.clip(value, np.asarray(self.min_m) + self.margin_m, np.asarray(self.max_m) - self.margin_m)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {"min_m": list(self.min_m), "max_m": list(self.max_m), "margin_m": self.margin_m}
+
+
+@dataclass(frozen=True)
 class Capabilities:
     """Feature declaration used for adapter selection and UI disclosure."""
 
@@ -98,6 +128,8 @@ class DroneState:
     connected: bool = False
     command_authority: str | None = None
     failsafe_state: str = FailsafeState.NOMINAL.value
+    link_age_s: float | None = None
+    landed: bool = False
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "position", _vector3(self.position, name="position"))
@@ -120,6 +152,10 @@ class DroneState:
             raise ValueError("command_authority must be a string or None")
         if not isinstance(self.failsafe_state, str) or not self.failsafe_state:
             raise ValueError("failsafe_state must be a non-empty string")
+        if self.link_age_s is not None:
+            object.__setattr__(self, "link_age_s", _finite_nonnegative("link_age_s", self.link_age_s))
+        if not isinstance(self.landed, bool):
+            raise ValueError("landed must be bool")
 
     @property
     def position_m(self) -> np.ndarray:
@@ -143,6 +179,11 @@ class DroneState:
             "command_authority": self.command_authority,
             "failsafe_state": self.failsafe_state,
         }
+
+    def as_mission_dict(self) -> dict[str, Any]:
+        result = self.as_dict()
+        result.update({"link_age_s": self.link_age_s, "landed": self.landed})
+        return result
 
 
 class DroneAdapter(ABC):
@@ -206,6 +247,7 @@ class DroneAdapter(ABC):
         link_age_s: float | None = None,
         battery_pct: float | None = None,
         kill_requested: bool = False,
+        recent_loss_fraction: float | None = None,
     ) -> DroneState:
         """Advance a deterministic simulation or poll a replay clock."""
 
@@ -224,6 +266,17 @@ class DroneAdapter(ABC):
     @abstractmethod
     def reset_failsafe(self) -> FailsafeDecision:
         """Clear a latched failsafe after an explicit health check."""
+
+    def drain_events(self) -> list[dict[str, Any]]:
+        return []
+
+    @property
+    def time_s(self) -> float:
+        raise NotImplementedError
+
+    @property
+    def geofence(self) -> Geofence | None:
+        return None
 
 
 class SimAdapter(DroneAdapter):
@@ -250,6 +303,7 @@ class SimAdapter(DroneAdapter):
         ground_plane_z_m: float = 0.0,
         initial_battery_pct: float = 100.0,
         failsafe_config: FailsafeConfig | None = None,
+        geofence: Geofence | None = None,
     ) -> None:
         if not isinstance(adapter_id, str) or not adapter_id:
             raise ValueError("adapter_id must be a non-empty string")
@@ -261,6 +315,9 @@ class SimAdapter(DroneAdapter):
         if not isinstance(self._capabilities, Capabilities):
             raise ValueError("capabilities must be Capabilities")
         self.position = _vector3(initial_position_m, name="initial_position_m")
+        if geofence is not None and not isinstance(geofence, Geofence):
+            raise ValueError("geofence must be Geofence or None")
+        self._geofence = geofence
         self.velocity = np.zeros(3, dtype=float)
         self._dt_s = _finite_nonnegative("dt_s", dt_s)
         if self._dt_s <= 0.0:
@@ -296,6 +353,8 @@ class SimAdapter(DroneAdapter):
         self._link_age_s: float | None = 0.0
         self._landed = False
         self._last_failsafe = self.failsafe.last_decision
+        self._events: list[dict[str, Any]] = []
+        self._last_authority_source: str | None = None
 
     @property
     def adapter_id(self) -> str:
@@ -312,6 +371,24 @@ class SimAdapter(DroneAdapter):
     @property
     def time_s(self) -> float:
         return self._time_s
+
+    @property
+    def geofence(self) -> Geofence | None:
+        return self._geofence
+
+    def drain_events(self) -> list[dict[str, Any]]:
+        events = self._events
+        self._events = []
+        return events
+
+    def _event(self, kind: str, detail: dict[str, Any] | None = None) -> None:
+        self._events.append({"time_s": float(self._time_s), "kind": kind, "agent": self._adapter_id, "detail": detail or {}})
+
+    def _record_authority(self, winner: AuthorityDecision) -> None:
+        source = None if winner.source is None else winner.source.value
+        if source != self._last_authority_source:
+            self._last_authority_source = source
+            self._event("authority_change", {"source": source})
 
     @property
     def profile_acceleration_limit_mps2(self) -> float:
@@ -391,14 +468,20 @@ class SimAdapter(DroneAdapter):
     def send_setpoint(self, position: np.ndarray) -> AuthorityDecision:
         if not self.capabilities.supports_position_setpoint:
             return self._rejected("position_setpoint_unsupported")
+        point = _vector3(position, name="position")
+        if self._geofence is not None:
+            clipped = self._geofence.clip(point)
+            if not np.array_equal(clipped, point):
+                self._event("geofence_clip", {"requested_m": point.tolist(), "clipped_m": clipped.tolist()})
+            point = clipped
         return self.request_command(
-            ControlCommand.position(position),
+            ControlCommand.position(point),
             source=CommandSource.MISSION,
             ttl_s=0.5,
         )
 
     def _sync_failsafe_authority(self, decision: FailsafeDecision) -> None:
-        if decision.state is FailsafeState.NOMINAL:
+        if decision.state is FailsafeState.NOMINAL or decision.action is FailsafeAction.SLOW:
             self.authority.release(CommandSource.FAILSAFE, timestamp_s=self._time_s)
             return
         # Degraded hold, landing, landed hold, and kill are all safety-owned.
@@ -415,15 +498,20 @@ class SimAdapter(DroneAdapter):
             request_id=f"failsafe-{decision.state.value}",
         )
 
-    def _observe_failsafe(self, *, kill_requested: bool = False, landed: bool = False) -> FailsafeDecision:
+    def _observe_failsafe(self, *, kill_requested: bool = False, landed: bool = False, recent_loss_fraction: float | None = None) -> FailsafeDecision:
         decision = self.failsafe.observe(
             self._time_s,
             link_age_s=self._link_age_s,
             battery_pct=self._battery_pct,
             kill_requested=kill_requested,
             landed=landed,
+            recent_loss_fraction=recent_loss_fraction,
         )
         self._last_failsafe = decision
+        if decision.changed:
+            self._event("failsafe_transition", decision.as_dict())
+            if decision.state is FailsafeState.KILLED:
+                self._event("kill", {})
         self._sync_failsafe_authority(decision)
         return decision
 
@@ -437,6 +525,8 @@ class SimAdapter(DroneAdapter):
             battery_pct=self._battery_pct,
         )
         self._last_failsafe = decision
+        if decision.changed:
+            self._event("failsafe_transition", decision.as_dict())
         self._sync_failsafe_authority(decision)
         return decision
 
@@ -450,6 +540,9 @@ class SimAdapter(DroneAdapter):
             battery_pct=self._battery_pct,
         )
         self._last_failsafe = decision
+        if decision.changed:
+            self._event("failsafe_transition", decision.as_dict())
+            self._event("kill", {})
         self._sync_failsafe_authority(decision)
         return decision
 
@@ -463,6 +556,8 @@ class SimAdapter(DroneAdapter):
         )
         self._landed = False
         self._last_failsafe = decision
+        if decision.changed:
+            self._event("failsafe_transition", decision.as_dict())
         self._sync_failsafe_authority(decision)
         return decision
 
@@ -480,6 +575,7 @@ class SimAdapter(DroneAdapter):
         link_age_s: float | None = None,
         battery_pct: float | None = None,
         kill_requested: bool = False,
+        recent_loss_fraction: float | None = None,
     ) -> DroneState:
         """Advance the synthetic adapter and return normalized state."""
         self._require_connected()
@@ -491,8 +587,14 @@ class SimAdapter(DroneAdapter):
         if battery_pct is not None:
             self.set_battery_pct(battery_pct)
         self._time_s += dt
-        decision = self._observe_failsafe(kill_requested=kill_requested, landed=self._landed)
+        decision = self._observe_failsafe(kill_requested=kill_requested, landed=self._landed, recent_loss_fraction=recent_loss_fraction)
         winner = self.authority.select(self._time_s)
+        self._record_authority(winner)
+
+        if self._geofence is not None and not self._geofence.contains(self.position):
+            self._event("geofence_breach", {"position_m": self.position.tolist()})
+            self.authority.submit(CommandSource.FAILSAFE, ControlCommand.hold(), timestamp_s=self._time_s, ttl_s=None, request_id="geofence-breach")
+            winner = self.authority.select(self._time_s)
 
         if winner.command is None or winner.command.kind is CommandKind.KILL:
             self.velocity[:] = 0.0
@@ -507,12 +609,15 @@ class SimAdapter(DroneAdapter):
             else:  # HOLD
                 desired = self.position.copy()
             desired_velocity = (desired - self.position) / self._response_time_s
-            desired_velocity = self._limited(desired_velocity, self.capabilities.max_speed_mps)
+            speed_limit = self.capabilities.max_speed_mps
+            if decision.action is FailsafeAction.SLOW:
+                speed_limit = min(speed_limit, self.failsafe.config.slow_speed_mps)
+            desired_velocity = self._limited(desired_velocity, speed_limit)
             acceleration = self._limited(
                 (desired_velocity - self.velocity) / dt,
                 self._max_acceleration_mps2,
             )
-            self.velocity = self._limited(self.velocity + acceleration * dt, self.capabilities.max_speed_mps)
+            self.velocity = self._limited(self.velocity + acceleration * dt, speed_limit)
             self.position = self.position + self.velocity * dt
             if self.position[2] < self._ground_plane_z_m:
                 self.position[2] = self._ground_plane_z_m
@@ -523,7 +628,8 @@ class SimAdapter(DroneAdapter):
             ):
                 self.position[2] = self._ground_plane_z_m
                 self._landed = True
-                decision = self._observe_failsafe(landed=True)
+                self._event("landed", {})
+                decision = self._observe_failsafe(landed=True, recent_loss_fraction=recent_loss_fraction)
 
         # A killed vehicle is stopped immediately and frozen in place (this
         # point-mass model has no gravity, so it does not fall).  A landed one
@@ -545,4 +651,34 @@ class SimAdapter(DroneAdapter):
             connected=self._connected,
             command_authority=None if authority.source is None else authority.source.value,
             failsafe_state=self.failsafe.state.value,
+            link_age_s=self._link_age_s,
+            landed=self._landed,
         )
+
+
+class OffboardPointMassAdapter(SimAdapter):
+    """Point-mass adapter whose controller uses externally supplied fixes."""
+
+    def __init__(self, adapter_id: str, **kwargs: Any) -> None:
+        super().__init__(adapter_id, **kwargs)
+        self._position_fix: np.ndarray | None = None
+        self._position_fix_time_s: float | None = None
+
+    def set_position_fix(self, position_m: Iterable[float], timestamp_s: float) -> None:
+        stamp = _finite_nonnegative("timestamp_s", timestamp_s)
+        if stamp < (self._position_fix_time_s or 0.0):
+            raise ValueError("timestamp_s must be nondecreasing")
+        self._position_fix = _vector3(position_m, name="position_m")
+        self._position_fix_time_s = stamp
+
+    def step(self, dt_s: float | None = None, **kwargs: Any) -> DroneState:
+        if self._position_fix is None:
+            return super().step(dt_s, **kwargs)
+        truth = self.position.copy()
+        sensed = self._position_fix.copy()
+        self.position = sensed
+        state = super().step(dt_s, **kwargs)
+        dt = self._dt_s if dt_s is None else float(dt_s)
+        moved = self.velocity * dt
+        self.position = truth + moved
+        return self.get_state()

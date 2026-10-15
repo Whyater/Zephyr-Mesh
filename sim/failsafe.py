@@ -30,6 +30,7 @@ class FailsafeAction(str, Enum):
 
     NONE = "none"
     HOLD = "hold"
+    SLOW = "slow"
     LAND = "land"
     KILL = "kill"
 
@@ -54,6 +55,11 @@ class FailsafeConfig:
     degraded_after_s: float = 0.15
     land_after_s: float = 0.30
     low_battery_pct: float = 15.0
+    weak_rule: str = "age"
+    loss_window_packets: int = 20
+    weak_loss_fraction: float = 0.3
+    degraded_action: str = "hold"
+    slow_speed_mps: float = 0.3
 
     def __post_init__(self) -> None:
         degraded = _finite_nonnegative("degraded_after_s", self.degraded_after_s)
@@ -63,9 +69,41 @@ class FailsafeConfig:
             raise ValueError("low_battery_pct must be finite and between zero and 100")
         if land < degraded:
             raise ValueError("land_after_s must be at least degraded_after_s")
+        if not isinstance(self.weak_rule, str) or self.weak_rule not in {"age", "age_or_loss"}:
+            raise ValueError("weak_rule must be 'age' or 'age_or_loss'")
+        if isinstance(self.loss_window_packets, bool) or int(self.loss_window_packets) != self.loss_window_packets or int(self.loss_window_packets) <= 0:
+            raise ValueError("loss_window_packets must be a positive integer")
+        weak_loss = float(self.weak_loss_fraction)
+        if not math.isfinite(weak_loss) or weak_loss < 0.0 or weak_loss > 1.0:
+            raise ValueError("weak_loss_fraction must be finite and between zero and one")
+        if not isinstance(self.degraded_action, str) or self.degraded_action not in {"hold", "slow"}:
+            raise ValueError("degraded_action must be 'hold' or 'slow'")
+        slow_speed = float(self.slow_speed_mps)
+        if not math.isfinite(slow_speed) or slow_speed <= 0.0:
+            raise ValueError("slow_speed_mps must be finite and positive")
         object.__setattr__(self, "degraded_after_s", degraded)
         object.__setattr__(self, "land_after_s", land)
         object.__setattr__(self, "low_battery_pct", battery)
+        object.__setattr__(self, "loss_window_packets", int(self.loss_window_packets))
+        object.__setattr__(self, "weak_loss_fraction", weak_loss)
+        object.__setattr__(self, "slow_speed_mps", slow_speed)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {key: getattr(self, key) for key in sorted((
+            "degraded_action", "degraded_after_s", "land_after_s", "loss_window_packets",
+            "low_battery_pct", "slow_speed_mps", "weak_loss_fraction", "weak_rule",
+        ))}
+
+    @classmethod
+    def from_dict(cls, value: dict[str, Any]) -> "FailsafeConfig":
+        if not isinstance(value, dict):
+            raise ValueError("failsafe config must be a mapping")
+        allowed = {"degraded_after_s", "land_after_s", "low_battery_pct", "weak_rule",
+                   "loss_window_packets", "weak_loss_fraction", "degraded_action", "slow_speed_mps"}
+        unknown = set(value) - allowed
+        if unknown:
+            raise ValueError(f"unknown failsafe config fields: {sorted(unknown)}")
+        return cls(**value)
 
 
 @dataclass(frozen=True)
@@ -170,6 +208,8 @@ class FailsafeController:
             FailsafeState.LANDED: FailsafeAction.NONE,
             FailsafeState.KILLED: FailsafeAction.KILL,
         }[self.state]
+        if self.state is FailsafeState.DEGRADED and self.config.degraded_action == "slow":
+            action = FailsafeAction.SLOW
         decision = FailsafeDecision(
             state=self.state,
             action=action,
@@ -191,10 +231,17 @@ class FailsafeController:
         battery_pct: float,
         kill_requested: bool = False,
         landed: bool = False,
+        recent_loss_fraction: float | None = None,
     ) -> FailsafeDecision:
         """Advance the policy using one shared-clock observation."""
         age = self._link_age(link_age_s)
         battery = self._battery(battery_pct)
+        if recent_loss_fraction is not None:
+            loss = float(recent_loss_fraction)
+            if not math.isfinite(loss) or loss < 0.0 or loss > 1.0:
+                raise ValueError("recent_loss_fraction must be finite and between zero and one")
+        else:
+            loss = None
         now = self._time(timestamp_s)
         previous = self.state
 
@@ -244,9 +291,14 @@ class FailsafeController:
         elif stale_age >= self.config.land_after_s:
             self.state = FailsafeState.LANDING
             reason = "link_timeout"
-        elif stale_age >= self.config.degraded_after_s:
+        elif stale_age >= self.config.degraded_after_s or (
+            self.config.weak_rule == "age_or_loss" and loss is not None and loss >= self.config.weak_loss_fraction
+        ):
             self.state = FailsafeState.DEGRADED
-            reason = "link_degraded"
+            reason = "link_lossy" if (
+                self.config.weak_rule == "age_or_loss" and loss is not None
+                and loss >= self.config.weak_loss_fraction and stale_age < self.config.degraded_after_s
+            ) else "link_degraded"
         else:
             self.state = FailsafeState.NOMINAL
             reason = "link_healthy"
@@ -327,3 +379,42 @@ class FailsafeController:
             link_age_s=age,
             battery_pct=battery,
         )
+
+
+class SequenceLossWindow:
+    """Track received sequence numbers and estimate a trailing loss fraction."""
+
+    def __init__(self, window_packets: int = 20) -> None:
+        if isinstance(window_packets, bool) or int(window_packets) != window_packets or int(window_packets) <= 0:
+            raise ValueError("window_packets must be a positive integer")
+        self.window_packets = int(window_packets)
+        self._received: set[int] = set()
+        self._newest: int | None = None
+
+    def record(self, seq: int) -> None:
+        if isinstance(seq, bool) or int(seq) != seq or int(seq) < 0:
+            raise ValueError("seq must be a nonnegative integer")
+        seq = int(seq)
+        if self._newest is not None and seq <= self._newest:
+            return
+        self._received.add(seq)
+        self._newest = seq
+        floor = seq - self.window_packets * 2
+        if floor > 0:
+            self._received = {item for item in self._received if item >= floor}
+
+    def loss_fraction(self, expected_next_seq: int | None = None) -> float | None:
+        if self._newest is None:
+            return None
+        if expected_next_seq is None:
+            end = self._newest
+        else:
+            if isinstance(expected_next_seq, bool) or int(expected_next_seq) != expected_next_seq or int(expected_next_seq) < 0:
+                raise ValueError("expected_next_seq must be a nonnegative integer")
+            end = int(expected_next_seq) - 1
+        if end < 0:
+            return 0.0
+        start = max(0, end - self.window_packets + 1)
+        total = end - start + 1
+        received = sum(seq in self._received for seq in range(start, end + 1))
+        return float(total - received) / float(total)
