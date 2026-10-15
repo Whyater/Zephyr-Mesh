@@ -1,0 +1,576 @@
+{
+  "downwash": {
+    "cells": [
+      {
+        "area_m2": 0.00636172512,
+        "expected_far_wake_mps": 8.39601146,
+        "expected_v_h_mps": 4.19800573,
+        "far_wake_mps": 8.39601146,
+        "far_wake_relative_error": 0.0,
+        "mass_kg": 0.028,
+        "pass": true,
+        "profile": "crazyflie-class",
+        "rotor_radius_m": 0.0225,
+        "source_thrust_n": 0.27468,
+        "v_h_mps": 4.19800573,
+        "v_h_relative_error": 0.0
+      },
+      {
+        "area_m2": 0.00282743339,
+        "expected_far_wake_mps": 11.9002277,
+        "expected_v_h_mps": 5.95011384,
+        "far_wake_mps": 11.9002277,
+        "far_wake_relative_error": 0.0,
+        "mass_kg": 0.025,
+        "pass": true,
+        "profile": "esp-fly-class",
+        "rotor_radius_m": 0.015,
+        "source_thrust_n": 0.24525,
+        "v_h_mps": 5.95011384,
+        "v_h_relative_error": 0.0
+      }
+    ],
+    "column_radius": "equivalent radius sqrt((N pi R^2)/pi) divided by sqrt(2), with N=4; max depth is 1 m",
+    "formula": "v_h = sqrt(T / (2 rho A)), A = 4 pi R^2; far wake = 2 v_h",
+    "pass": true
+  },
+  "ground_effect": {
+    "cells": [
+      {
+        "difference": 0.0,
+        "expected": 1.06666667,
+        "height_R": 1.0,
+        "pass": true,
+        "profile": "crazyflie-class",
+        "rotor_radius_m": 0.0225,
+        "value": 1.06666667
+      },
+      {
+        "difference": 0.0,
+        "expected": 1.01587302,
+        "height_R": 2.0,
+        "pass": true,
+        "profile": "crazyflie-class",
+        "rotor_radius_m": 0.0225,
+        "value": 1.01587302
+      },
+      {
+        "difference": 0.0,
+        "expected": 1.00392157,
+        "height_R": 4.0,
+        "pass": true,
+        "profile": "crazyflie-class",
+        "rotor_radius_m": 0.0225,
+        "value": 1.00392157
+      },
+      {
+        "difference": 0.0,
+        "expected": 1.06666667,
+        "height_R": 1.0,
+        "pass": true,
+        "profile": "esp-fly-class",
+        "rotor_radius_m": 0.015,
+        "value": 1.06666667
+      },
+      {
+        "difference": 0.0,
+        "expected": 1.01587302,
+        "height_R": 2.0,
+        "pass": true,
+        "profile": "esp-fly-class",
+        "rotor_radius_m": 0.015,
+        "value": 1.01587302
+      },
+      {
+        "difference": 0.0,
+        "expected": 1.00392157,
+        "height_R": 4.0,
+        "pass": true,
+        "profile": "esp-fly-class",
+        "rotor_radius_m": 0.015,
+        "value": 1.00392157
+      }
+    ],
+    "formula": "1 / (1 - (R / (4 z))^2)",
+    "pass": true
+  },
+  "gust_ratio_explanation": {
+    "committed_plain_rms_check": {
+      "pass": true,
+      "rows_checked": 80
+    },
+    "monte_carlo": [
+      {
+        "n": 2000000,
+        "one_axis_formula": 8.54400375,
+        "rms_ratio_unweighted": 3.90839386,
+        "rms_ratio_weighted": 4.10893025,
+        "seed": 20261014,
+        "sigma_mps": 0.25
+      },
+      {
+        "n": 2000000,
+        "one_axis_formula": 4.35889894,
+        "rms_ratio_unweighted": 2.12021734,
+        "rms_ratio_weighted": 2.20918585,
+        "seed": 20261014,
+        "sigma_mps": 0.5
+      }
+    ],
+    "run_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "run_summary": [
+      {
+        "mean_offset_m": {
+          "0.0": [
+            0.000805501864,
+            0.000517044386,
+            1.00051378
+          ],
+          "1.5": [
+            0.133890536,
+            0.00125125215,
+            1.00189902
+          ]
+        },
+        "median_rms_about_mean_m": {
+          "0.0": 0.0094412665,
+          "1.5": 0.0382418707
+        },
+        "profile": "crazyflie-class",
+        "rms_ratio": 4.05050219,
+        "sigma_mps": 0.25
+      },
+      {
+        "mean_offset_m": {
+          "0.0": [
+            0.00314234202,
+            0.00202093258,
+            1.00202717
+          ],
+          "1.5": [
+            0.155635072,
+            0.00341432198,
+            1.00411555
+          ]
+        },
+        "median_rms_about_mean_m": {
+          "0.0": 0.0364877702,
+          "1.5": 0.0791447915
+        },
+        "profile": "crazyflie-class",
+        "rms_ratio": 2.16907723,
+        "sigma_mps": 0.5
+      },
+      {
+        "mean_offset_m": {
+          "0.0": [
+            0.000899395444,
+            0.000577413438,
+            1.00057434
+          ],
+          "1.5": [
+            0.149850791,
+            0.00139627754,
+            1.00212573
+          ]
+        },
+        "median_rms_about_mean_m": {
+          "0.0": 0.0105329151,
+          "1.5": 0.0423619738
+        },
+        "profile": "esp-fly-class",
+        "rms_ratio": 4.02186608,
+        "sigma_mps": 0.25
+      },
+      {
+        "mean_offset_m": {
+          "0.0": [
+            0.00349919043,
+            0.00225166687,
+            1.00226243
+          ],
+          "1.5": [
+            0.173962071,
+            0.00379658139,
+            1.00460471
+          ]
+        },
+        "median_rms_about_mean_m": {
+          "0.0": 0.0405224468,
+          "1.5": 0.0876325857
+        },
+        "profile": "esp-fly-class",
+        "rms_ratio": 2.16256896,
+        "sigma_mps": 0.5
+      }
+    ]
+  },
+  "ou": {
+    "T_s": 1.0,
+    "cells": [
+      {
+        "autocorrelation_se_method": "sqrt((1-rho^2)^2/n_eff)",
+        "axes": [
+          {
+            "autocorrelation": {
+              "0.5": {
+                "expected": 0.60653066,
+                "pass": true,
+                "se": 0.0289503712,
+                "value": 0.59384343,
+                "z": -0.438240663
+              },
+              "1.0": {
+                "expected": 0.367879441,
+                "pass": true,
+                "se": 0.0391971692,
+                "value": 0.351460738,
+                "z": -0.418874713
+              },
+              "2.0": {
+                "expected": 0.135335283,
+                "pass": true,
+                "se": 0.0438550119,
+                "value": 0.139183771,
+                "z": 0.0877548053
+              }
+            },
+            "expected_variance": 0.0625,
+            "mean": 0.0101499058,
+            "mean_pass": true,
+            "mean_se": 0.0111803399,
+            "mean_z": 0.907835177,
+            "pass": true,
+            "variance": 0.0621602122,
+            "variance_pass": true,
+            "variance_se": 0.00395284708,
+            "variance_z": -0.085960266
+          },
+          {
+            "autocorrelation": {
+              "0.5": {
+                "expected": 0.60653066,
+                "pass": true,
+                "se": 0.0286673238,
+                "value": 0.59914869,
+                "z": -0.257504652
+              },
+              "1.0": {
+                "expected": 0.367879441,
+                "pass": true,
+                "se": 0.0391099154,
+                "value": 0.3542255,
+                "z": -0.349117121
+              },
+              "2.0": {
+                "expected": 0.135335283,
+                "pass": true,
+                "se": 0.0442270051,
+                "value": 0.105138491,
+                "z": -0.682768185
+              }
+            },
+            "expected_variance": 0.0625,
+            "mean": -0.0102112084,
+            "mean_pass": true,
+            "mean_se": 0.0111803399,
+            "mean_z": -0.913318242,
+            "pass": true,
+            "variance": 0.061099608,
+            "variance_pass": true,
+            "variance_se": 0.00395284708,
+            "variance_z": -0.35427427
+          },
+          {
+            "autocorrelation": {
+              "0.5": {
+                "expected": 0.60653066,
+                "pass": true,
+                "se": 0.0280232655,
+                "value": 0.611048879,
+                "z": 0.161231017
+              },
+              "1.0": {
+                "expected": 0.367879441,
+                "pass": true,
+                "se": 0.0382162918,
+                "value": 0.381389221,
+                "z": 0.353508383
+              },
+              "2.0": {
+                "expected": 0.135335283,
+                "pass": true,
+                "se": 0.0435993022,
+                "value": 0.158398122,
+                "z": 0.528972667
+              }
+            },
+            "expected_variance": 0.0625,
+            "mean": 0.00356227249,
+            "mean_pass": true,
+            "mean_se": 0.0111803399,
+            "mean_z": 0.318619338,
+            "pass": true,
+            "variance": 0.0631545636,
+            "variance_pass": true,
+            "variance_se": 0.00395284708,
+            "variance_z": 0.165592949
+          }
+        ],
+        "dt_s": 0.01,
+        "n": 100000,
+        "n_eff": 500.0,
+        "pass": true,
+        "seed": 0,
+        "sigma_mps": 0.25,
+        "time_constant_s": 1.0
+      },
+      {
+        "autocorrelation_se_method": "sqrt((1-rho^2)^2/n_eff)",
+        "axes": [
+          {
+            "autocorrelation": {
+              "0.5": {
+                "expected": 0.60653066,
+                "pass": true,
+                "se": 0.0289873735,
+                "value": 0.593146377,
+                "z": -0.461728041
+              },
+              "1.0": {
+                "expected": 0.367879441,
+                "pass": true,
+                "se": 0.0392717768,
+                "value": 0.349079323,
+                "z": -0.478718286
+              },
+              "2.0": {
+                "expected": 0.135335283,
+                "pass": true,
+                "se": 0.0441529142,
+                "value": 0.11274229,
+                "z": -0.511698805
+              }
+            },
+            "expected_variance": 0.25,
+            "mean": -0.0133257166,
+            "mean_pass": true,
+            "mean_se": 0.0223606798,
+            "mean_z": -0.595944165,
+            "pass": true,
+            "variance": 0.240092624,
+            "variance_pass": true,
+            "variance_se": 0.0158113883,
+            "variance_z": -0.626597499
+          },
+          {
+            "autocorrelation": {
+              "0.5": {
+                "expected": 0.60653066,
+                "pass": true,
+                "se": 0.0274325691,
+                "value": 0.621762903,
+                "z": 0.555261275
+              },
+              "1.0": {
+                "expected": 0.367879441,
+                "pass": true,
+                "se": 0.0377525523,
+                "value": 0.394749627,
+                "z": 0.711744872
+              },
+              "2.0": {
+                "expected": 0.135335283,
+                "pass": true,
+                "se": 0.0436543842,
+                "value": 0.154461305,
+                "z": 0.438123725
+              }
+            },
+            "expected_variance": 0.25,
+            "mean": -0.0209415616,
+            "mean_pass": true,
+            "mean_se": 0.0223606798,
+            "mean_z": -0.936535105,
+            "pass": true,
+            "variance": 0.262785197,
+            "variance_pass": true,
+            "variance_se": 0.0158113883,
+            "variance_z": 0.808606835
+          },
+          {
+            "autocorrelation": {
+              "0.5": {
+                "expected": 0.60653066,
+                "pass": true,
+                "se": 0.0274456788,
+                "value": 0.621527124,
+                "z": 0.546405282
+              },
+              "1.0": {
+                "expected": 0.367879441,
+                "pass": true,
+                "se": 0.0381834826,
+                "value": 0.382349805,
+                "z": 0.378969203
+              },
+              "2.0": {
+                "expected": 0.135335283,
+                "pass": true,
+                "se": 0.0437660646,
+                "value": 0.146154179,
+                "z": 0.247198284
+              }
+            },
+            "expected_variance": 0.25,
+            "mean": -0.0264135846,
+            "mean_pass": true,
+            "mean_se": 0.0223606798,
+            "mean_z": -1.18125141,
+            "pass": true,
+            "variance": 0.259237019,
+            "variance_pass": true,
+            "variance_se": 0.0158113883,
+            "variance_z": 0.584200352
+          }
+        ],
+        "dt_s": 0.01,
+        "n": 100000,
+        "n_eff": 500.0,
+        "pass": true,
+        "seed": 1,
+        "sigma_mps": 0.5,
+        "time_constant_s": 1.0
+      },
+      {
+        "autocorrelation_se_method": "sqrt((1-rho^2)^2/n_eff)",
+        "axes": [
+          {
+            "autocorrelation": {
+              "0.5": {
+                "expected": 0.60653066,
+                "pass": true,
+                "se": 0.0283235877,
+                "value": 0.605528962,
+                "z": -0.0353661872
+              },
+              "1.0": {
+                "expected": 0.367879441,
+                "pass": true,
+                "se": 0.038732426,
+                "value": 0.365946205,
+                "z": -0.0499126081
+              },
+              "2.0": {
+                "expected": 0.135335283,
+                "pass": true,
+                "se": 0.0435321544,
+                "value": 0.163068809,
+                "z": 0.637081402
+              }
+            },
+            "expected_variance": 1.0,
+            "mean": 0.0208186388,
+            "mean_pass": true,
+            "mean_se": 0.0447213595,
+            "mean_z": 0.465518916,
+            "pass": true,
+            "variance": 0.985560729,
+            "variance_pass": true,
+            "variance_se": 0.0632455532,
+            "variance_z": -0.228304926
+          },
+          {
+            "autocorrelation": {
+              "0.5": {
+                "expected": 0.60653066,
+                "pass": true,
+                "se": 0.0292456389,
+                "value": 0.588258136,
+                "z": -0.624794827
+              },
+              "1.0": {
+                "expected": 0.367879441,
+                "pass": true,
+                "se": 0.039786909,
+                "value": 0.332171143,
+                "z": -0.897488612
+              },
+              "2.0": {
+                "expected": 0.135335283,
+                "pass": true,
+                "se": 0.0441786195,
+                "value": 0.110163676,
+                "z": -0.569768993
+              }
+            },
+            "expected_variance": 1.0,
+            "mean": 0.0143526998,
+            "mean_pass": true,
+            "mean_se": 0.0447213595,
+            "mean_z": 0.320936124,
+            "pass": true,
+            "variance": 0.970081946,
+            "variance_pass": true,
+            "variance_se": 0.0632455532,
+            "variance_z": -0.473045964
+          },
+          {
+            "autocorrelation": {
+              "0.5": {
+                "expected": 0.60653066,
+                "pass": true,
+                "se": 0.0280294275,
+                "value": 0.610936125,
+                "z": 0.157172846
+              },
+              "1.0": {
+                "expected": 0.367879441,
+                "pass": true,
+                "se": 0.0377463328,
+                "value": 0.394925739,
+                "z": 0.71652782
+              },
+              "2.0": {
+                "expected": 0.135335283,
+                "pass": true,
+                "se": 0.0430519601,
+                "value": 0.193206898,
+                "z": 1.34422718
+              }
+            },
+            "expected_variance": 1.0,
+            "mean": -0.00944164452,
+            "mean_pass": true,
+            "mean_se": 0.0447213595,
+            "mean_z": -0.21112159,
+            "pass": true,
+            "variance": 0.957327748,
+            "variance_pass": true,
+            "variance_se": 0.0632455532,
+            "variance_z": -0.67470755
+          }
+        ],
+        "dt_s": 0.01,
+        "n": 100000,
+        "n_eff": 500.0,
+        "pass": true,
+        "seed": 2,
+        "sigma_mps": 1.0,
+        "time_constant_s": 1.0
+      }
+    ],
+    "pass": true
+  }
+}

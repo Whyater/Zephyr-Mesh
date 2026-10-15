@@ -1,0 +1,44 @@
+{
+  "argv": [
+    "--output-dir",
+    "runs/a7-model-checks"
+  ],
+  "config": {
+    "mc_n": 2000000,
+    "mc_seed": 20261014,
+    "ou_n": 100000
+  },
+  "config_sha256": "fd47b484372568447cbe7405627f394d37358b2b33fc0c472fb0856fc66c33fb",
+  "git_revision": "17f67c6d9901caefcd8327c943e0bef3ed583d9f",
+  "git_tree_state": "dirty",
+  "limits": [
+    "simulated only",
+    "literature-derived profiles",
+    "assumed drag area"
+  ],
+  "n_processes": 2,
+  "numpy": "2.5.1",
+  "outputs": {
+    "model_checks.json": "a00c39ecd05c9bf08af081908f5b1010ba484a0fe6d95331ce7de06086aba608"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "--output-dir runs/a7-model-checks",
+  "runtime_s": 80.95654062500034,
+  "schema": "a7-disturbance-model-checks-manifest-v1",
+  "seeds": [
+    0,
+    1,
+    2,
+    20261014
+  ],
+  "volatile_fields": [
+    "runtime_s",
+    "git_revision",
+    "git_tree_state",
+    "platform",
+    "python",
+    "numpy",
+    "n_processes"
+  ]
+}

@@ -57,5 +57,12 @@
       "per_run.csv": "3f8c3a21091f5321faea5ff5ff4190f0b8e17646e2a892c073db8c209bdde237",
       "summary.json": "d716aa00615fcb325a99b44c5a2b396d4fb861446d90a9a2f0354a09570c9d29"
     }
+  },
+  {
+    "run_dir": "runs/a7-model-checks",
+    "command": "PYTHONPATH=. {python} tools/a_make_disturbance_model_checks.py --output-dir {out}",
+    "outputs": {
+      "model_checks.json": "a00c39ecd05c9bf08af081908f5b1010ba484a0fe6d95331ce7de06086aba608"
+    }
   }
 ]
