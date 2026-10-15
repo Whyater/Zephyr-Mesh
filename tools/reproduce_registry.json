@@ -65,5 +65,16 @@
       "per_seed.csv": "15e4a357b17208d805a37fca24307098ed675a94b489532d6f0cd57d3cc6e4b4",
       "summary.json": "e7c53a6f337b1aa495057d70b9bcad16d907bc85dbb6658510881f03044776f1"
     }
+  },
+  {
+    "run_dir": "runs/c-exp014-mac-r2",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp014_mac.py --output {out} --seeds 20",
+    "outputs": {
+      "cells.csv": "b27401989eeeb08b5a9743f6f806c62c821fbc9f16f4f2d2359bbeac882e3c21",
+      "exp014_delivery.png": "03e17ad1813c0f6f2c7cf808268d4573b7422763deedabde5b7d125f37a0ff15",
+      "exp014_latency.png": "ff35c54c5bd112c7f27103786aea88a002459191d47f8b7dce1c9b2ce842f47e",
+      "per_seed.csv": "9bce1990c92672e7e931768752de033fa5381c829636b415c6ab1f7cb9de1f8b",
+      "summary.json": "994384f6fc083b740a493a628446f79a5eb3eb76e762ade9b6ab3813ddd0a34b"
+    }
   }
 ]
