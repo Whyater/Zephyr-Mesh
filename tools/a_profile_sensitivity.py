@@ -153,9 +153,10 @@ def _figure(data, path):
             y = np.arange(len(labels)); lo = [data[name]["parameter_results"][x]["relative"][metric]["low"] or 0 for x in labels]; hi = [data[name]["parameter_results"][x]["relative"][metric]["high"] or 0 for x in labels]
             ax.barh(y - .18, lo, .34, color=low_color, label="low" if row == 0 and col == 0 else None)
             ax.barh(y + .18, hi, .34, color=high_color, label="high" if row == 0 and col == 0 else None)
-            ax.set_yticks(y, [x.split(".")[-1] for x in labels]); ax.set_title(title); ax.axvline(0, color=pal["lineStrong"], lw=.6)
+            ax.set_yticks(y, [x.split(".")[-1] for x in labels]); ax.set_title(f"{name}\n{title}", fontsize=9); ax.axvline(0, color=pal["lineStrong"], lw=.6)
             if row == 1: ax.set_xlabel("relative change")
     axes[0,0].legend(); fig.suptitle("Sensitivity of simulated, literature-derived ranges", y=1.02)
+    fig.suptitle("Simulated sensitivity, one parameter at a time to the ends of its literature-derived range (relative change vs nominal)")
     fig.savefig(path, dpi=150, metadata={"Software": None}); plt.close(fig)
 
 
