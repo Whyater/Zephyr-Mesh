@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -38,6 +39,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib import patheffects  # noqa: E402
 from matplotlib.lines import Line2D  # noqa: E402
 from matplotlib.ticker import FixedLocator, FuncFormatter, NullFormatter  # noqa: E402
 
@@ -178,8 +180,10 @@ def fmt_g(value: float) -> str:
 def draw_panel(ax, pts, xkey, pal, color, label_events):
     """Draw one panel: periodic line, then every policy marker with its 95 % interval.
 
-    Periodic points are labelled with their rate in every panel; event points are
-    labelled with their drift threshold only where label_events is true (top row).
+    Returns the labels this panel wants (see place_labels). Periodic points are
+    labelled with their rate in every panel; event points are labelled with their
+    drift threshold only where label_events is true (top row). Event points that sit
+    almost on top of each other share one label, such as "5 and 2 cm".
     """
     periodic = sorted((p for p in pts if p["family"] == "periodic" and p["encoding"] == "f32"),
                       key=lambda p: p["budget"][xkey])
@@ -201,11 +205,217 @@ def draw_panel(ax, pts, xkey, pal, color, label_events):
         ax.plot([x], [y], linestyle="none", marker=marker, markersize=FAMILY_SIZE[fam],
                 markerfacecolor=face, markeredgecolor=edge, markeredgewidth=width if marker != "x" else 1.2,
                 zorder=4)
-        if enc == "f32" and (fam == "periodic" or (label_events and fam == "event")):
-            above = fam == "periodic"
-            ax.annotate(point_label(p["params"]), xy=(x, y), xytext=(5, 5 if above else -5),
-                        textcoords="offset points", ha="left", va="bottom" if above else "top",
-                        fontsize=7, color=pal["textSecondary"], zorder=5)
+    wants = [{"text": point_label(p["params"]), "x": p["budget"][xkey], "y": p["med"] * 100,
+              "kind": "periodic"} for p in periodic]
+    if label_events:
+        events = sorted((p for p in pts if p["family"] == "event" and p["encoding"] == "f32"),
+                        key=lambda p: p["budget"][xkey])
+        wants += merge_event_labels(events, xkey)
+    return wants
+
+
+def merge_event_labels(events, xkey):
+    """One label per event point, but points less than 25 % apart in x share a label."""
+    groups: list = []
+    for p in events:
+        if groups and p["budget"][xkey] < groups[-1][-1]["budget"][xkey] * MERGE_RATIO:
+            groups[-1].append(p)
+        else:
+            groups.append([p])
+    wants = []
+    for group in groups:
+        group.sort(key=lambda p: -p["params"]["delta_m"])
+        if len(group) == 1:
+            text = point_label(group[0]["params"])
+        else:
+            text = " and ".join(fmt_g(p["params"]["delta_m"] * 100) for p in group) + " cm"
+        n = len(group)
+        gx = 1.0
+        for p in group:
+            gx *= p["budget"][xkey]
+        wants.append({"text": text, "x": gx ** (1.0 / n),
+                      "y": sum(p["med"] for p in group) * 100 / n, "kind": "event"})
+    return wants
+
+
+# Label placement. Offsets are in points: each candidate is tried in order of distance
+# from its marker, and the first that overlaps nothing wins. Candidates farther than
+# LEADER_FROM points get a thin leader line back to the marker.
+LABEL_FONT = 7
+MERGE_RATIO = 1.25
+XPAD_RIGHT = 1.9  # room right of the last point so labels fit inside the panel
+LEADER_FROM = 9.0
+CLEARANCE_PT = 1.5
+_TIERS = (5, 14, 23, 32, 44)
+_DXS = (5, -5, 0, 14, -14, 24, -24)
+
+
+def _candidates():
+    cands = [(dx, dy) for dy in _TIERS for dx in _DXS]
+    cands += [(dx, -dy) for dy in _TIERS for dx in _DXS]
+    cands += [(7, 0), (-7, 0)]
+    # Adjacent spots first (nearest first), then leader spots, preferring straight stems.
+    cands.sort(key=lambda c: (round(math.hypot(*c), 3) if math.hypot(*c) <= LEADER_FROM
+                              else 100 + abs(c[1]) + 2.0 * abs(c[0]), -c[1], -c[0]))
+    return cands
+
+
+def _ha_va(dx, dy):
+    if dy == 0:
+        return ("left" if dx > 0 else "right"), "center"
+    return ("left" if dx > 0 else "right" if dx < 0 else "center"), ("bottom" if dy > 0 else "top")
+
+
+def _hits(box, points, pad):
+    """True when any (x, y, radius) circle in points comes within pad of the box."""
+    for x, y, r in points:
+        reach = r + pad
+        if box.x0 - reach <= x <= box.x1 + reach and box.y0 - reach <= y <= box.y1 + reach:
+            return True
+    return False
+
+
+def place_labels(fig, ax, wants, pts, xkey, pal, failure_cm, failure_text):
+    """Put every wanted label where it overlaps no marker, other label or panel edge.
+
+    Needs the axis limits and layout to be final. failure_text is True when this
+    panel carries the failure-line caption, which is placed first. A label may sit on
+    the failure line only when no other nearby spot is free; the halo keeps it legible.
+    """
+    renderer = fig.canvas.get_renderer()
+    px = fig.dpi / 72.0
+    pad = CLEARANCE_PT * px
+    axbox = ax.get_window_extent(renderer)
+    trans = ax.transData
+    limits = (axbox.x0 + pad, axbox.x1 - pad, axbox.y0 + pad, axbox.y1 - pad)
+
+    obstacles = []
+    owners = []
+    for p in pts:
+        mx, my = trans.transform((p["budget"][xkey], p["med"] * 100))
+        obstacles.append((mx, my, FAMILY_SIZE[p["family"]] / 2.0 * px + 1.0 * px))
+        lo = trans.transform((p["budget"][xkey], p["low"] * 100))[1]
+        hi = trans.transform((p["budget"][xkey], p["high"] * 100))[1]
+        steps = max(int((hi - lo) / (2.0 * px)), 1)
+        for i in range(steps + 1):
+            obstacles.append((mx, lo + (hi - lo) * i / steps, 1.5 * px))
+        owners.append((mx, my))
+    periodic = sorted((p for p in pts if p["family"] == "periodic" and p["encoding"] == "f32"),
+                      key=lambda p: p["budget"][xkey])
+    for a, b in zip(periodic, periodic[1:]):
+        ax_, ay_ = trans.transform((a["budget"][xkey], a["med"] * 100))
+        bx_, by_ = trans.transform((b["budget"][xkey], b["med"] * 100))
+        steps = max(int(math.hypot(bx_ - ax_, by_ - ay_) / (2.0 * px)), 1)
+        for i in range(steps + 1):
+            obstacles.append((ax_ + (bx_ - ax_) * i / steps, ay_ + (by_ - ay_) * i / steps,
+                              1.0 * px))
+    fail_y = trans.transform((1.0, failure_cm))[1]
+    placed = []
+    stems = []
+
+    def clear(box, on_line_ok):
+        if box.x0 < limits[0] or box.x1 > limits[1] or box.y0 < limits[2] or box.y1 > limits[3]:
+            return False
+        if not on_line_ok and box.y0 - pad <= fail_y <= box.y1 + pad:
+            return False
+        if _hits(box, obstacles, pad):
+            return False
+        return not any(box.x0 - pad < o.x1 and o.x0 - pad < box.x1 and
+                       box.y0 - pad < o.y1 and o.y0 - pad < box.y1 for o in placed)
+
+    halo = [patheffects.withStroke(linewidth=2.2, foreground=pal["surface"])]
+    cands = _candidates()
+    near = [c for c in cands if math.hypot(*c) <= LEADER_FROM]
+    passes = ((near, False), (cands, False), (near, True), (cands, True))
+    for want in sorted(wants, key=lambda w: (w["kind"] != "periodic", -w["x"])):
+        ann = ax.annotate(want["text"], xy=(want["x"], want["y"]), xytext=(5, 5),
+                          textcoords="offset points", fontsize=LABEL_FONT,
+                          color=pal["textSecondary"], zorder=5)
+        ann.set_path_effects(halo)
+        mx, my = trans.transform((want["x"], want["y"]))
+        chosen = None
+        for group, on_line_ok in passes:
+            for dx, dy in group:
+                ha, va = _ha_va(dx, dy)
+                ann.set_ha(ha)
+                ann.set_va(va)
+                ann.xyann = (dx, dy)
+                box = ann.get_window_extent(renderer)
+                if not clear(box, on_line_ok):
+                    continue
+                if math.hypot(dx, dy) > LEADER_FROM:
+                    tx, ty = min(max(mx, box.x0), box.x1), min(max(my, box.y0), box.y1)
+                    if _leader_blocked(mx, my, tx, ty, placed, owners, px, stems):
+                        continue
+                chosen = (dx, dy, ha, va, box)
+                break
+            if chosen:
+                break
+        if chosen is None:
+            dx, dy = cands[0]
+            ha, va = _ha_va(dx, dy)
+            ann.set_ha(ha)
+            ann.set_va(va)
+            ann.xyann = (dx, dy)
+            chosen = (dx, dy, ha, va, ann.get_window_extent(renderer))
+        dx, dy, ha, va, box = chosen
+        placed.append(box)
+        if math.hypot(dx, dy) > LEADER_FROM:
+            tx, ty = min(max(mx, box.x0), box.x1), min(max(my, box.y0), box.y1)
+            steps = max(int(math.hypot(tx - mx, ty - my) / (2.0 * px)), 1)
+            for i in range(steps + 1):
+                obstacles.append((mx + (tx - mx) * i / steps, my + (ty - my) * i / steps,
+                                  0.3 * px))
+                stems.append((mx + (tx - mx) * i / steps, my + (ty - my) * i / steps))
+            end = trans.inverted().transform((tx, ty))
+            ax.annotate("", xy=(want["x"], want["y"]), xytext=tuple(end), textcoords="data",
+                        arrowprops=dict(arrowstyle="-", color=pal["textSecondary"],
+                                        linewidth=0.6, shrinkA=1.0, shrinkB=4.0), zorder=4.5)
+
+    if failure_text:
+        cap = ax.annotate(f"failure line (p95 {fmt_g(failure_cm)} cm)", xy=(0.02, failure_cm),
+                          xycoords=("axes fraction", "data"), xytext=(0, 3),
+                          textcoords="offset points", ha="left", va="bottom",
+                          fontsize=7.5, color=pal["textSecondary"], zorder=5)
+        cap.set_path_effects(halo)
+        fracs = [0.02 + 0.015 * i for i in range(60)]
+        for dy in (3, 14, 23, 32, 44, 58):
+            cap.xyann = (0, dy)
+            found = False
+            for frac in fracs:
+                cap.xy = (frac, failure_cm)
+                if clear(cap.get_window_extent(renderer), True):
+                    found = True
+                    break
+            if found:
+                break
+        if dy > 3:
+            ax.annotate("", xy=(frac, failure_cm), xytext=(0, dy), textcoords="offset points",
+                        xycoords=("axes fraction", "data"),
+                        arrowprops=dict(arrowstyle="-", color=pal["textSecondary"],
+                                        linewidth=0.6, shrinkA=0.0, shrinkB=0.0), zorder=4.5)
+
+
+def _leader_blocked(mx, my, tx, ty, placed_boxes, owners, px, stems):
+    """True when the leader from the marker to the label crosses another label or marker."""
+    length = math.hypot(tx - mx, ty - my)
+    steps = max(int(length / (2.0 * px)), 1)
+    for i in range(1, steps + 1):
+        x = mx + (tx - mx) * i / steps
+        y = my + (ty - my) * i / steps
+        if any(math.hypot(x - sx, y - sy) < 2.0 * px for sx, sy in stems):
+            return True
+        if math.hypot(x - mx, y - my) < 6.0 * px:
+            continue
+        for box in placed_boxes:
+            if box.x0 <= x <= box.x1 and box.y0 <= y <= box.y1:
+                return True
+        for ox, oy in owners:
+            if math.hypot(ox - mx, oy - my) < 9.0 * px:
+                continue
+            if math.hypot(x - ox, y - oy) < 3.5 * px:
+                return True
+    return False
 
 
 def set_log_ticks(ax, lo, hi):
@@ -303,7 +513,8 @@ def make_figure(doc, points, mode, pal, path):
     failure_cm = doc["config"]["failure_p95_m"] * 100
     n_seeds = max(p["n_seeds"] for plist in points.values() for p in plist)
     xs, tops = collect_range(points, xkey)
-    xlo, xhi = min(xs) / 1.45, max(xs) * 1.45
+    xlo, xhi = min(xs) / 1.45, max(xs) * XPAD_RIGHT
+    tick_hi = max(xs) * 1.45  # no tick in the label margin, only under the data
     ytop = max(failure_cm * 1.3, max(tops) * 1.08)
 
     ncols, nrows = len(targets), len(losses)
@@ -313,6 +524,7 @@ def make_figure(doc, points, mode, pal, path):
     axes = [[None] * ncols for _ in range(nrows)]
     families = set()
     has_coarse = False
+    panels = []
     for r, loss in enumerate(losses):
         for c, target in enumerate(targets):
             first = r == 0 and c == 0
@@ -323,16 +535,12 @@ def make_figure(doc, points, mode, pal, path):
             for p in pts:
                 families.add(p["family"])
                 has_coarse = has_coarse or p["encoding"] == "i16_coarse"
-            draw_panel(ax, pts, xkey, pal, color, label_events=(r == 0))
+            wants = draw_panel(ax, pts, xkey, pal, color, label_events=(r == 0))
             ax.axhline(failure_cm, color=pal["alert"], linewidth=1.0, zorder=1.5)
-            if first:
-                ax.annotate(f"failure line (p95 {fmt_g(failure_cm)} cm)", xy=(0.02, failure_cm),
-                            xycoords=("axes fraction", "data"), xytext=(0, 3),
-                            textcoords="offset points", ha="left", va="bottom", fontsize=7.5,
-                            color=pal["textSecondary"])
+            panels.append((ax, wants, pts, first))
             ax.set_xscale("log")
             ax.set_xlim(xlo, xhi)
-            set_log_ticks(ax, xlo, xhi)
+            set_log_ticks(ax, xlo, tick_hi)
             ax.grid(axis="x", visible=True, which="major")
             if r == 0:
                 ax.set_title(TARGET_TITLES.get(target, target), loc="left", fontsize=10)
@@ -346,6 +554,8 @@ def make_figure(doc, points, mode, pal, path):
             else:
                 ax.tick_params(labelleft=False)
     axes[0][0].set_ylim(0, ytop)
+    for ax, wants, pts, first in panels:
+        place_labels(fig, ax, wants, pts, xkey, pal, failure_cm, failure_text=first)
     fig.text(LEFT, 0.974, spec["title"], fontsize=12, color=pal["text"], ha="left", va="top")
     fig.text(LEFT, 0.933, "p95 error of the target estimate, capture-time tracker, by target "
              "motion and packet loss", fontsize=9, color=pal["textSecondary"], ha="left",
