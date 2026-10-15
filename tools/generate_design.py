@@ -96,6 +96,7 @@ def swift_palette(name: str, colors: dict[str, Any]) -> list[str]:
     lines = [f"    static let {name} = Palette("]
     for key in PALETTE_FIELDS:
         lines.append(f"        {key}: {swift_color(color_hex(colors, key))},")
+    lines[-1] = lines[-1].rstrip(",")  # older Swift rejects a trailing comma
     lines.append("    )")
     return lines
 
@@ -106,6 +107,7 @@ def swift_scene_palette(name: str, scene: dict[str, Any], colors: dict[str, Any]
     for key, spec in scene.items():
         hex_value, alpha = scene_color(colors, spec)
         lines.append(f"        {identifier(key)}: {swift_color(hex_value, alpha)},")
+    lines[-1] = lines[-1].rstrip(",")  # older Swift rejects a trailing comma
     lines.append("    )")
     return lines
 

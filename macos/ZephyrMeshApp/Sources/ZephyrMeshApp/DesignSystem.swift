@@ -51,7 +51,7 @@ enum Theme {
         info: Color(hex: "7CC4FF", opacity: 1),
         onAlert: Color(hex: "0F1522", opacity: 1),
         selectionFill: Color(hex: "273A54", opacity: 1),
-        hoverFill: Color(hex: "242D3F", opacity: 1),
+        hoverFill: Color(hex: "242D3F", opacity: 1)
     )
     static let light = Palette(
         background: Color(hex: "F6F8FB", opacity: 1),
@@ -69,7 +69,7 @@ enum Theme {
         info: Color(hex: "1F6FD1", opacity: 1),
         onAlert: Color(hex: "FFFFFF", opacity: 1),
         selectionFill: Color(hex: "E0EBF9", opacity: 1),
-        hoverFill: Color(hex: "F4F4F5", opacity: 1),
+        hoverFill: Color(hex: "F4F4F5", opacity: 1)
     )
     static let darkScene3D = ScenePalette(
         droneBody: Color(hex: "9AA8C0", opacity: 1),
@@ -78,7 +78,7 @@ enum Theme {
         targetRing: Color(hex: "FFB38A", opacity: 1),
         keepOutVolume: Color(hex: "B4A7FF", opacity: 0.12),
         grid: Color(hex: "2B3A55", opacity: 1),
-        floor: Color(hex: "0F1522", opacity: 1),
+        floor: Color(hex: "0F1522", opacity: 1)
     )
     static let lightScene3D = ScenePalette(
         droneBody: Color(hex: "56627A", opacity: 1),
@@ -87,7 +87,7 @@ enum Theme {
         targetRing: Color(hex: "A8501C", opacity: 1),
         keepOutVolume: Color(hex: "5E4BC4", opacity: 0.18),
         grid: Color(hex: "D5DCE6", opacity: 1),
-        floor: Color(hex: "F6F8FB", opacity: 1),
+        floor: Color(hex: "F6F8FB", opacity: 1)
     )
     static func palette(for colorScheme: ColorScheme) -> Palette {
         colorScheme == .light ? light : dark
