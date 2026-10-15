@@ -1,0 +1,35 @@
+{
+  "cell": {
+    "arm": "c",
+    "delay_s": 0.03,
+    "loss_probability": 0.0,
+    "profile": "sim/physics/profiles/crazyflie_class.json",
+    "profile_id": "crazyflie-class",
+    "reference": "step"
+  },
+  "rows": [
+    {
+      "arm": "c",
+      "axis_note": null,
+      "delay_s": 0.03,
+      "duration_s": 20.0,
+      "effective_delay_s": 0.03,
+      "loss_probability": 0.0,
+      "max_error_m": 2.910208894301832,
+      "n_steps": 709,
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "profile_id": "crazyflie-class",
+      "reference": "step",
+      "rms_error_m": 1.016565704566362,
+      "seed": 0,
+      "settling_time_s": null,
+      "step_overshoot_pct": 23.74182282914854,
+      "unstable": true,
+      "unstable_reason": "tilt_above_80_deg",
+      "unstable_time_s": 7.09,
+      "whole_run_max_error_m": 2.910208894301832,
+      "whole_run_max_tilt_deg": 80.31974183876831,
+      "whole_run_min_z_m": -1.907724773542487
+    }
+  ]
+}

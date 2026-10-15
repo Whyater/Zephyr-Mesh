@@ -1,5 +1,105 @@
 [
   {
+    "run_dir": "runs/s0-baseline",
+    "command": "{python} main.py --output {out} --no-plot",
+    "outputs": {
+      "telemetry.csv": "66f542dcd128df4e9e695e7dda7668179755ea37a1f746d74e2e8351ccfc7391"
+    }
+  },
+  {
+    "run_dir": "runs/s2-physics",
+    "command": "{python} tools/make_s2_convergence.py --output {out}/convergence.json",
+    "outputs": {
+      "convergence.json": "916ffc271f34e7411c1fc42d4ddd96132876be5396fab5e6a9c50da2d1bce609"
+    }
+  },
+  {
+    "run_dir": "runs/s6-recovery",
+    "command": "PYTHONPATH=. {python} tools/run_s6_recovery.py --output {out} && PYTHONPATH=. {python} tools/make_s6_figure.py --output-dir {out} {out}/summary.json",
+    "outputs": {
+      "per_seed.csv": "ef45a41b8263be67de4b16f8e58d1295f877cead9d8c595d30fbb944534c426a",
+      "summary.json": "a3b04116e93e5e734f0d5f5bfd5e5ebfabb4fe2585110895019d8ff66bbe96eb",
+      "s6_recovery.png": "3aaf4ad6c278fa982ebca09d7beb2a02a0c644b573c981080215c191aa4da3d7",
+      "s6_recovery_all_noise.png": "7ed1841a38204ecd5dd48915d874e41c8e923a5e063063cac653da6438d7aa30"
+    }
+  },
+  {
+    "run_dir": "runs/s7-swarm",
+    "command": "cd {out}/../.. && PYTHONPATH=. {python} tools/generate_s7_fixture.py",
+    "outputs": {
+      "run.json": "73039284032d824c943972bd79c2f96f61e28582b79d8335d4d9d3e7d032585b"
+    }
+  },
+  {
+    "run_dir": "runs/s0-baseline-v2",
+    "command": "PYTHONPATH=. {python} tools/a_make_s0_baseline_v2.py --output-dir {out}",
+    "outputs": {
+      "a_s0_baseline_v2.png": "06b64aa6d60e7d5725f7154472627765b4e6f3e5dab37109070826929bff784f",
+      "lateral.csv": "33b12e8b7f740f266f7e217969a5fc83f5835f8191012d2d28880f8e9885a8bf",
+      "report.json": "d41207d8310b16719cc78672fca977d9186cb9ce79e5b1ce668b719f68a051dc",
+      "vertical.csv": "a59202c84ecfeb06ce523c7e37cd9621c2092c16bd20c4dd3cd2bb58181b3337",
+      "yaw.csv": "b95f74b18961f30f2d77b7873f2e9f42614ca31b4c1b3bbe8ed17781b6ce7416"
+    }
+  },
+  {
+    "run_dir": "runs/s2-physics-v2",
+    "command": "PYTHONPATH=. {python} tools/a_make_s2_physics_v2.py --output-dir {out}",
+    "outputs": {
+      "a_s2_convergence.png": "763de92b702af619538961ee2f51cb0342805576ec4c2bdaf60b29a432a7490d",
+      "convergence.json": "916ffc271f34e7411c1fc42d4ddd96132876be5396fab5e6a9c50da2d1bce609"
+    }
+  },
+  {
+    "run_dir": "runs/a7-disturbance",
+    "command": "PYTHONPATH=. {python} tools/a_run_disturbance_response.py --output-dir {out}",
+    "outputs": {
+      "a7_disturbance.png": "5cbfde9d9468a192a6309eda182ef74c2200de31c4da15ec52fcb8a01e70075b",
+      "per_run.csv": "3f8c3a21091f5321faea5ff5ff4190f0b8e17646e2a892c073db8c209bdde237",
+      "summary.json": "d716aa00615fcb325a99b44c5a2b396d4fb861446d90a9a2f0354a09570c9d29"
+    }
+  },
+  {
+    "run_dir": "runs/a7-model-checks",
+    "command": "PYTHONPATH=. {python} tools/a_make_disturbance_model_checks.py --output-dir {out}",
+    "outputs": {
+      "model_checks.json": "e699e4e1bae6f843c17ca4c6770616e5dada866fa5fe765e86ddc30e6cc8b15b"
+    }
+  },
+  {
+    "run_dir": "runs/a4-vehicle-chain",
+    "command": "PYTHONPATH=. {python} tools/a_make_vehicle_chain_report.py --output-dir {out}",
+    "outputs": {
+      "a4_vehicle_chain.png": "139104752678bdd566c98d45e14a2c126a6e0fdf7b0d897e4d2f6fc707d2f0ef",
+      "report.json": "f850c4c546fb828247f76bbe15d593b0fdacb298162dbcbae85378f8ab5d3d89"
+    }
+  },
+  {
+    "run_dir": "runs/a5-sensitivity",
+    "command": "PYTHONPATH=. {python} tools/a_profile_sensitivity.py --output-dir {out}",
+    "outputs": {
+      "a5_sensitivity.png": "6e42f354eefae65a655974029f80503d8660de3f8537683aafa5e62b57f39d90",
+      "sensitivity.csv": "f4a7fc561790f5a291609df463442c759fa667ce8ef99dac75fff590f2154fa5",
+      "sensitivity.json": "284891779179ac180eb8ca2adf65fc830d44185b87a1d0a69a7b69adce32825b"
+    }
+  },
+  {
+    "run_dir": "runs/a6-control-tolerance",
+    "command": "PYTHONPATH=. {python} tools/a_run_control_tolerance.py --output-dir {out} --workers 2",
+    "outputs": {
+      "a6_control_tolerance.png": "45eeef9f051636afdd774f74362ac12f91e8769fdd3afbd6512e9f7b58490d7c",
+      "d_crit.json": "3de04b8235f2ad8f89968acb77424f7eb3dd852c07a5498c99fb6f18e41a831d",
+      "per_run.csv": "5949fd0e864fa501d52cd9ffddb5f54288b6d7f62e98ab532df427d237cc45f8",
+      "summary.json": "4544173d3d292f5e86c9f7089cb25cbe318244804519fb27e4ed6f49f3c44056"
+    }
+  },
+  {
+    "run_dir": "runs/a6-long-check",
+    "command": "PYTHONPATH=. {python} tools/a_make_dcrit_long_check.py --output-dir {out}",
+    "outputs": {
+      "long_check.json": "ec1c70c3ea9b5256527cef253ced4ee4ea11173cd48c64244584e718125fad36"
+    }
+  },
+  {
     "run_dir": "runs/c-exp013-channel",
     "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp013_channel.py --output {out}",
     "outputs": {

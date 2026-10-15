@@ -1,0 +1,1464 @@
+{
+  "schema": "zephyr-a6-control-tolerance-config-3",
+  "profiles": [
+    "sim/physics/profiles/esp_fly_class.json",
+    "sim/physics/profiles/crazyflie_class.json"
+  ],
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29
+  ],
+  "loss_probabilities": [
+    0,
+    0.1,
+    0.3,
+    0.5
+  ],
+  "scoring_windows": {
+    "step": [1.0, 20.0],
+    "ramp": [10.0, 20.0],
+    "circle": [15.0, 30.0]
+  },
+  "jobs": [
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "a",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "a",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "circle",
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.01,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.02,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.03,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.04,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.05,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.06,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.08,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.1
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.1,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.2,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.25,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.3,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.325,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.35,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.375,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.4,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "b",
+      "delay_s": 0.5,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "a",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "a",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "circle",
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.1,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.2,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.3,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "ramp",
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.3
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "a",
+      "delay_s": 0.5,
+      "loss_probability": 0.5
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.01,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.02,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.03,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.04,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.05,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.06,
+      "loss_probability": 0
+    },
+    {
+      "profile": "sim/physics/profiles/crazyflie_class.json",
+      "reference": "step",
+      "arm": "c",
+      "delay_s": 0.08,
+      "loss_probability": 0
+    }
+  ],
+  "pilot": {
+    "duration_s": 6.0,
+    "jobs": [
+      {
+        "profile": "sim/physics/profiles/esp_fly_class.json",
+        "reference": "ramp",
+        "arm": "a",
+        "delay_s": 0,
+        "loss_probability": 0
+      },
+      {
+        "profile": "sim/physics/profiles/esp_fly_class.json",
+        "reference": "ramp",
+        "arm": "a",
+        "delay_s": 0,
+        "loss_probability": 0.3
+      },
+      {
+        "profile": "sim/physics/profiles/esp_fly_class.json",
+        "reference": "ramp",
+        "arm": "a",
+        "delay_s": 0.1,
+        "loss_probability": 0
+      },
+      {
+        "profile": "sim/physics/profiles/esp_fly_class.json",
+        "reference": "ramp",
+        "arm": "a",
+        "delay_s": 0.1,
+        "loss_probability": 0.3
+      },
+      {
+        "profile": "sim/physics/profiles/esp_fly_class.json",
+        "reference": "step",
+        "arm": "b",
+        "delay_s": 0,
+        "loss_probability": 0
+      },
+      {
+        "profile": "sim/physics/profiles/esp_fly_class.json",
+        "reference": "step",
+        "arm": "b",
+        "delay_s": 0,
+        "loss_probability": 0.3
+      },
+      {
+        "profile": "sim/physics/profiles/esp_fly_class.json",
+        "reference": "step",
+        "arm": "b",
+        "delay_s": 0.1,
+        "loss_probability": 0
+      },
+      {
+        "profile": "sim/physics/profiles/esp_fly_class.json",
+        "reference": "step",
+        "arm": "b",
+        "delay_s": 0.1,
+        "loss_probability": 0.3
+      },
+      {
+        "profile": "sim/physics/profiles/esp_fly_class.json",
+        "reference": "step",
+        "arm": "c",
+        "delay_s": 0,
+        "loss_probability": 0
+      },
+      {
+        "profile": "sim/physics/profiles/esp_fly_class.json",
+        "reference": "step",
+        "arm": "c",
+        "delay_s": 0.02,
+        "loss_probability": 0
+      },
+      {
+        "profile": "sim/physics/profiles/crazyflie_class.json",
+        "reference": "ramp",
+        "arm": "a",
+        "delay_s": 0,
+        "loss_probability": 0
+      },
+      {
+        "profile": "sim/physics/profiles/crazyflie_class.json",
+        "reference": "ramp",
+        "arm": "a",
+        "delay_s": 0,
+        "loss_probability": 0.3
+      },
+      {
+        "profile": "sim/physics/profiles/crazyflie_class.json",
+        "reference": "ramp",
+        "arm": "a",
+        "delay_s": 0.1,
+        "loss_probability": 0
+      },
+      {
+        "profile": "sim/physics/profiles/crazyflie_class.json",
+        "reference": "ramp",
+        "arm": "a",
+        "delay_s": 0.1,
+        "loss_probability": 0.3
+      },
+      {
+        "profile": "sim/physics/profiles/crazyflie_class.json",
+        "reference": "step",
+        "arm": "b",
+        "delay_s": 0,
+        "loss_probability": 0
+      },
+      {
+        "profile": "sim/physics/profiles/crazyflie_class.json",
+        "reference": "step",
+        "arm": "b",
+        "delay_s": 0,
+        "loss_probability": 0.3
+      },
+      {
+        "profile": "sim/physics/profiles/crazyflie_class.json",
+        "reference": "step",
+        "arm": "b",
+        "delay_s": 0.1,
+        "loss_probability": 0
+      },
+      {
+        "profile": "sim/physics/profiles/crazyflie_class.json",
+        "reference": "step",
+        "arm": "b",
+        "delay_s": 0.1,
+        "loss_probability": 0.3
+      },
+      {
+        "profile": "sim/physics/profiles/crazyflie_class.json",
+        "reference": "step",
+        "arm": "c",
+        "delay_s": 0,
+        "loss_probability": 0
+      },
+      {
+        "profile": "sim/physics/profiles/crazyflie_class.json",
+        "reference": "step",
+        "arm": "c",
+        "delay_s": 0.02,
+        "loss_probability": 0
+      }
+    ],
+    "seeds": [
+      0
+    ]
+  },
+  "d_crit": {
+    "arm_b": {
+      "resolution_s": 0.01,
+      "bracket": [
+        0.0,
+        0.5
+      ]
+    },
+    "slice_c": {
+      "resolution_s": 0.01,
+      "bracket": [
+        0.0,
+        0.08
+      ]
+    }
+  },
+  "base_seed": 20261014,
+  "criterion": "unstable only under pre-registered rules: non-finite state, tilt above 80 degrees, error above 5 m, or growing oscillation"
+}

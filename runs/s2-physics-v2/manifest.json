@@ -1,0 +1,112 @@
+{
+  "argv": [
+    "--output-dir",
+    "runs/s2-physics-v2"
+  ],
+  "config": {
+    "convergence": {
+      "duration_s": 1.0,
+      "error_metric": "Euclidean norm of the final 13-state difference from the reference",
+      "fixture": "sim.drone.SixDOFInterceptor full 13-state rigid body, RK4 fixed step vs finer RK4 reference",
+      "generator": "tools/make_s2_convergence.py",
+      "inputs": {
+        "body_force_n": [
+          0.0,
+          0.0,
+          4.855950000000001
+        ],
+        "body_torque_nm": [
+          0.002,
+          -0.001,
+          0.0005
+        ],
+        "cross_sectional_area_m2": 0.05,
+        "drag_coefficient": 1.3,
+        "inertia_kg_m2": [
+          0.0023,
+          0.0023,
+          0.004
+        ],
+        "initial_body_rate_rad_s": [
+          0.4,
+          -0.3,
+          0.8
+        ],
+        "initial_position_m": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "initial_tilt_axis": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "initial_tilt_rad": 0.4,
+        "initial_velocity_mps": [
+          3.0,
+          -1.0,
+          2.0
+        ],
+        "mass_kg": 0.45,
+        "wind_velocity_mps": [
+          1.0,
+          0.5,
+          0.0
+        ]
+      },
+      "interpretation": "A ratio near 16 per halving of dt is the signature of a fourth-order integrator. These are numerical integration errors of a synthetic model, not flight-performance measurements.",
+      "reference_dt_s": 0.00025,
+      "results": [
+        {
+          "absolute_error": 1.3070934493402465e-05,
+          "dt_s": 0.1,
+          "error_ratio_to_next": 16.093288103852828
+        },
+        {
+          "absolute_error": 8.121978808217077e-07,
+          "dt_s": 0.05,
+          "error_ratio_to_next": 16.02944386407359
+        },
+        {
+          "absolute_error": 5.0669124126138123e-08,
+          "dt_s": 0.025,
+          "error_ratio_to_next": 16.01031454397462
+        },
+        {
+          "absolute_error": 3.1647800539438577e-09,
+          "dt_s": 0.0125
+        }
+      ],
+      "schema": "zephyr-s2-convergence-2"
+    },
+    "generator": "tools/a_make_s2_physics_v2.py"
+  },
+  "config_sha256": "e1129bfa63117edd143ee96331353521a8915e9b0b3fd840338ff46ff6ed541f",
+  "git_revision": "2ab4ce5712073340a4b851a32b1124eb13842c4b",
+  "git_tree_state": "dirty",
+  "limits": [
+    "The reference is a finer numerical integration, not an analytic solution."
+  ],
+  "n_processes": null,
+  "numpy": "2.5.1",
+  "outputs": {
+    "a_s2_convergence.png": "763de92b702af619538961ee2f51cb0342805576ec4c2bdaf60b29a432a7490d",
+    "convergence.json": "916ffc271f34e7411c1fc42d4ddd96132876be5396fab5e6a9c50da2d1bce609"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. '/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python' tools/a_make_s2_physics_v2.py --output-dir runs/s2-physics-v2",
+  "runtime_s": 20.95792191700002,
+  "schema": "zephyr-s2-physics-v2-manifest-1",
+  "seeds": [],
+  "volatile_fields": [
+    "runtime_s",
+    "git_revision",
+    "git_tree_state",
+    "platform",
+    "python",
+    "numpy",
+    "n_processes"
+  ]
+}

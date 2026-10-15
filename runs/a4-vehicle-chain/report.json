@@ -1,0 +1,334 @@
+{
+  "notes": [
+    "simulated only",
+    "literature-derived profiles",
+    "illustrative battery",
+    "50 substeps of a 10 ms control step gives a 0.2 ms reference, finer than the preregistered 1 ms reference"
+  ],
+  "profiles": {
+    "battery_sag": {
+      "airframe": "crazyflie-class",
+      "battery_label": "illustrative test battery, not a profile value",
+      "hand_current": "mean mechanical power / (efficiency x terminal voltage)",
+      "hover_duty_monotonic": true,
+      "hover_speed_constant": true,
+      "samples": [
+        {
+          "duty": 0.667992871,
+          "soc": 0.999459259,
+          "speed_rad_s": 1901.10771,
+          "terminal_voltage": {
+            "error": 0.00144289896,
+            "hand_value": 3.84790711,
+            "pass": true,
+            "sim_value": 3.85345925,
+            "threshold": 0.01
+          }
+        },
+        {
+          "duty": 0.699559762,
+          "soc": 0.97181378,
+          "speed_rad_s": 1901.10771,
+          "terminal_voltage": {
+            "error": 6.18454685e-06,
+            "hand_value": 3.81889073,
+            "pass": true,
+            "sim_value": 3.81891435,
+            "threshold": 0.01
+          }
+        },
+        {
+          "duty": 0.70502664,
+          "soc": 0.943386664,
+          "speed_rad_s": 1901.10771,
+          "terminal_voltage": {
+            "error": 6.3843553e-06,
+            "hand_value": 3.78926817,
+            "pass": true,
+            "sim_value": 3.78929237,
+            "threshold": 0.01
+          }
+        },
+        {
+          "duty": 0.710627479,
+          "soc": 0.91473553,
+          "speed_rad_s": 1901.10771,
+          "terminal_voltage": {
+            "error": 6.59414953e-06,
+            "hand_value": 3.75939229,
+            "pass": true,
+            "sim_value": 3.75941708,
+            "threshold": 0.01
+          }
+        },
+        {
+          "duty": 0.716367939,
+          "soc": 0.885854839,
+          "speed_rad_s": 1901.10771,
+          "terminal_voltage": {
+            "error": 6.81461372e-06,
+            "hand_value": 3.72925631,
+            "pass": true,
+            "sim_value": 3.72928173,
+            "threshold": 0.01
+          }
+        }
+      ]
+    },
+    "crazyflie-class": {
+      "hover": {
+        "hover_speed_rad_s": {
+          "error": 0.0,
+          "hand_value": 1901.10771,
+          "pass": true,
+          "sim_value": 1901.10771,
+          "threshold": 0.01
+        },
+        "per_rotor_thrust_n": {
+          "error": 2.02093896e-16,
+          "hand_value": 0.06867,
+          "pass": true,
+          "sim_value": 0.06867,
+          "threshold": 0.01
+        }
+      },
+      "hover_hold": {
+        "0.002": {
+          "max_position_drift_m": {
+            "error": 0.0,
+            "hand_value": 0.0,
+            "pass": true,
+            "sim_value": 0.0,
+            "threshold": 0.001
+          }
+        },
+        "0.005": {
+          "max_position_drift_m": {
+            "error": 0.0,
+            "hand_value": 0.0,
+            "pass": true,
+            "sim_value": 0.0,
+            "threshold": 0.001
+          }
+        },
+        "0.01": {
+          "max_position_drift_m": {
+            "error": 0.0,
+            "hand_value": 0.0,
+            "pass": true,
+            "sim_value": 0.0,
+            "threshold": 0.001
+          }
+        }
+      },
+      "max_climb": {
+        "all_window_steps_saturated": true,
+        "settle_s": 0.72,
+        "vertical_acceleration_mps2": {
+          "error": 1.83786179e-05,
+          "hand_value": 12.1749434,
+          "pass": true,
+          "sim_value": 12.1747197,
+          "threshold": 0.01
+        },
+        "window_s": 0.2
+      },
+      "motor_step": {
+        "command": "one rotor: hover + 20% of (w_max - hover)",
+        "max_first_order_deviation": {
+          "error": 9.62537965e-15,
+          "hand_value": 0.0,
+          "pass": true,
+          "sim_value": 9.62537965e-15,
+          "threshold": 0.01
+        },
+        "speed_fraction_at_3tau": {
+          "error": 9.34715147e-15,
+          "hand_value": 0.950212932,
+          "pass": true,
+          "sim_value": 0.950212932,
+          "threshold": 0.01
+        },
+        "speed_fraction_at_tau": {
+          "error": 1.40507757e-15,
+          "hand_value": 0.632120559,
+          "pass": true,
+          "sim_value": 0.632120559,
+          "threshold": 0.01
+        }
+      },
+      "substeps": {
+        "reference_step_s": 0.0002,
+        "reference_substeps": 50,
+        "smallest_passing": 1,
+        "substeps": {
+          "1": {
+            "rms_position_error_m": {
+              "error": 4.81509119e-06,
+              "hand_value": 0.0,
+              "pass": true,
+              "sim_value": 4.81509119e-06,
+              "threshold": 0.001
+            }
+          },
+          "2": {
+            "rms_position_error_m": {
+              "error": 1.20393881e-06,
+              "hand_value": 0.0,
+              "pass": true,
+              "sim_value": 1.20393881e-06,
+              "threshold": 0.001
+            }
+          },
+          "5": {
+            "rms_position_error_m": {
+              "error": 1.9108122e-07,
+              "hand_value": 0.0,
+              "pass": true,
+              "sim_value": 1.9108122e-07,
+              "threshold": 0.001
+            }
+          }
+        }
+      },
+      "yaw_trim": {
+        "reaction_yaw_torque_nm": {
+          "error": 0.0,
+          "hand_value": 0.0,
+          "pass": true,
+          "sim_value": 0.0,
+          "threshold": 1e-12
+        },
+        "yaw_rate_after_s": 0.0
+      }
+    },
+    "esp-fly-class": {
+      "hover": {
+        "hover_speed_rad_s": {
+          "error": 0.0,
+          "hand_value": 3915.11494,
+          "pass": true,
+          "sim_value": 3915.11494,
+          "threshold": 0.01
+        },
+        "per_rotor_thrust_n": {
+          "error": 0.0,
+          "hand_value": 0.0613125,
+          "pass": true,
+          "sim_value": 0.0613125,
+          "threshold": 0.01
+        }
+      },
+      "hover_hold": {
+        "0.002": {
+          "max_position_drift_m": {
+            "error": 0.0,
+            "hand_value": 0.0,
+            "pass": true,
+            "sim_value": 0.0,
+            "threshold": 0.001
+          }
+        },
+        "0.005": {
+          "max_position_drift_m": {
+            "error": 0.0,
+            "hand_value": 0.0,
+            "pass": true,
+            "sim_value": 0.0,
+            "threshold": 0.001
+          }
+        },
+        "0.01": {
+          "max_position_drift_m": {
+            "error": 0.0,
+            "hand_value": 0.0,
+            "pass": true,
+            "sim_value": 0.0,
+            "threshold": 0.001
+          }
+        }
+      },
+      "max_climb": {
+        "all_window_steps_saturated": true,
+        "settle_s": 0.7,
+        "vertical_acceleration_mps2": {
+          "error": 1.864014e-05,
+          "hand_value": 16.8156,
+          "pass": true,
+          "sim_value": 16.8152866,
+          "threshold": 0.01
+        },
+        "window_s": 0.2
+      },
+      "motor_step": {
+        "command": "one rotor: hover + 20% of (w_max - hover)",
+        "max_first_order_deviation": {
+          "error": 5.38186948e-15,
+          "hand_value": 0.0,
+          "pass": true,
+          "sim_value": 5.38186948e-15,
+          "threshold": 0.01
+        },
+        "speed_fraction_at_3tau": {
+          "error": 4.55673634e-15,
+          "hand_value": 0.950212932,
+          "pass": true,
+          "sim_value": 0.950212932,
+          "threshold": 0.01
+        },
+        "speed_fraction_at_tau": {
+          "error": 7.55229195e-15,
+          "hand_value": 0.632120559,
+          "pass": true,
+          "sim_value": 0.632120559,
+          "threshold": 0.01
+        }
+      },
+      "substeps": {
+        "reference_step_s": 0.0002,
+        "reference_substeps": 50,
+        "smallest_passing": 1,
+        "substeps": {
+          "1": {
+            "rms_position_error_m": {
+              "error": 4.64829265e-06,
+              "hand_value": 0.0,
+              "pass": true,
+              "sim_value": 4.64829265e-06,
+              "threshold": 0.001
+            }
+          },
+          "2": {
+            "rms_position_error_m": {
+              "error": 1.16221249e-06,
+              "hand_value": 0.0,
+              "pass": true,
+              "sim_value": 1.16221249e-06,
+              "threshold": 0.001
+            }
+          },
+          "5": {
+            "rms_position_error_m": {
+              "error": 1.84457763e-07,
+              "hand_value": 0.0,
+              "pass": true,
+              "sim_value": 1.84457763e-07,
+              "threshold": 0.001
+            }
+          }
+        }
+      },
+      "yaw_trim": {
+        "reaction_yaw_torque_nm": {
+          "error": 0.0,
+          "hand_value": 0.0,
+          "pass": true,
+          "sim_value": 0.0,
+          "threshold": 1e-12
+        },
+        "yaw_rate_after_s": 0.0
+      }
+    }
+  },
+  "schema": "zephyr-exp-020-vehicle-chain-report-1"
+}

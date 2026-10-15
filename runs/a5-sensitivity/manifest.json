@@ -1,0 +1,55 @@
+{
+  "argv": [
+    "--output-dir",
+    "runs/a5-sensitivity",
+    "--workers",
+    "2"
+  ],
+  "config": {
+    "parameters": [
+      "airframe.mass_kg",
+      "airframe.inertia_kg_m2",
+      "airframe.arm_length_m",
+      "rotor.thrust_coefficient_n_s2",
+      "rotor.torque_to_thrust_m",
+      "rotor.max_speed_rad_s",
+      "rotor.motor_time_constant_s",
+      "rotor.prop_radius_m"
+    ],
+    "profiles": [
+      "crazyflie-class",
+      "esp-fly-class"
+    ]
+  },
+  "config_sha256": "1a188d216546b0cb83f58893efc187efefba2ee2040984c684c6808323dc9242",
+  "git_revision": "33fbc10d4dfddcab04d3b2d1b8b7b43f41fe44a4",
+  "git_tree_state": "dirty",
+  "limits": [
+    "simulated only",
+    "literature-derived profiles and ranges",
+    "one parameter at a time, no interactions",
+    "d_crit on the 10 ms control grid"
+  ],
+  "n_processes": 2,
+  "numpy": "2.5.1",
+  "outputs": {
+    "a5_sensitivity.png": "6e42f354eefae65a655974029f80503d8660de3f8537683aafa5e62b57f39d90",
+    "sensitivity.csv": "f4a7fc561790f5a291609df463442c759fa667ce8ef99dac75fff590f2154fa5",
+    "sensitivity.json": "284891779179ac180eb8ca2adf65fc830d44185b87a1d0a69a7b69adce32825b"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "--output-dir runs/a5-sensitivity --workers 2",
+  "runtime_s": 429.7490159580011,
+  "schema": "zephyr-a5-profile-sensitivity-manifest-1",
+  "seeds": [],
+  "volatile_fields": [
+    "runtime_s",
+    "git_revision",
+    "git_tree_state",
+    "platform",
+    "python",
+    "numpy",
+    "n_processes"
+  ]
+}

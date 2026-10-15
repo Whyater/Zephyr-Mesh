@@ -1,0 +1,23 @@
+{
+  "schema": "a7-disturbance-response-config-v1",
+  "profiles": [
+    "sim/physics/profiles/crazyflie_class.json",
+    "sim/physics/profiles/esp_fly_class.json"
+  ],
+  "dt_s": 0.01,
+  "steady_winds_mps": [0, 0.5, 1, 1.5, 2, 3],
+  "drag_areas_m2": [0.002, 0.005, 0.012],
+  "steady_duration_s": 20.0,
+  "gust_sigmas_mps": [0.25, 0.5],
+  "gust_mean_winds_mps": [0, 1.5],
+  "gust_time_constant_s": 1.0,
+  "gust_duration_s": 30.0,
+  "gust_seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49],
+  "ground_heights_m": ["R", "1.5R", "2R", "3R", "4R", "8R", 0.5],
+  "ground_duration_s": 10.0,
+  "downwash_offsets_m": [0, 0.02, 0.05, 0.12, 0.24],
+  "downwash_gaps_m": [0.2, 0.4, 0.6, 1.0],
+  "downwash_duration_s": 10.0,
+  "bootstrap_seed": 20261014,
+  "bootstrap_samples": 4000
+}

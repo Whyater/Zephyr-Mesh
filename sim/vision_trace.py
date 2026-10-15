@@ -8,8 +8,10 @@ performance from missing fields.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from datetime import datetime
 import json
 import math
+import re
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
@@ -17,6 +19,8 @@ VISION_TRACE_SCHEMA = "zephyr-vision-trace-1"
 TRACE_STATUSES = {"measured", "synthetic", "fixture"}
 OUTCOMES = {"detected", "missed", "unknown"}
 CLOCK_DOMAINS = {"shared_monotonic", "device_and_host", "unknown"}
+_SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
+_TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T[^ ]+(?:Z|[+-]\d{2}:\d{2})$")
 
 
 def _reject_unknown(raw: Mapping[str, Any], allowed: set[str], field: str) -> None:
@@ -57,6 +61,71 @@ def _optional_bool(value: Any, field: str) -> bool | None:
     if not isinstance(value, bool):
         raise ValueError(f"{field} must be a boolean or null")
     return value
+
+
+def _sha256(value: Any, field: str) -> str:
+    value = _required_text(value, field)
+    if not _SHA256_RE.fullmatch(value):
+        raise ValueError(f"{field} must be a 64-hex-character sha256 string")
+    return value.lower()
+
+
+def _timestamp(value: Any, field: str) -> str:
+    value = _required_text(value, field)
+    if not _TIMESTAMP_RE.fullmatch(value):
+        raise ValueError(f"{field} must be an ISO 8601 timestamp with a UTC offset")
+    candidate = value[:-1] + "+00:00" if value.endswith("Z") else value
+    try:
+        parsed = datetime.fromisoformat(candidate)
+    except ValueError as exc:
+        raise ValueError(f"{field} must be an ISO 8601 timestamp with a UTC offset") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"{field} must include a UTC offset")
+    return value
+
+
+def _provenance(value: Any) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError("provenance must be an object")
+    allowed = {"instrument", "calibration_ref", "calibration_ref_null_reason", "raw_sha256", "code_revision", "captured_at", "operator", "ground_truth", "ground_truth_null_reason"}
+    _reject_unknown(value, allowed, "provenance")
+    instrument = value.get("instrument")
+    if not isinstance(instrument, Mapping):
+        raise ValueError("provenance.instrument must be an object")
+    _reject_unknown(instrument, {"kind", "model", "settings"}, "provenance.instrument")
+    if set(instrument) != {"kind", "model", "settings"}:
+        raise ValueError("provenance.instrument requires kind, model, and settings")
+    if not isinstance(instrument["settings"], Mapping):
+        raise ValueError("provenance.instrument.settings must be an object")
+    result: dict[str, Any] = {"instrument": {"kind": _required_text(instrument["kind"], "provenance.instrument.kind"), "model": _required_text(instrument["model"], "provenance.instrument.model"), "settings": dict(instrument["settings"])}}
+    calibration = value.get("calibration_ref")
+    if calibration is None:
+        result["calibration_ref"] = None
+        result["calibration_ref_null_reason"] = _required_text(value.get("calibration_ref_null_reason"), "provenance.calibration_ref_null_reason")
+    else:
+        result["calibration_ref"] = _sha256(calibration, "provenance.calibration_ref")
+        if "calibration_ref_null_reason" in value:
+            raise ValueError("calibration_ref_null_reason is only allowed when calibration_ref is null")
+    result["raw_sha256"] = _sha256(value.get("raw_sha256"), "provenance.raw_sha256")
+    result["code_revision"] = _required_text(value.get("code_revision"), "provenance.code_revision")
+    result["captured_at"] = _timestamp(value.get("captured_at"), "provenance.captured_at")
+    result["operator"] = _required_text(value.get("operator"), "provenance.operator")
+    ground_truth = value.get("ground_truth")
+    if ground_truth is None:
+        result["ground_truth"] = None
+        result["ground_truth_null_reason"] = _required_text(value.get("ground_truth_null_reason"), "provenance.ground_truth_null_reason")
+    else:
+        if not isinstance(ground_truth, Mapping):
+            raise ValueError("provenance.ground_truth must be an object or null")
+        _reject_unknown(ground_truth, {"method", "values", "uncertainty"}, "provenance.ground_truth")
+        if set(ground_truth) != {"method", "values", "uncertainty"}:
+            raise ValueError("provenance.ground_truth requires method, values, and uncertainty")
+        if not isinstance(ground_truth["values"], Mapping) or not isinstance(ground_truth["uncertainty"], Mapping):
+            raise ValueError("provenance.ground_truth values and uncertainty must be objects")
+        result["ground_truth"] = {"method": _required_text(ground_truth["method"], "provenance.ground_truth.method"), "values": dict(ground_truth["values"]), "uncertainty": dict(ground_truth["uncertainty"])}
+        if "ground_truth_null_reason" in value:
+            raise ValueError("ground_truth_null_reason is only allowed when ground_truth is non-null")
+    return result
 
 
 def _vector3(value: Any, field: str) -> tuple[float, float, float] | None:
@@ -102,6 +171,7 @@ class VisionObservation:
     unknown_reason: str | None = None
     duplicate: bool | None = None
     out_of_order: bool | None = None
+    ground_truth: dict[str, Any] | None = None
 
     @classmethod
     def from_dict(cls, raw: Mapping[str, Any]) -> "VisionObservation":
@@ -110,7 +180,7 @@ class VisionObservation:
         _reject_unknown(raw, {
             "observation_id", "frame_id", "subject_id", "capture_time_s", "outcome",
             "processing_time_s", "confidence", "bbox_px", "position_m", "position_frame",
-            "miss_reason", "unknown_reason", "duplicate", "out_of_order",
+            "miss_reason", "unknown_reason", "duplicate", "out_of_order", "ground_truth",
         }, "observation")
         outcome = _required_text(raw.get("outcome"), "outcome")
         if outcome not in OUTCOMES:
@@ -132,6 +202,19 @@ class VisionObservation:
         miss_reason = raw.get("miss_reason")
         if miss_reason is not None:
             miss_reason = _required_text(miss_reason, "miss_reason")
+        observation_ground_truth = raw.get("ground_truth")
+        if "ground_truth" in raw and observation_ground_truth is None:
+            raise ValueError("ground_truth must be an object when supplied")
+        if observation_ground_truth is not None:
+            if not isinstance(observation_ground_truth, Mapping):
+                raise ValueError("ground_truth must be an object")
+            _reject_unknown(observation_ground_truth, {"position_m", "uncertainty_m", "method"}, "observation.ground_truth")
+            if set(observation_ground_truth) != {"position_m", "uncertainty_m", "method"}:
+                raise ValueError("observation.ground_truth requires position_m, uncertainty_m, and method")
+            position = observation_ground_truth["position_m"]
+            if not isinstance(position, (list, tuple)) or len(position) != 3:
+                raise ValueError("observation.ground_truth.position_m must be a three-element array")
+            observation_ground_truth = {"position_m": [_finite(item, "ground_truth.position_m") for item in position], "uncertainty_m": _nonnegative(observation_ground_truth["uncertainty_m"], "ground_truth.uncertainty_m"), "method": _required_text(observation_ground_truth["method"], "ground_truth.method")}
         unknown_reason = raw.get("unknown_reason")
         if unknown_reason is not None:
             unknown_reason = _required_text(unknown_reason, "unknown_reason")
@@ -162,10 +245,14 @@ class VisionObservation:
             unknown_reason=unknown_reason,
             duplicate=_optional_bool(raw.get("duplicate"), "duplicate"),
             out_of_order=_optional_bool(raw.get("out_of_order"), "out_of_order"),
+            ground_truth=observation_ground_truth,
         )
 
     def as_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        data = asdict(self)
+        if data.get("ground_truth") is None:
+            data.pop("ground_truth", None)
+        return data
 
 
 @dataclass(frozen=True)
@@ -181,6 +268,7 @@ class VisionTrace:
     code_revision: str | None = None
     clock_uncertainty_s: float | None = None
     notes: str | None = None
+    provenance: dict[str, Any] | None = None
 
     @classmethod
     def from_dict(cls, raw: Mapping[str, Any]) -> "VisionTrace":
@@ -188,7 +276,7 @@ class VisionTrace:
             raise ValueError("trace must be an object")
         _reject_unknown(raw, {
             "schema", "trace_id", "status", "clock_domain", "capture", "observations",
-            "source", "code_revision", "clock_uncertainty_s", "notes",
+            "source", "code_revision", "clock_uncertainty_s", "notes", "provenance",
         }, "trace")
         if raw.get("schema") != VISION_TRACE_SCHEMA:
             raise ValueError(f"schema must be {VISION_TRACE_SCHEMA}")
@@ -249,6 +337,9 @@ class VisionTrace:
                     raise ValueError("shared_monotonic processing_time_s cannot precede capture_time_s")
         if status == "measured" and raw.get("source") is None:
             raise ValueError("measured traces require source")
+        provenance = _provenance(raw.get("provenance")) if "provenance" in raw else None
+        if status == "measured" and provenance is None:
+            raise ValueError("measured traces require provenance")
         if "source" in raw and raw["source"] is None:
             raise ValueError("source must be a non-empty string when supplied")
         for field in ("code_revision", "notes"):
@@ -264,6 +355,7 @@ class VisionTrace:
             code_revision=None if raw.get("code_revision") is None else _required_text(raw["code_revision"], "code_revision"),
             clock_uncertainty_s=_optional_nonnegative(raw.get("clock_uncertainty_s"), "clock_uncertainty_s"),
             notes=None if raw.get("notes") is None else _required_text(raw["notes"], "notes"),
+            provenance=provenance,
         )
 
     @classmethod
@@ -280,7 +372,7 @@ class VisionTrace:
             "capture": dict(self.capture),
             "observations": [item.as_dict() for item in self.observations],
         }
-        for key in ("source", "code_revision", "clock_uncertainty_s", "notes"):
+        for key in ("source", "code_revision", "clock_uncertainty_s", "notes", "provenance"):
             value = getattr(self, key)
             if value is not None:
                 data[key] = value

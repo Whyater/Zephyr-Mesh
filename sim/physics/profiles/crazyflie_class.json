@@ -1,0 +1,206 @@
+{
+  "schema": "zephyr-hardware-profile-2",
+  "profile_id": "crazyflie-class",
+  "status": "literature-derived",
+  "notes": "Bitcraze Crazyflie 2.x class micro-quad, stock 7 mm coreless motors and 45 mm props. Literature-derived from published system identification (mainly Forster 2015, ETH Zurich). Not measured by this project. Battery sag is off by default because internal resistance is UNCONFIRMED. Known source errors: one paper's table prints the mass 10x too large (0.27 kg); some widely copied simulators use a torque-to-thrust ratio of 0.0251 m, 4 to 6 times the identified value.",
+  "airframe": {
+    "mass_kg": 0.028,
+    "inertia_kg_m2": [
+      1.657171e-05,
+      1.6655602e-05,
+      2.9261652e-05
+    ],
+    "arm_length_m": 0.046,
+    "drag_coefficient": 0.0,
+    "cross_sectional_area_m2": 0.001
+  },
+  "rotor": {
+    "count": 4,
+    "layout": "x",
+    "thrust_coefficient_n_s2": 1.9e-08,
+    "torque_to_thrust_m": 0.005964552,
+    "max_speed_rad_s": 2846.0,
+    "motor_time_constant_s": 0.072,
+    "prop_radius_m": 0.0225,
+    "spin_directions": [
+      1,
+      -1,
+      1,
+      -1
+    ]
+  },
+  "battery": null,
+  "parameters": {
+    "airframe.mass_kg": {
+      "value": 0.028,
+      "range": [
+        0.027,
+        0.029
+      ],
+      "source": "Forster 2015 Table 2.2 p.17; Bitcraze CF2.1 datasheet 29 g; firmware CF_MASS 0.029",
+      "url": "https://www.research-collection.ethz.ch/handle/20.500.11850/214143",
+      "accessed": "2026-10-14",
+      "status": "CROSS-CHECKED"
+    },
+    "airframe.inertia_kg_m2": {
+      "value": [
+        1.657171e-05,
+        1.6655602e-05,
+        2.9261652e-05
+      ],
+      "range": [
+        [
+          1.029e-05,
+          2.3951e-05
+        ],
+        [
+          1.105e-05,
+          2.3951e-05
+        ],
+        [
+          1.955e-05,
+          3.2347e-05
+        ]
+      ],
+      "source": "Forster 2015 Appendix A p.57; ranges span Eschmann, Luis and Le Ny, Landry",
+      "url": "https://www.research-collection.ethz.ch/handle/20.500.11850/214143",
+      "accessed": "2026-10-14",
+      "status": "CROSS-CHECKED"
+    },
+    "airframe.arm_length_m": {
+      "value": 0.046,
+      "range": [
+        0.0397,
+        0.046
+      ],
+      "source": "Bitcraze firmware ARM_LENGTH 0.046; Landry 92 mm motor to motor; Luis and Le Ny 39.73 mm (competing definition)",
+      "url": "https://raw.githubusercontent.com/bitcraze/crazyflie-firmware/master/src/platform/interface/platform_defaults_cf2.h",
+      "accessed": "2026-10-14",
+      "status": "CROSS-CHECKED"
+    },
+    "airframe.drag_coefficient": {
+      "value": 0.0,
+      "range": [
+        0.0,
+        0.0
+      ],
+      "source": "no body-drag source found for this class",
+      "url": "none",
+      "accessed": "2026-10-14",
+      "status": "EXCLUDED",
+      "note": "Body drag is UNCONFIRMED (no sourced value), so it is switched off by default. Sweep it separately if needed."
+    },
+    "airframe.cross_sectional_area_m2": {
+      "value": 0.001,
+      "range": [
+        0.001,
+        0.001
+      ],
+      "source": "placeholder, unused while drag_coefficient is 0",
+      "url": "none",
+      "accessed": "2026-10-14",
+      "status": "EXCLUDED",
+      "note": "Irrelevant while drag is off; kept only because the schema requires the field."
+    },
+    "rotor.count": {
+      "value": 4,
+      "range": [
+        4,
+        4
+      ],
+      "source": "Crazyflie 2.x is a 4-rotor X frame",
+      "url": "https://www.research-collection.ethz.ch/handle/20.500.11850/214143",
+      "accessed": "2026-10-14",
+      "status": "CONFIRMED"
+    },
+    "rotor.spin_directions": {
+      "value": [
+        1,
+        -1,
+        1,
+        -1
+      ],
+      "range": [
+        [
+          1,
+          1
+        ],
+        [
+          -1,
+          -1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ],
+      "source": "standard X quad, diagonal pairs spin the same way",
+      "url": "https://www.research-collection.ethz.ch/handle/20.500.11850/214143",
+      "accessed": "2026-10-14",
+      "status": "CONFIRMED",
+      "note": "Order front-left, front-right, rear-right, rear-left; +1 is counterclockwise seen from above."
+    },
+    "rotor.thrust_coefficient_n_s2": {
+      "value": 1.9e-08,
+      "range": [
+        1.71e-08,
+        2.88e-08
+      ],
+      "source": "derived from Forster eq 3.3 (thrust map) and eq 3.4 (speed map) near hover; Luis and Le Ny theory 2.88e-8; Bitcraze stand 2.28e-8 at max",
+      "url": "https://www.research-collection.ethz.ch/handle/20.500.11850/214143",
+      "accessed": "2026-10-14",
+      "status": "CONFIRMED",
+      "note": "Derived, not printed: thrust per rotor at hover divided by hover speed squared from Forster's two fitted maps."
+    },
+    "rotor.torque_to_thrust_m": {
+      "value": 0.005964552,
+      "range": [
+        0.004548,
+        0.007350862856566459
+      ],
+      "source": "Forster eq 3.5 p.29; Eschmann Sec IV-A; Bitcraze firmware THRUST2TORQUE",
+      "url": "https://www.research-collection.ethz.ch/handle/20.500.11850/214143",
+      "accessed": "2026-10-14",
+      "status": "CROSS-CHECKED",
+      "note": "The 0.0251 m value in some simulators is an outlier and is excluded."
+    },
+    "rotor.max_speed_rad_s": {
+      "value": 2846.0,
+      "range": [
+        2270.0,
+        3052.0
+      ],
+      "source": "set so k_f w_max^2 equals the cross-checked max thrust 0.1539 N (Forster p.27, eq 3.3 at cmd 64000)",
+      "url": "https://www.research-collection.ethz.ch/handle/20.500.11850/214143",
+      "accessed": "2026-10-14",
+      "status": "SCALED",
+      "note": "w_max = sqrt(0.1539 N / 1.9e-08) = 2846.0 rad/s. Forster's speed map gives 3052 rad/s at full command, but rotor speed is the least reliable quantity, so thrust is matched instead."
+    },
+    "rotor.motor_time_constant_s": {
+      "value": 0.072,
+      "range": [
+        0.065,
+        0.0775
+      ],
+      "source": "Eschmann Sec IV-A 0.072 s; Bitcraze step response about 0.073 s; Forster H2(z) gives 0.0647 s",
+      "url": "https://arxiv.org/html/2404.07837v2",
+      "accessed": "2026-10-14",
+      "status": "CROSS-CHECKED"
+    },
+    "rotor.prop_radius_m": {
+      "value": 0.0225,
+      "range": [
+        0.0225,
+        0.0235
+      ],
+      "source": "Landry p.26 45 mm prop; Luis and Le Ny 23.1348 mm",
+      "url": "http://groups.csail.mit.edu/robotics-center/public_papers/Landry15.pdf",
+      "accessed": "2026-10-14",
+      "status": "CROSS-CHECKED"
+    }
+  }
+}

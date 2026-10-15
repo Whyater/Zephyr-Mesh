@@ -1,0 +1,227 @@
+{
+  "effective_delay_grid_s": 0.01,
+  "effective_delay_method": "10 ms-rounded transport delay for all arms",
+  "episode_duration_s": 20.0,
+  "pilot": false,
+  "profiles": {
+    "crazyflie-class": {
+      "arm_a": {
+        "arm_a_any_unstable": false,
+        "hand_slope_m_per_s": 0.5,
+        "offset_m": 0.37620719711496153,
+        "steady_ramp_rms_slope_m_per_s": 0.5036569469074718,
+        "unstable_count": 0
+      },
+      "arm_b": {
+        "p0": {
+          "arm": "b",
+          "d_crit_s": 0.36,
+          "effective_delay_grid_s": 0.01,
+          "episode_duration_s": 20.0,
+          "profile": "crazyflie-class",
+          "resolution_s": 0.01,
+          "stable_delay_s": 0.35,
+          "stable_side": {
+            "max_error_m": 1.299261731141701,
+            "rms_error_m": 0.7596991038133817,
+            "unstable_reason": null,
+            "unstable_time_s": null,
+            "whole_run_max_error_m": 1.299261731141701,
+            "whole_run_max_tilt_deg": 23.01729970646972,
+            "whole_run_min_z_m": 0.950018244518048
+          },
+          "unstable_delay_s": 0.36,
+          "unstable_side": {
+            "max_error_m": 1.762055582908746,
+            "rms_error_m": 0.924639119076715,
+            "unstable_reason": "growing_oscillation",
+            "unstable_time_s": 20.0,
+            "whole_run_max_error_m": 1.762055582908746,
+            "whole_run_max_tilt_deg": 29.311647829958538,
+            "whole_run_min_z_m": 0.9113597844078872
+          }
+        },
+        "p_gt_0": {
+          "0.1": {
+            "first_delay_any_unstable_s": 0.35,
+            "smallest_grid_delay_half_unstable_s": 0.35,
+            "unstable_rate_interval": [
+              0.7867654163738308,
+              0.9815229762087295
+            ]
+          },
+          "0.3": {
+            "first_delay_any_unstable_s": 0.35,
+            "smallest_grid_delay_half_unstable_s": 0.35,
+            "unstable_rate_interval": [
+              0.8864866068260312,
+              0.9999999999999999
+            ]
+          },
+          "0.5": {
+            "first_delay_any_unstable_s": 0.325,
+            "smallest_grid_delay_half_unstable_s": 0.35,
+            "unstable_rate_interval": [
+              0.8864866068260312,
+              0.9999999999999999
+            ]
+          }
+        }
+      },
+      "hand_xy": {
+        "d_crit_s": 0.33800550781562516,
+        "d_crit_sim_expected_s": 0.32300550781562515,
+        "omega_c": 1.822830704652407,
+        "pm_deg": 35.301466315534626,
+        "pm_rad": 0.6161268179879507
+      },
+      "hand_xy_sim_expected_s": 0.32300550781562515,
+      "percent_difference_vs_hand_sim_expected": 11.453207852261043,
+      "slice_c": {
+        "arm": "c",
+        "d_crit_s": 0.03,
+        "effective_delay_grid_s": 0.01,
+        "episode_duration_s": 20.0,
+        "hand_attitude_whole_state": {
+          "d_crit_s": 0.029475525898514328,
+          "d_crit_sim_expected_s": 0.024475525898514327,
+          "omega_c": 13.778339783500892,
+          "pm_deg": 23.26918033735163,
+          "pm_rad": 0.4061238111271108
+        },
+        "profile": "crazyflie-class",
+        "resolution_s": 0.01,
+        "stable_delay_s": 0.02,
+        "stable_side": {
+          "max_error_m": 1.0,
+          "rms_error_m": 0.20493060559876977,
+          "unstable_reason": null,
+          "unstable_time_s": null,
+          "whole_run_max_error_m": 1.0,
+          "whole_run_max_tilt_deg": 14.247675868713348,
+          "whole_run_min_z_m": 0.9849408863888277
+        },
+        "unstable_delay_s": 0.03,
+        "unstable_side": {
+          "max_error_m": 2.910208894301832,
+          "rms_error_m": 1.016565704566362,
+          "unstable_reason": "tilt_above_80_deg",
+          "unstable_time_s": 7.09,
+          "whole_run_max_error_m": 2.910208894301832,
+          "whole_run_max_tilt_deg": 80.31974183876831,
+          "whole_run_min_z_m": -1.907724773542487
+        }
+      }
+    },
+    "esp-fly-class": {
+      "arm_a": {
+        "arm_a_any_unstable": false,
+        "hand_slope_m_per_s": 0.5,
+        "offset_m": 0.37620722133583456,
+        "steady_ramp_rms_slope_m_per_s": 0.5036570016631116,
+        "unstable_count": 0
+      },
+      "arm_b": {
+        "p0": {
+          "arm": "b",
+          "d_crit_s": 0.36,
+          "effective_delay_grid_s": 0.01,
+          "episode_duration_s": 20.0,
+          "profile": "esp-fly-class",
+          "resolution_s": 0.01,
+          "stable_delay_s": 0.35,
+          "stable_side": {
+            "max_error_m": 1.2964372741275902,
+            "rms_error_m": 0.7588893037318993,
+            "unstable_reason": null,
+            "unstable_time_s": null,
+            "whole_run_max_error_m": 1.2964372741275902,
+            "whole_run_max_tilt_deg": 22.99921952125747,
+            "whole_run_min_z_m": 0.9522933404195973
+          },
+          "unstable_delay_s": 0.36,
+          "unstable_side": {
+            "max_error_m": 1.7560372907678496,
+            "rms_error_m": 0.9229653083340544,
+            "unstable_reason": "growing_oscillation",
+            "unstable_time_s": 20.0,
+            "whole_run_max_error_m": 1.7560372907678496,
+            "whole_run_max_tilt_deg": 29.2916166065659,
+            "whole_run_min_z_m": 0.9155847541206108
+          }
+        },
+        "p_gt_0": {
+          "0.1": {
+            "first_delay_any_unstable_s": 0.35,
+            "smallest_grid_delay_half_unstable_s": 0.35,
+            "unstable_rate_interval": [
+              0.7867654163738308,
+              0.9815229762087295
+            ]
+          },
+          "0.3": {
+            "first_delay_any_unstable_s": 0.35,
+            "smallest_grid_delay_half_unstable_s": 0.35,
+            "unstable_rate_interval": [
+              0.8864866068260312,
+              0.9999999999999999
+            ]
+          },
+          "0.5": {
+            "first_delay_any_unstable_s": 0.325,
+            "smallest_grid_delay_half_unstable_s": 0.35,
+            "unstable_rate_interval": [
+              0.8864866068260312,
+              0.9999999999999999
+            ]
+          }
+        }
+      },
+      "hand_xy": {
+        "d_crit_s": 0.33795048147997353,
+        "d_crit_sim_expected_s": 0.3229504814799735,
+        "omega_c": 1.8227810432132192,
+        "pm_deg": 35.294757735973434,
+        "pm_rad": 0.6160097311864758
+      },
+      "hand_xy_sim_expected_s": 0.3229504814799735,
+      "percent_difference_vs_hand_sim_expected": 11.472197951289925,
+      "slice_c": {
+        "arm": "c",
+        "d_crit_s": 0.04,
+        "effective_delay_grid_s": 0.01,
+        "episode_duration_s": 20.0,
+        "hand_attitude_whole_state": {
+          "d_crit_s": 0.030145717695459314,
+          "d_crit_sim_expected_s": 0.025145717695459313,
+          "omega_c": 13.895784739018362,
+          "pm_deg": 24.001110588197506,
+          "pm_rad": 0.4188984038993193
+        },
+        "profile": "esp-fly-class",
+        "resolution_s": 0.01,
+        "stable_delay_s": 0.03,
+        "stable_side": {
+          "max_error_m": 4.2389375393638895,
+          "rms_error_m": 3.261379558572523,
+          "unstable_reason": null,
+          "unstable_time_s": null,
+          "whole_run_max_error_m": 4.2389375393638895,
+          "whole_run_max_tilt_deg": 67.89344500803445,
+          "whole_run_min_z_m": -3.238877969304989
+        },
+        "unstable_delay_s": 0.04,
+        "unstable_side": {
+          "max_error_m": 1.2052095729755752,
+          "rms_error_m": 0.6806289950542532,
+          "unstable_reason": "tilt_above_80_deg",
+          "unstable_time_s": 3.25,
+          "whole_run_max_error_m": 1.2052095729755752,
+          "whole_run_max_tilt_deg": 82.0842491326826,
+          "whole_run_min_z_m": -0.18140601176955393
+        }
+      }
+    }
+  },
+  "schema": "zephyr-mesh-exp-021-d-crit-1"
+}

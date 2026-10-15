@@ -27,6 +27,28 @@ class BaselineConfig:
     initial_position: tuple[float, float, float] = (0.0, 0.0, 0.0)
 
 
+_V2_SCENARIOS = {
+    "vertical": {
+        "total_time": 7.0,
+        "initial_position": (0.0, 0.0, 0.0),
+        "target_position": (0.0, 0.0, 3.0),
+        "target_yaw_rad": None,
+    },
+    "lateral": {
+        "total_time": 10.0,
+        "initial_position": (0.0, 0.0, 1.0),
+        "target_position": (1.0, 0.0, 1.0),
+        "target_yaw_rad": None,
+    },
+    "yaw": {
+        "total_time": 3.0,
+        "initial_position": (0.0, 0.0, 1.0),
+        "target_position": (0.0, 0.0, 1.0),
+        "target_yaw_rad": float(np.pi / 2.0),
+    },
+}
+
+
 def run_baseline(config: BaselineConfig = BaselineConfig()) -> dict[str, np.ndarray]:
     """Run the current controller and physics implementation without plotting."""
     if config.dt <= 0 or config.total_time <= 0:
@@ -59,6 +81,54 @@ def run_baseline(config: BaselineConfig = BaselineConfig()) -> dict[str, np.ndar
         "qw", "qx", "qy", "qz", "p", "q", "r",
     )
     return {name: values[:, index] for index, name in enumerate(names)}
+
+
+def run_scenario_v2(name: str, dt: float = 0.01) -> dict[str, np.ndarray]:
+    """Run one of the additive S0 v2 scenarios.
+
+    The historical :func:`run_baseline` path is deliberately separate so its
+    floating point operation order and output remain unchanged.
+    """
+    if name not in _V2_SCENARIOS:
+        raise ValueError(f"unknown v2 scenario {name!r}; expected one of {tuple(_V2_SCENARIOS)}")
+    dt = float(dt)
+    if not np.isfinite(dt) or dt <= 0:
+        raise ValueError("dt must be positive and finite")
+    spec = _V2_SCENARIOS[name]
+    steps_float = spec["total_time"] / dt
+    steps = int(round(steps_float))
+    if not np.isclose(steps, steps_float):
+        raise ValueError("scenario duration must be an integer multiple of dt")
+    drone = SixDOFInterceptor(init_pos=spec["initial_position"])
+    controller = GeometricFlightController()
+    target = np.asarray(spec["target_position"], dtype=float)
+    rows = []
+    for step in range(steps):
+        time = (step + 1) * dt
+        force_body, torque_body = controller.update_control(
+            drone, target, dt, target_yaw_rad=spec["target_yaw_rad"]
+        )
+        drone.step_physics(force_body, torque_body, dt)
+        rows.append((
+            time, *drone.position, *drone.velocity, *drone.quaternion,
+            *drone.angular_velocity,
+        ))
+    values = np.asarray(rows, dtype=float)
+    names = (
+        "time", "x", "y", "z", "vx", "vy", "vz",
+        "qw", "qx", "qy", "qz", "p", "q", "r",
+    )
+    return {name: values[:, index] for index, name in enumerate(names)}
+
+
+def scenario_v2_spec(name: str, dt: float = 0.01) -> dict:
+    """Return the serializable configuration used by :func:`run_scenario_v2`."""
+    if name not in _V2_SCENARIOS:
+        raise ValueError(f"unknown v2 scenario {name!r}")
+    spec = dict(_V2_SCENARIOS[name])
+    spec["name"] = name
+    spec["dt"] = float(dt)
+    return spec
 
 
 # Real, current limits of this baseline and the models it runs.  Keep this list

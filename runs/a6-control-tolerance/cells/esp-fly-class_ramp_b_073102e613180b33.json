@@ -1,0 +1,33 @@
+{
+  "cell": {
+    "arm": "b",
+    "delay_s": 0.5,
+    "loss_probability": 0.0,
+    "profile": "sim/physics/profiles/esp_fly_class.json",
+    "profile_id": "esp-fly-class",
+    "reference": "ramp"
+  },
+  "rows": [
+    {
+      "arm": "b",
+      "axis_note": null,
+      "delay_s": 0.5,
+      "duration_s": 20.0,
+      "effective_delay_s": 0.5,
+      "loss_probability": 0.0,
+      "max_error_m": 5.026805990964502,
+      "n_steps": 1311,
+      "profile": "sim/physics/profiles/esp_fly_class.json",
+      "profile_id": "esp-fly-class",
+      "reference": "ramp",
+      "rms_error_m": 2.5097163782368552,
+      "seed": 0,
+      "unstable": true,
+      "unstable_reason": "max_error_above_5_m",
+      "unstable_time_s": 13.11,
+      "whole_run_max_error_m": 5.026805990964502,
+      "whole_run_max_tilt_deg": 48.5877445453299,
+      "whole_run_min_z_m": 0.7576247616328492
+    }
+  ]
+}

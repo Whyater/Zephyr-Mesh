@@ -9,7 +9,7 @@ from sim.bench_trace import BENCH_TRACE_SCHEMA, BenchTrace, validate_bench_trace
 from tools.analyze_bench_trace import main as analyze_bench_trace
 
 
-def bench_payload():
+def bench_trace_doc():
     return {
         "schema": BENCH_TRACE_SCHEMA,
         "trace_id": "bench-lab-2026-10-09-001",
@@ -27,6 +27,7 @@ def bench_payload():
         },
         "source": "bench-run.jsonl",
         "calibration_id": "cal-001",
+        "provenance": {"instrument": {"kind": "power_meter", "model": "PM-1", "settings": {}}, "calibration_ref": "" + "a" * 64, "raw_sha256": "" + "b" * 64, "code_revision": "abc123", "captured_at": "2026-10-14T09:30:00-06:00", "operator": "bench operator", "ground_truth": {"method": "reference load", "values": {}, "uncertainty": {}}},
         "samples": [
             {"sample_id": "s1", "timestamp_s": 1.0, "quality": "valid", "rpm": 10000, "thrust_n": 0.3, "voltage_v": 3.7, "current_a": 1.0, "duration_s": 2.0, "temperature_c": 22.0},
             {"sample_id": "s2", "timestamp_s": 4.0, "quality": "valid", "rpm": 20000, "thrust_n": 1.2, "voltage_v": 3.6, "current_a": 2.0, "duration_s": 2.0, "temperature_c": 24.0},
@@ -38,8 +39,8 @@ def bench_payload():
 
 def test_schema_and_python_validator_accept_measured_fixture():
     schema = json.loads((Path(__file__).parents[1] / "sim" / "bench_trace_schema.json").read_text())
-    Draft202012Validator(schema).validate(bench_payload())
-    trace = validate_bench_trace(bench_payload())
+    Draft202012Validator(schema).validate(bench_trace_doc())
+    trace = validate_bench_trace(bench_trace_doc())
     assert trace.samples[0].rpm == 10000
     example = json.loads((Path(__file__).parents[1] / "sim" / "bench_trace_example.json").read_text())
     Draft202012Validator(schema).validate(example)
@@ -47,7 +48,7 @@ def test_schema_and_python_validator_accept_measured_fixture():
 
 
 def test_round_trip_and_summary_keep_unknowns_and_power_transparent(tmp_path):
-    trace = validate_bench_trace(bench_payload())
+    trace = validate_bench_trace(bench_trace_doc())
     path = tmp_path / "bench.json"
     trace.write(path)
     decoded = BenchTrace.from_path(path)
@@ -61,49 +62,49 @@ def test_round_trip_and_summary_keep_unknowns_and_power_transparent(tmp_path):
 
 
 def test_quality_and_clock_rules_reject_ambiguous_records():
-    payload = bench_payload()
-    payload["samples"][0].pop("current_a")
+    trace_doc = bench_trace_doc()
+    trace_doc["samples"][0].pop("current_a")
     with pytest.raises(ValueError, match="valid samples require"):
-        validate_bench_trace(payload)
-    payload = bench_payload()
-    payload["samples"][2].pop("quality_reason")
+        validate_bench_trace(trace_doc)
+    trace_doc = bench_trace_doc()
+    trace_doc["samples"][2].pop("quality_reason")
     with pytest.raises(ValueError, match="invalid samples require"):
-        validate_bench_trace(payload)
-    payload = bench_payload()
-    payload["samples"][1]["timestamp_s"] = 1.0
+        validate_bench_trace(trace_doc)
+    trace_doc = bench_trace_doc()
+    trace_doc["samples"][1]["timestamp_s"] = 1.0
     with pytest.raises(ValueError, match="strictly increasing"):
-        validate_bench_trace(payload)
-    payload = bench_payload()
-    payload["samples"][0]["unexpected"] = 1
+        validate_bench_trace(trace_doc)
+    trace_doc = bench_trace_doc()
+    trace_doc["samples"][0]["unexpected"] = 1
     with pytest.raises(ValueError, match="unknown field"):
-        validate_bench_trace(payload)
-    payload = bench_payload()
-    payload["capture"]["test_notes"] = None
-    assert not Draft202012Validator(json.loads((Path(__file__).parents[1] / "sim" / "bench_trace_schema.json").read_text())).is_valid(payload)
+        validate_bench_trace(trace_doc)
+    trace_doc = bench_trace_doc()
+    trace_doc["capture"]["test_notes"] = None
+    assert not Draft202012Validator(json.loads((Path(__file__).parents[1] / "sim" / "bench_trace_schema.json").read_text())).is_valid(trace_doc)
     with pytest.raises(ValueError, match="capture.test_notes"):
-        validate_bench_trace(payload)
+        validate_bench_trace(trace_doc)
 
 
 def test_measured_trace_requires_provenance_and_schema_matches():
     schema = json.loads((Path(__file__).parents[1] / "sim" / "bench_trace_schema.json").read_text())
-    payload = bench_payload()
-    del payload["calibration_id"]
-    assert not Draft202012Validator(schema).is_valid(payload)
-    with pytest.raises(ValueError, match="calibration_id"):
-        validate_bench_trace(payload)
-    payload = bench_payload()
-    payload["samples"][0]["quality"] = "invalid"
-    payload["samples"][0]["quality_reason"] = "bad"
-    assert Draft202012Validator(schema).is_valid(payload)
-    payload["samples"][0]["quality_reason"] = None
-    assert not Draft202012Validator(schema).is_valid(payload)
+    trace_doc = bench_trace_doc()
+    del trace_doc["provenance"]
+    assert not Draft202012Validator(schema).is_valid(trace_doc)
+    with pytest.raises(ValueError, match="provenance"):
+        validate_bench_trace(trace_doc)
+    trace_doc = bench_trace_doc()
+    trace_doc["samples"][0]["quality"] = "invalid"
+    trace_doc["samples"][0]["quality_reason"] = "bad"
+    assert Draft202012Validator(schema).is_valid(trace_doc)
+    trace_doc["samples"][0]["quality_reason"] = None
+    assert not Draft202012Validator(schema).is_valid(trace_doc)
     with pytest.raises(ValueError, match="invalid samples require"):
-        validate_bench_trace({**payload, "samples": [{"sample_id": "s", "timestamp_s": 0, "quality": "invalid"}]})
+        validate_bench_trace({**trace_doc, "samples": [{"sample_id": "s", "timestamp_s": 0, "quality": "invalid"}]})
 
 
 def test_bench_cli_writes_nested_output_and_reports_errors(tmp_path):
     source = tmp_path / "bench.json"
-    source.write_text(json.dumps(bench_payload()), encoding="utf-8")
+    source.write_text(json.dumps(bench_trace_doc()), encoding="utf-8")
     output = tmp_path / "nested" / "summary.json"
     assert analyze_bench_trace([str(source), "--output", str(output)]) == 0
     summary = json.loads(output.read_text())
@@ -125,11 +126,11 @@ def test_bench_cli_writes_nested_output_and_reports_errors(tmp_path):
 
 
 def test_summary_keeps_declared_scope_and_excludes_overflowed_power():
-    payload = bench_payload()
-    payload["measurement_scope"] = "airframe"
-    payload["samples"][0]["voltage_v"] = 1e308
-    payload["samples"][0]["current_a"] = 1e308
-    summary = summarize_bench_trace(validate_bench_trace(payload))
+    trace_doc = bench_trace_doc()
+    trace_doc["measurement_scope"] = "airframe"
+    trace_doc["samples"][0]["voltage_v"] = 1e308
+    trace_doc["samples"][0]["current_a"] = 1e308
+    summary = summarize_bench_trace(validate_bench_trace(trace_doc))
     assert "measurement_scope=airframe" in summary["method"]["weighting"]
     assert summary["samples"]["electrical_power_nonfinite_excluded"] == 1
     assert summary["measurements"]["electrical_input_power"]["count"] == 1

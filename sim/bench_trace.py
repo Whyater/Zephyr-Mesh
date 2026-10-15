@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 import json
 import math
+import re
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -17,6 +19,8 @@ TRACE_STATUSES = {"measured", "synthetic", "fixture"}
 SAMPLE_QUALITIES = {"valid", "invalid", "unknown"}
 CLOCK_DOMAINS = {"shared_monotonic", "device_and_host", "unknown"}
 MEASUREMENT_SCOPES = {"single_rotor", "airframe"}
+_SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
+_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T[^ ]+(?:Z|[+-]\d{2}:\d{2})$")
 
 
 def _required_text(value: Any, field: str) -> str:
@@ -49,6 +53,60 @@ def _reject_unknown(raw: Mapping[str, Any], allowed: set[str], field: str) -> No
     unknown = sorted(set(raw) - allowed)
     if unknown:
         raise ValueError(f"{field} contains unknown field(s): {', '.join(unknown)}")
+
+
+def _provenance(raw: Any) -> dict[str, Any]:
+    if not isinstance(raw, Mapping):
+        raise ValueError("provenance must be an object")
+    allowed = {"instrument", "calibration_ref", "calibration_ref_null_reason", "raw_sha256", "code_revision", "captured_at", "operator", "ground_truth", "ground_truth_null_reason"}
+    _reject_unknown(raw, allowed, "provenance")
+    missing = sorted({"instrument", "calibration_ref", "raw_sha256", "code_revision", "captured_at", "operator", "ground_truth"} - set(raw))
+    if missing:
+        raise ValueError(f"provenance missing required field(s): {', '.join(missing)}")
+    instrument = raw.get("instrument")
+    if not isinstance(instrument, Mapping):
+        raise ValueError("provenance.instrument must be an object")
+    _reject_unknown(instrument, {"kind", "model", "settings"}, "provenance.instrument")
+    if not isinstance(instrument.get("settings"), Mapping):
+        raise ValueError("provenance.instrument.settings must be an object")
+    calibration_ref = raw.get("calibration_ref")
+    if calibration_ref is not None and (not isinstance(calibration_ref, str) or not _SHA256.fullmatch(calibration_ref)):
+        raise ValueError("provenance.calibration_ref must be a 64-hex sha256 or null")
+    if calibration_ref is None:
+        _required_text(raw.get("calibration_ref_null_reason"), "provenance.calibration_ref_null_reason")
+    elif "calibration_ref_null_reason" in raw:
+        raise ValueError("provenance.calibration_ref_null_reason is only allowed when calibration_ref is null")
+    raw_sha256 = raw.get("raw_sha256")
+    if not isinstance(raw_sha256, str) or not _SHA256.fullmatch(raw_sha256):
+        raise ValueError("provenance.raw_sha256 must be a 64-hex sha256")
+    captured_at = _required_text(raw.get("captured_at"), "provenance.captured_at")
+    if not _TIMESTAMP.fullmatch(captured_at):
+        raise ValueError("provenance.captured_at must be ISO 8601")
+    try:
+        parsed = datetime.fromisoformat(captured_at.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("provenance.captured_at must be ISO 8601") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("provenance.captured_at must include a UTC offset")
+    ground_truth = raw.get("ground_truth")
+    if ground_truth is not None:
+        if not isinstance(ground_truth, Mapping):
+            raise ValueError("provenance.ground_truth must be an object or null")
+        _reject_unknown(ground_truth, {"method", "values", "uncertainty"}, "provenance.ground_truth")
+        if not isinstance(ground_truth.get("values"), Mapping) or not isinstance(ground_truth.get("uncertainty"), Mapping):
+            raise ValueError("provenance.ground_truth values and uncertainty must be objects")
+        _required_text(ground_truth.get("method"), "provenance.ground_truth.method")
+    elif "ground_truth_null_reason" not in raw:
+        raise ValueError("provenance.ground_truth_null_reason is required when ground_truth is null")
+    else:
+        _required_text(raw.get("ground_truth_null_reason"), "provenance.ground_truth_null_reason")
+    if ground_truth is not None and "ground_truth_null_reason" in raw:
+        raise ValueError("provenance.ground_truth_null_reason is only allowed when ground_truth is null")
+    result = dict(raw)
+    result["instrument"] = {"kind": _required_text(instrument.get("kind"), "provenance.instrument.kind"), "model": _required_text(instrument.get("model"), "provenance.instrument.model"), "settings": dict(instrument["settings"])}
+    result["code_revision"] = _required_text(raw.get("code_revision"), "provenance.code_revision")
+    result["operator"] = _required_text(raw.get("operator"), "provenance.operator")
+    return result
 
 
 @dataclass(frozen=True)
@@ -122,13 +180,14 @@ class BenchTrace:
     source: str | None = None
     calibration_id: str | None = None
     code_revision: str | None = None
+    provenance: dict[str, Any] | None = None
     notes: str | None = None
 
     @classmethod
     def from_dict(cls, raw: Mapping[str, Any]) -> "BenchTrace":
         if not isinstance(raw, Mapping):
             raise ValueError("trace must be an object")
-        _reject_unknown(raw, {"schema", "trace_id", "status", "profile_id", "motor_part_id", "propeller_part_id", "measurement_scope", "clock_domain", "capture", "samples", "source", "calibration_id", "code_revision", "notes"}, "trace")
+        _reject_unknown(raw, {"schema", "trace_id", "status", "profile_id", "motor_part_id", "propeller_part_id", "measurement_scope", "clock_domain", "capture", "samples", "source", "calibration_id", "code_revision", "provenance", "notes"}, "trace")
         if raw.get("schema") != BENCH_TRACE_SCHEMA:
             raise ValueError(f"schema must be {BENCH_TRACE_SCHEMA}")
         status = _required_text(raw.get("status"), "status")
@@ -174,10 +233,9 @@ class BenchTrace:
             timestamps = [sample.timestamp_s for sample in samples]
             if any(later <= earlier for earlier, later in zip(timestamps, timestamps[1:])):
                 raise ValueError("shared_monotonic sample timestamps must be strictly increasing")
-        if status == "measured" and raw.get("source") is None:
-            raise ValueError("measured traces require source")
-        if status == "measured" and raw.get("calibration_id") is None:
-            raise ValueError("measured traces require calibration_id")
+        provenance = None if "provenance" not in raw else _provenance(raw["provenance"])
+        if status == "measured" and provenance is None:
+            raise ValueError("measured traces require provenance")
         for field in ("source", "calibration_id", "code_revision", "notes"):
             if field in raw and raw[field] is None:
                 raise ValueError(f"{field} must be a non-empty string when supplied")
@@ -194,6 +252,7 @@ class BenchTrace:
             source=None if raw.get("source") is None else _required_text(raw["source"], "source"),
             calibration_id=None if raw.get("calibration_id") is None else _required_text(raw["calibration_id"], "calibration_id"),
             code_revision=None if raw.get("code_revision") is None else _required_text(raw["code_revision"], "code_revision"),
+            provenance=provenance,
             notes=None if raw.get("notes") is None else _required_text(raw["notes"], "notes"),
         )
 
@@ -215,7 +274,7 @@ class BenchTrace:
             "capture": dict(self.capture),
             "samples": [sample.as_dict() for sample in self.samples],
         }
-        for key in ("source", "calibration_id", "code_revision", "notes"):
+        for key in ("source", "calibration_id", "code_revision", "provenance", "notes"):
             value = getattr(self, key)
             if value is not None:
                 result[key] = value

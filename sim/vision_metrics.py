@@ -59,6 +59,7 @@ def summarize_vision_trace(trace: VisionTrace) -> dict[str, Any]:
             "status": trace.status,
             "source": trace.source,
             "source_schema": "zephyr-vision-trace-1",
+            "provenance_block": trace.provenance,
             "code_revision": trace.code_revision,
             "notes": trace.notes,
             "clock_domain": trace.clock_domain,
