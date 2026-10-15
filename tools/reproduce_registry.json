@@ -72,5 +72,14 @@
       "a4_vehicle_chain.png": "139104752678bdd566c98d45e14a2c126a6e0fdf7b0d897e4d2f6fc707d2f0ef",
       "report.json": "f850c4c546fb828247f76bbe15d593b0fdacb298162dbcbae85378f8ab5d3d89"
     }
+  },
+  {
+    "run_dir": "runs/a5-sensitivity",
+    "command": "PYTHONPATH=. {python} tools/a_profile_sensitivity.py --output-dir {out}",
+    "outputs": {
+      "a5_sensitivity.png": "6e42f354eefae65a655974029f80503d8660de3f8537683aafa5e62b57f39d90",
+      "sensitivity.csv": "f4a7fc561790f5a291609df463442c759fa667ce8ef99dac75fff590f2154fa5",
+      "sensitivity.json": "284891779179ac180eb8ca2adf65fc830d44185b87a1d0a69a7b69adce32825b"
+    }
   }
 ]

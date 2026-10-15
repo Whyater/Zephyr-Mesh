@@ -1,0 +1,3220 @@
+{
+  "dcrit_grid_resolution_s": 0.01,
+  "dcrit_resolution_note": "Changes within one 10 ms control-grid step are not resolvable.",
+  "excluded": [
+    "rotor.count",
+    "rotor.spin_directions",
+    "airframe.drag_coefficient",
+    "airframe.cross_sectional_area_m2"
+  ],
+  "profiles": {
+    "crazyflie-class": {
+      "nominal": {
+        "arm_b_bracket_widened": false,
+        "arm_b_dcrit_s": 0.36,
+        "arm_b_stable_delay_s": 0.35,
+        "arm_b_unstable_at_zero_delay": false,
+        "arm_b_unstable_delay_s": 0.36,
+        "hand_whole_state_dcrit_s": 0.0294755259,
+        "hand_xy_dcrit_s": 0.338005508,
+        "hover_speed_rad_s": 1901.10771,
+        "max_climb_hand_mps2": 12.1749434,
+        "max_climb_sim_mps2": 12.1747197,
+        "p_ideal_w": 1.15310821,
+        "p_mech_w": 3.11466678,
+        "power_ratio": 0.370218805,
+        "slice_c_bracket_widened": false,
+        "slice_c_dcrit_s": 0.03,
+        "slice_c_stable_delay_s": 0.02,
+        "slice_c_unstable_at_zero_delay": false,
+        "slice_c_unstable_delay_s": 0.03,
+        "thrust_to_weight": 2.24107476
+      },
+      "parameter_results": {
+        "airframe.arm_length_m": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1901.10771,
+            "max_climb_hand_mps2": 12.1749434,
+            "max_climb_sim_mps2": 12.1747197,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 3.11466678,
+            "power_ratio": 0.370218805,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.24107476
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1901.10771,
+            "max_climb_hand_mps2": 12.1749434,
+            "max_climb_sim_mps2": 12.1747197,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 3.11466678,
+            "power_ratio": 0.370218805,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.24107476
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        "airframe.inertia_kg_m2": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1901.10771,
+            "max_climb_hand_mps2": 12.1749434,
+            "max_climb_sim_mps2": 12.1747197,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 3.11466678,
+            "power_ratio": 0.370218805,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.24107476
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1901.10771,
+            "max_climb_hand_mps2": 12.1749434,
+            "max_climb_sim_mps2": 12.1747197,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 3.11466678,
+            "power_ratio": 0.370218805,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.24107476
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        "airframe.mass_kg": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1934.75825,
+            "max_climb_hand_mps2": 11.4168419,
+            "max_climb_sim_mps2": 11.4166336,
+            "p_ideal_w": 1.21543018,
+            "p_mech_w": 3.28300498,
+            "power_ratio": 0.370218805,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.16379632
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1866.85071,
+            "max_climb_hand_mps2": 12.9892006,
+            "max_climb_sim_mps2": 12.9889601,
+            "p_ideal_w": 1.09188944,
+            "p_mech_w": 2.94930842,
+            "power_ratio": 0.370218805,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.32407753
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0177004892,
+              "low": -0.0180194939
+            },
+            "max_climb_hand_mps2": {
+              "high": -0.0622673528,
+              "low": 0.0668797493
+            },
+            "max_climb_sim_mps2": {
+              "high": -0.0622672315,
+              "low": 0.0668796068
+            },
+            "p_ideal_w": {
+              "high": 0.0540469352,
+              "low": -0.0530902263
+            },
+            "p_mech_w": {
+              "high": 0.0540469352,
+              "low": -0.0530902263
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": -0.0344827586,
+              "low": 0.037037037
+            }
+          }
+        },
+        "rotor.max_speed_rad_s": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1901.10771,
+            "max_climb_hand_mps2": 15.472768,
+            "max_climb_sim_mps2": 15.4724757,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 3.11466678,
+            "power_ratio": 0.370218805,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.57724444
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1901.10771,
+            "max_climb_hand_mps2": 4.17644286,
+            "max_climb_sim_mps2": 4.17637318,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 3.11466678,
+            "power_ratio": 0.370218805,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 1.42573322
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.270869807,
+              "low": -0.656964085
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.270869158,
+              "low": -0.656963504
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.150003778,
+              "low": -0.363817201
+            }
+          }
+        },
+        "rotor.motor_time_constant_s": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0276726686,
+            "hand_xy_dcrit_s": 0.338156889,
+            "hover_speed_rad_s": 1901.10771,
+            "max_climb_hand_mps2": 12.1749434,
+            "max_climb_sim_mps2": 12.1747209,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 3.11466678,
+            "power_ratio": 0.370218805,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.24107476
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0318593031,
+            "hand_xy_dcrit_s": 0.337812965,
+            "hover_speed_rad_s": 1901.10771,
+            "max_climb_hand_mps2": 12.1749434,
+            "max_climb_sim_mps2": 12.174738,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 3.11466678,
+            "power_ratio": 0.370218805,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.04,
+            "slice_c_stable_delay_s": 0.03,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.04,
+            "thrust_to_weight": 2.24107476
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": -0.0611645522,
+              "low": 0.0808731016
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.000447866073,
+              "low": -0.000569642579
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 1.00008865e-07,
+              "low": 1.50242933e-06
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.333333333
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        "rotor.prop_radius_m": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1901.10771,
+            "max_climb_hand_mps2": 12.1749434,
+            "max_climb_sim_mps2": 12.1747197,
+            "p_ideal_w": 1.10403978,
+            "p_mech_w": 3.11466678,
+            "power_ratio": 0.354464813,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.24107476
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1901.10771,
+            "max_climb_hand_mps2": 12.1749434,
+            "max_climb_sim_mps2": 12.1747197,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 3.11466678,
+            "power_ratio": 0.370218805,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.24107476
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": -0.0425531915,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": -0.0425531915,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        "rotor.thrust_coefficient_n_s2": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1544.14216,
+            "max_climb_hand_mps2": 23.5145458,
+            "max_climb_sim_mps2": 23.5140785,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 2.52983471,
+            "power_ratio": 0.455803775,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 3.39699754
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 2003.94348,
+            "max_climb_hand_mps2": 9.97644909,
+            "max_climb_sim_mps2": 9.97626962,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 3.28314706,
+            "power_ratio": 0.351220397,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.01696729
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": -0.187767138,
+              "low": 0.0540925534
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.931388508,
+              "low": -0.180575323
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.931385622,
+              "low": -0.180575004
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": -0.187767138,
+              "low": 0.0540925534
+            },
+            "power_ratio": {
+              "high": 0.231174023,
+              "low": -0.0513167019
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.515789474,
+              "low": -0.1
+            }
+          }
+        },
+        "rotor.torque_to_thrust_m": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1901.10771,
+            "max_climb_hand_mps2": 12.1749434,
+            "max_climb_sim_mps2": 12.1747197,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 3.83859313,
+            "power_ratio": 0.300398655,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.24107476
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0294755259,
+            "hand_xy_dcrit_s": 0.338005508,
+            "hover_speed_rad_s": 1901.10771,
+            "max_climb_hand_mps2": 12.1749434,
+            "max_climb_sim_mps2": 12.1747197,
+            "p_ideal_w": 1.15310821,
+            "p_mech_w": 2.37494862,
+            "power_ratio": 0.485529752,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.24107476
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.232424976,
+              "low": -0.237495121
+            },
+            "power_ratio": {
+              "high": -0.188591582,
+              "low": 0.311467018
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "parameter": "airframe.mass_kg",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0177004892,
+              "low": -0.0180194939
+            },
+            "max_climb_hand_mps2": {
+              "high": -0.0622673528,
+              "low": 0.0668797493
+            },
+            "max_climb_sim_mps2": {
+              "high": -0.0622672315,
+              "low": 0.0668796068
+            },
+            "p_ideal_w": {
+              "high": 0.0540469352,
+              "low": -0.0530902263
+            },
+            "p_mech_w": {
+              "high": 0.0540469352,
+              "low": -0.0530902263
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": -0.0344827586,
+              "low": 0.037037037
+            }
+          }
+        },
+        {
+          "parameter": "airframe.inertia_kg_m2",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        {
+          "parameter": "airframe.arm_length_m",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        {
+          "parameter": "rotor.thrust_coefficient_n_s2",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": -0.187767138,
+              "low": 0.0540925534
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.931388508,
+              "low": -0.180575323
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.931385622,
+              "low": -0.180575004
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": -0.187767138,
+              "low": 0.0540925534
+            },
+            "power_ratio": {
+              "high": 0.231174023,
+              "low": -0.0513167019
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.515789474,
+              "low": -0.1
+            }
+          }
+        },
+        {
+          "parameter": "rotor.torque_to_thrust_m",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.232424976,
+              "low": -0.237495121
+            },
+            "power_ratio": {
+              "high": -0.188591582,
+              "low": 0.311467018
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        {
+          "parameter": "rotor.max_speed_rad_s",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.270869807,
+              "low": -0.656964085
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.270869158,
+              "low": -0.656963504
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.150003778,
+              "low": -0.363817201
+            }
+          }
+        },
+        {
+          "parameter": "rotor.motor_time_constant_s",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": -0.0611645522,
+              "low": 0.0808731016
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.000447866073,
+              "low": -0.000569642579
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 1.00008865e-07,
+              "low": 1.50242933e-06
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.333333333
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        {
+          "parameter": "rotor.prop_radius_m",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": -0.0425531915,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": -0.0425531915,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        }
+      ],
+      "ranking": {
+        "arm_b_dcrit_s": [
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "hand_whole_state_dcrit_s": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.0808731016,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "hand_xy_dcrit_s": [
+          {
+            "matters": false,
+            "max_abs_relative": 0.000569642579,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "hover_speed_rad_s": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.187767138,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0.0180194939,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "max_climb_hand_mps2": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.931388508,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.656964085,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.0668797493,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "max_climb_sim_mps2": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.931385622,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.656963504,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.0668796068,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 1.50242933e-06,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "p_ideal_w": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.0540469352,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0.0425531915,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "p_mech_w": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.237495121,
+            "parameter": "rotor.torque_to_thrust_m"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.187767138,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.0540469352,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          }
+        ],
+        "power_ratio": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.311467018,
+            "parameter": "rotor.torque_to_thrust_m"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.231174023,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0.0425531915,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          }
+        ],
+        "slice_c_dcrit_s": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.333333333,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "thrust_to_weight": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.515789474,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.363817201,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0.037037037,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ]
+      }
+    },
+    "esp-fly-class": {
+      "nominal": {
+        "arm_b_bracket_widened": false,
+        "arm_b_dcrit_s": 0.36,
+        "arm_b_stable_delay_s": 0.35,
+        "arm_b_unstable_at_zero_delay": false,
+        "arm_b_unstable_delay_s": 0.36,
+        "hand_whole_state_dcrit_s": 0.0301457177,
+        "hand_xy_dcrit_s": 0.337950481,
+        "hover_speed_rad_s": 3915.11494,
+        "max_climb_hand_mps2": 16.8156,
+        "max_climb_sim_mps2": 16.8152866,
+        "p_ideal_w": 1.45926542,
+        "p_mech_w": 3.26461859,
+        "power_ratio": 0.446994152,
+        "slice_c_bracket_widened": false,
+        "slice_c_dcrit_s": 0.04,
+        "slice_c_stable_delay_s": 0.03,
+        "slice_c_unstable_at_zero_delay": false,
+        "slice_c_unstable_delay_s": 0.04,
+        "thrust_to_weight": 2.71412844
+      },
+      "parameter_results": {
+        "airframe.arm_length_m": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 16.8156,
+            "max_climb_sim_mps2": 16.8152866,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 3.26461859,
+            "power_ratio": 0.446994152,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.04,
+            "slice_c_stable_delay_s": 0.03,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.04,
+            "thrust_to_weight": 2.71412844
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 16.8156,
+            "max_climb_sim_mps2": 16.8152866,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 3.26461859,
+            "power_ratio": 0.446994152,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.04,
+            "slice_c_stable_delay_s": 0.03,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.04,
+            "thrust_to_weight": 2.71412844
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        "airframe.inertia_kg_m2": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 16.8156,
+            "max_climb_sim_mps2": 16.8152866,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 3.26461859,
+            "power_ratio": 0.446994152,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.71412844
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 16.8156,
+            "max_climb_sim_mps2": 16.8152866,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 3.26461859,
+            "power_ratio": 0.446994152,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.04,
+            "slice_c_stable_delay_s": 0.03,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.04,
+            "thrust_to_weight": 2.71412844
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": -0.25,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        "airframe.mass_kg": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 4143.3682,
+            "max_climb_hand_mps2": 13.9628571,
+            "max_climb_sim_mps2": 13.9626025,
+            "p_ideal_w": 1.72966232,
+            "p_mech_w": 3.86954128,
+            "power_ratio": 0.446994152,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.42332896
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 16.8156,
+            "max_climb_sim_mps2": 16.8152866,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 3.26461859,
+            "power_ratio": 0.446994152,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.04,
+            "slice_c_stable_delay_s": 0.03,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.04,
+            "thrust_to_weight": 2.71412844
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0583005244,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": -0.169648592,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": -0.169648258,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.185296587,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.185296587,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": -0.25,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": -0.107142857,
+              "low": 0.0
+            }
+          }
+        },
+        "rotor.max_speed_rad_s": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 24.576496,
+            "max_climb_sim_mps2": 24.5760161,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 3.26461859,
+            "power_ratio": 0.446994152,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.04,
+            "slice_c_stable_delay_s": 0.03,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.04,
+            "thrust_to_weight": 3.50524934
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 11.129776,
+            "max_climb_sim_mps2": 11.1295781,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 3.26461859,
+            "power_ratio": 0.446994152,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.13453374
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.461529532,
+              "low": -0.338127929
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.461528238,
+              "low": -0.338127361
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": -0.25
+            },
+            "thrust_to_weight": {
+              "high": 0.291482483,
+              "low": -0.213547263
+            }
+          }
+        },
+        "rotor.motor_time_constant_s": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.0,
+            "arm_b_stable_delay_s": null,
+            "arm_b_unstable_at_zero_delay": true,
+            "arm_b_unstable_delay_s": 0.0,
+            "hand_whole_state_dcrit_s": 0.00481608498,
+            "hand_xy_dcrit_s": 0.340437981,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 16.8156,
+            "max_climb_sim_mps2": 16.8150577,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 3.26461859,
+            "power_ratio": 0.446994152,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.0,
+            "slice_c_stable_delay_s": null,
+            "slice_c_unstable_at_zero_delay": true,
+            "slice_c_unstable_delay_s": 0.0,
+            "thrust_to_weight": 2.71412844
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0374103205,
+            "hand_xy_dcrit_s": 0.337400844,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 16.8156,
+            "max_climb_sim_mps2": 16.8153668,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 3.26461859,
+            "power_ratio": 0.446994152,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.04,
+            "slice_c_stable_delay_s": 0.03,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.04,
+            "thrust_to_weight": 2.71412844
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": -1.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": -0.84023983,
+              "low": 0.240982911
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.00736054536,
+              "low": -0.00162638324
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": -1.36115693e-05,
+              "low": 4.77328771e-06
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": -1.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        "rotor.prop_radius_m": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 16.8156,
+            "max_climb_sim_mps2": 16.8152866,
+            "p_ideal_w": 1.41219234,
+            "p_mech_w": 3.26461859,
+            "power_ratio": 0.432574986,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.04,
+            "slice_c_stable_delay_s": 0.03,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.04,
+            "thrust_to_weight": 2.71412844
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 16.8156,
+            "max_climb_sim_mps2": 16.8152866,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 3.26461859,
+            "power_ratio": 0.446994152,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.04,
+            "slice_c_stable_delay_s": 0.03,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.04,
+            "thrust_to_weight": 2.71412844
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": -0.0322580645,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": -0.0322580645,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        "rotor.thrust_coefficient_n_s2": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 3467.28407,
+            "max_climb_hand_mps2": 24.13764,
+            "max_climb_sim_mps2": 24.1371698,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 2.89119482,
+            "power_ratio": 0.50472746,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.04,
+            "slice_c_stable_delay_s": 0.03,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.04,
+            "thrust_to_weight": 3.46051376
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 4447.27173,
+            "max_climb_hand_mps2": 10.82484,
+            "max_climb_sim_mps2": 10.8246481,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 3.70835753,
+            "power_ratio": 0.393507208,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.03,
+            "slice_c_stable_delay_s": 0.02,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.03,
+            "thrust_to_weight": 2.10344954
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": -0.114385114,
+              "low": 0.135923668
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.435431385,
+              "low": -0.356262042
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.435430177,
+              "low": -0.356261456
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": -0.114385114,
+              "low": 0.135923668
+            },
+            "power_ratio": {
+              "high": 0.129158979,
+              "low": -0.119659157
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": -0.25
+            },
+            "thrust_to_weight": {
+              "high": 0.275,
+              "low": -0.225
+            }
+          }
+        },
+        "rotor.torque_to_thrust_m": {
+          "high": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 16.8156,
+            "max_climb_sim_mps2": 16.8152866,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 15.362911,
+            "power_ratio": 0.0949862572,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.04,
+            "slice_c_stable_delay_s": 0.03,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.04,
+            "thrust_to_weight": 2.71412844
+          },
+          "low": {
+            "arm_b_bracket_widened": false,
+            "arm_b_dcrit_s": 0.36,
+            "arm_b_stable_delay_s": 0.35,
+            "arm_b_unstable_at_zero_delay": false,
+            "arm_b_unstable_delay_s": 0.36,
+            "hand_whole_state_dcrit_s": 0.0301457177,
+            "hand_xy_dcrit_s": 0.337950481,
+            "hover_speed_rad_s": 3915.11494,
+            "max_climb_hand_mps2": 16.8156,
+            "max_climb_sim_mps2": 16.8152866,
+            "p_ideal_w": 1.45926542,
+            "p_mech_w": 2.30443665,
+            "power_ratio": 0.633241715,
+            "slice_c_bracket_widened": false,
+            "slice_c_dcrit_s": 0.04,
+            "slice_c_stable_delay_s": 0.03,
+            "slice_c_unstable_at_zero_delay": false,
+            "slice_c_unstable_delay_s": 0.04,
+            "thrust_to_weight": 2.71412844
+          },
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 3.70588235,
+              "low": -0.294117647
+            },
+            "power_ratio": {
+              "high": -0.7875,
+              "low": 0.416666667
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "parameter": "airframe.mass_kg",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0583005244,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": -0.169648592,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": -0.169648258,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.185296587,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.185296587,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": -0.25,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": -0.107142857,
+              "low": 0.0
+            }
+          }
+        },
+        {
+          "parameter": "airframe.inertia_kg_m2",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": -0.25,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        {
+          "parameter": "airframe.arm_length_m",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        {
+          "parameter": "rotor.thrust_coefficient_n_s2",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": -0.114385114,
+              "low": 0.135923668
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.435431385,
+              "low": -0.356262042
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.435430177,
+              "low": -0.356261456
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": -0.114385114,
+              "low": 0.135923668
+            },
+            "power_ratio": {
+              "high": 0.129158979,
+              "low": -0.119659157
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": -0.25
+            },
+            "thrust_to_weight": {
+              "high": 0.275,
+              "low": -0.225
+            }
+          }
+        },
+        {
+          "parameter": "rotor.torque_to_thrust_m",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 3.70588235,
+              "low": -0.294117647
+            },
+            "power_ratio": {
+              "high": -0.7875,
+              "low": 0.416666667
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        {
+          "parameter": "rotor.max_speed_rad_s",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.461529532,
+              "low": -0.338127929
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.461528238,
+              "low": -0.338127361
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": -0.25
+            },
+            "thrust_to_weight": {
+              "high": 0.291482483,
+              "low": -0.213547263
+            }
+          }
+        },
+        {
+          "parameter": "rotor.motor_time_constant_s",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": -1.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": -0.84023983,
+              "low": 0.240982911
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.00736054536,
+              "low": -0.00162638324
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": -1.36115693e-05,
+              "low": 4.77328771e-06
+            },
+            "p_ideal_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": -1.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        },
+        {
+          "parameter": "rotor.prop_radius_m",
+          "relative": {
+            "arm_b_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_whole_state_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hand_xy_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "hover_speed_rad_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_hand_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "max_climb_sim_mps2": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "p_ideal_w": {
+              "high": -0.0322580645,
+              "low": 0.0
+            },
+            "p_mech_w": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "power_ratio": {
+              "high": -0.0322580645,
+              "low": 0.0
+            },
+            "slice_c_dcrit_s": {
+              "high": 0.0,
+              "low": 0.0
+            },
+            "thrust_to_weight": {
+              "high": 0.0,
+              "low": 0.0
+            }
+          }
+        }
+      ],
+      "ranking": {
+        "arm_b_dcrit_s": [
+          {
+            "matters": true,
+            "max_abs_relative": 1.0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "hand_whole_state_dcrit_s": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.84023983,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "hand_xy_dcrit_s": [
+          {
+            "matters": false,
+            "max_abs_relative": 0.00736054536,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "hover_speed_rad_s": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.135923668,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.0583005244,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "max_climb_hand_mps2": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.461529532,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.435431385,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.169648592,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "max_climb_sim_mps2": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.461528238,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.435430177,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.169648258,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 1.36115693e-05,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "p_ideal_w": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.185296587,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0.0322580645,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "p_mech_w": [
+          {
+            "matters": true,
+            "max_abs_relative": 3.70588235,
+            "parameter": "rotor.torque_to_thrust_m"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.185296587,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.135923668,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          }
+        ],
+        "power_ratio": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.7875,
+            "parameter": "rotor.torque_to_thrust_m"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.129158979,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0.0322580645,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          }
+        ],
+        "slice_c_dcrit_s": [
+          {
+            "matters": true,
+            "max_abs_relative": 1.0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.25,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.25,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.25,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.25,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ],
+        "thrust_to_weight": [
+          {
+            "matters": true,
+            "max_abs_relative": 0.291482483,
+            "parameter": "rotor.max_speed_rad_s"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.275,
+            "parameter": "rotor.thrust_coefficient_n_s2"
+          },
+          {
+            "matters": true,
+            "max_abs_relative": 0.107142857,
+            "parameter": "airframe.mass_kg"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.arm_length_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "airframe.inertia_kg_m2"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.motor_time_constant_s"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.prop_radius_m"
+          },
+          {
+            "matters": false,
+            "max_abs_relative": 0,
+            "parameter": "rotor.torque_to_thrust_m"
+          }
+        ]
+      }
+    }
+  },
+  "schema": "zephyr-a5-profile-sensitivity-1",
+  "threshold_relative": 0.05
+}
