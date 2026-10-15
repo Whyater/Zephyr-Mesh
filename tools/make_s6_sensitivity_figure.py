@@ -69,6 +69,7 @@ INPUT_LABELS = {
     "tuning_error": "Tracker noise setting",
 }
 DPI = 200
+FAIL_P95_M = 0.25  # failure line on the p95 error (m)
 
 
 class FigureError(Exception):
@@ -318,8 +319,8 @@ def build_morris_figure(run: dict, pal: dict, colors: dict):
                 if p["x"] == 0.0 and p["y"] == 0.0:
                     p["label"] += " (no effect)"
             data[(cls, arm)] = pts
-    fig = plt.figure(figsize=(10.5, 10.6), dpi=DPI)
-    gs = fig.add_gridspec(2, 2, left=0.085, right=0.975, top=0.835, bottom=0.145,
+    fig = plt.figure(figsize=(10.5, 11.0), dpi=DPI)
+    gs = fig.add_gridspec(2, 2, left=0.085, right=0.975, top=0.84, bottom=0.175,
                           wspace=0.16, hspace=0.24)
     for r, (cls, _case) in enumerate(CLASSES):
         # One scale per row so both trackers can be compared; square axes so the
@@ -347,6 +348,8 @@ def build_morris_figure(run: dict, pal: dict, colors: dict):
              fontsize=9, color=pal["textSecondary"], ha="left", va="top", linespacing=1.35)
     seeds = n_seeds(run)
     traj = morris["design"]["r"]
+    turn_resp = [v for row in morris["classes"]["turn"]["responses"]["recovery"] for v in row]
+    over = sum(1 for v in turn_resp if v > FAIL_P95_M)
     fig.text(
         0.085, 0.025,
         "Simulated link and sensor, "
@@ -356,7 +359,11 @@ def build_morris_figure(run: dict, pal: dict, colors: dict):
         "error into shares.\n"
         "The ranking depends on the input ranges chosen (a wider range makes an input look more "
         "important).\n"
-        "The turn rate cannot change a straight line, so its point at zero is a built-in check.",
+        "The turn rate cannot change a straight line, so its point at zero is a built-in check.\n"
+        f"Turning target: {over} of {len(turn_resp)} recovery design points are past the 25 cm line, so μ* there "
+        "partly ranks how badly the tracker breaks.\n"
+        "Burst length is counted in packets, so a faster sensor also shortens each lost burst in time: sensor rate "
+        "and turn rate tie for first for the recovery tracker.",
         fontsize=8, color=pal["textSecondary"], ha="left", va="bottom", linespacing=1.4)
     return fig
 

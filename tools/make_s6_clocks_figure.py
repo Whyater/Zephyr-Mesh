@@ -139,9 +139,10 @@ def ms(value_s: float) -> float:
     return round(value_s * 1000.0, 6)
 
 
-def footnote(n_seeds: int, failure_shown: bool, extra: str = "") -> str:
-    text = (f"Simulated link and sensor, {n_seeds} seeds per cell, median p95 with 95 % "
-            "interval.")
+def footnote(n_seeds: int, failure_shown: bool, extra: str = "",
+             statistic: str = "median p95 with 95 % interval") -> str:
+    text = (f"Simulated link and sensor, 5 cm sensor noise, target at 1 m/s, {n_seeds} seeds "
+            f"per cell, {statistic}.")
     if extra:
         text += " " + extra
     if failure_shown:
@@ -526,7 +527,7 @@ def make_sync_figure(doc, u_cells, n_cells, per_seed, noise, pal, path):
              fontsize=9, color=pal["textSecondary"], ha="left", va="top", linespacing=1.35)
     sync_legends(fig, pal, colors, asyms, syncloss, ref_shown=True, y=1.6 / height)
     fig.text(0.12, 0.28 / height, footnote(
-        n_seeds, False, "Points are the median of paired per-seed differences."),
+        n_seeds, False, statistic="median of the paired per-seed p95 differences with 95 % interval"),
         fontsize=8, color=pal["textSecondary"], ha="left", va="bottom", linespacing=1.4)
     save(fig, path)
 
