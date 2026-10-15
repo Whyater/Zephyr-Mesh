@@ -91,5 +91,12 @@
       "per_run.csv": "5949fd0e864fa501d52cd9ffddb5f54288b6d7f62e98ab532df427d237cc45f8",
       "summary.json": "4544173d3d292f5e86c9f7089cb25cbe318244804519fb27e4ed6f49f3c44056"
     }
+  },
+  {
+    "run_dir": "runs/a6-long-check",
+    "command": "PYTHONPATH=. {python} tools/a_make_dcrit_long_check.py --output-dir {out}",
+    "outputs": {
+      "long_check.json": "ec1c70c3ea9b5256527cef253ced4ee4ea11173cd48c64244584e718125fad36"
+    }
   }
 ]
