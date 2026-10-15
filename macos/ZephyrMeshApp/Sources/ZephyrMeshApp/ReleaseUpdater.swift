@@ -96,7 +96,7 @@ enum ReleaseUpdaterError: Error, LocalizedError {
 enum ReleaseUpdater {
     static let repository = "Whyater/Zephyr-Mesh"
     static let currentVersion: String = {
-        (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "0.2.3-dev"
+        (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "0.2.4-dev"
     }()
 
     static func launchTarget(for bundle: URL) -> URL { bundle }

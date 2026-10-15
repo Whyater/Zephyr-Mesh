@@ -67,7 +67,7 @@ Set up once with the steps in [INSTALL.md](INSTALL.md#run-from-source), then run
 
 ## Download
 
-Get [Zephyr Mesh v0.2.3](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.3) for macOS 14 or newer (Apple Silicon and Intel) or Windows x86_64.
+Get [Zephyr Mesh v0.2.4](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.4) for macOS 14 or newer (Apple Silicon and Intel) or Windows x86_64.
 
 The builds are unsigned or only ad hoc signed, so expect a one-time security prompt the first time you open them.
 

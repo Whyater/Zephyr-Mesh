@@ -4,12 +4,12 @@ Downloads, local builds and running the simulator from source. The short version
 
 ## macOS
 
-The native app requires macOS 14 or newer. Download the architecture that matches your Mac from [Zephyr Mesh v0.2.3](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.3):
+The native app requires macOS 14 or newer. Download the architecture that matches your Mac from [Zephyr Mesh v0.2.4](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.4):
 
-- [Apple Silicon](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.3/ZephyrMesh-macos-arm64-v0.2.3.zip)
-- [Intel](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.3/ZephyrMesh-macos-x86_64-v0.2.3.zip)
+- [Apple Silicon](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.4/ZephyrMesh-macos-arm64-v0.2.4.zip)
+- [Intel](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.4/ZephyrMesh-macos-x86_64-v0.2.4.zip)
 
-If you downloaded v0.2.2: that Mac build crashes at launch on any Mac other than the one that built it, because it cannot find its bundled replay file. v0.2.3 includes the fix.
+If you downloaded v0.2.2: that Mac build crashes at launch on any Mac other than the one that built it, because it cannot find its bundled replay file. v0.2.4 includes the fix.
 
 Unzip the download and open `ZephyrMesh.app`. SHA-256 sidecars are attached to the release. The package is ad hoc signed and may require a one-time confirmation in macOS Privacy & Security. To build the local bundle instead, install the Xcode Command Line Tools and run:
 
@@ -25,9 +25,9 @@ The app does not require a server or network connection to show the bundled repl
 
 ## Windows
 
-Download the [Windows x86_64 package](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.3/ZephyrMesh-windows-x86_64-v0.2.3.zip) from [Zephyr Mesh v0.2.3](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.3). Extract the complete ZIP before opening `ZephyrMeshWindows\ZephyrMeshWindows.exe`; keep the `_internal` folder beside it. The release also provides a separate .zip.sha256 asset for verification.
+Download the [Windows x86_64 package](https://github.com/Whyater/Zephyr-Mesh/releases/download/v0.2.4/ZephyrMesh-windows-x86_64-v0.2.4.zip) from [Zephyr Mesh v0.2.4](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.2.4). Extract the complete ZIP before opening `ZephyrMeshWindows\ZephyrMeshWindows.exe`; keep the `_internal` folder beside it. The release also provides a separate .zip.sha256 asset for verification.
 
-The Windows download is unsigned, so Windows SmartScreen may show a warning the first time you run it. Release v0.2.3 adds Windows startup diagnostics (`startup.log` and `README-Windows.txt`) to help with startup failures. Startup problems have not been reproduced on a Windows machine or confirmed fixed.
+The Windows download is unsigned, so Windows SmartScreen may show a warning the first time you run it. Release v0.2.4 adds Windows startup diagnostics (`startup.log` and `README-Windows.txt`) to help with startup failures. Startup problems have not been reproduced on a Windows machine or confirmed fixed.
 
 To build locally, install Python 3.11 or newer, open PowerShell at the repository root, and run:
 
@@ -68,4 +68,4 @@ from the File menu. Reports are read-only. Their declared status and
 limitations stay attached to the source summary. A digest identifies the
 input file without establishing flight performance.
 
-The scenario-run CLI and strict scenario inspectors described above are built into v0.2.3 but have not yet been checked on separate target machines.
+The scenario-run CLI and strict scenario inspectors described above are built into v0.2.4 but have not yet been checked on separate target machines.

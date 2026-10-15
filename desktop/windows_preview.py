@@ -81,7 +81,7 @@ def _runtime_version() -> str:
         checkout = (RESOURCE_ROOT / "VERSION").read_text(encoding="utf-8").strip().removeprefix("v")
     except OSError:
         checkout = ""
-    return f"{checkout}-dev" if checkout else "0.2.3-dev"
+    return f"{checkout}-dev" if checkout else "0.2.4-dev"
 
 
 CURRENT_VERSION = _runtime_version()
