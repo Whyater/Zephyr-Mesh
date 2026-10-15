@@ -88,5 +88,16 @@
       "per_seed.csv": "e290967e2583f8152175ae100cb609e546533d45e0e100d87d8e1082f5151b03",
       "summary.json": "ebe6a796f95cb7dd23fd5da2de2487ceb91925e5a751aee774d88a86d7775741"
     }
+  },
+  {
+    "run_dir": "runs/c-exp018-recovery-r2",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp018_recovery.py --output {out}",
+    "outputs": {
+      "exp018_coverage.png": "0b46b9058c99acbb9021e2642ff5f8e9dba2f9ea773a1df803435764c0f1987b",
+      "exp018_design.png": "e0bbd6f291fbedb880b801f647293fac163f3d01aeca1ebe7719d7429615359d",
+      "recovery.csv": "808b1b86a40bfcb7bf4a600bfa7f676b2e01a1fd1a3aaf76aaea9a933e44382e",
+      "summary.json": "4101d96b067b75bec9bf9f84b71b9740be079f67a27ee277374c25cb45cb112a",
+      "sweeps.csv": "9e7e1911c4474841f9ff6c15c67ede1eab655c1a46b37ccab0510893a3d2214e"
+    }
   }
 ]
