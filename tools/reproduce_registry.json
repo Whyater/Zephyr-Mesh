@@ -64,5 +64,13 @@
     "outputs": {
       "model_checks.json": "89383eb87cc9503204953bdfcccec70faaf62622a75e28c0c46e7c6c3b7c2526"
     }
+  },
+  {
+    "run_dir": "runs/a4-vehicle-chain",
+    "command": "PYTHONPATH=. {python} tools/a_make_vehicle_chain_report.py --output-dir {out}",
+    "outputs": {
+      "a4_vehicle_chain.png": "139104752678bdd566c98d45e14a2c126a6e0fdf7b0d897e4d2f6fc707d2f0ef",
+      "report.json": "f850c4c546fb828247f76bbe15d593b0fdacb298162dbcbae85378f8ab5d3d89"
+    }
   }
 ]
