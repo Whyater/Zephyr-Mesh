@@ -127,10 +127,28 @@ def encoding_of(params: dict) -> str:
     return "i16" if abs(step - 0.001) < 1e-9 else "i16_coarse"
 
 
-def point_label(params: dict) -> str:
+def point_label(params: dict, budget: dict | None = None) -> str:
+    """Periodic points show the rate actually sent, which can differ from the setting
+    (every round(sensor rate / setting)-th sample is sent)."""
     if params["kind"] == "periodic":
+        if budget and "packets_per_second_median" in budget:
+            return f"{round(budget['packets_per_second_median']):g} Hz"
         return f"{params['rate_hz']:g} Hz"
     return f"{params['delta_m'] * 100:g} cm"
+
+
+def rate_mismatches(doc) -> list:
+    """(setting, rate sent) for periodic settings whose sent rate rounds to another value."""
+    seen = {}
+    for cell in doc["cells"]:
+        params = (cell.get("cell") or {}).get("sender") or {}
+        budget = cell.get("budget") or {}
+        if params.get("kind") == "periodic" and "packets_per_second_median" in budget:
+            sent = round(budget["packets_per_second_median"])
+            if sent != params["rate_hz"]:
+                sensor = cell["cell"]["rate_hz"]
+                seen[params["rate_hz"]] = (sent, round(sensor / params["rate_hz"]), sensor)
+    return sorted(seen.items())
 
 
 def select_points(doc: dict) -> dict:
@@ -205,7 +223,7 @@ def draw_panel(ax, pts, xkey, pal, color, label_events):
         ax.plot([x], [y], linestyle="none", marker=marker, markersize=FAMILY_SIZE[fam],
                 markerfacecolor=face, markeredgecolor=edge, markeredgewidth=width if marker != "x" else 1.2,
                 zorder=4)
-    wants = [{"text": point_label(p["params"]), "x": p["budget"][xkey], "y": p["med"] * 100,
+    wants = [{"text": point_label(p["params"], p["budget"]), "x": p["budget"][xkey], "y": p["med"] * 100,
               "kind": "periodic"} for p in periodic]
     if label_events:
         events = sorted((p for p in pts if p["family"] == "event" and p["encoding"] == "f32"),
@@ -486,6 +504,9 @@ def footnote_text(doc, n_seeds, mode):
         f"{fmt_g(MAIN_DELAY_S * 1000)} ms one-way delay, {fmt_g(MAIN_NOISE_M * 100)} cm noise.",
         "A cell fails when at least 50 % of seeds fail (rule proposed, not yet adopted).",
     ]
+    for setting, (sent, stride, sensor) in rate_mismatches(doc):
+        lines.append(f"The {fmt_g(setting)} Hz periodic setting sends one in every {stride} of the {fmt_g(sensor)} Hz "
+                     f"samples, so its point is labelled with the {fmt_g(sent)} Hz actually sent.")
     if mode == "bytes":
         lines.append(overhead_note(doc))
     return "\n".join(lines)
