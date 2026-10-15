@@ -19,6 +19,26 @@ PYTHONPATH=. python tools/run_s6_recovery.py --output runs/s6-recovery --overwri
 PYTHONPATH=. python tools/make_s6_figure.py runs/s6-recovery/summary.json --output-dir runs/s6-recovery
 ```
 
+### What else helps a delayed tracker
+
+![Map of which tracker tolerates the most link delay, for nine target paths (straight lines, circles, a jinking path, a figure eight, start and stop) under random and bursty packet loss. Most cells are ties, and with 30 to 50 % bursty loss on the hardest paths no tracker passes even at zero delay](runs/s6-atlas/atlas_which_method.png)
+
+In simulation, each idea below was tried against the capture-time tracker above, with the same 0.25 m p95 research line. In the map, a cell fails when at least half its seeds fail; that rule is proposed, not yet adopted.
+
+- Late packets: putting out-of-order packets back into the filter gains under 1 cm (paired median, at most 0.94 cm), so dropping them costs very little.
+- Turns: on a 1 m radius turn at 300 ms delay and 30 % loss, a turn-rate model stays under the line (0.20 m) where the straight-line recovery tracker fails (0.40 m). The price is 1 to 2 cm on straight lines, and no single turn-aware tracker is best on every path.
+- Tuning check: a consistency check on the filter (NIS) flags a wrongly guessed sensor noise without knowing the truth, but it cannot see pure link delay.
+- Clock sync: a simple sync exchange every 0.1 to 1 s keeps the extra error within 1 cm of perfect clocks. It only misses with a 10 s interval and half the sync messages lost.
+- Sending fewer packets: at the same packet rate, sending only when the target has moved beats periodic sending on a turn (10 to 15 % lower p95 with no loss) but not on a straight line with 30 % loss (2 to 6 % worse). Positions as 16-bit numbers at 1 mm cost nothing measurable and save about 10 % of the bytes on air.
+- The map: most cells are ties between trackers (39 of the 55 cells where any tracker passes). In 8 of 63 cells nothing works even at zero delay, all with 30 to 50 % bursty loss.
+
+Limits: simulated link and sensor, not measured; the map uses 20 seeds per cell and 5 cm noise at 10 Hz; the clock test uses one 100 ms link; the packet size on air comes from the literature, not from a measurement.
+
+```bash
+PYTHONPATH=. python tools/run_s6_atlas.py --output /tmp/s6-atlas --seeds 20 --imm-strata central,student_t,jitter --speed-variants-central-only --no-checkpoint
+PYTHONPATH=. python tools/make_s6_atlas_figure.py /tmp/s6-atlas
+```
+
 ## Download
 
 ### macOS
