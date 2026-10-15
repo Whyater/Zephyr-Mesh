@@ -223,10 +223,11 @@ def _write_plot(output: Path, summaries: list[dict], dcrit: dict) -> None:
     profile_styles = {profile: style for profile, style in zip(
         sorted({r["profile_id"] for r in summaries}), ("-", "--")
     )}
-    loss_palette = horizon_mpl.ramp(
-        [colors["textSecondary"], colors["accent"], colors["keepOut"]], 4
-    )
-    loss_colors = dict(zip((0.0, 0.1, 0.3, 0.5), loss_palette))
+    # Four non-status tokens that are easy to tell apart, plus a marker per loss
+    # level. Red is kept for the d_crit lines only.
+    loss_colors = {0.0: colors["text"], 0.1: colors["accent"], 0.3: colors["keepOut"], 0.5: colors["lineStrong"]}
+    loss_markers = {0.0: "o", 0.1: "s", 0.3: "^", 0.5: "D"}
+    hand_color = colors["textSecondary"]
     fig, axes = plt.subplots(1, 2, figsize=(10, 4))
     profiles = sorted(profile_styles)
 
@@ -244,13 +245,14 @@ def _write_plot(output: Path, summaries: list[dict], dcrit: dict) -> None:
             x = np.asarray([r["delay_s"] * 1000 for r in points], dtype=float)
             y = np.asarray([r["median_rms_error_m"] for r in points], dtype=float)
             color = loss_colors[loss]
-            line = left.plot(x, y, linestyle=style, color=color, label=f"{profile} p={loss:g}")[0]
+            line = left.plot(x, y, linestyle=style, color=color, marker=loss_markers[loss], markersize=3,
+                             label=f"{profile} p={loss:g}")[0]
             low = np.asarray([r["median_interval_m"][0] for r in points], dtype=float)
             high = np.asarray([r["median_interval_m"][1] for r in points], dtype=float)
             if np.all(np.isfinite(low)) and np.all(np.isfinite(high)):
                 left.fill_between(x, low, high, color=line.get_color(), alpha=0.14)
     hand_x = np.linspace(0.0, 500.0, 100)
-    left.plot(hand_x, 0.5 * (0.75 + hand_x / 1000.0), ":", color=colors.get("textSecondary", "#607D8B"),
+    left.plot(hand_x, 0.5 * (0.75 + hand_x / 1000.0), ":", color=hand_color,
               label="hand: 0.5(0.75+d)")
     left.set_title("arm a ramp simulated")
     left.set_xlabel("delay (ms)")
@@ -270,7 +272,7 @@ def _write_plot(output: Path, summaries: list[dict], dcrit: dict) -> None:
                 continue
             x = np.asarray([r["delay_s"] * 1000 for r in points], dtype=float)
             y = np.asarray([r["unstable_rate"] for r in points], dtype=float)
-            right.plot(x, y, linestyle=style, color=loss_colors[loss], marker="o", markersize=2.5,
+            right.plot(x, y, linestyle=style, color=loss_colors[loss], marker=loss_markers[loss], markersize=3,
                        label=f"{profile} p={loss:g}")
         entry = dcrit.get("profiles", {}).get(profile, {})
         marker = entry.get("arm_b", {}).get("p0", {}).get("d_crit_s")
@@ -279,7 +281,7 @@ def _write_plot(output: Path, summaries: list[dict], dcrit: dict) -> None:
             right.axvline(float(marker) * 1000, color=colors.get("alert", "#C62828"), linewidth=1.2,
                           label=f"{profile} sim d_crit")
         if hand is not None:
-            right.axvline(float(hand) * 1000, color=colors.get("textSecondary", "#607D8B"), linestyle="--",
+            right.axvline(float(hand) * 1000, color=hand_color, linestyle=":",
                           linewidth=1.0, label=f"{profile} hand")
     right.set_title("arm b step simulated")
     right.set_xlabel("delay (ms)")
@@ -359,7 +361,7 @@ def run_sweep(output: str | Path, pilot: bool = False, workers: int | None = Non
         )
     keys = ("profile_id", "reference", "arm", "delay_s", "loss_probability", "seed")
     rows.sort(key=lambda r: tuple(r[k] for k in keys))
-    fields = ["profile_id", "profile", "reference", "arm", "delay_s", "effective_delay_s", "loss_probability", "seed", "rms_error_m", "max_error_m", "unstable", "unstable_reason", "unstable_time_s"]
+    fields = ["profile_id", "profile", "reference", "arm", "delay_s", "effective_delay_s", "loss_probability", "seed", "rms_error_m", "max_error_m", "whole_run_max_error_m", "whole_run_max_tilt_deg", "whole_run_min_z_m", "unstable", "unstable_reason", "unstable_time_s"]
     with (output / "per_run.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore", lineterminator="\n")
         writer.writeheader()
