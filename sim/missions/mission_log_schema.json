@@ -33,12 +33,12 @@
     "mission": {
       "type": "string",
       "enum": [
+        "hover",
         "tag",
         "sweep",
         "relay",
         "monitor",
-        "formation",
-        "failsafe"
+        "formation"
       ]
     },
     "scenario": {
@@ -69,61 +69,55 @@
     "policy": {
       "type": "object",
       "additionalProperties": false,
+      "required": [
+        "degraded_action",
+        "degraded_after_s",
+        "land_after_s",
+        "loss_window_packets",
+        "low_battery_pct",
+        "slow_speed_mps",
+        "weak_loss_fraction",
+        "weak_rule"
+      ],
       "properties": {
-        "weak_rule": {
-          "type": [
-            "number",
-            "string",
-            "boolean",
-            "null"
-          ]
-        },
-        "loss_window_packets": {
-          "type": [
-            "number",
-            "string",
-            "boolean",
-            "null"
-          ]
-        },
-        "weak_loss_fraction": {
-          "type": [
-            "number",
-            "string",
-            "boolean",
-            "null"
-          ]
-        },
         "degraded_action": {
-          "type": [
-            "number",
-            "string",
-            "boolean",
-            "null"
-          ]
-        },
-        "slow_speed_mps": {
-          "type": [
-            "number",
-            "string",
-            "boolean",
-            "null"
+          "type": "string",
+          "enum": [
+            "hold",
+            "slow"
           ]
         },
         "degraded_after_s": {
-          "type": [
-            "number",
-            "string",
-            "boolean",
-            "null"
-          ]
+          "type": "number",
+          "minimum": 0
         },
         "land_after_s": {
-          "type": [
-            "number",
-            "string",
-            "boolean",
-            "null"
+          "type": "number",
+          "minimum": 0
+        },
+        "loss_window_packets": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "low_battery_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "slow_speed_mps": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "weak_loss_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "weak_rule": {
+          "type": "string",
+          "enum": [
+            "age",
+            "age_or_loss"
           ]
         }
       }
@@ -136,7 +130,7 @@
     },
     "dt_s": {
       "type": "number",
-      "minimum": 0
+      "exclusiveMinimum": 0
     },
     "log_every": {
       "type": "integer",
@@ -172,21 +166,7 @@
             "null"
           ],
           "items": {
-            "type": "array",
-            "prefixItems": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              }
-            ],
-            "items": false,
-            "minItems": 3,
-            "maxItems": 3
+            "$ref": "#/$defs/vec3_or_null"
           }
         },
         "agents": {
@@ -238,41 +218,13 @@
         "position_m": {
           "type": "array",
           "items": {
-            "type": "array",
-            "prefixItems": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              }
-            ],
-            "items": false,
-            "minItems": 3,
-            "maxItems": 3
+            "$ref": "#/$defs/vec3"
           }
         },
         "velocity_mps": {
           "type": "array",
           "items": {
-            "type": "array",
-            "prefixItems": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              }
-            ],
-            "items": false,
-            "minItems": 3,
-            "maxItems": 3
+            "$ref": "#/$defs/vec3"
           }
         },
         "failsafe_state": {
@@ -302,21 +254,7 @@
             "null"
           ],
           "items": {
-            "type": "array",
-            "prefixItems": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              }
-            ],
-            "items": false,
-            "minItems": 3,
-            "maxItems": 3
+            "$ref": "#/$defs/vec3_or_null"
           }
         },
         "estimate_age_s": {
@@ -408,6 +346,33 @@
           "minimum": 0
         }
       }
+    },
+    "vec3": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "vec3_or_null": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/vec3"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   }
 }
