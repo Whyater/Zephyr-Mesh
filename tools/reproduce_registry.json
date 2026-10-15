@@ -68,5 +68,26 @@
       "s6_sending_packets.png": "a5642ef1f4ca542c55b1da8965163d493f616b2d47caffaabdf0c113a34a5985",
       "summary.json": "392017cdfe809b54b758e0daa51388f8e76f9cdfda2d59d609a258a1071ef70c"
     }
+  },
+  {
+    "run_dir": "runs/s6-atlas",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_atlas.py --output {out} --seeds 20 --imm-strata central,student_t,jitter --speed-variants-central-only --no-checkpoint && PYTHONPATH=. ./.venv/bin/python tools/make_s6_atlas_figure.py {out}",
+    "outputs": {
+      "atlas.json": "8c2b7ed189fe7b432318b698f5e28771e71971fb35f818ef395355be8df2086b",
+      "atlas_overview.png": "4a9d6fc93fb31f8e51cdab74fc1311ffb83e52559271b522e261fdb6470a2db8",
+      "atlas_overview_jitter.png": "31258c4df1f4240e5c01f06e7dfef699cc4c665507eb68b2ce7b591167e057f4",
+      "atlas_overview_noise0.png": "ddf6fb1135c379034897c60f1b1f9c3e60debdaf422b4d554795a07151bb3a43",
+      "atlas_overview_noise10.png": "5d5a10d7e3213fdced1447462f6fdee05790411a1ed7ebeb9436f0c366b8ed5b",
+      "atlas_overview_noise2.png": "3a1879e0e93aecf79dca8592177d21bffaffcab9407fb4186a3f900768a7a0cc",
+      "atlas_overview_rate20.png": "d367fef2995bc263e2a9e5d2cb1df0ed79fb39639d3f1cbba85ed607195d47e4",
+      "atlas_overview_rate5.png": "12f7c1b88d83de5ca72deb84b96b64c9fa4e70a2b95b72c810294c778ef14f32",
+      "atlas_overview_rate50.png": "f048b7e5e93c0f4ac08293f1e50b462d391f50ded9122c97daceae94cd8fe8ca",
+      "atlas_overview_student_t.png": "2e450aa7441d979c3ab8bdff9c581b79bafff0cc05a7c08e5f4c9609e13b1993",
+      "atlas_which_method.png": "5a060da5bacd0a6765decc205e1e6c69801a5e4dbddd0c766e2a52118325fa68",
+      "cells.csv": "0e9174bef972d44ca25f04d335fa93519b387578a8dfdd0cda9276946933c1bf",
+      "counterfactuals.json": "cbc2a46a0f01beea7f9f1f5bf6c1a455a7cffcaa138f33d3edbecdb8013e2c58",
+      "per_seed.csv.gz": "51e673c09c35ec0e95b14ae83a2f467c9a1be5dea1a5175e936bf8216a9b9383",
+      "summary.json": "91898ff7f011256cb53c6b6c87e8386e08e25ac5b16c6d9be8be779205b34feb"
+    }
   }
 ]
