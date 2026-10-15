@@ -131,6 +131,11 @@ def run_consensus(
     positive delay, an arrival at step ``k`` is the message sent at
     ``k - delay_steps`` that was not lost. Symmetric loss drops both directed
     messages on an edge together; directed loss draws independently.
+
+    With ``delay_steps > 0`` an agent compares a delayed neighbor value with
+    its own current value, so the average is preserved only on regular graphs
+    (every agent has the same number of neighbors) with no loss. On other
+    graphs the agreed value drifts away from the starting average.
     """
     a = _graph_array(adjacency)
     x0 = np.asarray(initial, dtype=float)

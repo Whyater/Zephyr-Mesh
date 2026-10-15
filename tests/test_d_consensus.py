@@ -112,8 +112,18 @@ def test_weighted_matrix_power_and_negative_weights():
 def test_fresh_delay_semantics_and_steps_to_agreement():
     initial = np.array([[0.0], [1.0], [4.0], [2.0], [7.0], [3.0]])
     immediate = run_consensus(initial, ring(6), 0.2, 100)
+    # The ring is regular (every agent has two neighbors), which is why the average survives the delay below.
     delayed = run_consensus(initial, ring(6), 0.2, 100, delay_steps=2)
     assert steps_to_agreement(immediate, 1e-3) < steps_to_agreement(delayed, 1e-3)
     assert np.allclose(immediate.average, np.mean(initial, axis=0), atol=1e-12)
     assert np.allclose(delayed.average, np.mean(initial, axis=0), atol=1e-12)
     assert steps_to_agreement(immediate, 1.0) == 0
+
+
+def test_delay_breaks_average_on_irregular_graph():
+    # star(5) is not regular (the hub has four neighbors, the leaves one), so comparing delayed
+    # neighbor values with current own values moves the agreed value away from the start average.
+    initial = np.array([[0.0], [1.0], [4.0], [2.0], [7.0]])
+    a = star(5)
+    result = run_consensus(initial, a, 1.0 / (max_degree(a) + 1.0), 300, delay_steps=2)
+    assert abs(float(result.average[-1, 0]) - float(np.mean(initial))) > 1e-3

@@ -1,8 +1,8 @@
 """Cross-checks: each sim/coop module against a reference written separately from the math.
 
-The references in tests/reference_d/ were written without reading sim/coop/,
-so agreement here is evidence that both follow the math, not that one copies
-the other.
+The references in tests/reference_d/ were written from the math, separately
+from sim/coop/; later fixes to them were checked against hand cases. Agreement
+here is evidence that both follow the math, not that one copies the other.
 """
 import numpy as np
 import pytest
