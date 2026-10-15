@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import math
+import sys
 from pathlib import Path
 import types
 
@@ -548,8 +549,14 @@ def test_the_events_list_is_as_wide_as_its_longest_event(shown_app):
         assert tree.winfo_width() >= app._events_fixed + longest, "no event text is cut off (ttk must really resize)"
 
 
-def test_a_missing_run_file_is_one_plain_sentence(tmp_path, capsys):
+def test_a_missing_run_file_is_one_plain_sentence(tmp_path, capsys, monkeypatch):
     from desktop.windows_preview import main
+
+    if sys.platform.startswith("win"):
+        import ctypes
+
+        # The real message box is modal and would wait forever on a headless runner.
+        monkeypatch.setattr(ctypes.windll.user32, "MessageBoxW", lambda *args: 1)
 
     missing = tmp_path / "gone.json"
     assert main(["--run", str(missing)]) == 2

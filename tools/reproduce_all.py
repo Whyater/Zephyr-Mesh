@@ -114,6 +114,20 @@ def clear_directory(path: Path) -> None:
             child.unlink()
 
 
+def shell_command(command: str) -> list[str]:
+    """Run a registry command (POSIX shell syntax) with a POSIX shell on every OS.
+
+    cmd.exe cannot read ``VAR=value cmd`` or single quotes, so Windows uses the
+    bash that ships with Git for Windows.
+    """
+    if os.name != "nt":
+        return ["/bin/sh", "-c", command]
+    bash = shutil.which("bash")
+    if bash is None:
+        raise RuntimeError("reproduce_all.py needs bash on Windows (install Git for Windows)")
+    return [bash, "-c", command]
+
+
 def run_entry(
     entry: dict[str, Any], repo_root: Path, revision: str, source_dir: Path | None,
     python_executable: str, timeout: float, keep_temp: bool,
@@ -132,7 +146,7 @@ def run_entry(
         env["PYTHONPATH"] = str(clean)
         try:
             proc = subprocess.run(
-                command, shell=True, cwd=clean, env=env, text=True,
+                shell_command(command), cwd=clean, env=env, text=True,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout,
             )
         except subprocess.TimeoutExpired as exc:
