@@ -62,7 +62,7 @@ def generate(output_dir: Path, *, agent_count: int = 50, steps: int = 6, seed: i
     manifest["failsafe"] = "synthetic constraints only; live failsafe unavailable"
     run_text = json.dumps(run, indent=2) + "\n"
     manifest["evidence_boundary"] = f"{manifest['evidence_boundary']} {_known_limits(run, len(run_text.encode('utf-8')))}"
-    (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
     (output_dir / "run.json").write_text(run_text, encoding="utf-8", newline="\n")
 
 

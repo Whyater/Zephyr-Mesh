@@ -27,14 +27,14 @@ def same_array(actual, expected) -> bool:
 
 def same_tree(actual, expected) -> bool:
     """True when two JSON-like trees match, with the same float rule as same_array."""
-    if EXACT:
-        return actual == expected
+    if isinstance(actual, bool) or isinstance(expected, bool):
+        return type(actual) is type(expected) and actual == expected
     if isinstance(actual, dict) and isinstance(expected, dict):
         return actual.keys() == expected.keys() and all(same_tree(actual[k], expected[k]) for k in actual)
     if isinstance(actual, (list, tuple)) and isinstance(expected, (list, tuple)):
         return len(actual) == len(expected) and all(same_tree(a, b) for a, b in zip(actual, expected))
     if isinstance(actual, float) or isinstance(expected, float):
-        if isinstance(actual, bool) or isinstance(expected, bool):
+        if EXACT:
             return actual == expected
         return math.isclose(actual, expected, rel_tol=RTOL, abs_tol=ATOL)
-    return actual == expected
+    return type(actual) is type(expected) and actual == expected
