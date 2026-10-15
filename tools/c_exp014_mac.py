@@ -237,20 +237,24 @@ def _figure(cells, path1: Path, path2: Path, *, pilot: bool = False):
     import matplotlib.pyplot as plt
     from tools.horizon_mpl import apply_style
     colors = apply_style("light"); fig, axes = plt.subplots(1, 3, figsize=(12, 3.8), sharey=True)
-    palette = [colors["accent"], colors["ok"], colors["target"], colors["info"]]
+    # One distinct colour, marker and line style per mode: unicast r5 and r10 can give
+    # identical data, so the dashed r10 line must stay visible on top of r5.
+    palette = [colors["accent"], colors["ok"], colors["keepOut"], colors["target"]]
+    styles = [dict(marker="o", ls="-"), dict(marker="s", ls="-"), dict(marker="^", ls="--", mfc="none", ms=9, zorder=3),
+              dict(marker="D", ls="-")]
     for ax, rate in zip(axes, RATES_HZ):
-        for mode, color in zip(MODES, palette):
+        for mode, color, style in zip(MODES, palette, styles):
             cc = [c for c in cells if c["rate_hz"] == rate and c["mode"] == mode and c["payload_bytes"] == 32]
-            ax.plot([c["n"] for c in cc], [c["delivery_pooled"] for c in cc], marker="o", color=color, label=mode)
+            ax.plot([c["n"] for c in cc], [c["delivery_pooled"] for c in cc], color=color, label=mode, **style)
             ax.fill_between([c["n"] for c in cc], [c["delivery_wilson_low"] for c in cc], [c["delivery_wilson_high"] for c in cc], color=color, alpha=.12)
         ax.axhline(.95, color=colors["caution"], ls="--", lw=1); ax.set_title(f"{rate} Hz"); ax.set_xlabel("drones N")
     axes[0].set_ylabel("pooled delivery ratio at gs (simulated)"); axes[-1].legend(fontsize=7, frameon=False)
     fig.tight_layout(); fig.savefig(path1, dpi=150, metadata={"Software": None}); plt.close(fig)
     fig, axes = plt.subplots(1, 3, figsize=(12, 3.8), sharey=True)
     for ax, rate in zip(axes, RATES_HZ):
-        for mode, color in zip(MODES, palette):
+        for mode, color, style in zip(MODES, palette, styles):
             cc = [c for c in cells if c["rate_hz"] == rate and c["mode"] == mode and c["payload_bytes"] == 32 and c["latency_p95_median_s"] is not None]
-            ax.plot([c["n"] for c in cc], [c["latency_p95_median_s"] for c in cc], marker="o", color=color, label=mode)
+            ax.plot([c["n"] for c in cc], [c["latency_p95_median_s"] for c in cc], color=color, label=mode, **style)
         ax.set_yscale("log"); ax.set_title(f"{rate} Hz"); ax.set_xlabel("drones N")
     axes[0].set_ylabel("median p95 latency (s, log scale)"); axes[-1].legend(fontsize=7, frameon=False)
     fig.tight_layout(); fig.savefig(path2, dpi=150, metadata={"Software": None}); plt.close(fig)
@@ -289,7 +293,8 @@ def run(output: Path, argv: list[str], *, pilot=False, processes=None, n_seeds: 
     runtime = time.perf_counter() - start
     print(f"runtime {runtime:.1f} s for {len(cells)} runs on {proc} processes")
     return write_manifest(output, schema="zephyr-run-c-manifest-1", argv=list(argv),
-                          command="PYTHONPATH=. ./.venv/bin/python tools/c_exp014_mac.py --output {out}", config=config,
+                          command="PYTHONPATH=. ./.venv/bin/python tools/c_exp014_mac.py --output {out}"
+                          + (f" --seeds {len(seeds)}" if not pilot and len(seeds) != 50 else ""), config=config,
                           seeds=seeds, outputs=["summary.json", "per_seed.csv", "cells.csv", "exp014_delivery.png", "exp014_latency.png"],
                           limits=["Gym preset only: distance loss is about zero, so losses here are contention.",
                                   "Fixed positions per seed, no motion; periodic senders with random phase, no jitter."],
