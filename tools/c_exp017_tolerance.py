@@ -160,11 +160,15 @@ def run_one(job: tuple[dict, int]) -> list[dict]:
     """One radio run, then both motions and both arms on its deliveries."""
     cell, seed = job
     config = s6_recovery.RecoveryConfig()
-    events, model = radio_events(scenario_config(cell, seed), seed=seed, config=config)
+    radio_cfg = scenario_config(cell, seed)
+    events, model = radio_events(radio_cfg, seed=seed, config=config)
     sent = len(events)
     received = [e for e in events if e.outcome == "received"]
+    received_in_run = [e for e in received
+                       if e.receive_time <= config.duration_s + s6_recovery.TIME_TOLERANCE_S]
     lat = np.array([e.receive_time - e.send_time for e in received])
-    radio = {"sent": sent, "received": len(received),
+    radio = {"sent": sent, "received": len(received), "received_in_run": len(received_in_run),
+             "background_senders": len(radio_cfg.radio.background),
              "latency_median_s": float(np.median(lat)) if lat.size else None,
              "latency_p95_s": float(np.percentile(lat, 95)) if lat.size else None,
              "duplicates_suppressed": int(model.duplicates_suppressed)}
@@ -215,14 +219,17 @@ def summarize(cells: list[dict], rows: list[dict], exp006: dict) -> list[dict]:
         per_seed = {r["seed"]: r for r in rs}
         sent = sum(r["sent"] for r in per_seed.values())
         received = sum(r["received"] for r in per_seed.values())
+        received_in_run = sum(r["received_in_run"] for r in per_seed.values())
         dlo, dhi = s6_recovery.wilson_interval(received, sent)
         meds = [r["latency_median_s"] for r in per_seed.values() if r["latency_median_s"] is not None]
         p95s = [r["latency_p95_s"] for r in per_seed.values() if r["latency_p95_s"] is not None]
         delivery = received / sent if sent else None
+        delivery_in_run = received_in_run / sent if sent else None
         latency = float(np.median(meds)) if meds else None
         base = {**{k: cell[k] for k in ("cell", "scenario", "area", "distance_m", "n", "rate_hz", "mode",
                                        "processing_s", "shadowing")},
-                "n_seeds": len(per_seed), "delivery_pooled": delivery, "delivery_wilson_low": dlo,
+                "n_seeds": len(per_seed), "delivery_pooled": delivery,
+                "delivery_in_run_pooled": delivery_in_run, "delivery_wilson_low": dlo,
                 "delivery_wilson_high": dhi, "latency_median_s": latency,
                 "latency_p95_median_s": float(np.median(p95s)) if p95s else None,
                 "seeds_with_no_delivery": sum(1 for r in per_seed.values() if r["received"] == 0),
@@ -237,7 +244,7 @@ def summarize(cells: list[dict], rows: list[dict], exp006: dict) -> list[dict]:
                 base[f"{key}_fail_fraction"] = fails / len(sub)
                 base[f"{key}_fail_wilson_low"] = flo
                 base[f"{key}_fail_wilson_high"] = fhi
-                base[f"{key}_cell_failed"] = bool(2 * fails >= len(sub))  # EXP-006 cell rule (D-074, Proposed)
+                base[f"{key}_cell_failed"] = bool(2 * fails >= len(sub))  # EXP-006 cell rule, still a proposal
                 base[f"{key}_p95_median_m"] = med
                 base[f"{key}_p95_interval_low_m"] = plo
                 base[f"{key}_p95_interval_high_m"] = phi
@@ -394,8 +401,9 @@ def run(output: Path, argv: list[str], *, pilot: bool = False, processes: int | 
                "headline": headline(summary_cells), "cells": summary_cells,
                "exp006_summary_sha256": sha256_file(exp006_path),
                "rules": {"seed_fails": "p95 error > 0.25 m or max error > 0.50 m after 2 s burn-in (EXP-006)",
-                         "cell_fails": "at least 50 % of seeds fail (D-074, still Proposed)",
+                         "cell_fails": "at least 50 % of seeds fail (the EXP-006 cell rule, still a proposal)",
                          "delivery": "received over sent, all 121 tracker packets, any arrival time",
+                         "delivery_in_run": "received at or before the end of the 12 s run, over sent; the tracker only sees these",
                          "mapping": "nearest EXP-006 main-slice cell (independent loss, noise 0.05 m) by grid value"}}
     write_json(output / "summary.json", summary)
     make_figures(summary_cells, exp006, output)
@@ -414,7 +422,7 @@ def run(output: Path, argv: list[str], *, pilot: bool = False, processes: int | 
                 "Static shadowing (one draw per node pair per seed) is an addition to the pre-registered design.",
                 "Scenario A holds the radio distance fixed while the tracked motion stays near the origin.",
                 "Gym contention uses periodic background senders with random phase; no hidden terminals in the gym.",
-                "The EXP-006 cell rule (50 % of seeds) is still a Proposed decision (D-074)."],
+                "The EXP-006 cell rule (50 % of seeds) is still a proposal, not an adopted rule."],
         runtime_s=runtime, n_processes=proc,
         hashed_sources=["sim/s6_recovery.py", "sim/tracker.py", "sim/sensor.py", "sim/link.py", "sim/radio/channel.py",
                         "sim/radio/mac.py", "sim/radio/model.py", "sim/radio/params.py", "sim/radio/seq.py",
