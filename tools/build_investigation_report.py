@@ -24,7 +24,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="regenerate the default sweep JSON at PATH and exit")
     args = parser.parse_args(argv)
     if args.write_sweep is not None:
-        args.write_sweep.write_text(json.dumps(run_sweep(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        args.write_sweep.write_text(json.dumps(run_sweep(), indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
         return 0
     if args.source is None or args.output is None:
         parser.error("source and --output are required unless --write-sweep is used")

@@ -7,6 +7,8 @@ import sim.investigation as investigation
 from sim.adapters import Capabilities
 from sim.investigation import run_sweep, SweepConfig
 
+from platform_compare import same_tree
+
 OLD_DEFAULT_ACCELERATIONS = (0.0, 0.5)
 
 
@@ -226,7 +228,7 @@ def test_committed_example_is_regenerated_by_the_script(tmp_path):
     out = tmp_path / "sweep.json"
     assert main(["--write-sweep", str(out)]) == 0
     committed = Path(__file__).parents[1] / "sim" / "investigation_example.json"
-    assert json.loads(out.read_text(encoding="utf-8")) == json.loads(committed.read_text(encoding="utf-8"))
+    assert same_tree(json.loads(out.read_text(encoding="utf-8")), json.loads(committed.read_text(encoding="utf-8")))
 
 
 def test_tracker_is_told_the_true_noise_oracle_tuning(monkeypatch):

@@ -79,8 +79,8 @@ def test_threshold_selection_uses_both_rates():
 def test_pilot_thresholds_validate_and_reject_extra_field(tmp_path: Path):
     out = tmp_path / "pilot"
     runner.main(["--output", str(out), "--pilot", "--processes", "1"])
-    schema = json.loads(Path("sim/radio/thresholds_schema.json").read_text())
-    thresholds = json.loads((out / "thresholds.json").read_text())
+    schema = json.loads(Path("sim/radio/thresholds_schema.json").read_text(encoding="utf-8"))
+    thresholds = json.loads((out / "thresholds.json").read_text(encoding="utf-8"))
     Draft202012Validator(schema).validate(thresholds)
     bad = json.loads(json.dumps(thresholds))
     bad["records"][0]["unexpected"] = True
@@ -101,7 +101,7 @@ def test_pilot_is_byte_identical(tmp_path: Path):
     from tools.c_common import VOLATILE_MANIFEST_FIELDS
     for rel in a:
         if rel.name == "manifest.json":
-            ma, mb = (json.loads((d / rel).read_text()) for d in (first, second))
+            ma, mb = (json.loads((d / rel).read_text(encoding="utf-8")) for d in (first, second))
             for key in VOLATILE_MANIFEST_FIELDS:
                 ma.pop(key, None); mb.pop(key, None)
             assert ma == mb

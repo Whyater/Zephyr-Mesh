@@ -3,6 +3,8 @@
 import math
 
 import numpy as np
+
+from platform_compare import same_array
 import pytest
 
 from sim.actuator import RotorcraftActuator
@@ -372,9 +374,9 @@ def test_v1_default_first_step_matches_saved_pre_edit_state():
 
     vehicle = ActuatedQuadrotor(default_hardware_profile("a4-bit"))
     vehicle.step((0.0, 0.0, 0.0), 0.01)
-    assert np.array_equal(vehicle.drone.position, np.array([1.689421801475451e-26, 2.368544983712144e-47, -0.00047690481809897235]))
-    assert np.array_equal(vehicle.drone.velocity, np.array([6.756864760582927e-24, 2.3684296780654006e-44, -0.09537322503082254]))
-    assert np.array_equal(vehicle.drone.quaternion, np.array([1.0, -6.988670337825724e-42, 3.738628180984499e-21, 2.8039711357383727e-21]))
+    assert same_array(vehicle.drone.position, np.array([1.689421801475451e-26, 2.368544983712144e-47, -0.00047690481809897235]))
+    assert same_array(vehicle.drone.velocity, np.array([6.756864760582927e-24, 2.3684296780654006e-44, -0.09537322503082254]))
+    assert same_array(vehicle.drone.quaternion, np.array([1.0, -6.988670337825724e-42, 3.738628180984499e-21, 2.8039711357383727e-21]))
 
 
 def test_v1_default_path_is_bit_identical_after_500_steps():
@@ -388,17 +390,17 @@ def test_v1_default_path_is_bit_identical_after_500_steps():
     vehicle = ActuatedQuadrotor(default_hardware_profile("a4-bit"))
     for _ in range(500):
         vehicle.step((0.0, 0.0, 0.0), 0.01)
-    assert np.array_equal(vehicle.drone.position, np.array([
+    assert same_array(vehicle.drone.position, np.array([
         7.978887835245687e-17, 5.702616999808826e-16, -3.918359815787623e-03,
     ]))
-    assert np.array_equal(vehicle.drone.velocity, np.array([
+    assert same_array(vehicle.drone.velocity, np.array([
         -4.2693190478184174e-17, -2.3552969443429124e-16, 8.5070400427831065e-04,
     ]))
-    assert np.array_equal(vehicle.drone.quaternion, np.array([
+    assert same_array(vehicle.drone.quaternion, np.array([
         1.0000000000000000e+00, 7.7404557859104611e-17,
         -1.0023262153217956e-17, 3.8384962862690470e-16,
     ]))
-    assert np.array_equal(vehicle.drone.angular_velocity, np.array([
+    assert same_array(vehicle.drone.angular_velocity, np.array([
         4.7854440716601806e-17, -8.3595726126813254e-16,
         2.0390478099089447e-16,
     ]))
@@ -420,10 +422,10 @@ def test_v1_fleet_default_path_is_bit_identical_after_ten_steps():
     assert fleet.time_s == 0.09999999999999999
     alpha = fleet._vehicles["alpha"].drone
     beta = fleet._vehicles["beta"].drone
-    assert np.array_equal(alpha.position, np.array([
+    assert same_array(alpha.position, np.array([
         -1.0000312078453029e+00, 2.7468810368889150e-20, 1.4642156077432626e+00,
     ]))
-    assert np.array_equal(alpha.velocity, np.array([
+    assert same_array(alpha.velocity, np.array([
         -1.8303401970157962e-03, 1.7332712085910140e-18, -5.7471177506341153e-01,
     ]))
     alpha_quaternion = np.array([
@@ -431,15 +433,15 @@ def test_v1_fleet_default_path_is_bit_identical_after_ten_steps():
         -5.5930665299916530e-03, 0.0,
     ])
     alpha_quaternion[3] = float.fromhex("0x1.49f7c150d1ee6p-59")
-    assert np.array_equal(alpha.quaternion, alpha_quaternion)
-    assert np.array_equal(alpha.angular_velocity, np.array([
+    assert same_array(alpha.quaternion, alpha_quaternion)
+    assert same_array(alpha.angular_velocity, np.array([
         -5.0907339472669637e-16, -3.0803294977354573e-01,
         1.3066505492540819e-16,
     ]))
-    assert np.array_equal(beta.position, np.array([
+    assert same_array(beta.position, np.array([
         1.0000312078451201e+00, 3.7702910384455593e-20, 1.4642156077112434e+00,
     ]))
-    assert np.array_equal(beta.velocity, np.array([
+    assert same_array(beta.velocity, np.array([
         1.8303401813779050e-03, 1.9825103558335440e-18, -5.7471177694580210e-01,
     ]))
     beta_quaternion = np.array([
@@ -447,8 +449,8 @@ def test_v1_fleet_default_path_is_bit_identical_after_ten_steps():
         5.5930665192784178e-03, 1.0834399748626498e-18,
     ])
     beta_quaternion[0] = float.fromhex("0x1.fffdf32a180ecp-1")
-    assert np.array_equal(beta.quaternion, beta_quaternion)
-    assert np.array_equal(beta.angular_velocity, np.array([
+    assert same_array(beta.quaternion, beta_quaternion)
+    assert same_array(beta.angular_velocity, np.array([
         -3.9370960554297174e-16, 3.0803294867381897e-01,
         5.6415899251056072e-17,
     ]))

@@ -1,0 +1,9 @@
+# Keep text files as LF on every platform so generated files and saved fixtures
+# compare byte for byte on Windows too. CSV outputs keep their exact bytes
+# (Python's csv module writes CRLF), because the run registry hashes them.
+* text=auto eol=lf
+*.csv -text
+*.png binary
+*.gz binary
+*.ico binary
+*.icns binary

@@ -573,7 +573,7 @@ def main(argv: list[str] | None = None) -> int:
                 mismatches.append(str(path))
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content, encoding="utf-8")
+            path.write_text(content, encoding="utf-8", newline="\n")
     if mismatches:
         print("generated files differ:", *mismatches, sep="\n", file=sys.stderr)
         return 1

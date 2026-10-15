@@ -22,9 +22,9 @@ def test_native_fixture_regenerates_byte_identically(tmp_path):
 
 
 def test_native_fixture_embeds_the_golden_presentation():
-    canonical = json.loads((ROOT / "runs/s7-swarm/run.json").read_text())
-    native = json.loads(FIXTURE.read_text())
-    golden = json.loads(GOLDEN.read_text())
+    canonical = json.loads((ROOT / "runs/s7-swarm/run.json").read_text(encoding="utf-8"))
+    native = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    golden = json.loads(GOLDEN.read_text(encoding="utf-8"))
     assert native["schema"] == "zephyr-s7-native-fixture-4"
     assert native["run_id"] == canonical["scenario_id"]
     assert native["seed"] == canonical["seed"]
@@ -45,8 +45,8 @@ def test_native_fixture_embeds_the_golden_presentation():
 
 def test_native_fixture_per_drone_fields_match_source_or_presentation():
     """Every native per-drone field has a direct canonical source."""
-    canonical = json.loads((ROOT / "runs/s7-swarm/run.json").read_text())
-    native = json.loads(FIXTURE.read_text())
+    canonical = json.loads((ROOT / "runs/s7-swarm/run.json").read_text(encoding="utf-8"))
+    native = json.loads(FIXTURE.read_text(encoding="utf-8"))
     from desktop.presentation import present_run
 
     presentation = present_run(canonical)

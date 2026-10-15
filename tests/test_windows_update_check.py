@@ -176,6 +176,7 @@ def test_headless_missing_scenario_is_a_message_not_a_traceback(tmp_path, capsys
     assert "missing.json" in err and "no longer exists" in err and "Traceback" not in err
 
 
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="chmod cannot make a folder read-only on Windows")
 def test_read_only_app_folder_is_reported_before_anything_is_downloaded(harness, tmp_path, monkeypatch):
     import os
     import tools.release_updater as updater

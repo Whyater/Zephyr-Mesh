@@ -164,7 +164,7 @@ def test_inspector_header_refreshes_when_a_drone_comes_back():
     b'{"appearance": "\xff\xfe"}',                        # not UTF-8
     b"",                                                   # empty
     b'["light"]',                                         # wrong JSON type
-])
+], ids=["deep-nesting", "oversized", "not-utf8", "empty", "wrong-type"])  # short ids: Windows caps env vars at 32,767 chars
 def test_corrupt_settings_files_fall_back_to_dark(tmp_path, content):
     path = settings_path(tmp_path)
     path.parent.mkdir(parents=True)

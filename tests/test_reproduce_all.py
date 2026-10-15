@@ -50,7 +50,7 @@ def basic_entry(name: str, expected: str, command: str = "{python} gen.py {out}/
 
 def test_byte_identical_pass(tmp_path: Path) -> None:
     source = make_source(tmp_path)
-    (source / "gen.py").write_text("from pathlib import Path\nPath(__file__).parent.joinpath('out').mkdir(exist_ok=True)\nPath(__import__('sys').argv[1]).write_text('stable\\n')\n", encoding="utf-8")
+    (source / "gen.py").write_text("from pathlib import Path\nPath(__file__).parent.joinpath('out').mkdir(exist_ok=True)\nPath(__import__('sys').argv[1]).write_bytes(b'stable\\n')\n", encoding="utf-8")
     expected = digest(b"stable\n")
     registry = write_registry(tmp_path, [basic_entry("stable", expected, "{python} gen.py {out}/value.txt")])
 
@@ -138,6 +138,7 @@ def test_real_runs_tree_is_unchanged(tmp_path: Path) -> None:
     assert before == after
 
 
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="the fixture counts workers with fcntl, which Windows lacks")
 def test_workers_cap_and_filters(tmp_path: Path) -> None:
     source = make_source(tmp_path)
     state_path = tmp_path / "state"

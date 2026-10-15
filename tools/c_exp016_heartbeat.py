@@ -8,6 +8,7 @@ import argparse
 import csv
 import json
 import os
+import tempfile
 import math
 import time
 from pathlib import Path
@@ -155,8 +156,8 @@ def _write_figures(out: Path, rows: list[dict], rule_rows: list[dict]) -> None:
     """Closed form as lines, simulation as markers; a cell with no false alarm in
     10 simulated hours is drawn as an open triangle on the bottom edge (it is a
     zero count, not a value)."""
-    os.environ.setdefault("MPLCONFIGDIR", "/tmp/zephyr-mplconfig")
-    Path("/tmp/zephyr-mplconfig").mkdir(exist_ok=True)
+    os.environ.setdefault("MPLCONFIGDIR", str(Path(tempfile.gettempdir()) / "zephyr-mplconfig"))
+    Path(os.environ["MPLCONFIGDIR"]).mkdir(exist_ok=True)
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -287,7 +288,7 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
                      "generating_command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output {out}",
                      "records": thresholds}
     schema_path = Path("sim/radio/thresholds_schema.json")
-    if schema_path.exists(): jsonschema.validate(threshold_doc, json.loads(schema_path.read_text()))
+    if schema_path.exists(): jsonschema.validate(threshold_doc, json.loads(schema_path.read_text(encoding="utf-8")))
     write_json(output / "thresholds.json", threshold_doc)
     rule_summary = [{"h_hz": r["h_hz"], "loss_condition": r["loss_condition"],
                      "false_alarms_per_hour_simulated": r["simulated_rate_per_hour"],
