@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import csv
 import math
+import shlex
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any, Callable, Iterable
@@ -23,6 +24,10 @@ from sim import s6_recovery
 from sim.missions.api import Scenario
 from sim.missions.engine import run_mission
 from tools.c_common import default_processes
+
+# Ordinary data series use these Horizon tokens, in this order.  Red ("alert")
+# and amber ("caution") are kept for alerts and failures only.
+SERIES_TOKENS = ("accent", "ok", "keepOut", "target", "textSecondary", "lineStrong")
 
 EXP_BASE_SEED = 20261029  # EXP-029; EXP-029 + k adds k
 MAX_PROCESSES = 2
@@ -149,3 +154,31 @@ def median_summary(values: list[float | None]) -> dict:
         return {"n": 0, "median": None, "low": None, "high": None}
     median, low, high = s6_recovery.median_interval(present)
     return {"n": len(present), "median": median, "low": low, "high": high}
+
+
+def apply_mission_style(theme: str = "light") -> dict[str, str]:
+    """Horizon Matplotlib style plus a colour cycle without red or amber.
+
+    Returns the palette (token name to hex), like tools.horizon_mpl.apply_style.
+    """
+    import matplotlib as mpl
+    from cycler import cycler
+
+    from tools.horizon_mpl import apply_style
+
+    pal = apply_style(theme)
+    mpl.rcParams["axes.prop_cycle"] = cycler(color=[pal[name] for name in SERIES_TOKENS])
+    return pal
+
+
+def series_colors(n: int, theme: str = "light") -> list[str]:
+    """``n`` series colours from the Horizon cycle (repeats after six)."""
+    from tools.horizon_mpl import palette
+
+    pal = palette(theme)
+    return [pal[SERIES_TOKENS[k % len(SERIES_TOKENS)]] for k in range(int(n))]
+
+
+def replay_command(script: str, argv: list[str]) -> str:
+    """The exact command line that reruns a script with the arguments it got."""
+    return " ".join(["PYTHONPATH=.", "python", script] + [shlex.quote(str(a)) for a in argv])
