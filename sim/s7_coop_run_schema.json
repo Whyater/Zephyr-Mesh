@@ -469,6 +469,7 @@
           "minimum": 0
         },
         "believed_alive": {
+          "description": "In ground decision mode, this column records the ground station's current plan.",
           "type": "array",
           "items": {
             "type": "string"

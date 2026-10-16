@@ -92,7 +92,14 @@ class CoopSwarmConfig:
     def __post_init__(self) -> None:
         if isinstance(self.n_agents, bool) or int(self.n_agents) != self.n_agents or not 1 <= int(self.n_agents) <= 12:
             raise ValueError("n_agents must be an integer from 1 through 12")
-        for name in ("duration_s", "control_dt_s", "sensor_rate_hz", "target_altitude_m", "standoff_radius_m", "slot_altitude_m", "keep_out_radius_m", "max_speed_mps", "max_accel_mps2", "position_gain", "velocity_gain", "heartbeat_timeout_s", "initial_radius_m"):
+        scalar_names = (
+            "duration_s", "control_dt_s", "sensor_rate_hz",
+            "target_altitude_m", "standoff_radius_m", "slot_altitude_m",
+            "keep_out_radius_m", "max_speed_mps", "max_accel_mps2",
+            "position_gain", "velocity_gain", "heartbeat_timeout_s",
+            "initial_radius_m",
+        )
+        for name in scalar_names:
             _finite(getattr(self, name), name)
         if self.control_dt_s <= 0 or self.sensor_rate_hz <= 0 or self.duration_s <= 0:
             raise ValueError("time and rate values must be positive")
@@ -154,6 +161,27 @@ class _Agent:
     believed_assignment: dict[str, int] = field(default_factory=dict)
     flags: set[str] = field(default_factory=set)
     leaving_sent: bool = False
+    left_peers: set[str] = field(default_factory=set)
+
+
+def _count_disagreements(
+    alive_views: Mapping[str, tuple[str, ...]],
+    assignments: Mapping[str, Mapping[str, int]],
+) -> int:
+    """Count planner pairs that disagree on assignments they both know."""
+    count = 0
+    planners = sorted(alive_views)
+    for left_index, left in enumerate(planners):
+        for right in planners[left_index + 1 :]:
+            if left not in alive_views[right] or right not in alive_views[left]:
+                continue
+            shared = set(alive_views[left]).intersection(alive_views[right])
+            if any(
+                assignments[left].get(peer) != assignments[right].get(peer)
+                for peer in shared
+            ):
+                count += 1
+    return count
 
 
 class CoopSwarmSimulator:
@@ -179,7 +207,9 @@ class CoopSwarmSimulator:
                 phase = 0.0
             else:
                 phase = float(np.random.default_rng(np.random.SeedSequence([c.seed, 3000 + i])).uniform(0.0, period))
-            self.agents[aid] = _Agent(aid, position, np.zeros(3), sensor, estimator, phase, phase)
+            self.agents[aid] = _Agent(
+                aid, position, np.zeros(3), sensor, estimator, phase, phase
+            )
         self.gs_fuser = make_estimator(c.estimator, self.settings, self._target_start) if (c.fusion == "central" or c.decision == "ground") else None
         self._gs_last_fused_stamp = -float("inf")
         self._gs_last_update_stamp = -float("inf")
@@ -199,15 +229,24 @@ class CoopSwarmSimulator:
                     continue
                 link_loss = c.link.loss_probability if c.link.loss_model != "none" else 0.0
                 link_model = c.link.loss_model
-                self._links[(sender, receiver)] = SimulatedLink(LinkConfig(delay_s=c.link.delay_s, loss_probability=link_loss, loss_model=link_model), seed=int(np.random.SeedSequence([c.seed, 1000 + route_index]).generate_state(1)[0]))
+                self._links[(sender, receiver)] = SimulatedLink(
+                    LinkConfig(
+                        delay_s=c.link.delay_s,
+                        loss_probability=link_loss,
+                        loss_model=link_model,
+                    ),
+                    seed=int(
+                        np.random.SeedSequence([c.seed, 1000 + route_index])
+                        .generate_state(1)[0]
+                    ),
+                )
                 route_index += 1
-        self._traffic = {"onboard": {"messages": 0, "bytes": 0}, "central": {"messages": 0, "bytes": 0}, "ground": {"messages": 0, "bytes": 0}}
         self._traffic_by_kind = {
-            "state": (240, "onboard"),
-            "raw": (56, "central"),
-            "track": (216, "central"),
-            "command": (24, "ground"),
-            "leaving": (1, "onboard"),
+            "state": 240,
+            "raw": 56,
+            "track": 216,
+            "command": 24,
+            "leaving": 1,
         }
         self._traffic_kind = {
             kind: {"messages": 0, "bytes": 0}
@@ -222,7 +261,24 @@ class CoopSwarmSimulator:
     def model_provenance(self) -> dict[str, Any]:
         # runs/c5-heartbeat/thresholds.json gives h = 10 Hz, independent p = 0.1,
         # and T = 0.5 s for fewer than one false alarm per hour.
-        return {"model": "kinematic_point_mass", "simulated": True, "vehicle_fleet": "sim/vehicle_fleet.py is not used because it is not wired into the swarm and v1 hardware profiles forbid the interaction hook", "separation": "Run A ellipsoid separation from sim/interaction.py is used for the separation check", "links": "abstract directed links with literature-derived delay and loss thresholds", "sensor_noise": "isotropic and independent of observer position", "neighbor_prediction": f"constant-velocity model with q_acc_psd = {self.settings.q_acc_psd}", "neighbor_prediction_q_acc": float(self.settings.q_acc_psd)}
+        return {
+            "model": "kinematic_point_mass",
+            "simulated": True,
+            "vehicle_fleet": (
+                "sim/vehicle_fleet.py is not used because it is not wired into "
+                "the swarm and v1 hardware profiles forbid the interaction hook"
+            ),
+            "separation": (
+                "Run A ellipsoid separation from sim/interaction.py is used "
+                "for the separation check"
+            ),
+            "links": "abstract directed links with literature-derived delay and loss thresholds",
+            "sensor_noise": "isotropic and independent of observer position",
+            "neighbor_prediction": (
+                f"constant-velocity model with q_acc_psd = {self.settings.q_acc_psd}"
+            ),
+            "neighbor_prediction_q_acc": float(self.settings.q_acc_psd),
+        }
 
     def _truth(self, t: float) -> tuple[np.ndarray, np.ndarray]:
         return self.target.position([t])[0] + np.array((0.0, 0.0, self.config.target_altitude_m)), self.target.velocity([t])[0]
@@ -290,9 +346,7 @@ class CoopSwarmSimulator:
         self._messages[(sender, receiver, seq)] = {"kind": kind, **message}
         self._event_kinds[id(event)] = kind
         self._events.append(event)
-        size, mode = self._traffic_by_kind[kind]
-        self._traffic[mode]["messages"] += 1
-        self._traffic[mode]["bytes"] += size
+        size = self._traffic_by_kind[kind]
         self._traffic_kind[kind]["messages"] += 1
         self._traffic_kind[kind]["bytes"] += size
 
@@ -323,6 +377,7 @@ class CoopSwarmSimulator:
                 self.agents[event.receiver].latest[event.sender] = dict(message, receive_time=float(event.receive_time), sent_at=float(event.send_time))
             elif message["kind"] == "leaving":
                 self.agents[event.receiver].latest.pop(event.sender, None)
+                self.agents[event.receiver].left_peers.add(event.sender)
             elif message["kind"] == "track":
                 self.agents[event.receiver].latest_gs_track = dict(message, receive_time=float(event.receive_time), sent_at=float(event.send_time))
             elif message["kind"] == "command":
@@ -479,9 +534,15 @@ class CoopSwarmSimulator:
                     if not agent.active or agent.silent:
                         continue
                     mean, covariance, _, source_time = self._track_for(agent, t)
-                    message = {"position": agent.position.copy(), "velocity": agent.velocity.copy(), "mean": mean.copy(), "cov": covariance.copy(), "source_time": source_time if source_time is not None else t}
+                    message = {
+                        "position": agent.position.copy(),
+                        "velocity": agent.velocity.copy(),
+                        "mean": mean.copy(),
+                        "cov": covariance.copy(),
+                        "source_time": source_time if source_time is not None else t,
+                    }
                     for receiver in c.agent_ids:
-                        if receiver != aid:
+                        if receiver != aid and receiver not in agent.left_peers:
                             self._send(aid, receiver, t, "state", message)
                     self._send(aid, "gs", t, "state", message)
                 gs_mean = None
@@ -489,7 +550,18 @@ class CoopSwarmSimulator:
                     gs_mean, gs_cov = self._full_track(self.gs_fuser, t)
                     if c.fusion == "central":
                         for receiver in c.agent_ids:
-                            self._send("gs", receiver, t, "track", {"mean": gs_mean.copy(), "cov": gs_cov.copy(), "source_time": self._gs_last_fused_stamp if np.isfinite(self._gs_last_fused_stamp) else t})
+                            self._send(
+                                "gs", receiver, t, "track",
+                                {
+                                    "mean": gs_mean.copy(),
+                                    "cov": gs_cov.copy(),
+                                    "source_time": (
+                                        self._gs_last_fused_stamp
+                                        if np.isfinite(self._gs_last_fused_stamp)
+                                        else t
+                                    ),
+                                },
+                            )
                 else:
                     gs_mean, _ = self._gs_group(t)
                 self._deliver(t)
@@ -521,7 +593,6 @@ class CoopSwarmSimulator:
                         alive = tuple(sorted(assignment))
                         alive_cache[aid] = alive
                     slot_index = int(command["slot_index"])
-                    slots = slots_for_alive(fused[:3], alive_count, c.standoff_radius_m, c.slot_altitude_m, 0.0)
                     slot_cache[aid] = np.asarray(command["setpoint"], dtype=float)
                 else:
                     command_alive_count[aid] = len(alive)
@@ -542,15 +613,7 @@ class CoopSwarmSimulator:
                 agent.previous_alive = alive
                 agent.slot_index = slot_index
                 agent.believed_assignment = dict(assignment)
-            step_disagreement_count = 0
-            active_planners = sorted(track_cache)
-            for left_index, left in enumerate(active_planners):
-                for right in active_planners[left_index + 1:]:
-                    if left not in alive_cache[right] or right not in alive_cache[left]:
-                        continue
-                    shared = set(alive_cache[left]).intersection(alive_cache[right])
-                    if any(assignments[left].get(peer) != assignments[right].get(peer) for peer in shared):
-                        step_disagreement_count += 1
+            step_disagreement_count = _count_disagreements(alive_cache, assignments)
             if k < n_steps:
                 for aid, agent in sorted(self.agents.items()):
                     if not agent.active or agent.landed:
@@ -671,24 +734,86 @@ class CoopSwarmSimulator:
                     angles = sorted(float(np.arctan2(self.agents[x].position[1] - truth[1], self.agents[x].position[0] - truth[0])) % (2.0 * np.pi) for x in active_ids)
                     gaps = [angles[i + 1] - angles[i] for i in range(len(angles) - 1)] + ([2.0 * np.pi + angles[0] - angles[-1]] if angles else [])
                     coverage = float(np.degrees(max(gaps))) if gaps else 360.0
-                    ages = [min(c.heartbeat_timeout_s, max(0.0, t - float(msg["receive_time"]))) for msg in agent.latest.values()]
+                    ages = [min(c.heartbeat_timeout_s, max(0.0, t - float(msg["sent_at"]))) for msg in agent.latest.values()]
                     min_distance = min((float(np.linalg.norm(agent.position - self.agents[x].position)) for x in active_ids if x != aid), default=None)
                     min_ellipsoid = min((ellipsoid_separation(agent.position, self.agents[x].position, radii) for x in active_ids if x != aid), default=0.0)
                     flags = set(agent.flags)
                     if aid in violating:
                         flags.add("separation_violation")
-                    step_row["agents"].append({"agent_id": aid, "active": True, "position_m": agent.position.tolist(), "velocity_mps": agent.velocity.tolist(), "target_estimate_m": local[:3].tolist(), "fused_target_m": fused[:3].tolist(), "fused_cov_trace_m2": float(np.trace(covariance[:3, :3])), "truth_error_m": error, "nees": nval, "slot_index": int(agent.slot_index), "believed_alive": list(alive_cache[aid]), "believed_assignment": {key: int(value) for key, value in sorted(agent.believed_assignment.items())}, "oldest_neighbor_age_s": max(ages) if ages else None, "min_neighbor_distance_m": min_distance, "min_ellipsoid_separation": float(min_ellipsoid), "standoff_error_m": float(standoff[aid][-1][1]), "coverage_largest_gap_deg": coverage, "flags": sorted(flags), "target_source_time_s": source_time, "target_age_s": None if source_time is None else max(0.0, t - source_time)})
+                    step_row["agents"].append(
+                        {
+                            "agent_id": aid,
+                            "active": True,
+                            "position_m": agent.position.tolist(),
+                            "velocity_mps": agent.velocity.tolist(),
+                            "target_estimate_m": local[:3].tolist(),
+                            "fused_target_m": fused[:3].tolist(),
+                            "fused_cov_trace_m2": float(np.trace(covariance[:3, :3])),
+                            "truth_error_m": error,
+                            "nees": nval,
+                            "slot_index": int(agent.slot_index),
+                            "believed_alive": list(alive_cache[aid]),
+                            "believed_assignment": {
+                                key: int(value)
+                                for key, value in sorted(agent.believed_assignment.items())
+                            },
+                            "oldest_neighbor_age_s": max(ages) if ages else None,
+                            "min_neighbor_distance_m": min_distance,
+                            "min_ellipsoid_separation": float(min_ellipsoid),
+                            "standoff_error_m": float(standoff[aid][-1][1]),
+                            "coverage_largest_gap_deg": coverage,
+                            "flags": sorted(flags),
+                            "target_source_time_s": source_time,
+                            "target_age_s": (
+                                None if source_time is None else min(
+                                    c.heartbeat_timeout_s,
+                                    max(0.0, t - source_time),
+                                )
+                            ),
+                        }
+                    )
                 for aid, agent in sorted(self.agents.items()):
                     if agent.active:
                         continue
-                    step_row["agents"].append({"agent_id": aid, "active": False, "position_m": agent.position.tolist(), "velocity_mps": agent.velocity.tolist(), "target_estimate_m": None, "fused_target_m": None, "fused_cov_trace_m2": None, "truth_error_m": None, "nees": None, "slot_index": 0, "believed_alive": [], "believed_assignment": {}, "oldest_neighbor_age_s": None, "min_neighbor_distance_m": None, "min_ellipsoid_separation": 0.0, "standoff_error_m": None, "coverage_largest_gap_deg": None, "flags": sorted(agent.flags), "target_source_time_s": None, "target_age_s": None})
+                    step_row["agents"].append(
+                        {
+                            "agent_id": aid,
+                            "active": False,
+                            "position_m": agent.position.tolist(),
+                            "velocity_mps": agent.velocity.tolist(),
+                            "target_estimate_m": None,
+                            "fused_target_m": None,
+                            "fused_cov_trace_m2": None,
+                            "truth_error_m": None,
+                            "nees": None,
+                            "slot_index": 0,
+                            "believed_alive": [],
+                            "believed_assignment": {},
+                            "oldest_neighbor_age_s": None,
+                            "min_neighbor_distance_m": None,
+                            "min_ellipsoid_separation": 0.0,
+                            "standoff_error_m": None,
+                            "coverage_largest_gap_deg": None,
+                            "flags": sorted(agent.flags),
+                            "target_source_time_s": None,
+                            "target_age_s": None,
+                        }
+                    )
                 steps.append(step_row)
         event_dicts = []
         for event in sorted(self._events, key=lambda item: (item.send_time, item.sender, item.receiver, item.seq)):
             pending = event.receive_time is not None and float(event.receive_time) > c.duration_s + 1e-12
             receive = None if pending or event.receive_time is None else float(event.receive_time)
             loss_reason = None if pending else event.loss_reason
-            row = {"sender": event.sender, "receiver": event.receiver, "seq": int(event.seq), "kind": self._event_kinds.get(id(event), "state"), "send_time": float(event.send_time), "receive_time": receive, "loss_reason": loss_reason}
+            row = {
+                "sender": event.sender,
+                "receiver": event.receiver,
+                "seq": int(event.seq),
+                "kind": self._event_kinds.get(id(event), "state"),
+                "send_time": float(event.send_time),
+                "receive_time": receive,
+                "loss_reason": loss_reason,
+            }
             if pending:
                 row["outcome"] = "pending"
             elif receive is not None:
@@ -701,7 +826,14 @@ class CoopSwarmSimulator:
         per_agent = {}
         for aid, values in errors.items():
             scored = np.asarray([value for time, value in values if time >= 2.0 - 1e-12], dtype=float)
-            per_agent[aid] = {"p95_error_m": float(np.percentile(scored, 95)) if scored.size else None, "max_error_m": float(np.max(scored)) if scored.size else None, "failed": bool(scored.size and (np.percentile(scored, 95) > 0.25 or np.max(scored) > 0.5))}
+            per_agent[aid] = {
+                "p95_error_m": float(np.percentile(scored, 95)) if scored.size else None,
+                "max_error_m": float(np.max(scored)) if scored.size else None,
+                "failed": bool(
+                    scored.size
+                    and (np.percentile(scored, 95) > 0.25 or np.max(scored) > 0.5)
+                ),
+            }
         gs_scored = np.asarray([value for time, value in gs_errors if time >= 2.0 - 1e-12], dtype=float)
         window_metrics = {key: {"p95_error_m": float(np.percentile(values, 95)) if values else None, "max_error_m": float(np.max(values)) if values else None} for key, values in gs_window.items()}
         traffic = {
@@ -710,7 +842,7 @@ class CoopSwarmSimulator:
                 "bytes": int(value["bytes"]),
                 "messages_per_second": float(value["messages"] / c.duration_s),
                 "bytes_per_second": float(value["bytes"] / c.duration_s),
-                "message_bytes": int(self._traffic_by_kind[key][0]),
+                "message_bytes": int(self._traffic_by_kind[key]),
             }
             for key, value in self._traffic_kind.items()
         }
@@ -732,9 +864,30 @@ class CoopSwarmSimulator:
             "gs_fuser_error_p95_m": float(np.percentile(gs_fuser_scored, 95)) if gs_fuser_scored.size else None,
             "gs_fuser_error_max_m": float(np.max(gs_fuser_scored)) if gs_fuser_scored.size else None,
             "traffic": traffic,
-            "traffic_documentation": "Counts are per directed route, in messages and bytes. Message sizes are recorded in each kind bucket.",
+            "traffic_documentation": (
+                "Counts are per directed route, in messages and bytes. Message "
+                "sizes are recorded in each kind bucket. In ground mode, "
+                "believed_alive records the ground station's current plan. After "
+                "a leaving message is received, an agent stops sending state to "
+                "that peer."
+            ),
         }
-        return CoopRun({"schema": "zephyr-s7-coop-run-2", "seed": int(c.seed), "simulated": True, "config": _config_dict(c), "model_provenance": self.model_provenance(), "steps": steps, "link_events": event_dicts, "summary": summary, "evidence_boundary": "Simulated only. Kinematic point-mass agents, abstract links, literature-derived thresholds, and no hardware."})
+        return CoopRun(
+            {
+                "schema": "zephyr-s7-coop-run-2",
+                "seed": int(c.seed),
+                "simulated": True,
+                "config": _config_dict(c),
+                "model_provenance": self.model_provenance(),
+                "steps": steps,
+                "link_events": event_dicts,
+                "summary": summary,
+                "evidence_boundary": (
+                    "Simulated only. Kinematic point-mass agents, abstract links, "
+                    "literature-derived thresholds, and no hardware."
+                ),
+            }
+        )
 
 
 def _config_dict(config: CoopSwarmConfig) -> dict[str, Any]:
@@ -745,7 +898,14 @@ def _config_dict(config: CoopSwarmConfig) -> dict[str, Any]:
     result["gs_outage"] = [list(row) for row in config.gs_outage]
     result["metric_windows"] = [list(row) for row in config.metric_windows]
     period = 1.0 / config.sensor_rate_hz
-    result["observation_phases_s"] = [0.0] + [float(np.random.default_rng(np.random.SeedSequence([config.seed, 3000 + i])).uniform(0.0, period)) for i in range(1, config.n_agents)]
+    result["observation_phases_s"] = [0.0] + [
+        float(
+            np.random.default_rng(
+                np.random.SeedSequence([config.seed, 3000 + i])
+            ).uniform(0.0, period)
+        )
+        for i in range(1, config.n_agents)
+    ]
     return result
 
 
@@ -764,12 +924,47 @@ def to_replay_v1(run_value: CoopRun | Mapping[str, Any]) -> dict[str, Any]:
     for step in raw["steps"]:
         rows = []
         for agent in step["agents"]:
-            rows.append({"agent_id": agent["agent_id"], "profile_id": f"{agent['agent_id']}-synthetic-profile", "active": bool(agent["active"]), "position_m": agent["position_m"], "velocity_mps": agent["velocity_mps"], "target_estimate_m": agent["target_estimate_m"], "fused_target_m": agent["fused_target_m"], "target_source_time_s": agent.get("target_source_time_s"), "target_age_s": agent.get("target_age_s"), "neighbor_count": max(0, len(agent.get("believed_alive", [])) - 1), "min_neighbor_distance_m": agent.get("min_neighbor_distance_m"), "constraint_flags": agent.get("flags", [])})
-        steps.append({"step_index": int(step["step_index"]), "time_s": float(step["time_s"]), "target_position_m": step["target_truth_position_m"], "active_count": sum(1 for row in rows if row["active"]), "agents": rows})
+            rows.append(
+                {
+                    "agent_id": agent["agent_id"],
+                    "profile_id": f"{agent['agent_id']}-synthetic-profile",
+                    "active": bool(agent["active"]),
+                    "position_m": agent["position_m"],
+                    "velocity_mps": agent["velocity_mps"],
+                    "target_estimate_m": agent["target_estimate_m"],
+                    "fused_target_m": agent["fused_target_m"],
+                    "target_source_time_s": agent.get("target_source_time_s"),
+                    "target_age_s": agent.get("target_age_s"),
+                    "neighbor_count": max(
+                        0, len(agent.get("believed_alive", [])) - 1
+                    ),
+                    "min_neighbor_distance_m": agent.get("min_neighbor_distance_m"),
+                    "constraint_flags": agent.get("flags", []),
+                }
+            )
+        steps.append(
+            {
+                "step_index": int(step["step_index"]),
+                "time_s": float(step["time_s"]),
+                "target_position_m": step["target_truth_position_m"],
+                "active_count": sum(1 for row in rows if row["active"]),
+                "agents": rows,
+            }
+        )
     links = []
     for event in raw.get("link_events", []):
         receive = event.get("receive_time")
-        row = {"sender": event["sender"], "receiver": event["receiver"], "seq": int(event["seq"]), "send_time": event["send_time"], "receive_time": receive, "duplicate": False, "out_of_order": False, "loss_reason": event.get("loss_reason"), "packet_age": None if receive is None else receive - event["send_time"]}
+        row = {
+            "sender": event["sender"],
+            "receiver": event["receiver"],
+            "seq": int(event["seq"]),
+            "send_time": event["send_time"],
+            "receive_time": receive,
+            "duplicate": False,
+            "out_of_order": False,
+            "loss_reason": event.get("loss_reason"),
+            "packet_age": None if receive is None else receive - event["send_time"],
+        }
         if receive is not None:
             row["outcome"] = "received"
         elif event.get("loss_reason") is not None:
@@ -777,4 +972,21 @@ def to_replay_v1(run_value: CoopRun | Mapping[str, Any]) -> dict[str, Any]:
         links.append(row)
     n_agents = int(config.get("n_agents", len(steps[0]["agents"])))
     profiles = [default_hardware_profile(i).as_dict() for i in range(n_agents)]
-    return {"schema": "zephyr-s7-swarm-run-1", "seed": int(raw["seed"]), "dt_s": float(config.get("control_dt_s", 0.05)) * int(config.get("log_every", 1)), "steps": steps, "link_events": links, "agent_profiles": profiles, "scenario_id": "s7-coop-replay-v1", "evidence_boundary": "Synthetic deterministic replay over an abstract point-mass link; hardware values are inputs.", "generation_command": "sim.coop.simulator", "status": "synthetic deterministic replay; not flight performance", "command_authority": "replay only", "failsafe": "synthetic constraints only; live failsafe unavailable"}
+    return {
+        "schema": "zephyr-s7-swarm-run-1",
+        "seed": int(raw["seed"]),
+        "dt_s": float(config.get("control_dt_s", 0.05))
+        * int(config.get("log_every", 1)),
+        "steps": steps,
+        "link_events": links,
+        "agent_profiles": profiles,
+        "scenario_id": "s7-coop-replay-v1",
+        "evidence_boundary": (
+            "Synthetic deterministic replay over an abstract point-mass link; "
+            "hardware values are inputs."
+        ),
+        "generation_command": "sim.coop.simulator",
+        "status": "synthetic deterministic replay; not flight performance",
+        "command_authority": "replay only",
+        "failsafe": "synthetic constraints only; live failsafe unavailable",
+    }
