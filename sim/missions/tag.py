@@ -311,7 +311,13 @@ class TagMission(Mission):
         states = {agent: ctx.drones[agent].tick(i) for agent in ctx.state["ids"]}
         target_position = np.asarray(target.position([t])[0], dtype=float)
         outage_window = next((outage for outage in ctx.outages if outage.start_s <= t < outage.end_s), None)
-        if outage_window is None:
+        # Prereg EXP-029 Part B: a separation violation counts as a late
+        # reaction during the blackout or within 3 s after it ends.
+        late_window = any(outage.start_s <= t < outage.end_s + 3.0 for outage in ctx.outages)
+        # Reaction times are measured from the newest command a follower got
+        # before the first blackout began (commands after it ends do not count).
+        first_outage_start = min((outage.start_s for outage in ctx.outages), default=math.inf)
+        if t < first_outage_start:
             for agent in ctx.state["ids"]:
                 age = states[agent].link_age_s
                 if age is not None and math.isfinite(age):
@@ -348,11 +354,15 @@ class TagMission(Mission):
                 ctx.state["hold_started"][agent] = None
             if state.failsafe_state == "degraded":
                 ctx.state["time_degraded"] += ctx.dt
-                if outage_window is not None and abs(float(state.position_m[2]) - target_position[2]) <= 0.3:
-                    ctx.state["blind_in_plane"] += ctx.dt
+            # Blind in the target's plane: the blackout is on, the follower is
+            # still airborne and within 0.3 m of the target's altitude, whatever
+            # its failsafe is doing (holding, slowing or starting to land).
+            if outage_window is not None and not state.landed \
+                    and abs(float(state.position_m[2]) - target_position[2]) <= 0.3:
+                ctx.state["blind_in_plane"] += ctx.dt
             if state.link_age_s is not None and state.link_age_s >= 0.33 and state.failsafe_state == "nominal":
                 ctx.state["nominal_at_age_0_33"] = True
-            if outage_window is not None and violates:
+            if late_window and violates:
                 ctx.state["violation_outage"] = True
         if len(ctx.state["ids"]) > 1:
             positions = [states[agent].position_m for agent in ctx.state["ids"]]
@@ -374,6 +384,13 @@ class TagMission(Mission):
         if ctx.state["tag_complete"] and ctx.params["mode"] == "tag":
             return "tagged"
         states = [ctx.adapters[agent].get_state() for agent in ctx.state["ids"]]
+        if any(state.failsafe_state == "killed" for state in states):
+            return "killed"
+        if ctx.params["mode"] == "hold":
+            # Hold mode measures the reaction to a scripted blackout, so it runs
+            # to the scenario duration: the landing, the end of a finite
+            # blackout and the 3 s after it all stay inside the run.
+            return None
         if states and all(state.failsafe_state in {"landing", "landed"} for state in states):
             return "landed"
         if any(state.failsafe_state == "killed" for state in states):

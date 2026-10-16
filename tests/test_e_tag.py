@@ -168,3 +168,28 @@ def test_physics_jink_keeps_min_separation():
     print("physics jink min separation", result.metrics["min_separation_m"],
           "violation steps", result.metrics["separation_violations"])
     assert result.metrics["separation_violations"] == 0
+
+
+def test_hold_mode_runs_through_the_blackout_and_times_from_its_start():
+    # A 2 s blackout from t = 8 s with the lost-link timeout at 1.0 s: the
+    # follower must hold within about T_w after the blackout starts, start to
+    # land about T after it starts (one 20 Hz command period of slack, since the
+    # newest command before the blackout can be up to 0.05 s old), and the run
+    # must continue to the scenario duration instead of ending when the
+    # landing begins (the 3 s window after the blackout must be observed).
+    policy = {"degraded_after_s": 0.15, "land_after_s": 1.0}
+    outage = ({"start_s": 8.0, "end_s": 10.0, "streams": None},)
+    result = run_mission(_scenario(duration_s=16.0, outages=outage, policy=policy,
+                                   params={"target_class": "turn", "mode": "hold"}))
+    m = result.metrics
+    assert result.end_reason == "timeout"
+    assert m["duration_s"] == 16.0
+    assert 0.15 - 1e-9 <= m["outage_reaction_hold_s"] <= 0.15 + 0.05 + 0.011
+    assert 1.0 - 1e-9 <= m["outage_reaction_land_s"] <= 1.0 + 0.05 + 0.011
+    assert m["landings_before_outage"] == 0
+    # Blind in the target's plane: from 8.0 s until the 1.5 m high follower has
+    # left the +-0.3 m band after the landing starts at about 9.0 s.  The point
+    # mass LAND is the original SimAdapter law (first order toward the floor,
+    # capped at the 1.5 m/s speed limit), so the 0.3 m drop takes at least
+    # 0.3 / 1.5 = 0.2 s and, with the 0.25 s response ramp, well under 0.5 s.
+    assert 1.0 + 0.2 <= m["blind_in_plane_s"] <= 1.0 + 0.05 + 0.011 + 0.5
