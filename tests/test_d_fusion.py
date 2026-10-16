@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from sim.coop.fusion import (
+    covariance_intersection_fast,
     covariance_intersection,
     covariance_intersection_many,
     information_fusion,
@@ -111,3 +112,21 @@ def test_determinism():
     first = covariance_intersection_many(*args)
     second = covariance_intersection_many(*args)
     assert all(np.array_equal(a, b) for a, b in zip(first, second))
+
+
+def test_fast_ci_hand_values_and_conservative_versus_optimal():
+    # Two diagonal tracks: traces 2 and 8 give weights 0.8 and 0.2.
+    pa, pb = np.diag([1.0, 1.0]), np.diag([4.0, 4.0])
+    xa, xb = np.array([0.0, 0.0]), np.array([1.0, 2.0])
+    mean, cov, weights = covariance_intersection_fast([xa, xb], [pa, pb])
+    np.testing.assert_allclose(weights, [0.8, 0.2], atol=1e-15)
+    info = 0.8 * 1.0 + 0.2 * 0.25  # per axis
+    np.testing.assert_allclose(cov, np.eye(2) / info, atol=1e-14)
+    np.testing.assert_allclose(mean, (0.2 * 0.25 * xb) / info, atol=1e-14)
+    rng = np.random.default_rng(20261015)
+    for _ in range(20):
+        mats = [m @ m.T + 0.1 * np.eye(3) for m in rng.normal(size=(3, 3, 3))]
+        means = list(rng.normal(size=(3, 3)))
+        _, fast_cov, _ = covariance_intersection_fast(means, mats)
+        _, best_cov, _ = covariance_intersection_many(means, mats)
+        assert np.trace(fast_cov) >= np.trace(best_cov) - 1e-9

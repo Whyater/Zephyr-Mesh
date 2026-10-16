@@ -133,6 +133,27 @@ def covariance_intersection_many(
     return mean, cov, weights
 
 
+def covariance_intersection_fast(
+    means: Sequence[np.ndarray], covs: Sequence[np.ndarray]
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """N-way covariance intersection with closed-form weights proportional to 1/trace(P_i).
+
+    Any convex weights give a consistent CI result, so this keeps the
+    no-double-counting guarantee while skipping the trace optimization
+    (fast covariance intersection, Niehsen 2002). The fused covariance is
+    never smaller than the optimal CI result, so it is at least as conservative.
+    """
+    xs, ps, d = _validate(means, covs)
+    inv_traces = np.asarray([1.0 / float(np.trace(p)) for p in ps])
+    weights = inv_traces / float(np.sum(inv_traces))
+    infos = [np.linalg.solve(p, np.eye(d)) for p in ps]
+    info = sum((float(w) * i for w, i in zip(weights, infos)), np.zeros((d, d)))
+    cov = np.linalg.solve(info, np.eye(d))
+    cov = (cov + cov.T) * 0.5
+    mean = cov @ sum((float(w) * (i @ m) for w, i, m in zip(weights, infos, xs)), np.zeros(d))
+    return mean, cov, weights
+
+
 def naive_average(means: Sequence[np.ndarray], covs: Sequence[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
     """Average estimates and claim the covariance for independent errors."""
     xs, ps, _ = _validate(means, covs)
