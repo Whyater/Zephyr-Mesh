@@ -384,6 +384,18 @@ def _active_set_projection(
     maximum: float,
 ) -> tuple[np.ndarray, bool]:
     """Project onto a three-dimensional half-space intersection and speed ball."""
+
+    def feasible(value: np.ndarray) -> bool:
+        if not np.all(np.isfinite(value)):
+            return False
+        if any(float(np.dot(value - point, normal)) < -1.0e-9 for point, normal in halfspaces):
+            return False
+        return float(np.dot(value, value)) <= maximum * maximum + 1.0e-9
+
+    # The preferred velocity is the first candidate and has objective zero, so
+    # when it is feasible no other candidate can win: return it directly.
+    if feasible(preferred):
+        return preferred.copy(), True
     candidates: list[np.ndarray] = []
     candidates.append(preferred.copy())
     candidates.extend(
@@ -414,12 +426,6 @@ def _active_set_projection(
                 )
             )
 
-    def feasible(value: np.ndarray) -> bool:
-        if not np.all(np.isfinite(value)):
-            return False
-        if any(float(np.dot(value - point, normal)) < -1.0e-9 for point, normal in halfspaces):
-            return False
-        return float(np.dot(value, value)) <= maximum * maximum + 1.0e-9
 
     best: np.ndarray | None = None
     best_objective = float("inf")
