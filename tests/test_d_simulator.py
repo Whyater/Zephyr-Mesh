@@ -12,6 +12,9 @@ from jsonschema import Draft202012Validator
 
 from sim.coop.avoidance import AvoidanceConfig
 from sim.coop.simulator import CoopLinkConfig, CoopSwarmConfig, CoopSwarmSimulator
+from sim.estimation.base import EstimatorSettings
+from sim.estimation.factory import make_estimator
+from sim.sensor import SensorConfig, SensorModel
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -57,10 +60,111 @@ def test_demo_moves_and_re_spaces(tmp_path):
         assert agent["believed_alive"] == ["drone-002", "drone-003", "drone-004"]
 
 
-def test_single_observer_zero_noise_matches_local_filter():
+def test_single_observer_zero_noise_matches_separate_filter():
     config = CoopSwarmConfig(n_agents=1, duration_s=2.0, noise_std_m=0.0, fusion="none", dropouts=(), link=CoopLinkConfig(delay_s=0.0, loss_probability=0.0, loss_model="none"))
+    simulator = CoopSwarmSimulator(config)
+    run = simulator.run().as_dict()
+    standalone = make_estimator(config.estimator, EstimatorSettings(), simulator._target_start)
+    sensor = SensorModel(SensorConfig(noise_std_m=0.0), seed=int(np.random.SeedSequence([config.seed, 100]).generate_state(1)[0]))
+    phase = 0.0
+    next_capture = phase
+    for step in run["steps"]:
+        t = float(step["time_s"])
+        while next_capture <= t + 1e-12:
+            capture = round(next_capture, 12)
+            truth = simulator._truth(capture)[0]
+            sample = sensor.sample(truth, capture)
+            if sample.available:
+                standalone.update(sample.measurement_m, capture)
+            next_capture += 1.0 / config.sensor_rate_hz
+        expected = standalone.predict_at(t).position_m
+        actual = np.asarray(step["agents"][0]["target_estimate_m"])
+        assert np.max(np.abs(actual - expected)) <= 1e-12
+
+
+def test_send_time_age_delay_regression():
+    config = CoopSwarmConfig(
+        n_agents=3,
+        duration_s=3.0,
+        noise_std_m=0.0,
+        fusion="ci",
+        dropouts=(),
+        link=CoopLinkConfig(delay_s=0.3, loss_probability=0.0, loss_model="none"),
+    )
     run = CoopSwarmSimulator(config).run().as_dict()
-    assert all(step["agents"][0]["target_estimate_m"] is not None for step in run["steps"])
+    errors = [row["truth_error_m"] for step in run["steps"] if step["time_s"] >= 2.0 for row in step["agents"] if row["active"]]
+    group = [step["gs_group_error_m"] for step in run["steps"] if step["time_s"] >= 2.0 and step["gs_group_error_m"] is not None]
+    assert np.percentile(errors, 95) < 0.05
+    assert np.percentile(group, 95) < 0.05
+
+
+def test_ground_controller_matches_onboard_pd():
+    common = dict(n_agents=4, duration_s=10.0, noise_std_m=0.0, dropouts=(), fusion="central", link=CoopLinkConfig(delay_s=0.0, loss_probability=0.0, loss_model="none"))
+    onboard = CoopSwarmSimulator(CoopSwarmConfig(**common, decision="onboard")).run().as_dict()
+    ground = CoopSwarmSimulator(CoopSwarmConfig(**common, decision="ground")).run().as_dict()
+    def median(value):
+        return np.median([a["standoff_error_m"] for s in value["steps"] if s["time_s"] >= 8.0 for a in s["agents"] if a["active"]])
+    assert abs(median(onboard) - median(ground)) < 0.02
+
+
+def test_silent_agent_sends_nothing_after_drop():
+    config = CoopSwarmConfig(n_agents=3, duration_s=3.0, fusion="central", dropouts=(("drone-001", 1.0, "silent"),))
+    run = CoopSwarmSimulator(config).run().as_dict()
+    assert not [event for event in run["link_events"] if event["sender"] == "drone-001" and event["send_time"] >= 1.0]
+
+
+def test_landed_leaving_and_gs_fuser_logging():
+    config = CoopSwarmConfig(n_agents=3, duration_s=2.0, fusion="central", dropouts=(("drone-001", 1.0, "landed"),), link=CoopLinkConfig(delay_s=0.3, loss_probability=0.0, loss_model="none"))
+    run = CoopSwarmSimulator(config).run().as_dict()
+    leaving = [event for event in run["link_events"] if event["kind"] == "leaving"]
+    assert len(leaving) == 3
+    leaving_arrival = max(event["receive_time"] for event in leaving if event["receive_time"] is not None)
+    assert 1.29 <= leaving_arrival <= 1.31
+    survivor = min(run["steps"], key=lambda step: abs(step["time_s"] - 1.5))
+    assert "drone-001" not in survivor["agents"][1]["believed_alive"]
+    assert all("gs_fuser_estimate_m" in step and "gs_fuser_error_m" in step for step in run["steps"])
+    assert run["summary"]["gs_fuser_error_max_m"] is not None
+
+
+def test_traffic_is_bucketed_by_kind_and_ci_mode_is_recorded():
+    config = CoopSwarmConfig(n_agents=2, duration_s=2.0, fusion="central", dropouts=(), ci_mode="fast")
+    run = CoopSwarmSimulator(config).run().as_dict()
+    assert run["config"]["ci_mode"] == "fast"
+    assert set(run["summary"]["traffic"]) == {"state", "raw", "track", "command", "leaving"}
+    assert all("kind" in event for event in run["link_events"])
+    shares = 21
+    assert run["summary"]["traffic"]["state"]["messages"] == 4 * shares
+    assert 40 <= run["summary"]["traffic"]["raw"]["messages"] <= 42
+    assert run["summary"]["traffic"]["track"]["messages"] == 2 * shares
+    assert run["summary"]["traffic"]["raw"]["bytes"] == 56 * run["summary"]["traffic"]["raw"]["messages"]
+
+
+def test_track_messages_only_for_central_fusion():
+    config = CoopSwarmConfig(n_agents=2, duration_s=1.0, fusion="ci", dropouts=())
+    run = CoopSwarmSimulator(config).run().as_dict()
+    assert run["summary"]["traffic"]["track"]["messages"] == 0
+
+
+def test_ground_command_carries_plan_and_outage_timeout_is_bounded():
+    config = CoopSwarmConfig(
+        n_agents=3,
+        duration_s=4.0,
+        decision="ground",
+        fusion="central",
+        dropouts=(),
+        gs_outage=((2.0, 3.0),),
+        link=CoopLinkConfig(delay_s=0.05, loss_probability=0.0, loss_model="none"),
+    )
+    run = CoopSwarmSimulator(config).run().as_dict()
+    command_events = [event for event in run["link_events"] if event["kind"] == "command"]
+    assert command_events
+    healthy = [a for step in run["steps"] if 1.0 <= step["time_s"] < 2.0 for a in step["agents"] if a["active"]]
+    assert healthy and all(len(row["believed_assignment"]) == len(row["believed_alive"]) for row in healthy)
+    timeout_steps = [step["time_s"] for step in run["steps"] if any("command_timeout" in a["flags"] for a in step["agents"] if a["active"])]
+    assert timeout_steps and min(timeout_steps) >= 2.0
+    assert not [step for step in run["steps"] if step["time_s"] < 2.0 and any("command_timeout" in a["flags"] for a in step["agents"] if a["active"])]
+
+
 
 
 def test_perfect_six_observers_keep_separation():
