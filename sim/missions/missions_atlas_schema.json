@@ -1,0 +1,1667 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "zephyr-missions-atlas-1",
+  "title": "Run E missions atlas (simulated)",
+  "description": "Where each simulated mission stops meeting its pre-registered goal, per link preset, with 95 % intervals and the recommended lost-link timeout. Written by tools/e_missions_atlas.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contains_pilot_numbers",
+    "goal_rule",
+    "goal_source",
+    "inputs",
+    "limits",
+    "loss_axis",
+    "missions",
+    "presets",
+    "schema",
+    "simulated",
+    "title"
+  ],
+  "properties": {
+    "schema": {
+      "const": "zephyr-missions-atlas-1"
+    },
+    "simulated": {
+      "const": true
+    },
+    "title": {
+      "type": "string"
+    },
+    "contains_pilot_numbers": {
+      "type": "boolean"
+    },
+    "goal_source": {
+      "type": "string"
+    },
+    "goal_rule": {
+      "type": "string"
+    },
+    "loss_axis": {
+      "type": "string"
+    },
+    "presets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/preset"
+      },
+      "minItems": 1
+    },
+    "limits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exp029_part_a",
+        "exp029_part_b",
+        "exp030",
+        "exp031",
+        "exp032",
+        "exp033",
+        "exp034"
+      ],
+      "properties": {
+        "exp029_part_a": {
+          "$ref": "#/$defs/input"
+        },
+        "exp029_part_b": {
+          "$ref": "#/$defs/input"
+        },
+        "exp030": {
+          "$ref": "#/$defs/input"
+        },
+        "exp031": {
+          "$ref": "#/$defs/input"
+        },
+        "exp032": {
+          "$ref": "#/$defs/input"
+        },
+        "exp033": {
+          "$ref": "#/$defs/input"
+        },
+        "exp034": {
+          "$ref": "#/$defs/input"
+        }
+      }
+    },
+    "missions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "failsafe",
+        "formation",
+        "monitor",
+        "relay",
+        "sweep",
+        "tag"
+      ],
+      "properties": {
+        "failsafe": {
+          "$ref": "#/$defs/failsafe_mission"
+        },
+        "tag": {
+          "$ref": "#/$defs/tag_mission"
+        },
+        "sweep": {
+          "$ref": "#/$defs/sweep_mission"
+        },
+        "relay": {
+          "$ref": "#/$defs/relay_mission"
+        },
+        "monitor": {
+          "$ref": "#/$defs/monitor_mission"
+        },
+        "formation": {
+          "$ref": "#/$defs/formation_mission"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "rate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "count",
+        "n",
+        "rate",
+        "wilson_high",
+        "wilson_low"
+      ],
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rate": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "wilson_low": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "wilson_high": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "median": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "high",
+        "low",
+        "median",
+        "n"
+      ],
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "median": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "low": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "high": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "mean": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mean",
+        "n"
+      ],
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mean": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "total": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "n",
+        "total"
+      ],
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "minimum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum",
+        "n"
+      ],
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minimum": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "compared",
+        "comparison",
+        "id",
+        "met",
+        "statistic",
+        "summary",
+        "text",
+        "threshold"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "statistic": {
+          "enum": [
+            "wilson_low",
+            "wilson_high",
+            "median",
+            "median_low",
+            "median_high",
+            "mean",
+            "total",
+            "minimum"
+          ]
+        },
+        "summary": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/rate"
+            },
+            {
+              "$ref": "#/$defs/median"
+            },
+            {
+              "$ref": "#/$defs/mean"
+            },
+            {
+              "$ref": "#/$defs/total"
+            },
+            {
+              "$ref": "#/$defs/minimum"
+            }
+          ]
+        },
+        "compared": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "comparison": {
+          "enum": [
+            ">=",
+            "<=",
+            "=="
+          ]
+        },
+        "threshold": {
+          "type": "number"
+        },
+        "met": {
+          "type": "boolean"
+        }
+      }
+    },
+    "cell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conditions",
+        "met",
+        "missing",
+        "n_runs",
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "n_runs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missing": {
+          "type": "boolean"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "minItems": 1
+        },
+        "met": {
+          "type": "boolean"
+        }
+      }
+    },
+    "bracket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "axis",
+        "bracket",
+        "met_again_after_first_not_met",
+        "tolerated",
+        "unit",
+        "values"
+      ],
+      "properties": {
+        "axis": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 1
+        },
+        "tolerated": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "bracket": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          ],
+          "items": false,
+          "minItems": 2
+        },
+        "met_again_after_first_not_met": {
+          "type": "boolean"
+        }
+      }
+    },
+    "preset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "long_run_loss_fraction",
+        "loss_model",
+        "mean_burst_s",
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "enum": [
+            "clean",
+            "iid_1",
+            "iid_5",
+            "iid_10",
+            "iid_30",
+            "burst_1_0.5s",
+            "burst_10_0.2s",
+            "burst_10_0.5s",
+            "burst_30_0.5s"
+          ]
+        },
+        "loss_model": {
+          "enum": [
+            "none",
+            "independent",
+            "burst"
+          ]
+        },
+        "long_run_loss_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "mean_burst_s": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "csv",
+        "experiment",
+        "files",
+        "folder",
+        "git_revision",
+        "git_tree_state",
+        "manifest_schema",
+        "pilot_reasons",
+        "reason",
+        "status"
+      ],
+      "properties": {
+        "experiment": {
+          "type": "string"
+        },
+        "folder": {
+          "type": "string"
+        },
+        "csv": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "result",
+            "not available",
+            "pilot only, not a result"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pilot_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "git_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "git_tree_state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "manifest_schema": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "files": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "axis": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "meaning",
+            "name",
+            "unit"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "unit": {
+              "type": "string"
+            },
+            "meaning": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "summary_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "detail",
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "agrees",
+            "disagrees"
+          ]
+        },
+        "detail": {
+          "type": "string"
+        }
+      }
+    },
+    "tag_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter",
+        "adapter_label",
+        "arm",
+        "bracket",
+        "cells",
+        "n_followers",
+        "notes",
+        "policy",
+        "preset",
+        "scope",
+        "slice",
+        "target_class"
+      ],
+      "properties": {
+        "slice": {
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "pre-registered grid, Addendum A goal",
+            "pre-registered extra slice, Addendum A goal applied",
+            "pre-registered physics subset, Addendum A goal applied",
+            "exploratory slice (Addendum B, added after the pilots), not pre-registered",
+            "pilot run, not a result"
+          ]
+        },
+        "adapter": {
+          "type": "string"
+        },
+        "adapter_label": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "target_class": {
+          "type": "string"
+        },
+        "preset": {
+          "enum": [
+            "clean",
+            "iid_1",
+            "iid_5",
+            "iid_10",
+            "iid_30",
+            "burst_1_0.5s",
+            "burst_10_0.2s",
+            "burst_10_0.5s",
+            "burst_30_0.5s"
+          ]
+        },
+        "arm": {
+          "type": "string"
+        },
+        "n_followers": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "policy": {
+          "type": "string"
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/cell"
+          },
+          "minItems": 1
+        },
+        "bracket": {
+          "$ref": "#/$defs/bracket"
+        }
+      }
+    },
+    "sweep_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter",
+        "adapter_label",
+        "cell",
+        "dropout",
+        "message_mode",
+        "met",
+        "notes",
+        "policy",
+        "preset",
+        "scope",
+        "slice"
+      ],
+      "properties": {
+        "slice": {
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "pre-registered grid, Addendum A goal",
+            "pre-registered extra slice, Addendum A goal applied",
+            "pre-registered physics subset, Addendum A goal applied",
+            "exploratory slice (Addendum B, added after the pilots), not pre-registered",
+            "pilot run, not a result"
+          ]
+        },
+        "adapter": {
+          "type": "string"
+        },
+        "adapter_label": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "preset": {
+          "enum": [
+            "clean",
+            "iid_1",
+            "iid_5",
+            "iid_10",
+            "iid_30",
+            "burst_1_0.5s",
+            "burst_10_0.2s",
+            "burst_10_0.5s",
+            "burst_30_0.5s"
+          ]
+        },
+        "dropout": {
+          "type": "string"
+        },
+        "message_mode": {
+          "type": "string"
+        },
+        "policy": {
+          "type": "string"
+        },
+        "cell": {
+          "$ref": "#/$defs/cell"
+        },
+        "met": {
+          "type": "boolean"
+        }
+      }
+    },
+    "relay_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter",
+        "adapter_label",
+        "bracket",
+        "cells",
+        "notes",
+        "relay_fraction",
+        "scope",
+        "slice"
+      ],
+      "properties": {
+        "slice": {
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "pre-registered grid, Addendum A goal",
+            "pre-registered extra slice, Addendum A goal applied",
+            "pre-registered physics subset, Addendum A goal applied",
+            "exploratory slice (Addendum B, added after the pilots), not pre-registered",
+            "pilot run, not a result"
+          ]
+        },
+        "adapter": {
+          "type": "string"
+        },
+        "adapter_label": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "relay_fraction": {
+          "oneOf": [
+            {
+              "const": "none"
+            },
+            {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            }
+          ]
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/cell"
+          },
+          "minItems": 1
+        },
+        "bracket": {
+          "$ref": "#/$defs/bracket"
+        }
+      }
+    },
+    "monitor_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter",
+        "adapter_label",
+        "bracket",
+        "cells",
+        "notes",
+        "path",
+        "preset",
+        "scope",
+        "slice"
+      ],
+      "properties": {
+        "slice": {
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "pre-registered grid, Addendum A goal",
+            "pre-registered extra slice, Addendum A goal applied",
+            "pre-registered physics subset, Addendum A goal applied",
+            "exploratory slice (Addendum B, added after the pilots), not pre-registered",
+            "pilot run, not a result"
+          ]
+        },
+        "adapter": {
+          "type": "string"
+        },
+        "adapter_label": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "path": {
+          "enum": [
+            "crossing",
+            "loiter",
+            "skimming"
+          ]
+        },
+        "preset": {
+          "enum": [
+            "clean",
+            "iid_1",
+            "iid_5",
+            "iid_10",
+            "iid_30",
+            "burst_1_0.5s",
+            "burst_10_0.2s",
+            "burst_10_0.5s",
+            "burst_30_0.5s"
+          ]
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/cell"
+          },
+          "minItems": 1
+        },
+        "bracket": {
+          "$ref": "#/$defs/bracket"
+        }
+      }
+    },
+    "formation_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter",
+        "adapter_label",
+        "bracket",
+        "cells",
+        "notes",
+        "preset",
+        "scope",
+        "sigma_m",
+        "slice"
+      ],
+      "properties": {
+        "slice": {
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "pre-registered grid, Addendum A goal",
+            "pre-registered extra slice, Addendum A goal applied",
+            "pre-registered physics subset, Addendum A goal applied",
+            "exploratory slice (Addendum B, added after the pilots), not pre-registered",
+            "pilot run, not a result"
+          ]
+        },
+        "adapter": {
+          "type": "string"
+        },
+        "adapter_label": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sigma_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "preset": {
+          "enum": [
+            "clean",
+            "iid_1",
+            "iid_5",
+            "iid_10",
+            "iid_30",
+            "burst_1_0.5s",
+            "burst_10_0.2s",
+            "burst_10_0.5s",
+            "burst_30_0.5s"
+          ]
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/cell"
+          },
+          "minItems": 1
+        },
+        "bracket": {
+          "$ref": "#/$defs/bracket"
+        }
+      }
+    },
+    "landing_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "T_s",
+        "closed_form_per_hour",
+        "count",
+        "high_95",
+        "hours",
+        "landings_per_hour",
+        "low_95",
+        "under_1_per_hour"
+      ],
+      "properties": {
+        "T_s": {
+          "type": "number"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "hours": {
+          "type": "number"
+        },
+        "landings_per_hour": {
+          "type": "number"
+        },
+        "low_95": {
+          "type": "number"
+        },
+        "high_95": {
+          "type": "number"
+        },
+        "closed_form_per_hour": {
+          "type": "number"
+        },
+        "under_1_per_hour": {
+          "type": "boolean"
+        }
+      }
+    },
+    "late_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "T_s",
+        "adapter",
+        "adapter_label",
+        "degraded_action",
+        "grounded_before_blackout",
+        "late",
+        "late_airborne_at_blackout",
+        "n_runs"
+      ],
+      "properties": {
+        "adapter": {
+          "type": "string"
+        },
+        "adapter_label": {
+          "type": "string"
+        },
+        "degraded_action": {
+          "enum": [
+            "hold",
+            "slow"
+          ]
+        },
+        "T_s": {
+          "type": "number"
+        },
+        "n_runs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "late": {
+          "$ref": "#/$defs/rate"
+        },
+        "late_airborne_at_blackout": {
+          "$ref": "#/$defs/rate"
+        },
+        "grounded_before_blackout": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "failsafe_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "T_w_s",
+        "h_hz",
+        "landings_at_recommended_T",
+        "landings_by_T",
+        "late_reaction_at_0_30_s",
+        "late_reaction_at_recommended_T",
+        "notes",
+        "preset",
+        "recommended_T_s",
+        "rule_result",
+        "weak_rule"
+      ],
+      "properties": {
+        "preset": {
+          "enum": [
+            "clean",
+            "iid_1",
+            "iid_5",
+            "iid_10",
+            "iid_30",
+            "burst_1_0.5s",
+            "burst_10_0.2s",
+            "burst_10_0.5s",
+            "burst_30_0.5s"
+          ]
+        },
+        "h_hz": {
+          "type": "number"
+        },
+        "weak_rule": {
+          "const": "age"
+        },
+        "T_w_s": {
+          "type": "number"
+        },
+        "recommended_T_s": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "rule_result": {
+          "type": "string"
+        },
+        "landings_at_recommended_T": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/landing_row"
+            }
+          ]
+        },
+        "landings_by_T": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/landing_row"
+          },
+          "minItems": 1
+        },
+        "late_reaction_at_recommended_T": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/late_item"
+              },
+              "minItems": 1
+            }
+          ]
+        },
+        "late_reaction_at_0_30_s": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/late_item"
+              },
+              "minItems": 1
+            }
+          ]
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "failsafe_mission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "axis",
+        "computed_from",
+        "entries",
+        "experiment",
+        "goal_definition",
+        "inputs",
+        "notes",
+        "status",
+        "status_reason",
+        "title"
+      ],
+      "properties": {
+        "experiment": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "result",
+            "not available",
+            "pilot only, not a result"
+          ]
+        },
+        "status_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "goal_definition": {
+          "type": "string"
+        },
+        "computed_from": {
+          "type": "string"
+        },
+        "axis": {
+          "$ref": "#/$defs/axis"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/failsafe_entry"
+          }
+        },
+        "pilot_entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/failsafe_entry"
+          }
+        },
+        "runner_summary_check": {
+          "$ref": "#/$defs/summary_check"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "not": {
+              "const": "result"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    "tag_mission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "axis",
+        "computed_from",
+        "entries",
+        "experiment",
+        "goal_definition",
+        "inputs",
+        "notes",
+        "status",
+        "status_reason",
+        "title"
+      ],
+      "properties": {
+        "experiment": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "result",
+            "not available",
+            "pilot only, not a result"
+          ]
+        },
+        "status_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "goal_definition": {
+          "type": "string"
+        },
+        "computed_from": {
+          "type": "string"
+        },
+        "axis": {
+          "$ref": "#/$defs/axis"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tag_entry"
+          }
+        },
+        "pilot_entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tag_entry"
+          }
+        },
+        "runner_summary_check": {
+          "$ref": "#/$defs/summary_check"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "not": {
+              "const": "result"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    "sweep_mission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "axis",
+        "computed_from",
+        "entries",
+        "experiment",
+        "goal_definition",
+        "inputs",
+        "notes",
+        "status",
+        "status_reason",
+        "title"
+      ],
+      "properties": {
+        "experiment": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "result",
+            "not available",
+            "pilot only, not a result"
+          ]
+        },
+        "status_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "goal_definition": {
+          "type": "string"
+        },
+        "computed_from": {
+          "type": "string"
+        },
+        "axis": {
+          "$ref": "#/$defs/axis"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sweep_entry"
+          }
+        },
+        "pilot_entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sweep_entry"
+          }
+        },
+        "runner_summary_check": {
+          "$ref": "#/$defs/summary_check"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "not": {
+              "const": "result"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    "relay_mission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "axis",
+        "computed_from",
+        "entries",
+        "experiment",
+        "goal_definition",
+        "inputs",
+        "notes",
+        "status",
+        "status_reason",
+        "title"
+      ],
+      "properties": {
+        "experiment": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "result",
+            "not available",
+            "pilot only, not a result"
+          ]
+        },
+        "status_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "goal_definition": {
+          "type": "string"
+        },
+        "computed_from": {
+          "type": "string"
+        },
+        "axis": {
+          "$ref": "#/$defs/axis"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relay_entry"
+          }
+        },
+        "pilot_entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relay_entry"
+          }
+        },
+        "runner_summary_check": {
+          "$ref": "#/$defs/summary_check"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "not": {
+              "const": "result"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    "monitor_mission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "axis",
+        "computed_from",
+        "entries",
+        "experiment",
+        "goal_definition",
+        "inputs",
+        "notes",
+        "status",
+        "status_reason",
+        "title"
+      ],
+      "properties": {
+        "experiment": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "result",
+            "not available",
+            "pilot only, not a result"
+          ]
+        },
+        "status_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "goal_definition": {
+          "type": "string"
+        },
+        "computed_from": {
+          "type": "string"
+        },
+        "axis": {
+          "$ref": "#/$defs/axis"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/monitor_entry"
+          }
+        },
+        "pilot_entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/monitor_entry"
+          }
+        },
+        "runner_summary_check": {
+          "$ref": "#/$defs/summary_check"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "not": {
+              "const": "result"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    "formation_mission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "axis",
+        "computed_from",
+        "entries",
+        "experiment",
+        "goal_definition",
+        "inputs",
+        "notes",
+        "status",
+        "status_reason",
+        "title"
+      ],
+      "properties": {
+        "experiment": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "result",
+            "not available",
+            "pilot only, not a result"
+          ]
+        },
+        "status_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "goal_definition": {
+          "type": "string"
+        },
+        "computed_from": {
+          "type": "string"
+        },
+        "axis": {
+          "$ref": "#/$defs/axis"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/formation_entry"
+          }
+        },
+        "pilot_entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/formation_entry"
+          }
+        },
+        "runner_summary_check": {
+          "$ref": "#/$defs/summary_check"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "not": {
+              "const": "result"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  }
+}
