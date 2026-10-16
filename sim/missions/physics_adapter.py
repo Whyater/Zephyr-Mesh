@@ -19,29 +19,47 @@ position loop has no velocity limit, so the adapter feeds it a carrot:
   profile: 1.82 m/s against a 1.5 m/s carrot, measured in
   tests/test_e_adapters_redo.py).
 * SLOW (weak link policy): the carrot moves at most ``slow_speed_mps * dt``
-  per step AND stays within ``slow_speed_mps * min(Kd / Kp)`` of the sensed
+  per step from where it was, toward a point that is the next step toward
+  the command held within ``slow_speed_mps * min(Kd / Kp)`` of the sensed
   position.  That lead is the PD loop's steady lag at the slow speed, so the
   loop's steady speed cannot exceed the slow speed and the overshoot of a
-  speed-only carrot (0.36 m/s against 0.3 m/s) does not happen.  The rigid
-  body state is never edited; only the carrot is limited.
+  speed-only carrot (0.36 m/s against 0.3 m/s) does not happen.  The carrot
+  never jumps, even when SLOW starts with the carrot well ahead of a fast
+  vehicle or when an offboard fix jumps.  The rigid body state is never
+  edited, so a vehicle that enters SLOW at speed slows down through its own
+  dynamics.  Crazyflie-class profile, SLOW entered at 1.76 m/s after 2 s
+  toward a far goal (tests/test_e_adapters_rereview.py): the speed still
+  rises to 1.80 m/s for 0.19 s while the body tilts back (flying on without
+  SLOW peaks at 1.82 m/s), falls under 0.3 m/s 1.34 s after SLOW began, and
+  stays under it.
 * HOLD (or no command): the carrot is frozen at the sensed position where the
   hold began.
 * Whenever the mode changes (position, hold, land, unpowered) the carrot
   restarts at the sensed position.
-* LAND: the carrot is frozen at the sensed position where the landing began,
-  then its z drops at ``land_speed_mps`` until the floor.  Touchdown is
+* LAND: the carrot is frozen at the true position where the landing began,
+  then its z drops at ``land_speed_mps`` until the floor.  A body that is
+  moving when the landing starts brakes over a finite distance and comes
+  back to the frozen point (0.85 m peak from 1.76 m/s for the default
+  profile, 2 cm left at touchdown; the linear PD hand value is 0.66 m).
+  The landing is the vehicle's own failsafe, so even with
+  ``feedback="offboard"`` it is flown on the true (onboard) state: the fixes
+  usually stop for the same reason the landing started, and a held fix
+  would steer the body away.  Touchdown is
   declared when the TRUE z is within 0.02 m of the floor and the true speed is
   below 0.05 m/s; the body is then set on the floor (z pinned, velocity and
   spin zeroed) and the rotors stop.
 
 Floor.  After every step a true z below ``ground_plane_z_m`` is set to the
-floor.  In powered flight only the downward velocity is removed.  While the
-kill switch is latched or after touchdown the floor is inelastic and
-no-slide: the full velocity and angular velocity are zeroed, so a body that
-hits the floor stays where it hit.
+floor.  A body that ends the step at or below the floor without climbing
+does not slide: its linear velocity is zeroed, and if it was already on the
+floor when the step began it keeps its horizontal position.  Powered, the
+attitude stays with the controller (so a take-off command still works);
+while the kill switch is latched or after touchdown the angular velocity is
+zeroed as well, so an unpowered body that hits the floor stays where it hit.
 
-Unpowered (kill switch, or landed): the rotor speeds are held at zero, the
-controller is not called, and the body moves under gravity alone (drag is off,
+Unpowered (kill switch, or landed): the rotor speeds are set to zero as soon
+as the kill switch latches and held there, the controller is not called,
+and the body moves under gravity alone (drag is off,
 so a fall from height h takes sqrt(2 h / g)).  ``vehicle.time_s`` advances by
 the same dt as the adapter clock on every step, powered or not.
 
@@ -49,7 +67,8 @@ Feedback.  ``feedback="onboard"`` gives the controller the true state.
 ``feedback="offboard"`` gives it the newest position fix from
 ``set_position_fix`` (held; the initial position before the first fix) and a
 velocity from the last two fixes (zero before that); attitude and spin stay
-true.  Geofence checks, the floor and touchdown always use the TRUE state.
+true.  LAND is the exception (see above).  Geofence checks, the floor and
+touchdown always use the TRUE state.
 """
 from __future__ import annotations
 
@@ -60,6 +79,7 @@ from typing import Any, Iterable
 import numpy as np
 
 from sim.adapters import (
+    FLOOR_CONTACT_M,
     Capabilities,
     DroneState,
     Geofence,
@@ -98,8 +118,11 @@ class _OffboardFeedback:
     def __init__(self, inner: Any, fix: PositionFixHold) -> None:
         self.inner = inner
         self.fix = fix
+        self.use_truth = False  # set while a LAND failsafe flies on the onboard state
 
     def update_control(self, drone: Any, target_position: np.ndarray, dt: float, **kwargs: Any):
+        if self.use_truth:
+            return self.inner.update_control(drone, target_position, dt, **kwargs)
         sensed = _SensedDrone(drone, self.fix.position, self.fix.velocity)
         return self.inner.update_control(sensed, target_position, dt, **kwargs)
 
@@ -164,8 +187,10 @@ class PhysicsAdapter(SimulatedAdapterCore):
         # the most restrictive axis).  Used for the SLOW lead limit.
         self._lag_s_per_mps = float(np.min(np.asarray(controller.K_d_pos, dtype=float) / np.asarray(controller.K_p_pos, dtype=float)))
         self._fix = PositionFixHold(start)
+        self._offboard: _OffboardFeedback | None = None
         if feedback == "offboard":
-            self.vehicle.controller = _OffboardFeedback(controller, self._fix)
+            self._offboard = _OffboardFeedback(controller, self._fix)
+            self.vehicle.controller = self._offboard
         self._carrot = start.copy()
         self._carrot_mode = "hold"
 
@@ -188,7 +213,7 @@ class PhysicsAdapter(SimulatedAdapterCore):
         return self.vehicle.drone.position
 
     def _sensed_position(self) -> np.ndarray:
-        if self.feedback == "offboard":
+        if self._offboard is not None and not self._offboard.use_truth:
             return self._fix.position.copy()
         return self.vehicle.drone.position.copy()
 
@@ -214,13 +239,23 @@ class PhysicsAdapter(SimulatedAdapterCore):
             assert command is not None and command.position_m is not None
             slow = decision.action is FailsafeAction.SLOW
             speed = self.failsafe.config.slow_speed_mps if slow else self.capabilities.max_speed_mps
-            self._carrot = _step_toward(self._carrot, np.asarray(command.position_m, dtype=float), speed * dt)
+            goal = np.asarray(command.position_m, dtype=float)
             if slow:
-                lead_limit = speed * self._lag_s_per_mps
-                self._carrot = sensed + _limited(self._carrot - sensed, lead_limit)
+                # Aim at the next step toward the goal held within the lead of
+                # the sensed position, but move the carrot only one slow step
+                # toward that aim, so it never jumps.
+                aim = _step_toward(self._carrot, goal, speed * dt)
+                aim = sensed + _limited(aim - sensed, speed * self._lag_s_per_mps)
+                goal = aim
+            self._carrot = _step_toward(self._carrot, goal, speed * dt)
         elif mode == "land":
             self._carrot = self._carrot.copy()
             self._carrot[2] = max(self._ground, self._carrot[2] - self._land_speed * dt)
+
+    def _on_kill(self) -> None:
+        """Kill switch latched: stop the rotors now, not at the next step."""
+        self.vehicle.actuator.speed_rad_s[:] = 0.0
+        self._carrot_mode = "unpowered"
 
     def _unpowered_step(self, dt: float) -> None:
         """Kill switch or landed: rotors at zero, no controller, gravity only."""
@@ -235,16 +270,19 @@ class PhysicsAdapter(SimulatedAdapterCore):
         drone.velocity[:] = 0.0
         drone.angular_velocity[:] = 0.0
 
-    def _floor_contact(self) -> None:
+    def _floor_contact(self, start: np.ndarray) -> None:
         drone = self.vehicle.drone
-        if drone.position[2] >= self._ground:
-            return
-        if self.failsafe.state in {FailsafeState.KILLED, FailsafeState.LANDED}:
-            # Inelastic, no-slide floor for an unpowered body.
-            self._rest_on_floor()
-        else:
+        if drone.position[2] < self._ground:
             drone.position[2] = self._ground
             drone.velocity[2] = max(0.0, drone.velocity[2])
+        if drone.position[2] > self._ground + FLOOR_CONTACT_M or drone.velocity[2] > 0.0:
+            return  # airborne, or climbing away from the floor
+        # Inelastic, no-slide floor.
+        drone.velocity[:] = 0.0
+        if start[2] <= self._ground + FLOOR_CONTACT_M:
+            drone.position[:2] = start[:2]
+        if self.failsafe.state in {FailsafeState.KILLED, FailsafeState.LANDED}:
+            self._rest_on_floor()
 
     def step(
         self,
@@ -263,12 +301,16 @@ class PhysicsAdapter(SimulatedAdapterCore):
             kill_requested=kill_requested,
             recent_loss_fraction=recent_loss_fraction,
         )
+        start = self.vehicle.drone.position.copy()
         if self.failsafe.state in {FailsafeState.KILLED, FailsafeState.LANDED}:
             self._unpowered_step(dt)
         else:
+            if self._offboard is not None:
+                landing = winner.command is not None and winner.command.kind is CommandKind.LAND
+                self._offboard.use_truth = landing
             self._update_carrot(winner.command, decision, dt)
             self.vehicle.step(self._carrot, dt)
-        self._floor_contact()
+        self._floor_contact(start)
 
         drone = self.vehicle.drone
         if (
@@ -280,6 +322,7 @@ class PhysicsAdapter(SimulatedAdapterCore):
             self.vehicle.actuator.speed_rad_s[:] = 0.0
             self._carrot_mode = "unpowered"
             self._mark_landed(recent_loss_fraction)
+        self._end_step()
         return self.get_state()
 
     def get_state(self) -> DroneState:

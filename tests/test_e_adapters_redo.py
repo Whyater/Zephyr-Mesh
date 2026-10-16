@@ -12,7 +12,7 @@ import math
 import numpy as np
 import pytest
 
-from sim.adapters import Geofence, OffboardPointMassAdapter, PositionFixHold, SimAdapter, SimulatedAdapterCore
+from sim.adapters import Geofence, OffboardPointMassAdapter, PositionFixHold, SimAdapter
 from sim.authority import CommandKind
 from sim.failsafe import FailsafeConfig, FailsafeController, FailsafeDecision, FailsafeState, SequenceLossWindow
 from sim.hardware import load_hardware_profile
@@ -388,14 +388,32 @@ def test_physics_landing_time_from_1_5_m():
 
 # Shared safety code and small API checks -------------------------------------
 
-def test_safety_methods_are_shared_not_copied():
-    # restates implementation: a structural check that both adapters use one copy.
-    for name in ("request_command", "send_setpoint", "land", "kill", "reset_failsafe",
-                 "set_link_metrics", "set_battery_pct", "drain_events", "_sync_failsafe_authority",
-                 "_observe_failsafe", "_event", "_record_authority"):
-        assert name not in vars(SimAdapter) and name not in vars(PhysicsAdapter), name
-        assert getattr(SimAdapter, name) is getattr(SimulatedAdapterCore, name)
-        assert getattr(PhysicsAdapter, name) is getattr(SimulatedAdapterCore, name)
+def _breach_episode_trace(kind):
+    """Observable safety record of two breach episodes with a reset between."""
+    adapter = make(kind, position=(17.0, 5.0, 1.5), geofence=arena())
+    trace = [state.command_authority for state in fly(adapter, 3, setpoint=GOAL_IN)]
+    trace.append(adapter.send_setpoint(np.array((40.0, 5.0, 1.5))).source.value)
+    trace.append(adapter.reset_failsafe().state.value)
+    trace += [state.command_authority for state in fly(adapter, 2, setpoint=GOAL_IN)]
+    events = adapter.drain_events()
+    trace.append([(event["kind"], round(event["time_s"], 9)) for event in events])
+    trace.append([event["detail"]["clipped_m"] for event in events if event["kind"] == "geofence_clip"])
+    return trace
+
+
+def test_safety_rules_behave_the_same_in_both_adapters():
+    # Two different motion models, one set of safety rules: the same breach,
+    # clip and reset script must give the same authority and event record.
+    point_mass = _breach_episode_trace("point_mass")
+    physics = _breach_episode_trace("physics")
+    assert point_mass == physics
+    assert point_mass[:3] == ["failsafe"] * 3
+    assert point_mass[3] == "failsafe"  # the latched hold outranks the new setpoint
+    assert point_mass[4] == "nominal"
+    assert point_mass[5:7] == ["failsafe", "failsafe"]  # still outside: a new episode
+    assert point_mass[-1] == [[15.5, 5.0, 1.5]]  # the far setpoint was clipped into the margin box
+    breaches = [item for item in point_mass[-2] if item[0] == "geofence_breach"]
+    assert [time for _, time in breaches] == [DT, 4 * DT]
 
 
 def test_physics_failsafe_properties_and_geofence_type():
