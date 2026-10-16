@@ -10,6 +10,8 @@ from scipy.optimize import minimize
 
 
 _EPS = 1.0e-12
+# Sideways share of the preferred speed added on an exact head-on tie.
+_TIE_NUDGE_FRACTION = 0.1
 
 
 def _vec(value, name: str) -> np.ndarray:
@@ -21,7 +23,12 @@ def _vec(value, name: str) -> np.ndarray:
 
 @dataclass(frozen=True)
 class AvoidanceConfig:
-    """Parameters for the simulated ORCA-lite controller."""
+    """Parameters for the simulated ORCA-lite controller.
+
+    In ellipsoid mode positions are divided by ``ellipsoid_radii`` first, so
+    ``emergency_distance_m`` is compared in those scaled units (2.0 means the
+    two ellipsoids touch), not in meters.
+    """
 
     radius_m: float = 0.35
     time_horizon_s: float = 2.0
@@ -109,15 +116,10 @@ def _vo_correction(
         and dot_w_p < 0.0
         and dot_w_p * dot_w_p > radius * radius * w_length * w_length
     ):
+        # Cutoff sphere: the closest boundary point lies along w. This also
+        # covers zero or purely axial relative velocity, so agents at rest or
+        # hovering get an ordinary supporting plane, not a forced sidestep.
         normal = w / w_length
-        sideways = rel_vel - float(np.dot(rel_vel, axis)) * axis
-        if float(np.linalg.norm(sideways)) < 1.0e-12:
-            coefficient = radius / horizon - w_length
-            right = _right_direction(axis)
-            # The exact tie is deliberately resolved as a right-hand
-            # sidestep, including when the sphere formula has a negative
-            # coefficient. The plane normal follows that chosen direction.
-            return abs(coefficient) * right, right
         return (radius / horizon - w_length) * normal, normal
 
     radial_vector = rel_vel - float(np.dot(rel_vel, axis)) * axis
@@ -157,13 +159,13 @@ def _orca_halfspaces_impl(
     own_vel,
     neighbors: Sequence[tuple[np.ndarray, np.ndarray]],
     config: AvoidanceConfig,
-) -> list[tuple[np.ndarray, np.ndarray]]:
-    """Build permitted-velocity half-spaces from nearby simulated neighbors."""
+) -> list[tuple[np.ndarray, np.ndarray] | None]:
+    """Build one permitted-velocity half-space per neighbor, or None when out of reach."""
     own_position = _vec(own_pos, "own_pos")
     own_velocity = _vec(own_vel, "own_vel")
     if not isinstance(config, AvoidanceConfig):
         raise TypeError("config must be AvoidanceConfig")
-    result: list[tuple[np.ndarray, np.ndarray]] = []
+    result: list[tuple[np.ndarray, np.ndarray] | None] = []
     scale_for_reach = 1.0 if config.ellipsoid_radii is None else float(np.min(config.ellipsoid_radii))
     for neighbor_position, neighbor_velocity in neighbors:
         npos = _vec(neighbor_position, "neighbor position")
@@ -174,6 +176,7 @@ def _orca_halfspaces_impl(
         distance = float(np.linalg.norm(rel_pos))
         reach = 2.0 * config.max_speed_mps * config.time_horizon_s / scale_for_reach + radius
         if distance > reach:
+            result.append(None)
             continue
         horizon = config.time_horizon_s if distance > radius else 0.05
         rel_velocity = own_scaled - neighbor_scaled
@@ -183,6 +186,7 @@ def _orca_halfspaces_impl(
         normal = normal_scaled / scale
         normal_norm = float(np.linalg.norm(normal))
         if normal_norm <= _EPS:
+            result.append(None)
             continue
         result.append((point, normal / normal_norm))
     return result
@@ -192,7 +196,46 @@ def orca_halfspaces(
     own_pos, own_vel, neighbors: Sequence[tuple[np.ndarray, np.ndarray]], config: AvoidanceConfig
 ) -> list[tuple[np.ndarray, np.ndarray]]:
     """Build permitted velocity half-spaces using the configured safety margin."""
-    return _orca_halfspaces_impl(own_pos, own_vel, neighbors, config)
+    return [space for space in _orca_halfspaces_impl(own_pos, own_vel, neighbors, config) if space is not None]
+
+
+def _tie_break_preference(
+    own_position: np.ndarray,
+    preferred: np.ndarray,
+    neighbor_data: list[tuple[np.ndarray, np.ndarray]],
+    halfspaces_by_neighbor: list[tuple[np.ndarray, np.ndarray] | None],
+    config: AvoidanceConfig,
+) -> np.ndarray:
+    """Nudge the preferred velocity to the observer's right on exact head-on ties.
+
+    Only the preference changes; the half-spaces are untouched, so this cannot
+    permit an unsafe velocity. It fires only for a neighbor whose half-space the
+    unbiased preference violates and whose relative preferred velocity points
+    straight at it (sideways part below 1e-9 of its length). Without it two
+    observers meeting exactly head-on stop facing each other and never pass.
+    """
+    speed = float(np.linalg.norm(preferred))
+    if not config.sidestep_right or speed <= _EPS:
+        return preferred
+    scale = np.ones(3) if config.ellipsoid_radii is None else np.asarray(config.ellipsoid_radii, dtype=float)
+    nudge = np.zeros(3)
+    for (npos, nvel), space in zip(neighbor_data, halfspaces_by_neighbor):
+        if space is None or float(np.dot(preferred - space[0], space[1])) >= 0.0:
+            continue
+        rel_pos = (npos - own_position) / scale
+        distance = float(np.linalg.norm(rel_pos))
+        if distance <= _EPS:
+            continue
+        axis = rel_pos / distance
+        rel_pref = (preferred - nvel) / scale
+        axial = float(np.dot(rel_pref, axis))
+        sideways = float(np.linalg.norm(rel_pref - axial * axis))
+        if axial > 0.0 and sideways <= 1.0e-9 * float(np.linalg.norm(rel_pref)):
+            nudge += _right_direction(axis) * scale
+    nudge_norm = float(np.linalg.norm(nudge))
+    if nudge_norm <= _EPS:
+        return preferred
+    return preferred + _TIE_NUDGE_FRACTION * speed * nudge / nudge_norm
 
 
 def _speed_cap(velocity: np.ndarray, maximum: float) -> tuple[np.ndarray, bool]:
@@ -396,11 +439,14 @@ def safe_velocity(
     """Choose a simulated velocity under emergency and reciprocal rules.
 
     Emergency separation is applied first when a neighbor is inside the
-    emergency distance. Otherwise the preferred velocity is projected into
-    ORCA half-spaces and the maximum-speed ball. Exact head-on ties use a
-    deterministic right-hand sidestep. This creates mirror chirality by
-    design, so a reflected exact tie follows the reflected observer's right
-    side rather than being a second valid copy of the original path.
+    emergency distance. Otherwise the preferred velocity, capped at the
+    maximum speed first, is projected into
+    ORCA half-spaces and the maximum-speed ball. The half-spaces always
+    support the velocity obstacle, including at zero relative velocity. When
+    ``sidestep_right`` is set and an exact head-on tie is being constrained,
+    a small right-hand component is added to the preferred velocity only
+    (flag ``tie_break``), so symmetric pairs pass instead of stopping. Only
+    exact ties are chiral; any other setup mirrors exactly.
     Overlapping pairs use the RVO2 collision rule with a 0.05 second horizon.
     The default active-set projection enumerates the small three-dimensional
     boundary set. ``solver="slsqp"`` keeps the reference optimizer available
@@ -437,9 +483,16 @@ def safe_velocity(
     if nearest is not None:
         return _emergency_velocity(own_position, nearest[1], config), frozenset({"emergency"})
 
+    per_neighbor = _orca_halfspaces_impl(own_position, own_velocity, neighbor_data, config)
+    halfspaces = [space for space in per_neighbor if space is not None]
     capped_preferred, was_capped = _speed_cap(preferred, config.max_speed_mps)
-    halfspaces = _orca_halfspaces_impl(own_position, own_velocity, neighbor_data, config)
+    biased = _tie_break_preference(own_position, capped_preferred, neighbor_data, per_neighbor, config)
+    tie_break = biased is not capped_preferred
+    if tie_break:
+        capped_preferred, _ = _speed_cap(biased, config.max_speed_mps)
     flags = {"orca"} if halfspaces else set()
+    if tie_break:
+        flags.add("tie_break")
     if not halfspaces:
         if was_capped:
             flags.add("speed_cap")

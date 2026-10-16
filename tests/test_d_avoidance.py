@@ -206,11 +206,12 @@ def test_square_and_circle_swaps_remain_separated():
 
 def test_infeasible_epigraph_fallback_is_exercised():
     config = AvoidanceConfig(max_speed_mps=0.2, emergency_distance_m=0.0)
+    # Four neighbors closing in from all sides faster than this observer can move.
     neighbors = [
-        (np.array([0.4, 0.0, 1.0]), np.zeros(3)),
-        (np.array([-0.4, 0.0, 1.0]), np.zeros(3)),
-        (np.array([0.0, 0.4, 1.0]), np.zeros(3)),
-        (np.array([0.0, -0.4, 1.0]), np.zeros(3)),
+        (np.array([0.4, 0.0, 0.0]), np.array([-0.5, 0.0, 0.0])),
+        (np.array([-0.4, 0.0, 0.0]), np.array([0.5, 0.0, 0.0])),
+        (np.array([0.0, 0.4, 0.0]), np.array([0.0, -0.5, 0.0])),
+        (np.array([0.0, -0.4, 0.0]), np.array([0.0, 0.5, 0.0])),
     ]
     result, flags = safe_velocity(np.zeros(3), np.zeros(3), np.array([1.0, 0.0, 0.0]), neighbors, config)
     assert "infeasible" in flags
@@ -273,10 +274,21 @@ def test_pair_symmetry_under_relabel_rotation_and_offset_mirror():
     mirrored, _ = _rollout(mirrored_starts, mirrored_goals, config, duration=6.0)
     expected = paths.copy()
     expected[:, :, 1] *= -1.0
-    # The right-hand tie-break is intentionally chiral. Report the offset
-    # mirror discrepancy instead of treating the reflected path as valid.
+    # Here each goal is the other agent's start, so the first step is an exact
+    # head-on tie and the right-hand nudge makes the pair chiral by design.
     mirror_error = float(np.max(np.abs(mirrored - expected)))
     assert mirror_error > 1e-6
+
+
+def test_mirrored_setup_without_an_exact_tie_gives_the_mirrored_path():
+    config = AvoidanceConfig()
+    starts = np.array([[-2.0, 0.3, 1.0], [2.0, 0.0, 1.0], [0.1, -2.0, 1.0]])
+    goals = np.array([[2.0, -0.2, 1.0], [-2.0, 0.4, 1.0], [-0.3, 2.0, 1.0]])
+    mirror = np.array([1.0, -1.0, 1.0])
+    paths, _ = _rollout(starts, goals, config, duration=6.0)
+    mirrored, _ = _rollout(starts * mirror, goals * mirror, config, duration=6.0)
+    assert _minimum_pair_distance(paths) >= config.radius_m - 1e-9
+    np.testing.assert_allclose(mirrored, paths * mirror, atol=1e-9)
 
 
 def test_ellipsoid_vertical_stack_uses_scaled_separation():
@@ -373,3 +385,77 @@ def test_active_set_solver_matches_slsqp_on_random_encounters():
         assert np.linalg.norm(fast - preferred) <= np.linalg.norm(slow - preferred) + 1e-6
         worst = max(worst, float(np.linalg.norm(fast - slow)))
     assert worst < 1e-5
+
+
+def _truncated_vo_samples(rel_pos, radius, horizon, rng, count=4000):
+    """Sample relative velocities inside the truncated velocity obstacle.
+
+    The obstacle is the union over t in (0, horizon] of balls centred at
+    rel_pos / t with radius radius / t: any such relative velocity brings the
+    pair closer than radius within the horizon.
+    """
+    times = rng.uniform(0.05 * horizon, horizon, size=count)
+    directions = rng.normal(size=(count, 3))
+    directions /= np.linalg.norm(directions, axis=1, keepdims=True)
+    fractions = rng.uniform(0.0, 0.999, size=count) ** (1.0 / 3.0)
+    return rel_pos / times[:, None] + (radius / times)[:, None] * fractions[:, None] * directions
+
+
+@pytest.mark.parametrize("case", range(40))
+def test_full_responsibility_halfspace_supports_the_obstacle(case):
+    """With responsibility 1 the plane must leave the whole obstacle on the forbidden side,
+    including the tie cases (zero or purely axial relative velocity)."""
+    rng = np.random.default_rng(np.random.SeedSequence([20261015, case]))
+    config = AvoidanceConfig(radius_m=0.35, time_horizon_s=2.0, responsibility=1.0)
+    distance = rng.uniform(0.5, 4.0)
+    axis = rng.normal(size=3)
+    axis /= np.linalg.norm(axis)
+    rel_pos = distance * axis
+    if case % 4 == 0:
+        rel_vel = np.zeros(3)
+    elif case % 4 == 1:
+        rel_vel = rng.uniform(-1.5, 1.5) * axis
+    else:
+        rel_vel = rng.uniform(-1.5, 1.5, size=3)
+    spaces = orca_halfspaces(np.zeros(3), rel_vel, [(rel_pos, np.zeros(3))], config)
+    assert len(spaces) == 1
+    point, normal = spaces[0]
+    samples = _truncated_vo_samples(rel_pos, config.radius_m, config.time_horizon_s, rng)
+    assert np.max((samples - point) @ normal) <= 1e-9
+
+
+def test_rest_pair_one_meter_apart_cannot_choose_a_colliding_pair():
+    config = AvoidanceConfig(radius_m=0.35, time_horizon_s=2.0)
+    p_a = np.array([0.0, 0.0, 1.0])
+    p_b = np.array([1.0, 0.0, 1.0])
+    v_a = np.array([0.5, -0.165, 0.0])
+    v_b = np.array([-0.5, 0.165, 0.0])
+    _, miss = closest_approach(p_b - p_a, v_b - v_a)
+    assert miss < config.radius_m
+    pa, na = orca_halfspaces(p_a, np.zeros(3), [(p_b, np.zeros(3))], config)[0]
+    pb, nb = orca_halfspaces(p_b, np.zeros(3), [(p_a, np.zeros(3))], config)[0]
+    assert np.dot(v_a - pa, na) < 0.0 or np.dot(v_b - pb, nb) < 0.0
+
+
+def test_tie_break_changes_only_the_preference_and_flags_it():
+    config = AvoidanceConfig()
+    own, other = np.array([-0.5, 0.0, 1.0]), np.array([0.5, 0.0, 1.0])
+    preferred = np.array([2.0, 0.0, 0.0])
+    velocity, flags = safe_velocity(own, np.zeros(3), preferred, [(other, np.zeros(3))], config)
+    assert "tie_break" in flags
+    assert velocity[1] < -1e-6
+    point, normal = orca_halfspaces(own, np.zeros(3), [(other, np.zeros(3))], config)[0]
+    assert np.dot(velocity - point, normal) >= -1e-9
+    off, off_flags = safe_velocity(
+        own, np.zeros(3), preferred, [(other, np.zeros(3))], AvoidanceConfig(sidestep_right=False)
+    )
+    assert "tie_break" not in off_flags
+    assert abs(off[1]) <= 1e-12
+
+
+def test_holding_agent_next_to_hovering_neighbor_stays_still():
+    config = AvoidanceConfig()
+    starts = np.array([[0.0, 0.0, 1.0], [4.0, 0.0, 1.0]])
+    history, final = _rollout(starts, starts, config, duration=5.0)
+    assert len(history) == 101
+    np.testing.assert_allclose(final, starts, atol=1e-12)
