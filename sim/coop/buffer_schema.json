@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zephyr-mesh.invalid/schemas/buffer_schema.json",
+  "title": "Simulated separation buffer results",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "simulated", "min_separation_m", "share_rate_hz", "control_dt_s", "max_accel_mps2", "time_horizon_s", "criterion", "avoidance", "entries", "envelope", "limits"],
+  "properties": {
+    "schema": {"const": "zephyr-d4-buffer-1"},
+    "simulated": {"const": true},
+    "min_separation_m": {"type": "number", "const": 0.35},
+    "share_rate_hz": {"type": "number", "const": 10},
+    "control_dt_s": {"type": "number", "const": 0.05},
+    "max_accel_mps2": {"type": "number", "const": 4.0},
+    "time_horizon_s": {"type": "number", "const": 2.0},
+    "criterion": {"type": "string"},
+    "avoidance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["safety_margin_m"],
+      "properties": {
+        "safety_margin_m": {"type": "number", "const": 0.0}
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "speed_mps", "closing_speed_mps", "delay_s", "loss_probability", "noise_std_m", "dead_reckoning", "required_buffer_m", "baseline_violation_rate", "verified_violation_rate", "verified_wilson_upper", "attempts", "attempt_history", "hand_buffer_m", "n_seeds"],
+        "properties": {
+          "kind": {"enum": ["head_on", "crossing", "ring_swap"]},
+          "speed_mps": {"type": "number"},
+          "closing_speed_mps": {"type": "number"},
+          "delay_s": {"type": "number"},
+          "loss_probability": {"type": "number"},
+          "noise_std_m": {"type": "number"},
+          "dead_reckoning": {"type": "boolean"},
+          "required_buffer_m": {"type": "number"},
+          "baseline_violation_rate": {"type": "number"},
+          "verified_violation_rate": {"type": "number"},
+          "verified_wilson_upper": {"type": "number"},
+          "attempts": {"type": "integer", "minimum": 1},
+          "attempt_history": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["attempt", "buffer_m", "violations", "violation_rate", "wilson_low", "wilson_upper"],
+              "properties": {
+                "attempt": {"type": "integer", "minimum": 1},
+                "buffer_m": {"type": "number", "minimum": 0},
+                "violations": {"type": "integer", "minimum": 0},
+                "violation_rate": {"type": "number", "minimum": 0, "maximum": 1},
+                "wilson_low": {"type": "number", "minimum": 0, "maximum": 1},
+                "wilson_upper": {"type": "number", "minimum": 0, "maximum": 1}
+              }
+            }
+          },
+          "hand_buffer_m": {"type": "number"},
+          "n_seeds": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "envelope": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["delay_s", "speed_mps", "dead_reckoning", "buffer_m"],
+        "properties": {
+          "delay_s": {"type": "number"},
+          "speed_mps": {"type": "number"},
+          "dead_reckoning": {"type": "boolean"},
+          "buffer_m": {"type": "number"}
+        }
+      }
+    },
+    "limits": {"type": "array", "items": {"type": "string"}}
+  }
+}
