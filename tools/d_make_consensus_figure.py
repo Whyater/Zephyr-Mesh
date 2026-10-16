@@ -34,7 +34,7 @@ def make_figures(directory: Path) -> tuple[Path, Path]:
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    from tools.horizon_mpl import apply_style
+    from tools.horizon_mpl import apply_style, ramp, sequential_ramp
 
     directory = Path(directory)
     loss_rows = _read_csv(directory / "loss_delay.csv")
@@ -50,9 +50,11 @@ def make_figures(directory: Path) -> tuple[Path, Path]:
     }
 
     fig, ax = plt.subplots(figsize=(9, 5))
-    graphs = sorted({row["graph"] for row in loss_rows})
+    graphs = ["ring", "line", "star", "complete", "random_geometric"]
+    graph_colors = dict(zip(graphs, ramp([pal["accent"], pal["target"], pal["ok"], pal["keepOut"]], len(graphs))))
+    graph_labels = {"ring": "ring of 6", "line": "line of 5", "star": "star of 5", "complete": "complete 4", "random_geometric": "random geometric 6"}
     for graph_index, graph in enumerate(graphs):
-        color = pal["accent"] if graph_index % 2 == 0 else pal["ok"]
+        color = graph_colors[graph]
         for symmetric, linestyle, marker in ((True, "-", "o"), (False, "--", "s")):
             selected = [
                 row for row in loss_rows
@@ -63,15 +65,12 @@ def make_figures(directory: Path) -> tuple[Path, Path]:
             xs = sorted({float(row["p"]) for row in selected})
             if not xs:
                 continue
-            ys, predicted = [], []
+            ys, lows, highs, predicted = [], [], [], []
             for probability in xs:
-                values = [
-                    float(row["steps_to_agreement"])
-                    for row in selected
-                    if float(row["p"]) == probability
-                    and row["steps_to_agreement"] not in {"", "None"}
-                ]
-                ys.append(float(np.median(values)) if values else np.nan)
+                summary = next(row for row in loss_summary if row["graph"] == graph and float(row["p"]) == probability and int(row["delay_steps"]) == 0 and _as_bool(row["symmetric_loss"]) == symmetric)
+                ys.append(float(summary["median_steps"]) if summary["median_steps"] is not None else np.nan)
+                lows.append(float(summary["median_steps_low"]) if summary["median_steps_low"] is not None else np.nan)
+                highs.append(float(summary["median_steps_high"]) if summary["median_steps_high"] is not None else np.nan)
                 value = prediction.get((graph, probability, 0, symmetric))
                 predicted.append(float(value) if value is not None else np.nan)
             ax.plot(
@@ -80,11 +79,13 @@ def make_figures(directory: Path) -> tuple[Path, Path]:
                 linestyle=linestyle,
                 marker=marker,
                 color=color,
-                label=f"{graph}, {'symmetric' if symmetric else 'one-way'}",
+                label=f"{graph_labels[graph]}, {'symmetric' if symmetric else 'one-way'}",
             )
-            ax.plot(xs, predicted, linestyle="none", marker=".", color=pal["text"], ms=4)
+            ax.fill_between(xs, lows, highs, color=color, alpha=0.12, linewidth=0)
+            ax.plot(xs, predicted, linestyle="none", marker=".", color=color, ms=5,
+                    label="mean-field prediction (loss only, no delay)" if graph_index == 0 and symmetric else None)
     ax.set_xlabel("Loss probability p")
-    ax.set_ylabel("Steps to 1% agreement")
+    ax.set_ylabel("Steps to 1 % agreement (updates)")
     ax.set_title("Consensus convergence under loss (zero delay)")
     ax.legend(fontsize=7)
     fig.tight_layout()
@@ -95,6 +96,8 @@ def make_figures(directory: Path) -> tuple[Path, Path]:
     fig, ax = plt.subplots(figsize=(8, 4.5))
     acting_graph = "complete" if any(row.get("graph") == "complete" for row in acting_summary) else None
     acting_rows = [row for row in acting_summary if row.get("graph") == acting_graph and int(row["delay_steps"]) == 0]
+    probs = sorted({float(row["p"]) for row in acting_rows})
+    acting_colors = dict(zip(probs, sequential_ramp(["info", "accent", "target", "ok", "keepOut"], len(probs))))
     for probability in sorted({float(row["p"]) for row in acting_rows}):
         selected = sorted(
             (row for row in acting_rows if float(row["p"]) == probability),
@@ -104,10 +107,10 @@ def make_figures(directory: Path) -> tuple[Path, Path]:
             [int(row["updates"]) for row in selected],
             [float(row["fraction"]) for row in selected],
             marker="o",
-            color=pal["accent"],
+            color=acting_colors[probability],
             label=f"p={probability:g}",
         )
-    ax.set_xlabel("Updates before acting")
+    ax.set_xlabel("Updates before acting (0.1 s each)")
     ax.set_ylabel("Fraction > 0.10 m apart")
     ax.set_title("Disagreement at action time (complete graph)")
     if acting_rows:

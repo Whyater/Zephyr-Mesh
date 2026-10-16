@@ -38,7 +38,7 @@ def test_pilot_is_byte_stable_and_rows_match_simulation(tmp_path: Path):
     for name in m1["outputs"]:
         assert (one / name).read_bytes() == (two / name).read_bytes()
 
-    row = next(r for r in _read_csv(one / "loss_delay.csv") if r["graph"] == "ring")
+    row = next(r for r in _read_csv(one / "loss_delay.csv") if r["graph"] == "ring" and r["p"] == "0.5" and r["delay_steps"] == "2" and r["symmetric_loss"].lower() == "false")
     seed = int(row["seed"])
     gi = d_run_consensus.GRAPH_NAMES.index("ring")
     initial = np.random.default_rng(np.random.SeedSequence([seed, gi, 31])).uniform(-1, 1, size=(6, 3))
@@ -50,13 +50,13 @@ def test_pilot_is_byte_stable_and_rows_match_simulation(tmp_path: Path):
     assert float(row["final_average_drift"]) == pytest.approx(drift)
     assert float(row["messages_lost_fraction"]) == pytest.approx(result.messages_lost / result.messages_sent)
 
-    acting = next(r for r in _read_csv(one / "acting.csv") if r["graph"] == "complete")
+    acting = next(r for r in _read_csv(one / "acting.csv") if r["graph"] == "complete" and r["p"] == "0.5" and r["delay_steps"] == "1" and r["updates"] == "2")
     seed = int(acting["seed"])
     truth = np.asarray([0.0, 0.0, 1.5])
     streams = np.random.SeedSequence([seed, 2, 41]).spawn(4)
     initial = np.asarray([truth + np.random.default_rng(stream).normal(0.0, 0.05, size=3)
                           for stream in streams])
-    result = run_consensus(initial, complete(4), 1 / 3, int(acting["updates"]), loss_probability=float(acting["p"]),
+    result = run_consensus(initial, complete(4), 1 / 4, int(acting["updates"]), loss_probability=float(acting["p"]),
                            delay_steps=int(acting["delay_steps"]), symmetric_loss=True, seed=seed + 991)
     states = result.states[-1]
     largest = float(np.max(np.linalg.norm(states[:, None, :] - states[None, :, :], axis=2)))
@@ -87,5 +87,5 @@ def test_manifest_records_real_argv_and_config(tmp_path: Path):
     manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["argv"][-1] == "1"
     assert manifest["replay_command"].startswith("PYTHONPATH=. ")
-    assert manifest["config"]["tolerance"] == 0.01
-    assert {"graphs", "loss", "delays", "symmetric_options", "steps", "part_c"} <= set(manifest["config"])
+    assert manifest["config"]["agreement_tolerance"] == 0.01
+    assert {"graphs", "loss_probabilities", "delay_steps", "consensus_steps", "part_c", "part_c_note"} <= set(manifest["config"])

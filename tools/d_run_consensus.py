@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import csv
 import math
-import shlex
 import sys
 import time
 from pathlib import Path
@@ -115,8 +114,10 @@ def _summarize(rows):
     keys = sorted({(r["graph"], r["p"], r["delay_steps"], r["symmetric_loss"]) for r in rows})
     for graph, p, delay, sym in keys:
         rr = [r for r in rows if (r["graph"], r["p"], r["delay_steps"], r["symmetric_loss"]) == (graph, p, delay, sym)]
-        steps = [r["steps_to_agreement"] for r in rr if r["steps_to_agreement"] is not None]
-        med, lo, hi = median_interval(steps) if steps else (None, None, None)
+        cap = 400 + 1
+        steps = [cap if r["steps_to_agreement"] is None else r["steps_to_agreement"] for r in rr]
+        med0, lo0, hi0 = median_interval(steps)
+        med, lo, hi = (None if value >= cap else value for value in (med0, lo0, hi0))
         fails = sum(r["did_not_agree"] for r in rr); fl, fh = wilson_interval(fails, len(rr))
         dm, dl, dh = median_interval([r["final_average_drift"] for r in rr])
         a, _ = _graph(graph, next((r.get("random_seed") for r in rr), None)); eps = 1 / (max_degree(a) + 1)
@@ -129,14 +130,18 @@ def _summarize(rows):
                     "median_steps": med, "median_steps_low": lo, "median_steps_high": hi,
                     "did_not_agree_rate": fails/len(rr), "did_not_agree_low": fl, "did_not_agree_high": fh,
                     "median_drift": dm, "median_drift_low": dl, "median_drift_high": dh,
+                    "cell_failed": len(rr) - fails < len(rr) / 2,
                     "mean_field_predicted_steps_zero_delay": pred})
     return out
 
 
-def run(output: Path, *, seeds_n: int = 50, pilot: bool = False,
+def run(output: Path, *, seeds_n: int | None = None, pilot: bool = False,
         processes: int | None = None, argv: list[str] | None = None):
     start = time.perf_counter(); output = prepare_output(output)
-    n = 5 if pilot else seeds_n; seeds = seeds_for("consensus", n); base_seed = seeds[0]
+    n = (5 if pilot else 50) if seeds_n is None else int(seeds_n)
+    if n <= 0:
+        raise ValueError("seeds must be positive")
+    seeds = seeds_for("consensus", n); base_seed = seeds[0]
     spectral = _spectral(base_seed); write_json(output / "spectral_check.json", spectral)
     # Neighbors start on opposite sides (+1, -1, +1, -1 around the ring, on every axis): this is the
     # mode with eigenvalue 4 = 2 x max degree, which eps = 1/max degree flips forever.
@@ -157,6 +162,11 @@ def run(output: Path, *, seeds_n: int = 50, pilot: bool = False,
                         jobs.append({"graph":name,"random_seed":random_seed,"adjacency":a.tolist(),"eps":eps,"p":p,"delay":delay,"symmetric":sym,
                                      "seed":seed,"steps":400,"initial":rng.uniform(-1,1,size=(a.shape[0],3)).tolist()})
     results = run_jobs(jobs, "tools.d_run_consensus:_loss_job", processes=processes or default_processes(), progress=False)
+    expected_loss_cells = len(GRAPH_NAMES) * (2 if pilot else len(LOSS)) * (2 if pilot else len(DELAYS)) * 2
+    assert len(results) == len(jobs)
+    assert len(results) == expected_loss_cells * len(seeds)
+    assert all(sum(1 for r in results if (r["graph"], r["p"], r["delay_steps"], r["symmetric_loss"]) == key) == len(seeds)
+               for key in {(r["graph"], r["p"], r["delay_steps"], r["symmetric_loss"]) for r in results})
     columns = ["graph","p","delay_steps","symmetric_loss","seed","steps_to_agreement","did_not_agree","final_average_drift","messages_lost_fraction"]
     write_csv(output / "loss_delay.csv", results, columns); write_json(output / "loss_delay_summary.json", _summarize(results))
     ajobs=[]
@@ -167,22 +177,25 @@ def run(output: Path, *, seeds_n: int = 50, pilot: bool = False,
                 for k in (0,1,2,5,10):
                     for seed in seeds: ajobs.append({"graph":name,"adjacency":a.tolist(),"eps":eps,"p":p,"delay":delay,"k":k,"seed":seed})
     acting = run_jobs(ajobs, "tools.d_run_consensus:_acting_job", processes=processes or default_processes(), progress=False)
+    assert len(acting) == len(ajobs)
+    expected_acting_cells = 2 * (2 if pilot else 4) * 2 * 5
+    assert len(acting) == expected_acting_cells * len(seeds)
     write_csv(output / "acting.csv", acting, ["graph","p","delay_steps","updates","seed","largest_pairwise_distance_m","still_disagreeing"])
     asum=[]
     for key in sorted({(r["graph"],r["p"],r["delay_steps"],r["updates"]) for r in acting}):
         rr=[r for r in acting if tuple(r[k] for k in ("graph","p","delay_steps","updates"))==key]; succ=sum(r["still_disagreeing"] for r in rr); lo,hi=wilson_interval(succ,len(rr)); med,ml,mh=median_interval([r["largest_pairwise_distance_m"] for r in rr])
-        asum.append({"graph":key[0],"p":key[1],"delay_steps":key[2],"updates":key[3],"fraction":succ/len(rr),"fraction_low":lo,"fraction_high":hi,"median_distance_m":med,"median_distance_low_m":ml,"median_distance_high_m":mh})
+        asum.append({"graph":key[0],"p":key[1],"delay_steps":key[2],"updates":key[3],"n_seeds":len(rr),"fraction":succ/len(rr),"fraction_low":lo,"fraction_high":hi,"median_distance_m":med,"median_distance_low_m":ml,"median_distance_high_m":mh,"cell_failed":len(rr)-succ < len(rr) / 2})
+    assert len(asum) == expected_acting_cells
+    assert all(cell["n_seeds"] == len(seeds) for cell in asum)
     write_json(output / "acting_summary.json", asum)
     import tools.d_make_consensus_figure as figmod
     figmod.make_figures(output)
     outputs=["spectral_check.json","counterexample.json","loss_delay.csv","loss_delay_summary.json","acting.csv","acting_summary.json","consensus_loss.png","consensus_acting.png"]
-    command = f"PYTHONPATH=. {shlex.quote(sys.executable)} tools/d_run_consensus.py --output {{out}}"
-    if seeds_n != 50:
-        command += f" --seeds {seeds_n}"
+    command = "PYTHONPATH=. python tools/d_run_consensus.py --output {out}"
+    if seeds_n is not None:
+        command += f" --seeds {n}"
     if pilot:
         command += " --pilot"
-    if processes is not None and processes != default_processes():
-        command += f" --processes {processes}"
     config = {
         "pilot": pilot,
         "seeds": n,
@@ -193,11 +206,6 @@ def run(output: Path, *, seeds_n: int = 50, pilot: bool = False,
         "symmetric_loss": [True, False],
         "consensus_steps": 400,
         "agreement_tolerance": 0.01,
-        "loss": [0.0, 0.5] if pilot else list(LOSS),
-        "delays": [0, 2] if pilot else list(DELAYS),
-        "symmetric_options": [True, False],
-        "steps": 400,
-        "tolerance": 0.01,
         "spectral_steps": 80,
         "spectral_measurement_steps": [20, 60],
         "acting_graphs": ["complete", "line"],
@@ -216,13 +224,18 @@ def run(output: Path, *, seeds_n: int = 50, pilot: bool = False,
             "truth": [0.0, 0.0, 1.5],
             "noise_std": 0.05,
         },
+        "part_c_note": "Part C was added after pre-registration; exploratory",
     }
     write_manifest(output, schema="zephyr-d-consensus-manifest-1", argv=argv_or_default(argv), command=command, config=config, seeds=seeds, outputs=outputs,
-                   limits=["Simulated consensus over abstract links with simulated loss and delay.","No measurements or contact with people are represented."], runtime_s=time.perf_counter()-start, n_processes=processes or default_processes(),
-                   hashed_sources=["tools/d_run_consensus.py","tools/d_make_consensus_figure.py","sim/coop/consensus.py"],
-                   extra={"command": command})
+                   limits=["Agents are nodes holding a value with no motion.",
+                           "Links are abstract with independent per-message loss, no bursts, and fixed whole-step delay.",
+                           "Part C uses simulated Gaussian noise of 0.05 m per axis around a fixed truth.",
+                           "Five small fixed graphs are used.",
+                           "Disagreement is the root-sum-square distance of agents' values from their mean."],
+                   runtime_s=time.perf_counter()-start, n_processes=processes or default_processes(),
+                   hashed_sources=["tools/d_run_consensus.py","tools/d_make_consensus_figure.py","sim/coop/consensus.py"])
 
 
 def main(argv: list[str] | None = None):
-    p=argparse.ArgumentParser(); p.add_argument("--output",required=True,type=Path); p.add_argument("--seeds",type=int,default=50); p.add_argument("--pilot",action="store_true"); p.add_argument("--processes",type=int); a=p.parse_args(argv); run(a.output,seeds_n=a.seeds,pilot=a.pilot,processes=a.processes,argv=argv_or_default(argv))
+    p=argparse.ArgumentParser(); p.add_argument("--output",required=True,type=Path); p.add_argument("--seeds",type=int); p.add_argument("--pilot",action="store_true"); p.add_argument("--processes",type=int); a=p.parse_args(argv); run(a.output,seeds_n=a.seeds,pilot=a.pilot,processes=a.processes,argv=argv_or_default(argv))
 if __name__ == "__main__": main()
