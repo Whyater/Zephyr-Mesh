@@ -227,7 +227,10 @@ class TagMission(Mission):
         """Return slot geometry using a stand-in until Run D."""
         heading = _unit_xy(velocity, fallback=tuple(self._heading[:2]))
         self._heading = heading
-        angles = [180.0] if n == 1 else ([180.0, 130.0] if n == 2 else [180.0, 130.0, 230.0])
+        # Prereg EXP-030: "slots at 0.75 m behind, behind-left, behind-right
+        # (120 and 240 degrees for 3)", angles measured counterclockwise from
+        # the estimated target heading.
+        angles = [180.0] if n == 1 else ([180.0, 120.0] if n == 2 else [180.0, 120.0, 240.0])
         slots = []
         for angle in angles:
             radians = math.radians(angle)
@@ -244,11 +247,9 @@ class TagMission(Mission):
         p = ctx.params
         ids = ctx.state["ids"]
         telemetry = {}
-        telemetry_age = {}
         for agent in ids:
-            state, age = ctx.drones[agent].telemetry_view(t)
+            state, _ = ctx.drones[agent].telemetry_view(t)
             telemetry[agent] = None if state is None else np.asarray(state.position_m, dtype=float)
-            telemetry_age[agent] = float(age)
         if len(ids) > 1 and (t - ctx.state["last_assignment"] >= p["dwell_s"] or not ctx.state["slot_assignment"]):
             slots = self._slots(estimate, velocity, len(ids), p["standoff_m"])
             costs = np.zeros((len(ids), len(slots)), dtype=float)
@@ -275,7 +276,9 @@ class TagMission(Mission):
             if p["separation_guard"] and follower_position is not None:
                 direction = _unit_xy(np.asarray(estimate) - follower_position, fallback=tuple(heading[:2]))
                 distance = float(np.linalg.norm(np.asarray(estimate) - follower_position))
-                age = estimate_age + telemetry_age[agent] if math.isfinite(estimate_age) and math.isfinite(telemetry_age[agent]) else 0.0
+                # Prereg EXP-030 buffer: v * (estimate age + 0.05) + v^2 / (2 * 4),
+                # with v the follower speed limit.  Only the estimate age enters.
+                age = estimate_age if math.isfinite(estimate_age) else 0.0
                 buffer = stopping_buffer_m(p["follower_speed_mps"], age)
                 if distance - buffer < p["min_separation_m"]:
                     goal = np.asarray(estimate, dtype=float) - p["standoff_m"] * direction
@@ -386,6 +389,19 @@ class TagMission(Mission):
             1 for event in ctx.events
             if event["kind"] == "failsafe_transition" and event["detail"].get("state") == "landing"
         )
+        # Landings that no scripted outage caused: failsafe transitions to the
+        # landing state strictly before the earliest outage start.  With no
+        # outage this is every landing.
+        if ctx.scenario.outages:
+            first_outage_s = min(float(item["start_s"]) for item in ctx.scenario.outages)
+            landings_before_outage = sum(
+                1 for event in ctx.events
+                if event["kind"] == "failsafe_transition"
+                and event["detail"].get("state") == "landing"
+                and event["time_s"] < first_outage_s
+            )
+        else:
+            landings_before_outage = landings
         result = {
             "tagged": bool(ctx.state["tag_complete"]),
             "time_to_tag_s": None if ctx.state["tag_time"] is None else float(ctx.state["tag_time"]),
@@ -401,6 +417,7 @@ class TagMission(Mission):
                 else float(ctx.state["follower_min"])
             ),
             "guard_activations": int(ctx.state["guard_activations"]),
+            "landings_before_outage": int(landings_before_outage),
         }
         if ctx.params["mode"] == "hold":
             start = ctx.scenario.outages[0]["start_s"] if ctx.scenario.outages else None

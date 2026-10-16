@@ -109,20 +109,14 @@ class MonitorMission(Mission):
             observer_id: SensorModel(SensorConfig(noise_std_m=0.5), seed=ctx.seed_for(f"sensor_{observer_id}"))
             for observer_id in POSTS
         }
-        sequence_by_observer = {observer_id: 0 for observer_id in POSTS}
-        n_captures = int(math.floor(ctx.scenario.duration_s * 10.0 + 1e-9))
-        for index in range(n_captures + 1):
-            capture_time = index * 0.1
-            truth = _path_position(self._path, capture_time)
-            for observer_id in POSTS:
-                sample = self._sensors[observer_id].sample(truth, capture_time)
-                if sample.measurement_m is not None:
-                    self._links[observer_id].send(
-                        sequence_by_observer[observer_id],
-                        capture_time,
-                        tuple(float(value) for value in sample.measurement_m),
-                    )
-                    sequence_by_observer[observer_id] += 1
+        # Fixes are captured at 10 Hz in tick(): an observer only sends a fix
+        # while it is still at its post.  Once its failsafe starts a landing it
+        # stops monitoring (its camera has left the post), so the sensor draws
+        # stay in step but nothing is sent.
+        self._sequence_by_observer = {observer_id: 0 for observer_id in POSTS}
+        self._monitoring = {observer_id: True for observer_id in POSTS}
+        self._observer_landings = 0
+        self._last_states = {}
 
         self._estimator = None
         self._newest_capture = -math.inf
@@ -137,6 +131,7 @@ class MonitorMission(Mission):
         self._check_rows = []
         self._max_age = 0.0
         self._observer_max_displacement = 0.0
+        self._observer_max_horizontal = 0.0
         self._true_entry_time = 20.0 / 3.0 if self._path in {"crossing", "loiter"} else None
         ctx.start_log(sorted(POSTS))
 
@@ -205,7 +200,33 @@ class MonitorMission(Mission):
         if kind == "alert_raised":
             self._alert_times.append(now)
 
+    def _capture(self, t: float) -> None:
+        """Sample both observers' cameras at a 10 Hz capture time and send the fixes.
+
+        Runs before this step's deliveries so a zero-delay fix is fused at its
+        own capture time.  Whether an observer is still at its post comes from
+        its state at the end of the previous step (0.01 s old).
+        """
+        truth = _path_position(self._path, t)
+        for observer_id in POSTS:
+            sample = self._sensors[observer_id].sample(truth, t)
+            state = self._last_states.get(observer_id)
+            if state is not None and (state.landed or state.failsafe_state in {"landing", "killed"}):
+                if self._monitoring[observer_id]:
+                    self._monitoring[observer_id] = False
+                    self._observer_landings += 1
+            if not self._monitoring[observer_id] or sample.measurement_m is None:
+                continue
+            self._links[observer_id].send(
+                self._sequence_by_observer[observer_id],
+                t,
+                tuple(float(value) for value in sample.measurement_m),
+            )
+            self._sequence_by_observer[observer_id] += 1
+
     def tick(self, ctx, i: int, t: float) -> None:
+        if i % 10 == 0:
+            self._capture(t)
         self._consume_fixes(ctx, t)
         states = {}
         for observer_id in POSTS:
@@ -214,8 +235,10 @@ class MonitorMission(Mission):
                 raise RuntimeError(f"observer {observer_id} goal changed from its post")
             state = ctx.drones[observer_id].tick(i)
             states[observer_id] = state
-            displacement = float(np.linalg.norm(np.asarray(state.position_m, dtype=float) - POSTS[observer_id]))
-            self._observer_max_displacement = max(self._observer_max_displacement, displacement)
+            offset = np.asarray(state.position_m, dtype=float) - POSTS[observer_id]
+            self._observer_max_displacement = max(self._observer_max_displacement, float(np.linalg.norm(offset)))
+            self._observer_max_horizontal = max(self._observer_max_horizontal, float(np.linalg.norm(offset[:2])))
+        self._last_states = states
 
         if abs((t * 10.0) - round(t * 10.0)) < 1e-9:
             self._check_alert(ctx, t)
@@ -255,4 +278,8 @@ class MonitorMission(Mission):
             "missed_alert": bool(missed_alert),
             "max_estimate_age_s": float(max_age),
             "observer_max_displacement_m": float(self._observer_max_displacement),
+            # The safety check: observers never move sideways from their posts.
+            # A failsafe landing is straight down and shows up in the 3-D value.
+            "observer_max_horizontal_displacement_m": float(self._observer_max_horizontal),
+            "observer_landings": int(self._observer_landings),
         }

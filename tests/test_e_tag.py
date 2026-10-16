@@ -5,11 +5,13 @@ import json
 import math
 import time
 
+import numpy as np
 import pytest
 
 from sim.missions.api import Scenario
 from sim.missions.engine import run_mission
 from sim.missions.log import validate_log
+from sim.missions.tag import TagMission
 from tests.reference_e.hand_checks import tail_follow_time_s
 
 
@@ -19,13 +21,20 @@ def _scenario(seed=20261030, **changes):
     return Scenario(**values)
 
 
+def _first_zone_entry_s(log, agent="f1"):
+    return next(e["time_s"] for e in log["events"] if e["kind"] == "tag_zone_enter" and e["agent"] == agent)
+
+
 def test_hand_check_straight_recovery():
-    result = run_mission(_scenario(params={"target_class": "straight", "arm": "recovery"}))
-    entry = result.metrics["time_to_tag_s"] - 2.0
+    result = run_mission(_scenario(params={"target_class": "straight", "arm": "recovery"}), log=True)
+    entry = _first_zone_entry_s(result.log)
     reference = tail_follow_time_s(4.0, 1.0, 1.5, 0.5)
     print(f"zone entry={entry:.3f}s reference={reference:.3f}s tag={result.metrics['time_to_tag_s']}")
     assert reference == 3.0
-    assert 3.0 <= entry <= 4.2
+    # Prereg EXP-030 band: 3.0 s plus the speed ramp (about v / a = 0.4 s).
+    assert 3.0 <= entry <= 3.6
+    # The point-mass follower stays inside from its first entry, so the tag
+    # completes one hold time after entry.
     assert result.metrics["time_to_tag_s"] == pytest.approx(entry + 2.0, abs=0.02)
 
 
@@ -71,11 +80,91 @@ def test_determinism_and_log_validation():
     assert json.dumps(first.log, sort_keys=True, separators=(",", ":")) == json.dumps(second.log, sort_keys=True, separators=(",", ":"))
 
 
-@pytest.mark.xfail(strict=True, reason="default physics controller does not sustain the straight tag zone for two seconds")
-def test_physics_adapter_clean_straight():
+def test_three_follower_slots_match_prereg_geometry():
+    mission = TagMission()
+    estimate = np.array([8.0, 5.0, 1.5])
+    heading_rad = math.radians(30.0)
+    velocity = 0.5 * np.array([math.cos(heading_rad), math.sin(heading_rad), 0.0])
+    mission._heading = np.array([1.0, 0.0, 0.0])
+    slots = mission._slots(estimate, velocity, 3, 0.75)
+    angles = []
+    for slot in slots:
+        offset = slot - estimate
+        assert offset[2] == pytest.approx(0.0)
+        assert math.hypot(offset[0], offset[1]) == pytest.approx(0.75)
+        angle = math.degrees(math.atan2(offset[1], offset[0]) - heading_rad) % 360.0
+        angles.append(angle)
+    # Prereg: behind, then 120 and 240 degrees from the heading.
+    assert angles == pytest.approx([180.0, 120.0, 240.0])
+    chords = sorted(float(np.linalg.norm(slots[a] - slots[b])) for a, b in ((0, 1), (0, 2), (1, 2)))
+    # Neighbours 60 degrees apart: 2 * 0.75 * sin(30 deg) = 0.75 m; the
+    # 120 and 240 degree slots: 2 * 0.75 * sin(60 deg) = 1.299 m.
+    assert chords == pytest.approx([0.75, 0.75, 2 * 0.75 * math.sin(math.radians(60.0))])
+    assert chords[0] > 0.6
+
+
+def test_landings_before_outage_clean_counts_none():
+    outage = ({"start_s": 6.0, "end_s": None, "streams": None},)
+    result = run_mission(_scenario(duration_s=9.0, outages=outage, params={"mode": "hold"}))
+    no_outage = run_mission(_scenario(duration_s=6.0, params={"mode": "hold"}))
+    # The clean link never drops a packet, so the only landing is the one the
+    # blackout causes, and it comes after the blackout starts.
+    assert result.metrics["landings"] == 1
+    assert result.metrics["landings_before_outage"] == 0
+    assert no_outage.metrics["landings_before_outage"] == no_outage.metrics["landings"] == 0
+
+
+def test_landings_before_outage_matches_a_run_cut_at_the_outage():
+    # Independent check: before the blackout the outage run and a run that
+    # simply stops at the blackout start see the same seeded loss, so the
+    # landings counted before the outage must equal all landings of the
+    # shorter run.  Bursty synthetic loss gives both outcomes over these seeds.
+    outage = ({"start_s": 10.0, "end_s": None, "streams": None},)
+    seen = set()
+    for k in range(6):
+        seed = 20261029 + k
+        with_outage = run_mission(_scenario(seed=seed, duration_s=13.0, preset="burst_10_0.5s",
+                                            outages=outage, params={"mode": "hold"}))
+        cut = run_mission(_scenario(seed=seed, duration_s=10.0, preset="burst_10_0.5s", params={"mode": "hold"}))
+        assert with_outage.metrics["landings_before_outage"] == cut.metrics["landings"]
+        assert cut.metrics["landings_before_outage"] == cut.metrics["landings"]
+        assert with_outage.metrics["landings_before_outage"] <= with_outage.metrics["landings"]
+        seen.add(with_outage.metrics["landings_before_outage"])
+    assert seen == {0, 1}
+
+
+# Measured reason (clean, delay 0, seed 20261030): the separation guard fires
+# whenever the estimated distance is below 0.5 m + buffer, and with v = 1.5 m/s
+# the buffer is 0.36 to 0.51 m, so it fires across most of the 1.0 m zone.  Its
+# retreat point is the aim point without the 0.75 s lead.  The physics position
+# loop lags a moving setpoint by Kd/Kp = 0.75 s, 0.375 m at 0.5 m/s, so behind
+# a straight target the follower settles near 1.125 m (outside the zone) on the
+# retreat point and near 0.75 m on the aim point.  It cycles across the zone
+# edge with in-zone stints of about 1.8 to 2.1 s, first entry 4.09 s, and tags
+# only at 12.08 s.  The point mass lags only 0.125 m and stays inside.
+@pytest.mark.xfail(strict=True, reason="physics follower cycles across the zone edge: retreat point lacks the lead, PD lag 0.375 m")
+def test_physics_holds_zone_from_first_entry():
     started = time.perf_counter()
-    result = run_mission(_scenario(seed=20261030, duration_s=10.0, adapter="physics", params={"target_class": "straight"}))
+    result = run_mission(_scenario(seed=20261030, duration_s=30.0, adapter="physics",
+                                   params={"target_class": "straight"}), log=True)
     elapsed = time.perf_counter() - started
-    print(f"physics straight wall={elapsed:.3f}s tagged={result.metrics['tagged']} time={result.metrics['time_to_tag_s']}")
+    entry = _first_zone_entry_s(result.log)
+    print(f"physics straight wall={elapsed:.3f}s entry={entry:.2f}s tag={result.metrics['time_to_tag_s']}")
     assert result.metrics["tagged"] is True
-    assert math.isfinite(elapsed)
+    assert result.metrics["time_to_tag_s"] <= entry + 2.0 + 0.05
+
+
+# Measured reason (clean, delay 0, seed 20261030): the jink target turns back
+# toward the follower, closing at about 2.3 m/s.  The guard's retreat point
+# sits 0.75 m from the estimate on the follower's side; the PD loop then trails
+# that point by about 0.375 m toward the target and brakes more slowly than the
+# buffer's 4 m/s^2, so the true distance falls to 0.023 m.  Every violation is
+# reported in the metrics; this test documents that the pre-registered design
+# does not keep 0.5 m on the physics model.
+@pytest.mark.xfail(strict=True, reason="physics follower breaks 0.5 m on a jink reversal: PD lag and braking slower than the buffer")
+def test_physics_jink_keeps_min_separation():
+    result = run_mission(_scenario(seed=20261030, duration_s=30.0, adapter="physics",
+                                   params={"target_class": "jink"}))
+    print("physics jink min separation", result.metrics["min_separation_m"],
+          "violation steps", result.metrics["separation_violations"])
+    assert result.metrics["separation_violations"] == 0

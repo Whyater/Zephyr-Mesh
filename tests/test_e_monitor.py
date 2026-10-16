@@ -86,3 +86,27 @@ def test_determinism_and_log_validation():
         raise
     second = run_mission(scenario, log=True)
     assert json.dumps(first.log, sort_keys=True) == json.dumps(second.log, sort_keys=True)
+
+
+def test_failsafe_landing_is_straight_down_and_stops_monitoring():
+    # On 0.5 s bursts the default lost-link rule (0.30 s) lands observers.  A
+    # landing must be straight down (no sideways motion toward anything), and a
+    # landing observer must stop sending camera fixes.
+    scenario = _scenario(5, preset="burst_10_0.5s", duration=40.0)
+    mission = MonitorMission()
+    ctx = MissionContext(scenario, mission.validate_params(scenario.params), log=False,
+                         rng_names=mission.rng_names)
+    mission.setup(ctx)
+    for i in range(ctx.n_steps + 1):
+        mission.tick(ctx, i, i * 0.01)
+    metrics = mission.metrics(ctx)
+    assert metrics["observer_landings"] >= 1
+    assert metrics["observer_max_horizontal_displacement_m"] < 0.5
+    for observer_id, link in mission._links.items():
+        state = ctx.drones[observer_id].adapter.get_state()
+        sent = link.stats()["sent"]
+        if state.landed or state.failsafe_state == "landing":
+            # far fewer than the 401 fixes a whole 40 s run at 10 Hz would send
+            assert sent < 401
+        else:
+            assert sent == 401
