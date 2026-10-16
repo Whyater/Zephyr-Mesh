@@ -22,20 +22,22 @@ import matplotlib.pyplot as plt
 
 from sim.missions.engine import COMMON_LIMITS
 from tests.reference_e.hand_checks import alert_latency_s, expected_detection_s
-from tools.c_common import prepare_output, write_json, write_manifest
+from tools.c_common import argv_or_default, prepare_output, write_json, write_manifest
 from tools.e_common import (
     MISSION_LIMITS,
     MISSION_SOURCES,
+    apply_mission_style,
     group_rows,
     make_job,
     median_summary,
     processes,
+    replay_command,
     rate_summary,
     run_jobs,
     seeds_for,
+    series_colors,
     write_rows,
 )
-from tools.horizon_mpl import apply_style
 
 
 PATHS = ("crossing", "skimming", "loiter")
@@ -126,13 +128,27 @@ def _summary(rows: list[dict], *, pilot: bool) -> dict:
                     if r["adapter"] == "point_mass" and r["path"] == "crossing"
                     and r["preset"] == "clean" and r["delay_s"] == delay and r["alert_latency_s"] is not None]
         if selected:
+            observed_interval = median_summary(selected)
+            hand_value = alert_latency_s(detection_s, delay, 0.0)
             observed.append({"delay_s": delay, "observed_median_s": median_summary(selected)["median"],
-                             "hand_check_s": alert_latency_s(detection_s, delay, 0.0)})
+                             "observed_median_interval_s": {
+                                 "low": observed_interval["low"],
+                                 "high": observed_interval["high"],
+                             },
+                             "hand_check_s": hand_value,
+                             "agrees_with_hand_check": (
+                                 observed_interval["low"] <= hand_value <= observed_interval["high"]
+                             )})
+    observer_landing_runs = sum(1 for row in rows if int(row["observer_landings"]) > 0)
     return {
         "experiment": "EXP-033",
         "pilot": bool(pilot),
         "simulated": True,
         "cells": cells,
+        "design_choices": [
+            "20 s mission duration: The unknown drone flies at 3 m/s across the 60 m venue, so 20 s covers the whole crossing and skimming pass (zone edge at x = 20 to 40 m, t = 6.7 to 13.3 s) and about 6.7 s of the loiter circle (it starts circling at 11.3 s).",
+            "The preregistration gives no duration, so 20 s is recorded as a runner design choice.",
+        ],
         "hand_check": {"formula": "(k - 0.5) * 0.1 + delay + estimator_lag (lag taken as 0)", "k": DEBOUNCE_K,
                         "expected_by_delay_s": [{"delay_s": d, "value_s": alert_latency_s(detection_s, d, 0.0)} for d in DELAYS],
                         "observed_clean_crossing": observed},
@@ -140,10 +156,12 @@ def _summary(rows: list[dict], *, pilot: bool) -> dict:
         "safety_check": {"limit_m": SAFETY_LIMIT_M,
                          "quantity": "maximum horizontal distance of any observer from its post, over every run",
                          "maximum_observer_horizontal_displacement_m": safety_max,
+                         "runs_with_observer_landing": observer_landing_runs,
                          "passed": safety_max < SAFETY_LIMIT_M,
                          "flag": "OBSERVER LEFT ITS POST SIDEWAYS" if safety_max >= SAFETY_LIMIT_M else None,
                          "note": ("A lost-link failsafe landing is straight down; it shows in observer_max_displacement_m "
                                   "and runs_with_observer_landing, and a landing observer stops sending fixes.")},
+        "continuity_note": ("Continuity counts checks with estimate age under 0.5 s. At 0.5 s measurement delay it is near zero by definition; this is a property of the pre-registered metric."),
         "deviations": [],
         "missing_metrics": [],
         "limits": list(MISSION_LIMITS + COMMON_LIMITS),
@@ -151,45 +169,56 @@ def _summary(rows: list[dict], *, pilot: bool) -> dict:
 
 
 def _figures(output: Path, rows: list[dict]) -> list[str]:
-    colors = apply_style("light")
+    apply_mission_style()
+    colors = series_colors(len(PRESETS))
     names = []
     for path in ("crossing", "loiter"):
         fig, ax = plt.subplots()
-        for preset in PRESETS:
+        for preset_index, preset in enumerate(PRESETS):
             x, y = [], []
             for delay in DELAYS:
                 vals = [r["alert_latency_s"] for r in rows if r["adapter"] == "point_mass" and r["path"] == path and r["preset"] == preset and r["delay_s"] == delay and r["alert_latency_s"] is not None]
                 if vals:
-                    x.append(delay); y.append(median_summary(vals)["median"])
+                    x.append(delay)
+                    y.append(median_summary(vals)["median"])
             if x:
-                ax.plot(x, y, marker="o", label=preset)
-        ax.set_xlabel("measurement delay (s)"); ax.set_ylabel("alert latency (s)")
+                ax.plot(x, y, marker="o", label=preset, color=colors[preset_index])
+        ax.set_xlabel("measurement delay (s)")
+        ax.set_ylabel("alert latency (s)")
         ax.set_title(f"Alert latency simulated: {path}")
         handles, labels = ax.get_legend_handles_labels()
         if handles:
             ax.legend(fontsize=7)
-        name = f"alert_latency_{path}.png"; fig.savefig(output / name, dpi=140); plt.close(fig); names.append(name)
+        name = f"alert_latency_{path}.png"
+        fig.savefig(output / name, dpi=140)
+        plt.close(fig)
+        names.append(name)
     fig, ax = plt.subplots()
-    for preset in PRESETS:
+    for preset_index, preset in enumerate(PRESETS):
         vals = []
         labels = []
         for path in PATHS:
             selected = [r["continuity"] for r in rows if r["adapter"] == "point_mass" and r["path"] == path and r["preset"] == preset]
             if selected:
-                labels.append(path); vals.append(median_summary(selected)["median"])
+                labels.append(path)
+                vals.append(median_summary(selected)["median"])
         if vals:
-            ax.plot(labels, vals, marker="o", label=preset)
-    ax.set_xlabel("path"); ax.set_ylabel("continuity")
+            ax.plot(labels, vals, marker="o", label=preset, color=colors[preset_index])
+    ax.set_xlabel("path")
+    ax.set_ylabel("continuity")
     ax.set_title("Continuity simulated")
     handles, labels = ax.get_legend_handles_labels()
     if handles:
         ax.legend(fontsize=7)
-    name = "continuity_simulated.png"; fig.savefig(output / name, dpi=140); plt.close(fig); names.append(name)
+    name = "continuity_simulated.png"
+    fig.savefig(output / name, dpi=140)
+    plt.close(fig)
+    names.append(name)
     return names
 
 
 def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None = None,
-                   jobs: list[dict] | None = None) -> dict:
+                   jobs: list[dict] | None = None, argv: list[str] | None = None) -> dict:
     output = prepare_output(Path(output))
     start = time.perf_counter()
     run_list = build_jobs(pilot=pilot) if jobs is None else list(jobs)
@@ -200,17 +229,25 @@ def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None
     figures = _figures(output, rows)
     outputs = ["exp033.csv", "summary.json", *figures]
     elapsed = time.perf_counter() - start
-    write_manifest(output, schema="zephyr-exp033-1", argv=[], command="python tools/e_exp033_monitor.py", config={"pilot": pilot, "duration_s": DURATION_S}, seeds=seeds_for(33, 3 if pilot else 50), outputs=outputs, limits=list(MISSION_LIMITS), runtime_s=elapsed, n_processes=processes(n_processes), hashed_sources=list(MISSION_SOURCES) + ["sim/missions/monitor.py", "tools/e_exp033_monitor.py"])
+    manifest_argv = argv_or_default(argv)
+    write_manifest(output, schema="zephyr-exp033-1", argv=manifest_argv,
+                   command=replay_command("tools/e_exp033_monitor.py", manifest_argv),
+                   config={"pilot": pilot, "duration_s": DURATION_S},
+                   seeds=seeds_for(33, 3 if pilot else 50), outputs=outputs,
+                   limits=list(MISSION_LIMITS), runtime_s=elapsed,
+                   n_processes=processes(n_processes),
+                   hashed_sources=list(MISSION_SOURCES) + ["sim/missions/monitor.py", "tools/e_exp033_monitor.py"])
     return summary
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    raw_argv = argv_or_default(argv)
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--pilot", action="store_true")
     parser.add_argument("--processes", type=int, default=None)
-    args = parser.parse_args()
-    run_experiment(args.output, pilot=args.pilot, n_processes=args.processes)
+    args = parser.parse_args(raw_argv)
+    run_experiment(args.output, pilot=args.pilot, n_processes=args.processes, argv=raw_argv)
 
 
 if __name__ == "__main__":

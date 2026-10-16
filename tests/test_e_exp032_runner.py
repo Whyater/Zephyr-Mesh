@@ -2,8 +2,12 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
-from tools.e_exp032_relay import build_jobs, run_experiment
+import pytest
+
+from tools.e_exp032_relay import (PREDICTION_CORRECTION_3, PREDICTION_TEXT,
+                                  build_jobs, run_experiment)
 from tests.reference_e.hand_checks import max_range_dual_slope_m
 
 
@@ -36,3 +40,12 @@ def test_tiny_run_writes_byte_stable_outputs(tmp_path):
     assert summary["hand_check"]["reference_median_signal_range_m"] > 500.0
     assert (tmp_path / "one" / "delivery_vs_distance.png").exists()
     assert (tmp_path / "one" / "latency_vs_distance.png").exists()
+
+
+def test_prediction_constants_match_preregistration():
+    prereg = Path("/Users/akashi0281/.zm-worktrees/run-e-briefs/prereg.md")
+    if not prereg.exists():
+        pytest.skip("prereg.md is outside the repository and is unavailable")
+    text = prereg.read_text(encoding="utf-8")
+    assert PREDICTION_TEXT in text
+    assert PREDICTION_CORRECTION_3 in text

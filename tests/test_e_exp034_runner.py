@@ -2,14 +2,15 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
-from tools.e_exp034_formation import build_jobs, main
+from tools.e_exp034_formation import PREDICTION_TEXT, build_jobs, main
 from tests.reference_e.hand_checks import first_order_loop_jitter_std
 
 
 def test_full_grid_count_and_named_cells() -> None:
     jobs = build_jobs()
-    assert len(jobs) == 1760  # 1600 point-mass cells plus 160 physics cells at the D-121 20-seed limit
+    assert len(jobs) == 2000  # 1600 point-mass jobs plus 400 physics jobs, all cells at 50 seeds
     scenarios = {(j["labels"]["adapter"], j["labels"]["sigma_m"], j["labels"]["fix_latency_s"], j["labels"]["preset"])
                  for j in jobs}
     assert ("point_mass_offboard", 0.01, 0.0, "clean") in scenarios
@@ -45,3 +46,21 @@ def test_tiny_run_is_reproducible(tmp_path, monkeypatch) -> None:
         assert (first / name).exists()
     summary = json.loads((first / "summary.json").read_text(encoding="utf-8"))
     assert summary["pilot"] is False
+    hand = summary["hand_check"]["zero_latency_clean"]
+    assert hand
+    assert all("observed_to_reference_rms" in entry and "observed_to_reference" in entry and "within_10_percent" in entry for entry in hand)
+    assert any(entry["adapter"] == "point_mass_offboard" and entry["sigma_m"] == 0.02 for entry in hand)
+
+
+def test_prediction_matches_preregistration_when_present() -> None:
+    prereg = Path("/Users/akashi0281/.zm-worktrees/run-e-briefs/prereg.md")
+    if not prereg.exists():
+        return
+    text = prereg.read_text(encoding="utf-8")
+    expected = (
+        "Claude's prediction: point mass at zero latency matches the hand formula within 10 %; latency up to 0.2 s raises the error by under 30 % "
+        "(the first-order loop with delay stays stable below about (pi/2) tau = 0.39 s, but the margin shrinks); physics adapter errors larger than the point mass at the same sigma "
+        "(PD loop with lower damping passes more noise) and grows faster with latency (Run A: position feedback edge 0.33 s). Separation never near 0.5 m (slots 2 m apart, errors of centimetres)."
+    )
+    assert PREDICTION_TEXT == expected
+    assert PREDICTION_TEXT in text

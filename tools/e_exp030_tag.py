@@ -22,10 +22,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from sim.missions.api import Scenario
-from tests.reference_e.hand_checks import tail_follow_time_s
-from tools.c_common import prepare_output, write_json, write_manifest
-from tools.e_common import MISSION_LIMITS, MISSION_SOURCES, group_rows, make_job, median_summary, processes, rate_summary, run_jobs, seeds_for, write_rows
-from tools.horizon_mpl import apply_style
+from tools.c_common import argv_or_default, prepare_output, write_json, write_manifest
+from tools.e_common import (MISSION_LIMITS, MISSION_SOURCES, apply_mission_style, group_rows,
+                             make_job, median_summary, processes, rate_summary, replay_command,
+                             run_jobs, seeds_for, series_colors, write_rows)
 
 EXP_NUMBER = 30
 CLASSES = ("straight", "turn", "figure8", "jink")
@@ -33,6 +33,24 @@ DELAYS = (0.0, 0.1, 0.2, 0.3, 0.5)
 PRESETS = ("clean", "iid_10", "iid_30", "burst_10_0.5s", "burst_30_0.5s")
 ARMS = ("naive", "recovery", "ct", "imm")
 SEEDS = seeds_for(EXP_NUMBER, 50)
+PREDICTION_TEXT = ("Claude's prediction: clean: straight and turn about 100 %, figure eight about 100 %, "
+                   "jinking 85 to 100 %. Delay up to 0.3 s barely matters at 0.5 m/s (lag v*d = 0.15 m "
+                   "is inside the 0.5 m wide zone ring) for recovery; naive loses a little on jinking at "
+                   "0.5 s. iid_10: still high (default T = 0.3 s at 20 Hz fires about 0.07 times per hour "
+                   "at 10 %). iid_30: about 37 unnecessary landings per hour, so about 26 % of 30 s rounds "
+                   "end in a landing. Bursty presets are where tag fails: burst_10_0.5s triggers about 400 "
+                   "landings per hour, so most 30 s rounds end in a landing before the tag completes (predict "
+                   "tag success under 20 % with \"default\", recovered to 50 to 80 % by \"calm\"). Separation "
+                   "violations: 0 on clean; a few on jinking under bursts. Two and three followers: higher "
+                   "success on jinking (someone is in position) but more follower-follower guard activity; no "
+                   "gain when the limit is the landing failsafe (every follower sees the same bad radio). Physics "
+                   "adapter: same ordering, slightly lower success from the controller lag.")
+PREDICTION_CORRECTION_2 = ('2. EXP-030 prediction for bursty presets: rounds end at the tag (about 5 s on easy '
+                           'classes), not at 30 s. With about 400 unnecessary landings per hour on burst_10_0.5s, '
+                           'the expected number in 5.3 s is 0.59, so P(no landing) is about e^-0.59 = 0.55. '
+                           'Corrected prediction: default policy tag success about 45 to 60 % on burst_10_0.5s for '
+                           'straight and turn, lower for figure eight and jinking (longer rounds); burst_30_0.5s '
+                           'about 15 to 30 %; "calm" (T = 1.0 s) raises both by 20 to 40 points.')
 
 
 def _scenario(seed: int, *, target_class: str, delay: float, preset: str, arm: str,
@@ -110,7 +128,7 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
 
 
 def _cell_summary(rows: list[dict]) -> dict:
-    return {
+    result = {
         "n": len(rows),
         "tag_success": rate_summary([bool(r["tagged"]) for r in rows]),
         "time_to_tag_s": median_summary([r["time_to_tag_s"] for r in rows if r["tagged"]]),
@@ -122,6 +140,18 @@ def _cell_summary(rows: list[dict]) -> dict:
         "outcome_reason_counts": {reason: sum(1 for r in rows if r["end_reason"] == reason)
                                    for reason in sorted({r["end_reason"] for r in rows})},
     }
+    if any(int(row["n_followers"]) > 1 for row in rows):
+        guard_values = [int(row["guard_activations"]) for row in rows]
+        follower_values = [row["follower_follower_min_m"] for row in rows]
+        result["guard_activations"] = {
+            "total": sum(guard_values),
+            "runs_with_any": sum(value > 0 for value in guard_values),
+        }
+        result["follower_follower_min_m"] = {
+            "median_interval": median_summary(follower_values),
+            "minimum": min(float(value) for value in follower_values if value is not None),
+        }
+    return result
 
 
 def summarize(rows: list[dict], *, pilot: bool) -> dict:
@@ -136,27 +166,28 @@ def summarize(rows: list[dict], *, pilot: bool) -> dict:
     hand_rows = [r for r in rows if r["slice"] in {"main", "pilot"} and r["target_class"] == "straight" and
                  r["measurement_delay_s"] == 0.0 and r["preset"] == "clean" and r["arm"] == "recovery"]
     observed = median_summary([r["time_to_tag_s"] for r in hand_rows if r["tagged"]])
-    reference_zone = tail_follow_time_s(4.0, 1.0, 1.5, 0.5)
+    observed_median = observed["median"]
     return {
         "experiment": "EXP-030", "simulated": True, "pilot": bool(pilot),
         "grid_counts": {"main": 4 * 5 * 5 * 4 * 50, "calm": 4 * 5 * 2 * 50,
                          "followers": 4 * 2 * 3 * 2 * 50, "physics": 4 * 2 * 2 * 20},
         "cells": cells,
-        "hand_check": {"reference_zone_entry_s": reference_zone, "predicted_time_to_tag_s": "5.0 to 5.6 s",
-                        "observed_time_to_tag_s": observed},
-        "prediction": {
-            "text": "Corrected prediction: default policy tag success about 45 to 60 % on burst_10_0.5s for straight and turn, lower for figure eight and jinking (longer rounds); burst_30_0.5s about 15 to 30 %; calm (T = 1.0 s) raises both by 20 to 40 points.",
-            "observed_rates": [{key: value for key, value in cell.items() if key in ("slice", "target_class", "measurement_delay_s", "preset", "arm", "tag_success")} for cell in cells
-                               if cell["arm"] == "recovery"],
-        },
+        "hand_check": {"predicted_time_to_tag_s": "5.0 to 5.6 s",
+                        "observed_time_to_tag_s": observed,
+                        "inside_predicted_band": observed_median is not None and 5.0 <= observed_median <= 5.6,
+                        "observed_median_zone_entry_s": "not a metric"},
+        "prediction": PREDICTION_TEXT,
+        "prediction_correction_2": PREDICTION_CORRECTION_2,
+        "prediction_observed_rates": [{key: value for key, value in cell.items() if key in ("slice", "target_class", "measurement_delay_s", "preset", "arm", "tag_success")} for cell in cells
+                                       if cell["arm"] == "recovery"],
         "deviations": [], "missing_metrics": [],
         "limits": list(MISSION_LIMITS),
     }
 
 
 def _figures(output: Path, rows: list[dict]) -> list[str]:
-    apply_style("light")
-    colors = {arm: color for arm, color in zip(ARMS, ("#1769AA", "#00897B", "#7B61A8", "#D17A00"))}
+    apply_mission_style("light")
+    colors = dict(zip(ARMS, series_colors(len(ARMS))))
     fig, axes = plt.subplots(len(CLASSES), len(PRESETS), figsize=(15, 10), sharey=True)
     for row_index, target_class in enumerate(CLASSES):
         for col_index, preset in enumerate(PRESETS):
@@ -184,7 +215,10 @@ def _figures(output: Path, rows: list[dict]) -> list[str]:
     for preset in PRESETS:
         vals = []
         for policy in ("default", "calm"):
-            selected = [r for r in rows if r["target_class"] in CLASSES and r["measurement_delay_s"] == 0.3 and r["preset"] == preset and r["arm"] == "recovery" and r["policy_name"] == policy]
+            selected = [r for r in rows if r["slice"] == ("main" if policy == "default" else "calm")
+                        and r["target_class"] in CLASSES and r["measurement_delay_s"] == 0.3
+                        and r["preset"] == preset and r["arm"] == "recovery"
+                        and r["policy_name"] == policy]
             vals.append(sum(bool(r["tagged"]) for r in selected) / len(selected) if selected else float("nan"))
         ax.plot(("default", "calm"), vals, marker="o", label=preset)
     ax.set_title("Default versus calm simulated tag success")
@@ -214,8 +248,9 @@ def main(argv: list[str] | None = None) -> None:
     write_json(output / "summary.json", summary)
     figures = _figures(output, rows)
     outputs = [csv_name, "summary.json", *figures]
-    write_manifest(output, schema="zephyr-exp030-1", argv=[] if argv is None else argv,
-                   command="PYTHONPATH=. ./.venv/bin/python tools/e_exp030_tag.py --output " + str(args.output) + (" --pilot" if args.pilot else ""),
+    actual_argv = argv_or_default(argv)
+    write_manifest(output, schema="zephyr-exp030-1", argv=actual_argv,
+                   command=replay_command("tools/e_exp030_tag.py", actual_argv),
                    config={"experiment": "EXP-030", "pilot": args.pilot}, seeds=SEEDS[:3] if args.pilot else SEEDS,
                    outputs=outputs, limits=list(MISSION_LIMITS), runtime_s=time.perf_counter() - started,
                    n_processes=processes(args.processes), hashed_sources=list(MISSION_SOURCES) + ["sim/missions/tag.py", "tools/e_exp030_tag.py"])

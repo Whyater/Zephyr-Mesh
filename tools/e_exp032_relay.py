@@ -22,13 +22,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from sim.missions.api import Scenario
-import sim.missions.relay  # noqa: F401
+from sim.missions.relay import RelayMission
 from tests.reference_e.hand_checks import max_range_dual_slope_m
-from tools.c_common import prepare_output, write_json, write_manifest
+from tools.c_common import argv_or_default, prepare_output, write_json, write_manifest
 from tools.e_common import (MISSION_LIMITS, MISSION_SOURCES, group_rows, make_job,
-                            median_summary, processes, run_jobs,
-                            seeds_for, write_rows)
-from tools.horizon_mpl import apply_style
+                            apply_mission_style, median_summary, processes, replay_command,
+                            run_jobs, seeds_for, series_colors, write_rows)
 
 DISTANCES = (300.0, 500.0, 700.0, 900.0, 1100.0, 1300.0)
 FRACTIONS = (None, 0.25, 0.4, 0.5, 0.6, 0.75)
@@ -36,6 +35,17 @@ FULL_SEEDS = 50
 PILOT_SEEDS = 3
 PHYSICS_DISTANCES = (500.0, 900.0)
 PHYSICS_FRACTIONS = (None, 0.5)
+
+PREDICTION_TEXT = ("Claude's prediction: d_max with 0 dB margin is about 600 to 700 m (Run C: d90 409 m, "
+                   "d10 746 m for the stress corner); direct delivery near 100 % at 300 m, near 0 beyond "
+                   "about 900 m; f = 0.5 keeps delivery above 99 % to about 1100 m; asymmetric relays "
+                   "(0.25, 0.75) fail first on the long hop. Latency roughly doubles with the relay (two hops, "
+                   "plus retries on the weaker hop) but stays under 10 ms median.")
+PREDICTION_CORRECTION_3 = ("3. EXP-032 prediction: the median-signal range for the stress corner with 0 dB margin "
+                           "and -98 dBm sensitivity is about 518 m (reference computation), not 600 to 700 m. "
+                           "Corrected: direct delivery falls through 50 % somewhere around 500 to 750 m "
+                           "(shadowing and 5 retries push it outward); a relay at f = 0.5 holds high delivery to "
+                           "about 1000 to 1300 m.")
 
 
 def build_jobs(*, pilot: bool = False, duration_s: float = 60.0,
@@ -95,18 +105,19 @@ def _interpolated_crossing(cell_values: dict[float, float]) -> float | None:
 
 
 def _make_figures(output: Path, rows: list[dict]) -> None:
-    palette = apply_style("light")
+    apply_mission_style("light")
+    colors = series_colors(6)
     point = [r for r in rows if r["adapter"] == "point_mass"]
     grouped = group_rows(point, ("relay_fraction", "distance_m"))
     fig, ax = plt.subplots(figsize=(7.0, 4.2))
-    for fraction in ("none", 0.25, 0.4, 0.5, 0.6, 0.75):
+    for index, fraction in enumerate(("none", 0.25, 0.4, 0.5, 0.6, 0.75)):
         means = []
         for distance in DISTANCES:
             cell = grouped.get((fraction, distance), [])
             if cell:
                 means.append((distance, float(np.mean([r["delivery_ratio"] for r in cell]))))
         if means:
-            ax.plot([x for x, _ in means], [y for _, y in means], marker="o", label=f"f={fraction}")
+            ax.plot([x for x, _ in means], [y for _, y in means], marker="o", color=colors[index], label=f"f={fraction}")
     ax.set(xlabel="far-drone distance (m)", ylabel="delivery ratio", title="Relay delivery ratio, simulated")
     ax.set_ylim(0.0, 1.05)
     ax.legend(ncol=2)
@@ -115,7 +126,7 @@ def _make_figures(output: Path, rows: list[dict]) -> None:
     plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(7.0, 4.2))
-    for fraction in ("none", 0.5):
+    for index, fraction in enumerate(("none", 0.5)):
         means = []
         for distance in DISTANCES:
             cell = grouped.get((fraction, distance), [])
@@ -124,7 +135,7 @@ def _make_figures(output: Path, rows: list[dict]) -> None:
                 if vals:
                     means.append((distance, float(np.median(vals))))
         if means:
-            ax.plot([x for x, _ in means], [y for _, y in means], marker="o", label=f"f={fraction}")
+            ax.plot([x for x, _ in means], [y for _, y in means], marker="o", color=colors[index], label=f"f={fraction}")
     ax.set(xlabel="far-drone distance (m)", ylabel="median latency (s)", title="Relay median latency, simulated")
     ax.legend()
     fig.tight_layout()
@@ -133,7 +144,8 @@ def _make_figures(output: Path, rows: list[dict]) -> None:
 
 
 def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None = None,
-                   duration_s: float = 60.0, seed_count: int | None = None) -> dict:
+                   duration_s: float = 60.0, seed_count: int | None = None,
+                   argv: list[str] | None = None) -> dict:
     output = prepare_output(Path(output))
     jobs, seeds = build_jobs(pilot=pilot, duration_s=duration_s, seed_count=seed_count)
     nproc = processes(n_processes)
@@ -153,10 +165,12 @@ def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None
     midpoint = {float(d): float(np.mean([r["delivery_ratio"] for r in rows
                                           if r["adapter"] == "point_mass" and r["relay_fraction"] == 0.5 and r["distance_m"] == d]))
                 for d in DISTANCES if any(r["adapter"] == "point_mass" and r["relay_fraction"] == 0.5 and r["distance_m"] == d for r in rows)}
-    point_cells = 4 if pilot else 36
-    physics_cells_count = 1 if pilot else 4
-    point_seed_count = sum(1 for row in rows if row["adapter"] == "point_mass") // point_cells
-    physics_seed_count = sum(1 for row in rows if row["adapter"] == "physics") // physics_cells_count
+    point_cell_keys = {(row["distance_m"], row["relay_fraction"]) for row in rows if row["adapter"] == "point_mass"}
+    physics_cell_keys = {(row["distance_m"], row["relay_fraction"]) for row in rows if row["adapter"] == "physics"}
+    point_seed_count = (sum(1 for row in rows if row["adapter"] == "point_mass") // len(point_cell_keys)
+                        if point_cell_keys else 0)
+    physics_seed_count = (sum(1 for row in rows if row["adapter"] == "physics") // len(physics_cell_keys)
+                          if physics_cell_keys else 0)
     deviations = []
     if pilot:
         deviations.append("Pilot uses the preregistered subset and is not the full grid.")
@@ -170,21 +184,27 @@ def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None
                  "point_mass_seeds": FULL_SEEDS, "physics_distances_m": list(PHYSICS_DISTANCES),
                  "physics_fractions": ["none", 0.5], "physics_seeds": 20,
                  "actual_point_mass_seeds": point_seed_count, "actual_physics_seeds": physics_seed_count},
-        "mission_defaults_verified": {"duration_s": 60.0, "rate_hz": 10.0, "message_bytes": 32,
-                                       "retries": 5, "forward_delay_s": 0.001},
+        "mission_defaults": dict(RelayMission.defaults),
+        "simulated": True,
+        "limits": list(MISSION_LIMITS) + list(RelayMission.limits),
         "cells": cells,
         "hand_check": {"reference_median_signal_range_m": reference,
+                        "two_d_max_m": 2.0 * reference,
                         "direct_50_percent_crossing_m_interpolation": _interpolated_crossing(direct),
                         "relay_f_0_5_50_percent_crossing_m_interpolation": _interpolated_crossing(midpoint)},
-        "prediction": {"text": "Corrected prediction: direct delivery falls through 50 percent around 500 to 750 m; a midpoint relay holds high delivery to about 1000 to 1300 m.",
+        "prediction": PREDICTION_TEXT,
+        "prediction_correction_3": PREDICTION_CORRECTION_3,
+        "prediction_observed": {"text": PREDICTION_CORRECTION_3,
                        "observed_direct": direct, "observed_f_0_5": midpoint},
+        "physics_geometry_note": "Physics rows can only differ from point mass through the vehicle positions, because the radio geometry is fixed by D and f.",
         "missing_metrics": ["retries_mean: RadioMissionLink does not expose per-packet retry counts; mission returns null."],
         "deviations": deviations,
     }
     write_json(output / "summary.json", summary)
     _make_figures(output, rows)
-    write_manifest(output, schema="zephyr-exp032-runner-1", argv=[],
-                   command="PYTHONPATH=. python tools/e_exp032_relay.py", config=summary["grid"],
+    actual_argv = [] if argv is None else list(argv)
+    write_manifest(output, schema="zephyr-exp032-runner-1", argv=actual_argv,
+                   command=replay_command("tools/e_exp032_relay.py", actual_argv), config=summary["grid"],
                    seeds=seeds, outputs=["relay.csv", "summary.json", "delivery_vs_distance.png", "latency_vs_distance.png"],
                    limits=list(MISSION_LIMITS), n_processes=nproc, runtime_s=runtime,
                    hashed_sources=list(MISSION_SOURCES) + ["sim/missions/relay.py", "tools/e_exp032_relay.py"])
@@ -192,12 +212,13 @@ def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None
 
 
 def main(argv: list[str] | None = None) -> None:
+    actual_argv = argv_or_default(argv)
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--pilot", action="store_true")
     parser.add_argument("--processes", type=int, default=None)
-    args = parser.parse_args(argv)
-    run_experiment(args.output, pilot=args.pilot, n_processes=args.processes)
+    args = parser.parse_args(actual_argv)
+    run_experiment(args.output, pilot=args.pilot, n_processes=args.processes, argv=actual_argv)
 
 
 if __name__ == "__main__":

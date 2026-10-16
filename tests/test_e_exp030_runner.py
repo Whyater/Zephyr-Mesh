@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from tools.e_exp030_tag import build_jobs, main
+from tools.e_exp030_tag import (PREDICTION_CORRECTION_2, PREDICTION_TEXT, build_jobs, main)
 from tests.platform_compare import same_tree
 
 
@@ -29,4 +29,16 @@ def test_pilot_outputs_are_deterministic(tmp_path: Path):
     right = json.loads((second / "summary.json").read_text(encoding="utf-8"))
     assert same_tree(left, right)
     assert left["pilot"] is True
-    assert left["hand_check"]["reference_zone_entry_s"] == 3.0
+    assert left["hand_check"]["observed_median_zone_entry_s"] == "not a metric"
+    assert left["prediction"] == PREDICTION_TEXT
+    assert left["prediction_correction_2"] == PREDICTION_CORRECTION_2
+
+
+def test_prediction_constants_match_prereg():
+    prereg = Path("/Users/akashi0281/.zm-worktrees/run-e-briefs/prereg.md")
+    if not prereg.exists():
+        import pytest
+        pytest.skip("prereg is outside the repository")
+    text = prereg.read_text(encoding="utf-8")
+    assert PREDICTION_TEXT in text
+    assert PREDICTION_CORRECTION_2 in text
