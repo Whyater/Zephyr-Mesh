@@ -89,3 +89,17 @@ def test_manifest_records_real_argv_and_config(tmp_path: Path):
     assert manifest["replay_command"].startswith("PYTHONPATH=. ")
     assert manifest["config"]["agreement_tolerance"] == 0.01
     assert {"graphs", "loss_probabilities", "delay_steps", "consensus_steps", "part_c", "part_c_note"} <= set(manifest["config"])
+
+
+def test_median_is_null_when_half_the_seeds_never_agree():
+    rows = []
+    for i in range(50):
+        never = i >= 25
+        rows.append({"graph": "ring", "p": 0.5, "delay_steps": 0, "symmetric_loss": True,
+                     "steps_to_agreement": None if never else 100, "did_not_agree": never,
+                     "final_average_drift": 0.0, "random_seed": None})
+    (cell,) = d_run_consensus._summarize(rows)
+    assert cell["median_steps"] is None
+    rows[25]["steps_to_agreement"], rows[25]["did_not_agree"] = 100, False
+    (cell,) = d_run_consensus._summarize(rows)
+    assert cell["median_steps"] == 100

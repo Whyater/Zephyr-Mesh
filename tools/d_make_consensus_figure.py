@@ -86,7 +86,7 @@ def make_figures(directory: Path) -> tuple[Path, Path]:
                     label="mean-field prediction (loss only, no delay)" if graph_index == 0 and symmetric else None)
     ax.set_xlabel("Loss probability p")
     ax.set_ylabel("Steps to 1 % agreement (updates)")
-    ax.set_title("Consensus convergence under loss (zero delay)")
+    ax.set_title("Simulated consensus convergence under loss (zero delay)")
     ax.legend(fontsize=7)
     fig.tight_layout()
     loss_path = directory / "consensus_loss.png"
@@ -111,8 +111,8 @@ def make_figures(directory: Path) -> tuple[Path, Path]:
             label=f"p={probability:g}",
         )
     ax.set_xlabel("Updates before acting (0.1 s each)")
-    ax.set_ylabel("Fraction > 0.10 m apart")
-    ax.set_title("Disagreement at action time (complete graph)")
+    ax.set_ylabel("Fraction of seeds with observers > 0.10 m apart")
+    ax.set_title("Simulated disagreement at action time (complete graph)")
     if acting_rows:
         ax.legend()
     fig.tight_layout()
