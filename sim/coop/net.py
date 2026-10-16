@@ -20,6 +20,7 @@ from collections import Counter
 from dataclasses import dataclass
 import math
 from typing import Any
+import zlib
 
 import numpy as np
 
@@ -163,6 +164,21 @@ def _routes(traffic: TrafficSpec) -> list[tuple[str, str]]:
     return sorted(pairs)
 
 
+def _route_seed_sequence(seed: int, sender: str, receiver: str, stream: int) -> np.random.SeedSequence:
+    """Derive a deterministic random seed from a route identity.
+
+    The route name, rather than its position in a sorted route list, keeps
+    common random numbers stable when observers or traffic patterns change.
+    ``stream`` separates the abstract link and radio extra-loss generators.
+    """
+    route_id = zlib.crc32(f"{sender}->{receiver}".encode("utf-8")) & 0xFFFFFFFF
+    return np.random.SeedSequence([int(seed), int(stream), route_id])
+
+
+def _route_seed(seed: int, sender: str, receiver: str, stream: int) -> int:
+    return int(_route_seed_sequence(seed, sender, receiver, stream).generate_state(1)[0])
+
+
 def _capture_times(traffic: TrafficSpec, observer_index: int) -> list[float]:
     offsets = traffic.phase_offsets_s or (0.0,) * len(traffic.observers)
     period = 1.0 / float(traffic.rate_hz)
@@ -178,11 +194,11 @@ def _abstract_table(traffic: TrafficSpec, link: LinkSpec, seed: int) -> Delivery
     one_agent_star = traffic.pattern == "star" and len(traffic.observers) == 1
     observer_index = {name: i for i, name in enumerate(traffic.observers)}
     end = float(traffic.duration_s)
-    for route_index, (sender, receiver) in enumerate(route_list):
+    for sender, receiver in route_list:
         if one_agent_star:
             route_seed = int(np.random.SeedSequence(seed).generate_state(2)[0])
         else:
-            route_seed = int(np.random.SeedSequence([int(seed), 1000 + route_index]).generate_state(1)[0])
+            route_seed = _route_seed(seed, sender, receiver, 1000)
         if link.loss_model == "burst":
             # Keep burst transitions aligned with sim/link.py's Gilbert-Elliott logic.
             burst_end = 1.0 / 5.0
@@ -245,8 +261,8 @@ def _radio_table(traffic: TrafficSpec, link: LinkSpec, seed: int) -> DeliveryTab
                                 stop_s=float(stop), jitter_s=float(jitter))
 
     route_list = _routes(traffic)
-    extra_rng = {route: np.random.default_rng(np.random.SeedSequence([int(seed), 2000 + i]))
-                 for i, route in enumerate(route_list)}
+    extra_rng = {route: np.random.default_rng(_route_seed_sequence(seed, route[0], route[1], 2000))
+                 for route in route_list}
     extra_state = {route: [False, _burst_start_probability(link.loss_probability, 1.0 / 5.0), 1.0 / 5.0]
                    for route in route_list}
     own_frames: dict[int, tuple[str, int, float]] = {}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import zlib
 
 import numpy as np
 import pytest
@@ -53,6 +54,15 @@ def test_peer_route_losses_are_independent():
     expected = 0.5 ** 4
     se = np.sqrt(expected * (1.0 - expected) / total)
     assert abs(observed - expected) <= 3.0 * se
+
+
+def test_abstract_route_stream_is_stable_when_observer_count_changes():
+    link = LinkSpec("abstract", 0.07, 0.35, jitter_s=0.01)
+    small = TrafficSpec("star", ("o1", "o2"), duration_s=2.0)
+    large = TrafficSpec("star", tuple(f"o{i}" for i in range(1, 7)), duration_s=2.0)
+    small_rows = make_deliveries(small, link, 73)[("o1", "gs")]
+    large_rows = make_deliveries(large, link, 73)[("o1", "gs")]
+    assert small_rows == large_rows
 
 
 def test_zero_loss_zero_delay_is_immediate():
@@ -187,8 +197,9 @@ def test_radio_extra_loss_matches_seeded_draws():
     link = LinkSpec("radio", 0.0, 0.3, positions=positions)
     table = make_deliveries(traffic, link, 8)
     radio_only = make_deliveries(traffic, LinkSpec("radio", 0.0, 0.0, positions=positions), 8)
-    for route_index, key in enumerate(sorted(table)):
-        rng = np.random.default_rng(np.random.SeedSequence([8, 2000 + route_index]))
+    for key in sorted(table):
+        route_id = zlib.crc32(f"{key[0]}->{key[1]}".encode("utf-8")) & 0xFFFFFFFF
+        rng = np.random.default_rng(np.random.SeedSequence([8, 2000, route_id]))
         for row, radio_row in zip(table[key], radio_only[key]):
             draw = float(rng.random())
             if radio_row.receive_time_s is not None and draw < 0.3:
