@@ -393,6 +393,16 @@ class SweepMission(Mission):
     def metrics(self, ctx):
         state = ctx.state
         total = FIELD_X_M * FIELD_Y_M
+        # Failsafe landings: transitions to the landing state, except the
+        # scripted dropout drone's own landing at or after the dropout time.
+        dropout_t = DROPOUT_TIME_S if ctx.params["dropout"] == "one" else None
+        landings = sum(
+            1 for event in ctx.events
+            if event["kind"] == "failsafe_transition"
+            and event["detail"].get("state") == "landing"
+            and not (dropout_t is not None and event["agent"] == DROPOUT_DRONE
+                     and event["time_s"] >= dropout_t - 1e-9)
+        )
         return {
             "t95_s": None if state["t95"] is None else float(state["t95"]),
             "t100_s": None if state["t100"] is None else float(state["t100"]),
@@ -401,4 +411,5 @@ class SweepMission(Mission):
             "replans": int(state["replans"]),
             "belief_error_cells": int(state["belief_error_cells"]),
             "false_loss_declarations": int(state["false_loss_declarations"]),
+            "failsafe_landings": int(landings),
         }

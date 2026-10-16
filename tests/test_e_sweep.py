@@ -166,3 +166,18 @@ def test_bad_params_rejected():
         run_mission(_scenario(mode="bitmask", duration_s=0.1))
     with pytest.raises(ValueError):
         run_mission(_scenario(dropout="two", duration_s=0.1))
+
+
+def test_failsafe_landings_count_link_landings_not_the_scripted_dropout():
+    # 30 % independent command loss with the default 0.30 s lost-link rule lands
+    # drones (seed 1 lands two by 7.4 s); the scripted dropout's own landing at
+    # 10 s is a planned fault and is not counted.
+    lossy = run_mission(Scenario(mission="sweep", seed=1, duration_s=12.0, preset="iid_30",
+                                 params={"dropout": "one", "message_mode": "delta"}), log=True)
+    link_landings = sum(1 for e in lossy.log["events"]
+                        if e["kind"] == "failsafe_transition" and e["detail"].get("state") == "landing"
+                        and e["detail"].get("reason") == "link_timeout")
+    assert lossy.metrics["failsafe_landings"] == link_landings >= 1
+    clean = run_mission(Scenario(mission="sweep", seed=1, duration_s=12.0, preset="clean",
+                                 params={"dropout": "one", "message_mode": "delta"}))
+    assert clean.metrics["failsafe_landings"] == 0
