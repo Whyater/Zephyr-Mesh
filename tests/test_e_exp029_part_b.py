@@ -209,8 +209,8 @@ def test_recommendation_rule_and_not_run_presets(tmp_path):
 def test_prediction_text_and_comparison_table(tmp_path):
     # Restates the runner's constants (the text itself can only be checked by eye
     # against the private pre-registration); kept to guard the stored labels.
-    assert not part_b.PREDICTION_TEXT.lower().startswith("claude")
-    assert "claude" not in part_b.CORRECTION_1_TEXT.lower()
+    assert part_b.PREDICTION_TEXT.startswith("at 20 Hz the 300 ms rule (m = 6)")
+    assert part_b.CORRECTION_1_TEXT.startswith("EXP-029 prediction: by the pre-registered rule")
     assert part_b.PREDICTION_SOURCE == (
         "pre-registered before the runs (EXP-029 section of the private pre-registration)")
     rates = part_b.load_part_a(_write_part_a_fixture(tmp_path / "a"))["rates"]
