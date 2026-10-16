@@ -3,71 +3,252 @@ from __future__ import annotations
 
 import csv
 import json
+from collections import defaultdict
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
+MIN_SEPARATION_M = 0.35
+CONTROL_DT_S = 0.05
+
+
+def _number(row: dict[str, Any], *names: str) -> float | None:
+    """Return the first present finite numeric field."""
+    for name in names:
+        value = row.get(name)
+        if value is None or value == "":
+            continue
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            continue
+        if np.isfinite(number):
+            return number
+    return None
+
+
+def _boolean(value: Any, default: bool = False) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _dead_reckoning(row: dict[str, Any]) -> bool:
+    return _boolean(row.get("dead_reckoning", row.get("dr", False)))
+
+
+def _radius(row: dict[str, Any]) -> float | None:
+    return _number(row, "avoidance_radius_m", "tested_radius_m", "radius_m", "radius")
+
+
+def _is_baseline(row: dict[str, Any]) -> bool:
+    label = str(row.get("pass", row.get("stage", ""))).strip().lower()
+    radius = _radius(row)
+    return label in {"baseline", "0", "radius_0.35", "radius0.35"} or (
+        radius is not None and abs(radius - MIN_SEPARATION_M) <= 1.0e-9
+    )
+
+
+def _is_censored(entry: dict[str, Any]) -> bool:
+    return _boolean(entry.get("censored", False)) or (
+        entry.get("required_buffer_m") is None and entry.get("buffer_m") is None
+    )
+
+
+def _buffer_value(entry: dict[str, Any]) -> float | None:
+    value = _number(entry, "required_buffer_m", "buffer_m")
+    if value is not None:
+        return max(0.0, value)
+    maximum = _number(entry, "max_radius_searched_m", "max_buffer_searched_m")
+    if maximum is not None:
+        # A censored value is a marker position only, never a measured buffer.
+        return max(0.0, maximum - MIN_SEPARATION_M)
+    return None
+
+
+def _envelope_points(data: dict[str, Any]) -> dict[bool, dict[float, dict[float, dict[str, Any]]]]:
+    """Return [dead reckoning][speed][delay] worst-case envelope points."""
+    points: dict[bool, dict[float, dict[float, dict[str, Any]]]] = defaultdict(lambda: defaultdict(dict))
+    for entry in data.get("envelope", []):
+        speed = _number(entry, "speed_mps", "speed")
+        delay = _number(entry, "delay_s", "delay")
+        if speed is None or delay is None:
+            continue
+        dr = _dead_reckoning(entry)
+        value = _buffer_value(entry)
+        if value is None:
+            continue
+        old = points[dr].get(float(speed), {}).get(float(delay))
+        current = {"value": value, "censored": _is_censored(entry)}
+        if old is None or value > float(old["value"]) or (current["censored"] and not old["censored"]):
+            points[dr][float(speed)][float(delay)] = current
+    return points
+
+
+def _hand_value(entry: dict[str, Any], speed: float, delay: float) -> float:
+    value = _number(entry, "hand_buffer_m", "hand_model_m")
+    if value is not None:
+        return max(0.0, value)
+    return 2.0 * speed * (delay + CONTROL_DT_S)
+
+
+def _hand_points(data: dict[str, Any], speed: float, delays: list[float]) -> list[float]:
+    values: list[float] = []
+    for delay in delays:
+        candidates = []
+        for entry in data.get("entries", []):
+            if str(entry.get("kind", "")) != "head_on":
+                continue
+            e_speed = _number(entry, "speed_mps", "speed")
+            e_delay = _number(entry, "delay_s", "delay")
+            if e_speed is None or e_delay is None or abs(e_speed - speed) > 1.0e-9 or abs(e_delay - delay) > 1.0e-9:
+                continue
+            if _dead_reckoning(entry):
+                continue
+            loss = _number(entry, "loss_probability", "loss")
+            noise = _number(entry, "noise_std_m", "noise")
+            if loss not in (None, 0.0) or noise not in (None, 0.0):
+                continue
+            candidates.append(_hand_value(entry, speed, delay))
+        values.append(float(candidates[0]) if candidates else 2.0 * speed * (delay + CONTROL_DT_S))
+    return values
+
+
+def _baseline_rows(directory: Path) -> list[dict[str, Any]]:
+    with (directory / "encounters.csv").open(encoding="utf-8", newline="") as handle:
+        rows = [dict(row) for row in csv.DictReader(handle)]
+    return [row for row in rows if _is_baseline(row)]
+
+
+def _available_baseline_settings(rows: list[dict[str, Any]]) -> list[tuple[float, float, bool]]:
+    settings = {
+        (_number(row, "loss_probability", "loss"), _number(row, "noise_std_m", "noise"), _dead_reckoning(row))
+        for row in rows
+    }
+    return sorted((float(loss), float(noise), dr) for loss, noise, dr in settings if loss is not None and noise is not None)
+
+
+def _baseline_rate(rows: list[dict[str, Any]]) -> float:
+    if not rows:
+        return float("nan")
+    violations = 0.0
+    trials = 0.0
+    for row in rows:
+        count = _number(row, "violations", "violation_count")
+        n = _number(row, "seeds_run", "n_seeds", "attempts")
+        if count is not None and n is not None and n > 0:
+            violations += count
+            trials += n
+        else:
+            violations += float(_boolean(row.get("violated", row.get("violation", False))))
+            trials += 1.0
+    return violations / trials if trials else float("nan")
+
+
+def _save(fig: Any, path: Path) -> None:
+    fig.savefig(path, dpi=150, metadata={"Software": None})
+
+
+def _buffer_figure(directory: Path, data: dict[str, Any], palette: dict[str, str]) -> None:
+    import matplotlib.pyplot as plt
+
+    points = _envelope_points(data)
+    all_speeds = sorted({speed for by_speed in points.values() for speed in by_speed})
+    if not all_speeds:
+        raise ValueError("buffer.json contains no envelope points")
+    colors = {speed: color for speed, color in zip(all_speeds, (palette["accent"], palette["target"], palette["ok"], palette["keepOut"]))}
+    for speed in all_speeds:
+        colors.setdefault(speed, palette["accent"])
+    delays = sorted({delay for by_speed in points.values() for by_delay in by_speed.values() for delay in by_delay})
+    finite_values = [float(item["value"]) for by_speed in points.values() for by_delay in by_speed.values() for item in by_delay.values()]
+    top = max(max(finite_values + [0.1]) * 1.12, 0.1)
+    fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.8), sharey=True)
+    for ax, dr in zip(axes, (False, True)):
+        for speed in all_speeds:
+            series = points.get(dr, {}).get(speed, {})
+            xs = [delay for delay in delays if delay in series]
+            ys = [float(series[delay]["value"]) for delay in xs]
+            censored = [bool(series[delay]["censored"]) for delay in xs]
+            if not xs:
+                continue
+            color = colors[speed]
+            ax.plot(xs, ys, marker="o", linewidth=1.6, color=color, label=f"{speed:g} m/s")
+            if any(censored):
+                ax.scatter([x for x, c in zip(xs, censored) if c], [top] * sum(censored), marker="^", s=48,
+                           facecolors=palette["caution"], edgecolors=palette["caution"],
+                           label="censored" if speed == all_speeds[0] else None, zorder=4)
+            if not dr:
+                hand = _hand_points(data, speed, xs)
+                ax.plot(xs, hand, linestyle="--", linewidth=0.9, color=color, alpha=0.8,
+                        label="hand model (no dead reckoning)" if speed == all_speeds[0] else None)
+        ax.set_xlabel("one-way delay (s)")
+        ax.set_xticks(delays)
+        ax.set_title("Dead reckoning on" if dr else "Dead reckoning off")
+        ax.set_ylim(bottom=0.0, top=top)
+        ax.grid(True)
+    axes[0].set_ylabel("required buffer (m)")
+    handles, labels = axes[1].get_legend_handles_labels()
+    if handles:
+        axes[1].legend(handles, labels, loc="best")
+    fig.suptitle("Simulated required separation buffer\nWorst case over encounter type, loss, and noise")
+    fig.tight_layout()
+    _save(fig, directory / "separation_buffer.png")
+    plt.close(fig)
+
+
+def _baseline_figure(directory: Path, rows: list[dict[str, Any]], palette: dict[str, str]) -> None:
+    import matplotlib.pyplot as plt
+
+    if not rows:
+        raise ValueError("encounters.csv contains no baseline rows")
+    settings = _available_baseline_settings(rows)
+    preferred = (0.3, 0.05, False)
+    setting = preferred if preferred in settings else settings[0]
+    loss, noise, dr = setting
+    selected = [row for row in rows if abs((_number(row, "loss_probability", "loss") or 0.0) - loss) <= 1.0e-9
+                and abs((_number(row, "noise_std_m", "noise") or 0.0) - noise) <= 1.0e-9
+                and _dead_reckoning(row) == dr]
+    kinds = sorted({str(row.get("kind", "unknown")) for row in selected})
+    delays = sorted({_number(row, "delay_s", "delay") for row in selected if _number(row, "delay_s", "delay") is not None})
+    colors = {kind: color for kind, color in zip(kinds, (palette["accent"], palette["target"], palette["ok"], palette["keepOut"]))}
+    fig, ax = plt.subplots(figsize=(8.2, 4.8))
+    for kind in kinds:
+        values = [_baseline_rate([row for row in selected if str(row.get("kind")) == kind
+                                  and abs((_number(row, "delay_s", "delay") or 0.0) - delay) <= 1.0e-9]) for delay in delays]
+        ax.plot(delays, values, marker="o", linewidth=1.6, color=colors[kind], label=kind.replace("_", " "))
+    ax.axhline(0.05, color=palette["lineStrong"], linestyle="--", linewidth=1.0, label="5% rule")
+    ax.set_xlabel("one-way delay (s)")
+    ax.set_ylabel("baseline violation rate")
+    ax.set_ylim(bottom=0.0, top=1.0)
+    ax.set_xticks(delays)
+    setting_label = f"loss {loss:g}, noise {noise:g} m, dead reckoning {'on' if dr else 'off'}"
+    suffix = "" if setting == preferred else " (pilot setting shown)"
+    ax.set_title(f"Simulated baseline violation rate at 0.35 m\n{setting_label}{suffix}")
+    ax.legend(loc="best")
+    fig.tight_layout()
+    _save(fig, directory / "separation_baseline.png")
+    plt.close(fig)
+
 
 def make_figures(directory: Path) -> None:
+    """Render both figures from ``buffer.json`` and ``encounters.csv``."""
     import matplotlib
+
     matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
     from tools.horizon_mpl import apply_style
 
     directory = Path(directory)
     palette = apply_style("light")
-    data = json.loads((directory / "buffer.json").read_text(encoding="utf-8"))
-    envelope = data.get("envelope", [])
-    speeds = sorted({float(e["speed_mps"]) for e in envelope})
-    delays = sorted({float(e["delay_s"]) for e in envelope})
-    colors = {speed: c for speed, c in zip(speeds, (palette["accent"], palette["target"], palette["ok"]))}
-
-    fig, axes = plt.subplots(1, 2, figsize=(10, 4.6), sharey=True)
-    for ax, dr in zip(axes, (False, True)):
-        for speed in speeds:
-            vals = [next((float(e["buffer_m"]) for e in envelope if bool(e["dead_reckoning"]) == dr and float(e["speed_mps"]) == speed and float(e["delay_s"]) == delay), np.nan) for delay in delays]
-            ax.plot(delays, vals, marker="o", color=colors[speed], label=f"{speed:g} m/s")
-            # This is a hand model reference, plotted as a dashed line.
-            hand = (2.0 * speed) * (np.asarray(delays) + 0.05)
-            ax.plot(delays, hand, linestyle="--", linewidth=0.9, color=colors[speed], alpha=0.75)
-        ax.set_title("Dead reckoning on" if dr else "Dead reckoning off")
-        ax.set_xlabel("one-way delay (s)")
-        ax.set_xticks(delays)
-        ax.tick_params(axis="x", rotation=35)
-        ax.grid(True)
-    axes[0].set_ylabel("required buffer (m)")
-    if speeds:
-        axes[1].legend(title="speed", loc="best")
-    fig.suptitle("Simulated separation buffer versus stale-neighbor delay")
-    fig.tight_layout()
-    fig.savefig(directory / "separation_buffer.png", dpi=150, metadata={"Software": None})
-    plt.close(fig)
-
-    rows = list(csv.DictReader((directory / "encounters.csv").open(encoding="utf-8", newline="")))
-    kinds = sorted({row["kind"] for row in rows})
-    fig, ax = plt.subplots(figsize=(7.8, 4.6))
-    kind_colors = {kind: c for kind, c in zip(kinds, (palette["accent"], palette["target"], palette["ok"]))}
-    for kind in kinds:
-        selected = [r for r in rows if r["kind"] == kind and float(r["speed_mps"]) == 1.0 and float(r["loss_probability"]) == 0.3 and float(r["noise_std_m"]) == 0.05 and r["dead_reckoning"].lower() == "false" and r["pass"] == "baseline"]
-        if not selected:
-            selected = [r for r in rows if r["kind"] == kind and float(r["speed_mps"]) == 1.0 and r["dead_reckoning"].lower() == "false" and r["pass"] == "baseline"]
-        ys = []
-        for delay in sorted({float(r["delay_s"]) for r in selected}):
-            vals = [float(r["violated"]) for r in selected if float(r["delay_s"]) == delay]
-            ys.append((delay, float(np.mean(vals))) if vals else (delay, np.nan))
-        if ys:
-            ax.plot([x for x, _ in ys], [y for _, y in ys], marker="o", color=kind_colors[kind], label=kind.replace("_", " "))
-    ax.axhline(0.05, color=palette["alert"], linestyle="--", linewidth=1.0, label="5% threshold")
-    ax.set_xlabel("one-way delay (s)")
-    ax.set_ylabel("violation rate")
-    ax.set_ylim(bottom=0)
-    ax.set_title("Simulated baseline violation rate, speed 1.0 m/s")
-    ax.legend(loc="best")
-    fig.tight_layout()
-    fig.savefig(directory / "separation_baseline.png", dpi=150, metadata={"Software": None})
-    plt.close(fig)
+    with (directory / "buffer.json").open(encoding="utf-8") as handle:
+        data = json.load(handle)
+    _buffer_figure(directory, data, palette)
+    _baseline_figure(directory, _baseline_rows(directory), palette)
 
 
 if __name__ == "__main__":
     import sys
+
     make_figures(Path(sys.argv[1]))

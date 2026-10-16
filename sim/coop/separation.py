@@ -14,7 +14,6 @@ from typing import Any
 import numpy as np
 
 from sim.coop.avoidance import AvoidanceConfig, safe_velocity
-from sim.interaction import ellipsoid_separation
 from sim.link import LinkConfig, SimulatedLink
 
 
@@ -90,6 +89,36 @@ class EncounterSpec:
             raise ValueError("dead_reckoning must be boolean")
         if not isinstance(self.avoid, (bool, np.bool_)):
             raise ValueError("avoid must be boolean")
+
+
+def _linear_segment_minimum(
+    start_delta: np.ndarray,
+    end_delta: np.ndarray,
+    scales: np.ndarray | None = None,
+) -> float:
+    """Return the exact minimum norm along a line segment.
+
+    ``start_delta`` and ``end_delta`` are relative positions at the ends of a
+    control step.  When ``scales`` is supplied, the norm is evaluated after
+    axis scaling, which is the ellipsoid metric used by the encounter model.
+    """
+    start = np.asarray(start_delta, dtype=float)
+    end = np.asarray(end_delta, dtype=float)
+    if start.shape != (3,) or end.shape != (3,):
+        raise ValueError("segment endpoints must be length-3 vectors")
+    if scales is not None:
+        scale = np.asarray(scales, dtype=float)
+        if scale.shape != (3,) or np.any(~np.isfinite(scale)) or np.any(scale <= 0.0):
+            raise ValueError("scales must be finite positive length-3 values")
+        start = start / scale
+        end = end / scale
+    step = end - start
+    denominator = float(np.dot(step, step))
+    if denominator <= _EPS:
+        fraction = 0.0
+    else:
+        fraction = float(np.clip(-np.dot(start, step) / denominator, 0.0, 1.0))
+    return float(np.linalg.norm(start + fraction * step))
 
 
 def _geometry(spec: EncounterSpec) -> tuple[np.ndarray, np.ndarray]:
@@ -189,7 +218,6 @@ def run_encounter(spec: EncounterSpec, seed: int) -> dict[str, Any]:
     velocities = np.zeros_like(positions)
     latest: dict[tuple[int, int], dict[str, Any]] = {}
     sequence = [0] * n
-    next_broadcast = [0.0] * n
     flags = {"orca": 0, "infeasible": 0, "emergency": 0, "speed_cap": 0}
     min_center = float("inf")
     min_ellipsoid = float("inf")
@@ -197,38 +225,60 @@ def run_encounter(spec: EncounterSpec, seed: int) -> dict[str, Any]:
     perceived_trace: list[dict[str, Any]] = []
     max_delta = float(spec.max_accel_mps2) * dt
 
-    def update_minima() -> None:
+    def update_point_minima(state: np.ndarray) -> None:
+        """Include exact distances at one state before any segment is integrated."""
         nonlocal min_center, min_ellipsoid
         for i in range(n):
             for j in range(i + 1, n):
-                distance = float(np.linalg.norm(positions[i] - positions[j]))
-                min_center = min(min_center, distance)
-                ell = ellipsoid_separation(positions[i], positions[j], (0.12, 0.12, 0.30))
-                min_ellipsoid = min(min_ellipsoid, ell)
+                delta = state[i] - state[j]
+                min_center = min(min_center, float(np.linalg.norm(delta)))
+                scaled = delta / (2.0 * np.asarray((0.12, 0.12, 0.30), dtype=float))
+                min_ellipsoid = min(min_ellipsoid, float(np.linalg.norm(scaled)))
 
-    update_minima()
+    def update_segment_minima(start: np.ndarray, end: np.ndarray) -> None:
+        """Include the exact minimum over each linear control-step segment.
+
+        Positions are integrated with constant velocity over one control step,
+        so the relative displacement is affine in ``u`` from 0 to 1.  The
+        closest point on that segment is the clamped projection of the
+        negative starting displacement onto its relative displacement.  The
+        ellipsoid metric uses the same projection after scaling each axis.
+        """
+        nonlocal min_center, min_ellipsoid
+        scales = 2.0 * np.asarray((0.12, 0.12, 0.30), dtype=float)
+        for i in range(n):
+            for j in range(i + 1, n):
+                relative_start = start[i] - start[j]
+                relative_end = end[i] - end[j]
+                min_center = min(min_center, _linear_segment_minimum(relative_start, relative_end))
+                min_ellipsoid = min(
+                    min_ellipsoid,
+                    _linear_segment_minimum(relative_start, relative_end, scales),
+                )
+
+    update_point_minima(positions)
     for step in range(n_steps):
         now = min(step * dt, duration)
         # Capture and send all broadcasts due at this control instant.
         for sender in range(n):
-            if now + 1.0e-10 < next_broadcast[sender]:
-                continue
-            while next_broadcast[sender] <= now + 1.0e-10:
+            # Derive each timestamp from the integer sequence counter.  This
+            # avoids accumulated floating-point drift in a long run.
+            while sequence[sender] / float(spec.share_rate_hz) <= now + 1.0e-10:
                 noisy_position = positions[sender] + noise[sender].normal(0.0, spec.noise_std_m, size=3)
                 noisy_velocity = velocities[sender] + noise[sender].normal(0.0, spec.noise_std_m, size=3)
                 seq = sequence[sender]
                 sequence[sender] += 1
+                send_time = float(seq) / float(spec.share_rate_hz)
                 for receiver in range(n):
                     if receiver == sender:
                         continue
                     links[(sender, receiver)].send(sender=str(sender), receiver=str(receiver), seq=seq,
-                                                   send_time=float(next_broadcast[sender]))
+                                                   send_time=send_time)
                     # SimulatedLink intentionally does not retain a message data.
                     latest[(sender, receiver, seq)] = {
                         "position": noisy_position.copy(), "velocity": noisy_velocity.copy(),
-                        "send_time": float(next_broadcast[sender]),
+                        "send_time": send_time,
                     }
-                next_broadcast[sender] += 1.0 / float(spec.share_rate_hz)
 
         # Deliver packets available at this instant and install the latest one.
         for (sender, receiver), link in links.items():
@@ -248,6 +298,12 @@ def run_encounter(spec: EncounterSpec, seed: int) -> dict[str, Any]:
                 if message is None or "seq" not in message:
                     continue
                 age = max(0.0, now - float(message["send_time"]))
+                # At zero link delay, delivery is sampled on the control
+                # grid.  Canonicalize tiny subtraction noise so an age is
+                # represented as the exact grid multiple it denotes.
+                grid_age = round(age / dt) * dt
+                if abs(age - grid_age) <= 1.0e-12:
+                    age = float(grid_age)
                 p = np.asarray(message["position"], dtype=float)
                 v = np.asarray(message["velocity"], dtype=float)
                 perceived_position = p + v * age if spec.dead_reckoning else p.copy()
@@ -286,13 +342,14 @@ def run_encounter(spec: EncounterSpec, seed: int) -> dict[str, Any]:
                 if flag in result_flags:
                     flags[flag] += 1
 
+        previous_positions = positions.copy()
         for agent in range(n):
             velocities[agent] = _limited_velocity(velocities[agent], chosen[agent], max_delta)
             speed_norm = float(np.linalg.norm(velocities[agent]))
             if speed_norm > spec.max_speed_mps:
                 velocities[agent] *= float(spec.max_speed_mps) / speed_norm
             positions[agent] += velocities[agent] * dt
-        update_minima()
+        update_segment_minima(previous_positions, positions)
         # Once every agent is within the goal tolerance, preferred velocity is
         # zero and the remaining configured horizon would leave the state
         # unchanged.  Stop integrating while retaining the configured duration
@@ -311,9 +368,10 @@ def run_encounter(spec: EncounterSpec, seed: int) -> dict[str, Any]:
         "duration_s": float(duration),
         "min_center_distance_m": min_center,
         "violated": bool(min_center < spec.min_separation_m),
-        "near_miss": bool(min_center < spec.min_separation_m + 0.10),
+        "near_miss": bool(min_center < spec.min_separation_m + 0.15),
+        "message_age_samples_s": [float(age) for age in age_samples],
         "min_ellipsoid_separation": min_ellipsoid,
-        "ellipsoid_violated": bool(min_ellipsoid < 2.0),
+        "ellipsoid_violated": bool(min_ellipsoid < 1.0),
         "penetration_m": float(penetration),
         "reached_goals": bool(np.all(np.linalg.norm(positions - goals, axis=1) <= 0.3)),
         "flags": flags,
