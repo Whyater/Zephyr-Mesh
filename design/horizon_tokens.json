@@ -37,27 +37,27 @@
       },
       "atlasStop1": {
         "base": "accent",
-        "alpha": 0.12,
+        "alpha": 0.16,
         "over": "surface",
-        "hex": "#23344B"
+        "hex": "#273A54"
       },
       "atlasStop2": {
         "base": "accent",
-        "alpha": 0.24,
+        "alpha": 0.27,
         "over": "surface",
-        "hex": "#2F4764"
+        "hex": "#324C6A"
       },
       "atlasStop3": {
         "base": "accent",
-        "alpha": 0.36,
+        "alpha": 0.38,
         "over": "surface",
-        "hex": "#3B5B7C"
+        "hex": "#3D5E81"
       },
       "atlasStop4": {
         "base": "accent",
-        "alpha": 0.48,
+        "alpha": 0.49,
         "over": "surface",
-        "hex": "#476F95"
+        "hex": "#487097"
       }
     },
     "light": {
@@ -403,7 +403,7 @@
     "noticeMs": 2400,
     "copiedMs": 1200,
     "resultsWindow": {
-      "width": 1240,
+      "width": 1440,
       "height": 840,
       "minWidth": 980,
       "minHeight": 680
@@ -414,6 +414,7 @@
     "chartMarkerSize": 6,
     "chartCapWidth": 6,
     "atlasCellWidth": 104,
+    "atlasCellMinWidth": 84,
     "atlasCellHeight": 36,
     "atlasRowHeaderWidth": 168,
     "legendSwatchWidth": 22,

@@ -31,7 +31,8 @@ struct PanelSeries {
             let points = points(arm: arm, scale: scale)
             guard let index = ChartGeometry.nearest(to: location, in: points, radius: LayoutMetrics.chartHoverRing) else { continue }
             let distance = hypot(points[index].x - location.x, points[index].y - location.y)
-            if best == nil || distance < best!.distance { best = (arm, index, distance) }
+            if let current = best, distance >= current.distance { continue }
+            best = (arm, index, distance)
         }
         return best.map { ($0.arm, $0.index) }
     }
@@ -200,15 +201,15 @@ struct DelayLossPanel: View, Animatable {
         }
     }
 
-    /// The red line carries the color; the caption beside it carries the meaning. The caption
-    /// takes the first end of the line, above or below it, that no curve, band or cap crosses.
+    /// The red line carries the color; the caption beside it carries the meaning. The caption takes
+    /// the first free spot: right end above, right end below, left end above, left end below.
     private func drawFailureLine(_ context: GraphicsContext, scale: ChartScale) {
         let y = scale.y(failureLine)
         var line = Path()
         line.move(to: CGPoint(x: scale.plot.minX, y: y))
         line.addLine(to: CGPoint(x: scale.plot.maxX, y: y))
         context.stroke(line, with: .color(palette.alert), lineWidth: LayoutMetrics.failureLineWidth)
-        let text = Format.fill(UIText.Results.failureLineLabel, ["value": Format.number(failureLine, decimals: 2)])
+        let text = ResultsFormat.failureLineLabel(failureLine)
         let resolved = context.resolve(Text(text).font(TypeScale.caption).foregroundColor(palette.textSecondary))
         let measured = resolved.measure(in: scale.plot.size)
         let origin = ChartGeometry.captionOrigin(size: measured, lineY: y, plot: scale.plot, gap: Space.xs,
@@ -385,7 +386,7 @@ struct DelayLossGrid: View {
     }
 }
 
-/// Legend under the charts: shape and line style plus a word, never color alone.
+/// Legend above the charts: shape and line style plus a word, never color alone.
 struct DelayLossLegend: View {
     let seeds: String
     @Environment(\.palette) private var palette

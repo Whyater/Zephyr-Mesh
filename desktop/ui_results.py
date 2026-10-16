@@ -8,6 +8,7 @@ Source sections under each view, and nothing that runs on a timer.
 """
 from __future__ import annotations
 
+import re
 from typing import Any, Callable, Mapping, Sequence
 
 from .design_tokens import LAYOUT, SPACE, UI_TEXT, WIN_LAYOUT
@@ -32,6 +33,7 @@ SIDEBAR_GLYPHS = {
     "atlas": tuple(("poly", ((x, y), (x + 0.22, y), (x + 0.22, y + 0.22), (x, y + 0.22)))
                    for y in (0.12, 0.39, 0.66) for x in (0.12, 0.39, 0.66)),
 }
+SEGMENT_MIN_CHARS = 7  # the narrowest segment, in characters: "Random" and "10 %" fill the same width
 LEGEND_DELAY = (("recovery", TEXT["armRecovery"]), ("naive", TEXT["armNaive"]), ("band", None), ("failure", TEXT["legendFailure"]))
 LEGEND_ATLAS = (("stop1", ATLAS_TEXT["bin1"]), ("stop2", ATLAS_TEXT["bin2"]), ("stop3", ATLAS_TEXT["bin3"]),
                 ("stop4", ATLAS_TEXT["censoredLong"]), ("fails", ATLAS_TEXT["failsAtZeroLong"]), ("winner", ATLAS_TEXT["clearWinner"]))
@@ -65,10 +67,10 @@ def segments(ctx: Any, parent: Any, choices: Sequence[tuple[Any, str]], variable
     from tkinter import ttk
 
     frame = ttk.Frame(parent, style="Surface.TFrame")
-    width = max(len(text) for _value, text in choices)
-    for index, (value, text) in enumerate(choices):
+    width = max(SEGMENT_MIN_CHARS, max(len(text) for _value, text in choices))  # one minimum width, sized to the longest label
+    for value, text in choices:
         ttk.Radiobutton(frame, text=text, value=value, variable=variable, style="Segment.Toolbutton", width=width,
-                        command=command, takefocus=True).pack(side="left", padx=(0 if index == 0 else ctx.px(SPACE["xxs"]), 0))
+                        command=command, takefocus=True).pack(side="left", padx=0)  # butted, so a group reads as one control
     return frame
 
 
@@ -119,7 +121,7 @@ class Legend:
                 x, line = 0.0, line + 1
             middle = line * self.line_h + self.line_h / 2.0
             self._swatch(kind, x, middle, sw, sh, p)
-            canvas.create_text(x + sw + gap, middle, text=text, anchor="w", fill=p.textSecondary, font=caption)
+            canvas.create_text(x + sw + gap, middle, text=text, anchor="w", fill=p.text, font=caption)
             x += item_w + item_gap
         height = (line + 1) * self.line_h
         if int(canvas.cget("height")) != height:
@@ -146,29 +148,31 @@ class Legend:
             canvas.create_line(x, middle, x + sw, middle, fill=p.alert, width=max(1.0, LAYOUT["failureLineWidth"] * ctx.scale))
         elif kind.startswith("stop"):
             fill = getattr(p, f"atlasStop{kind[-1]}")
-            canvas.create_polygon(*rounded_points(x, top, x + sw, bottom, ctx.px(SPACE["xxs"])), smooth=True, fill=fill,
-                                  outline=p.line, width=hairline)
+            canvas.create_rectangle(x, top, x + sw, bottom, fill=fill, outline=p.line, width=hairline)
         elif kind == "fails":
             size = ctx.px(WIN_LAYOUT["statusMarkerSize"])
             canvas.create_rectangle(center - size / 2.0, middle - size / 2.0, center + size / 2.0, middle + size / 2.0,
                                     fill=p.alert, outline="")
         elif kind == "winner":
-            border = max(1, ctx.px(LAYOUT["atlasWinnerBorder"]))
-            canvas.create_polygon(*rounded_points(x + border / 2.0, top + border / 2.0, x + sw - border / 2.0, bottom - border / 2.0,
-                                                  ctx.px(SPACE["xxs"])), smooth=True, fill=p.surface, outline=p.accent, width=border)
+            # Square corners like the other swatches: a surface box with the accent bar along its bottom edge.
+            bar = max(1, ctx.px(LAYOUT["atlasWinnerBar"]))
+            canvas.create_rectangle(x, top, x + sw, bottom, fill=p.surface, outline=p.line, width=hairline)
+            canvas.create_rectangle(x + hairline, bottom - bar, x + sw - hairline + 1, bottom - hairline + 1, fill=p.accent,
+                                    outline="")
 
 
 def bullet_list(ctx: Any, parent: Any, lines: Sequence[str], wrap: Wrap) -> None:
     from tkinter import ttk
 
     indent = ctx.fonts["body"].measure("•") + ctx.px(SPACE["sm"])
+    limit = ctx.px(LAYOUT["viewerContentMaxWidth"])
     for text in lines:
         row = ttk.Frame(parent, style="Surface.TFrame")
         row.pack(fill="x", pady=(0, ctx.px(SPACE["xxs"])))
         ttk.Label(row, text="•", style="Surface.Body.TLabel").pack(side="left", anchor="n", padx=(0, ctx.px(SPACE["sm"])))
         label = ttk.Label(row, text=text, style="Surface.Body.TLabel", justify="left")
         label.pack(side="left", anchor="w")
-        wrap.add(lambda width, label=label: label.configure(wraplength=max(1, width - indent)))
+        wrap.add(lambda width, label=label: label.configure(wraplength=max(1, min(width, limit) - indent)))
 
 
 def limits_section(ctx: Any, body: Any, limits: Sequence[str], rules: Sequence[str], wrap: Wrap) -> Disclosure:
@@ -211,15 +215,40 @@ def source_section(ctx: Any, body: Any, source: Mapping[str, Any]) -> Disclosure
     return disclosure
 
 
-def finding_block(ctx: Any, body: Any, wrap: Wrap) -> tuple[Any, Any]:
-    from tkinter import ttk
+class FindingBlock:
+    """The lead sentence quoted from the write-up with its source caption ("From README.md"), and any other sentences in
+    a collapsed "More from the write-up" section. Backticks from the markdown are removed for display only."""
 
-    text = ttk.Label(body, style="Surface.Body.TLabel", justify="left")
-    text.pack(anchor="w", fill="x")
-    wrap.add(lambda width: text.configure(wraplength=width))
-    caption = ttk.Label(body, style="Surface.Caption.TLabel")
-    caption.pack(anchor="w", pady=(ctx.px(SPACE["xxs"]), 0))
-    return text, caption
+    def __init__(self, ctx: Any, parent: Any, wrap: Wrap, findings: Sequence[Mapping[str, Any]], lead: int) -> None:
+        from tkinter import ttk
+
+        self.frame = ttk.Frame(parent, style="Surface.TFrame")
+        first, more = rd.split_findings(findings, lead)
+        limit = ctx.px(LAYOUT["viewerContentMaxWidth"])
+        self.text: str | None = None
+        self.more_texts: list[str] = []
+        self.disclosure: Disclosure | None = None
+        if first is not None:
+            self.text = rd.display_text(first["text"])
+            label = ttk.Label(self.frame, text=self.text, style="Surface.Body.TLabel", justify="left")
+            label.pack(anchor="w", fill="x")
+            wrap.add(lambda width, label=label: label.configure(wraplength=min(width, limit)))
+            self.caption = ttk.Label(self.frame, text=TEXT["sourcePrefix"].format(source=first["source"]),
+                                     style="Surface.Caption.TLabel")
+            self.caption.pack(anchor="w", pady=(ctx.px(SPACE["xxs"]), 0))
+        if more:
+            disclosure = Disclosure(self.frame, TEXT["moreFindings"], ctx.images, pad=ctx.px(SPACE["xs"]))
+            disclosure.frame.pack(fill="x", pady=(ctx.px(SPACE["xs"]), 0))
+            indent = ctx.px(SPACE["lg"]) + ctx.px(SPACE["xs"])
+            for finding in more:
+                text = rd.display_text(finding["text"])
+                self.more_texts.append(text)
+                label = ttk.Label(disclosure.body, text=text, style="Surface.Body.TLabel", justify="left")
+                label.pack(anchor="w", fill="x", padx=(indent, 0), pady=(0, ctx.px(SPACE["sm"])))
+                wrap.add(lambda width, label=label: label.configure(wraplength=min(width - indent, limit)))
+            ttk.Label(disclosure.body, text=TEXT["sourcePrefix"].format(source=rd.sources_text(more)),
+                      style="Surface.Caption.TLabel").pack(anchor="w", padx=(indent, 0))
+            self.disclosure = disclosure
 
 
 class ResultTile:
@@ -240,9 +269,10 @@ class ResultTile:
     def set(self, text: str | None) -> None:
         self.text = text
         if text is None:
-            self.value.configure(text=fmt.NOT_RECORDED, style="Tile.Missing.TLabel")
+            self.value.configure(text=TEXT["notComputed"], style="Tile.Missing.TLabel")
         else:
-            self.value.configure(text=text, style="Tile.Value.TLabel")
+            # A unit never wraps alone onto a line: "0.298 to 0.332 m" breaks after "to", not before "m".
+            self.value.configure(text=re.sub(r"(\d) (ms|m)\b", "\\1\u00a0\\2", text), style="Tile.Value.TLabel")
 
 
 class InspectorPage:
@@ -263,7 +293,16 @@ class InspectorPage:
         self.title.pack(anchor="w")
         self.subtitle = ttk.Label(self.content, style="Surface.Secondary.TLabel", wraplength=content_width, justify="left")
         self.subtitle.pack(anchor="w", pady=(ctx.px(SPACE["xxs"]), 0))
+        self.detail = ttk.Label(self.content, style="Surface.Secondary.TLabel", wraplength=content_width, justify="left")
         self.show(False)
+
+    def set_detail(self, text: str | None) -> None:
+        """An optional last header line, such as the atlas conditions, kept whole on its own line."""
+        if text:
+            self.detail.configure(text=text)
+            self.detail.pack(anchor="w", after=self.subtitle)
+        else:
+            self.detail.pack_forget()
 
     def tiles(self, captions: Sequence[str]) -> list[ResultTile]:
         from tkinter import ttk
@@ -334,7 +373,8 @@ class DelayView:
         self.ctx, self.data, self.owner = ctx, data, owner
         self.frame = ttk.Frame(body, style="Surface.TFrame")
         wrap = owner.wrap
-        self.finding, self.finding_source = finding_block(ctx, self.frame, wrap)
+        self.finding = FindingBlock(ctx, self.frame, wrap, data.s6["findings"], rd.LEAD_FINDING["delay"])
+        self.finding.frame.pack(fill="x")
         self.path_var = tk.StringVar(master=owner.window, value="constant_velocity")
         self.loss_var = tk.StringVar(master=owner.window, value="independent")
         controls = ttk.Frame(self.frame, style="Surface.TFrame")
@@ -345,17 +385,21 @@ class DelayView:
         labelled(ctx, controls, TEXT["lossTypeLabel"], lambda parent: segments(
             ctx, parent, [(model, rd.LOSS_TYPE_WORDS[model]) for model in data.s6["loss_models"]], self.loss_var,
             self._changed)).pack(side="left", padx=(ctx.px(SPACE["xl"]), 0))
-        self.chart = DelayChart(ctx, self.frame, data, self._selected)
-        self.chart.canvas.pack(fill="x")
+        # The four panels share one error axis per path and loss type, so say where it ends.
+        self.scale_note = ttk.Label(controls, style="Surface.Caption.TLabel")
+        self.scale_note.pack(side="left", padx=(ctx.px(SPACE["xl"]), 0))
+        self._render_scale()
+        # The legend sits above the charts, so it is on screen without scrolling.
         legend = [(kind, text if text else TEXT["legendInterval"].format(n=data.s6_seeds)) for kind, text in LEGEND_DELAY]
         self.legend = Legend(ctx, self.frame, legend)
-        self.legend.canvas.pack(fill="x", pady=(ctx.px(SPACE["md"]), 0))
+        self.legend.canvas.pack(fill="x", pady=(0, ctx.px(SPACE["md"])))
+        self.chart = DelayChart(ctx, self.frame, data, self._selected)
+        self.chart.canvas.pack(fill="x")
         s6 = data.s6
-        rules = [rd.sentence(s6["criterion"]) + ".", rd.sentence(s6["cell_label_rule"]) + "."]
+        rules = [rd.sentence(s6["status"]) + ".", rd.sentence(s6["criterion"]) + ".", rd.rule_text(data)]
         self.limits = limits_section(ctx, self.frame, s6["limits"], rules, wrap)
         self.source = source_section(ctx, self.frame, s6["source"])
         self._build_inspector(inspector_parent, owner.inspector_width)
-        self._render_finding()
 
     def _build_inspector(self, parent: Any, width: int) -> None:
         page = InspectorPage(self.ctx, parent, width, TEXT["inspectorEmptyHintDelay"])
@@ -368,14 +412,13 @@ class DelayView:
         self.details = KeyValueGrid(disclosure.body, wrap=width, scale=self.ctx.scale, stacked=True)
         self.details.frame.pack(fill="x")
 
-    def _render_finding(self) -> None:
-        finding = rd.finding_for_path(self.data, self.path_var.get())
-        self.finding.configure(text=finding["text"])
-        self.finding_source.configure(text=TEXT["sourcePrefix"].format(source=finding["source"]))
+    def _render_scale(self) -> None:
+        top = self.data.error_scale(self.path_var.get(), self.loss_var.get()).top
+        self.scale_note.configure(text=rd.scale_caption(top))
 
     def _changed(self) -> None:
-        self._render_finding()
         self.chart.set_view(self.path_var.get(), self.loss_var.get())
+        self._render_scale()
 
     def focus_target(self) -> Any:
         return self.chart.canvas
@@ -399,7 +442,7 @@ class DelayView:
             return
         data = self.data
         series = data.series(point.motion, point.loss_model, point.loss_probability, point.arm)
-        page.title.configure(text=rd.ARM_NAMES[point.arm])
+        page.title.configure(text=rd.arm_name(point.arm))
         page.subtitle.configure(text=rd.point_subtitle(data, point))
         if series is None:
             for tile in self.tiles:
@@ -439,10 +482,8 @@ class AtlasView:
         self.ctx, self.data, self.owner = ctx, data, owner
         self.frame = ttk.Frame(body, style="Surface.TFrame")
         wrap = owner.wrap
-        self.finding, self.finding_source = finding_block(ctx, self.frame, wrap)
-        finding = data.atlas["findings"][0]
-        self.finding.configure(text=finding["text"])
-        self.finding_source.configure(text=TEXT["sourcePrefix"].format(source=finding["source"]))
+        self.finding = FindingBlock(ctx, self.frame, wrap, data.atlas["findings"], rd.LEAD_FINDING["atlas"])
+        self.finding.frame.pack(fill="x")
         self.stratum_var = tk.StringVar(master=owner.window, value=data.stratum_order[0])
         self.loss_var = tk.StringVar(master=owner.window, value="independent")
         self.level_var = tk.DoubleVar(master=owner.window, value=0.0)
@@ -461,8 +502,10 @@ class AtlasView:
             return self.conditions
 
         labelled(ctx, first, ATLAS_TEXT["conditionsLabel"], conditions).pack(side="left")
-        self.description = ttk.Label(first, style="Surface.Caption.TLabel")
-        self.description.pack(side="left", padx=(ctx.px(SPACE["md"]), 0))
+        # What the conditions are (rate, noise) is a hint on the control, as in the macOS app, not a line of text beside it.
+        self.conditions_tip = Tooltip(self.conditions, data.strata[self.stratum_var.get()]["description"], ctx.theme,
+                                      ctx.fonts["caption"], scale=ctx.scale)
+        self.conditions.bind("<Destroy>", lambda _event: self.conditions_tip._hide(), add="+")
         second = ttk.Frame(self.frame, style="Surface.TFrame")
         second.pack(fill="x", pady=(ctx.px(SPACE["sm"]), 0))
         labelled(ctx, second, TEXT["lossTypeLabel"], lambda parent: segments(
@@ -472,12 +515,13 @@ class AtlasView:
         labelled(ctx, second, TEXT["lossLevelLabel"], lambda parent: segments(
             ctx, parent, levels, self.level_var, self._changed)).pack(side="left", padx=(ctx.px(SPACE["xl"]), 0))
         self.summary = ttk.Label(self.frame, style="Surface.Secondary.TLabel", justify="left")
-        self.summary.pack(anchor="w", pady=(ctx.px(SPACE["md"]), ctx.px(SPACE["xs"])))
+        self.summary.pack(anchor="w", pady=(ctx.px(SPACE["md"]), ctx.px(SPACE["sm"])))
         wrap.add(lambda width: self.summary.configure(wraplength=width))
+        # The legend sits above the grid, between the summary line and the column headers, as in the delay view.
+        self.legend = Legend(ctx, self.frame, LEGEND_ATLAS)
+        self.legend.canvas.pack(fill="x", pady=(0, ctx.px(SPACE["sm"])))
         self.grid = AtlasGrid(ctx, self.frame, data, self._selected)
         self.grid.frame.pack(fill="x")
-        self.legend = Legend(ctx, self.frame, LEGEND_ATLAS)
-        self.legend.canvas.pack(fill="x", pady=(ctx.px(SPACE["md"]), 0))
         self.limits = limits_section(ctx, self.frame, data.atlas["limits"], [rd.rule_text(data)], wrap)
         self.source = source_section(ctx, self.frame, data.atlas["source"])
         self._build_inspector(inspector_parent, owner.inspector_width)
@@ -492,13 +536,18 @@ class AtlasView:
         page = InspectorPage(self.ctx, parent, width, TEXT["inspectorEmptyHintAtlas"])
         self.page = page
         self.help = page.body_line("Surface.Caption.TLabel")
+        self.help.pack_configure(pady=(self.ctx.px(SPACE["xs"]), self.ctx.px(SPACE["xxs"])))
         self.tiles = page.tiles((ATLAS_TEXT["tileMostDelay"], ATLAS_TEXT["tileInterval"], ATLAS_TEXT["tileCause"],
                                  ATLAS_TEXT["tileSeeds"]))
+        self.interval_note = ttk.Label(page.content, text=ATLAS_TEXT["intervalCaption"], style="Surface.Caption.TLabel",
+                                       wraplength=width, justify="left")
+        self.interval_note.pack(anchor="w")
         page.heading(ATLAS_TEXT["acrossLossTitle"])
         self.loss_rows = ttk.Frame(page.content, style="Surface.TFrame")
         self.loss_rows.pack(fill="x")
         self.loss_rows.columnconfigure(0, weight=1)
         self._row_widgets: list[tuple[Any, Any, Any]] = []
+        self._conditions: list[str] = []
         disclosure = page.details()
         self.details_disclosure = disclosure
         ttk.Label(disclosure.body, text=ATLAS_TEXT["diffTitle"], style="Surface.Strong.TLabel").pack(anchor="w")
@@ -513,8 +562,18 @@ class AtlasView:
         stratum = self.data.strata[self.stratum_var.get()]
         if self.conditions is not None:
             self.conditions.configure(text=self._stratum_title())
-        self.description.configure(text=stratum["description"])
+        self.conditions_tip.set_text(stratum["description"])
         self.summary.configure(text=rd.summary_text(stratum))
+
+    def pick_loss(self, index: int) -> None:
+        """Show the loss condition of an "Across loss levels" row in the atlas (the no-loss row sets level None)."""
+        if index >= len(self._conditions):
+            return
+        model, _, level = self._conditions[index].partition(":")
+        if float(level) > 0:
+            self.loss_var.set(model)
+        self.level_var.set(float(level))
+        self._changed()
 
     def loss_key(self) -> str:
         return rd.level_loss_key(self.loss_var.get(), self.level_var.get())
@@ -552,14 +611,19 @@ class AtlasView:
         loss = self.loss_key()
         entry = data.entry(stratum_id, variant, loss, arm)
         page.title.configure(text=data.arm_label(arm))
-        page.subtitle.configure(text=ATLAS_TEXT["cellSubtitle"].format(path=data.variant_title(variant), loss=data.loss_title(loss),
-                                                                       conditions=stratum["title"]))
+        page.subtitle.configure(text=rd.cell_subtitle(data.variant_title(variant), data.loss_title(loss)))
+        page.set_detail(stratum["title"])
+        self.interval_note.configure(text=rd.interval_caption(entry, data.atlas["n_seeds"]))
         self.help.configure(text=rd.arm_help(arm) or "")
         self.tiles[0].set(rd.tolerated_text(entry))
+        fails = entry is not None and entry["kind"] == "fails_at_zero"
+        self.tiles[0].value.configure(image=ctx.images.status("alert", WIN_LAYOUT["statusMarkerSize"]) if fails else "",
+                                      compound="left")
         self.tiles[1].set(rd.interval_text(entry["interval_s"]) if entry else None)
         self.tiles[2].set(rd.cause_text(entry["failure_mode"]) if entry else None)
         self.tiles[3].set(ATLAS_TEXT["seedsPerCell"].format(n=data.atlas["n_seeds"]))
         conditions = list(stratum["loss_conditions"])
+        self._conditions = conditions
         while len(self._row_widgets) < len(conditions):
             row = ttk.Frame(self.loss_rows, style="Results.Row.TFrame", padding=(ctx.px(SPACE["xs"]), ctx.px(SPACE["xxs"])))
             row.grid(row=len(self._row_widgets), column=0, sticky="ew")
@@ -567,6 +631,10 @@ class AtlasView:
             name.pack(side="left")
             value = ttk.Label(row, style="Results.Row.TLabel")
             value.pack(side="right")
+            index = len(self._row_widgets)
+            for widget in (row, name, value):  # a click shows that loss level in the atlas
+                widget.bind("<Button-1>", lambda _event, index=index: self.pick_loss(index))
+                widget.configure(cursor="hand2")
             self._row_widgets.append((row, name, value))
         for index, (row, name, value) in enumerate(self._row_widgets):
             if index >= len(conditions):
@@ -578,7 +646,7 @@ class AtlasView:
             suffix = "Selected" if chosen else ""
             row.configure(style=f"Results.Row{suffix}.TFrame")
             name.configure(text=data.loss_title(conditions[index]), style=f"Results.Row{suffix}.TLabel")
-            value.configure(text=rd.tolerated_text(other) or TEXT["notComputed"], style=f"Results.Row{suffix}.TLabel")
+            value.configure(text=rd.entry_cell_text(other), style=f"Results.Row{suffix}.TLabel")
         for child in self.diff_table.winfo_children():
             child.destroy()
         rows = rd.diff_rows(entry)
@@ -733,7 +801,7 @@ class ResultsWindow:
         style.configure("Results.Row.TFrame", background=p.surface)
         style.configure("Results.RowSelected.TFrame", background=p.selectionFill)
         style.configure("Results.Row.TLabel", background=p.surface, foreground=p.text, font=ctx.fonts["body"])
-        style.configure("Results.RowSelected.TLabel", background=p.selectionFill, foreground=p.text, font=ctx.fonts["bodyStrong"])
+        style.configure("Results.RowSelected.TLabel", background=p.selectionFill, foreground=p.text, font=ctx.fonts["body"])
 
     # ---- behaviour ---------------------------------------------------------------------------------
     def _on_sidebar(self, _event: Any = None) -> None:
@@ -779,6 +847,15 @@ class ResultsWindow:
         view = self.views[self.view]
         view.apply_select(spec)
         view.focus_target().focus_set()
+
+    def stand_alone(self) -> None:
+        """For screenshots only (``--open-results``): drop the transient link to the main window, so a window capture shows
+        this window alone instead of the pair AppKit draws as parent and child."""
+        try:
+            self.window.transient("")
+            self.window.lift()
+        except Exception:
+            pass
 
     def focus(self) -> None:
         try:

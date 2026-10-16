@@ -100,7 +100,8 @@ enum ChartGeometry {
         for (index, point) in points.enumerated() {
             let distance = hypot(point.x - location.x, point.y - location.y)
             guard distance <= radius else { continue }
-            if best == nil || distance < best!.distance { best = (index, distance) }
+            if let current = best, distance >= current.distance { continue }
+            best = (index, distance)
         }
         return best?.index
     }
@@ -124,22 +125,30 @@ extension ChartGeometry {
         return true
     }
 
-    /// Where the failure-line caption goes: the first of left above, left below, right above,
-    /// right below the line whose box (grown by `clearance`) touches no drawn segment and stays
-    /// inside the plot. Falls back to left above when every place is taken.
+    /// Where the failure-line caption goes, the same rule in every panel. The four spots are tried in
+    /// this order: right end above the line, right end below, left end above, left end below. The first
+    /// one inside the plot whose box (grown by `clearance`) touches no drawn segment wins. When all four
+    /// collide, the one with the least overlap wins: a spot outside the plot counts as worse than any
+    /// inside it, then fewer touched segments is better, and the earlier spot wins a tie.
     static func captionOrigin(size: CGSize, lineY: CGFloat, plot: CGRect, gap: CGFloat, clearance: CGFloat,
                               segments: [(CGPoint, CGPoint)]) -> CGPoint {
         let left = plot.minX + gap, right = plot.maxX - gap - size.width
         let above = lineY - gap - size.height, below = lineY + gap
-        let candidates = [CGPoint(x: left, y: above), CGPoint(x: left, y: below), CGPoint(x: right, y: above),
-                          CGPoint(x: right, y: below)]
-        for origin in candidates {
+        let candidates = [CGPoint(x: right, y: above), CGPoint(x: right, y: below), CGPoint(x: left, y: above),
+                          CGPoint(x: left, y: below)]
+        func overlap(_ origin: CGPoint) -> Int {
             let box = CGRect(origin: origin, size: size)
-            guard plot.contains(box) else { continue }
             let grown = box.insetBy(dx: -clearance, dy: -clearance)
-            if !segments.contains(where: { segment($0.0, $0.1, intersects: grown) }) { return origin }
+            let hits = segments.filter { segment($0.0, $0.1, intersects: grown) }.count
+            return (plot.contains(box) ? 0 : segments.count + 1) + hits
         }
-        return candidates[0]
+        var best = (origin: candidates[0], overlap: Int.max)
+        for origin in candidates {
+            let score = overlap(origin)
+            if score == 0 { return origin }
+            if score < best.overlap { best = (origin, score) }
+        }
+        return best.origin
     }
 
     /// Consecutive pairs of a polyline, for collision checks.

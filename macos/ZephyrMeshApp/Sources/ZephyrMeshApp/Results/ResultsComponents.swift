@@ -220,7 +220,6 @@ struct ResultTile: View {
                 .foregroundStyle(palette.textSecondary)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
             HStack(spacing: Space.xxs) {
                 if let status {
                     StatusShape(style: status, font: TypeScale.caption)
@@ -229,8 +228,9 @@ struct ResultTile: View {
                 Text(value)
                     .font(TypeScale.metricSmall)
                     .foregroundStyle(missing ? palette.textSecondary : palette.text)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
+                    // Long intervals wrap to a second line at the same type size instead of shrinking or truncating.
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(Space.sm + Space.xxs)

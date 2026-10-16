@@ -100,10 +100,10 @@ The palette is called Horizon: a night-sky navy with a light sky blue accent. Da
 | `selectionFill` | `#273A54` | `#E0EBF9` | Selected row, pressed button, selected segment (accent at 0.16 over surface in dark, 0.14 in light) |
 | `hoverFill` | `#242D3F` | `#F4F4F5` | Row or button under the pointer (text at 0.06 over surface in dark, 0.05 in light) |
 | `bandFill` | `#273A54` | `#DBE8F8` | Results window: the 95 % interval band behind the recovery line (accent at 0.16 over surface) |
-| `atlasStop1` | `#23344B` | `#E4EEF9` | Tolerance atlas cell, 0 to 25 ms (accent at 0.12 over surface) |
-| `atlasStop2` | `#2F4764` | `#C9DCF4` | Tolerance atlas cell, 50 to 100 ms (accent at 0.24 over surface) |
-| `atlasStop3` | `#3B5B7C` | `#AAC8EE` | Tolerance atlas cell, 150 to 200 ms (accent at 0.36 over surface in dark, 0.38 in light) |
-| `atlasStop4` | `#476F95` | `#84B0E6` | Tolerance atlas cell, more than 300 ms (accent at 0.48 over surface in dark, 0.55 in light) |
+| `atlasStop1` | `#273A54` | `#E4EEF9` | Tolerance atlas cell, 0 to 25 ms (accent at 0.16 over surface in dark, 0.12 in light) |
+| `atlasStop2` | `#324C6A` | `#C9DCF4` | Tolerance atlas cell, 50 to 100 ms (accent at 0.27 over surface in dark, 0.24 in light) |
+| `atlasStop3` | `#3D5E81` | `#AAC8EE` | Tolerance atlas cell, 150 to 200 ms (accent at 0.38 over surface in both themes) |
+| `atlasStop4` | `#487097` | `#84B0E6` | Tolerance atlas cell, more than 300 ms (accent at 0.49 over surface in dark, 0.55 in light) |
 
 The five Results fills are derived the same way as `selectionFill`: each stores its `base`, `alpha`, `over` and the resulting `hex`. Only `text` is ever drawn on them. The atlas stops are a four step ramp of one hue, so the cell words carry the meaning and the tint only orders the values. The dark top stops use lower alphas than the light ones so `text` stays at or above 4.5:1. Swift reads them as `palette.bandFill` and `palette.atlasStop1` to `palette.atlasStop4`; Python as `palette(theme).bandFill` and so on.
 
@@ -121,7 +121,7 @@ The 3D scene has its own small palette (`scene3D`), built from the tokens above:
 
 Output of `python3 tools/check_contrast.py` on this branch: 88 pairs checked (44 per theme), **82 PASS, 6 NEEDS-APPROVAL, 0 FAIL**, no stale fill values, exit code 0. Text needs 4.5:1; `lineStrong` needs 3:1 because it is a non-text line.
 
-The closest passes, worth knowing before you nudge a value: dark `text` on `atlasStop4` 4.70:1, dark `lineStrong` on `surface` 3.02:1 (needs 3.0), light `ok` on `hoverFill` 4.54:1, light `target` on `selectionFill` 4.55:1, dark `alert` on `hoverFill` 4.56:1, light `accent` and `info` on `background` 4.64:1.
+The closest passes, worth knowing before you nudge a value: dark `text` on `atlasStop4` 4.62:1, dark `lineStrong` on `surface` 3.02:1 (needs 3.0), light `ok` on `hoverFill` 4.54:1, light `target` on `selectionFill` 4.55:1, dark `alert` on `hoverFill` 4.56:1, light `accent` and `info` on `background` 4.64:1.
 
 The six pairs below are too low for text and are avoided. The apps never put accent, info, OK or alert text on these fills; a selected row shows its words in `text` and keeps the status color for the shape only (`StatusLabel` in `Components.swift`).
 
@@ -323,8 +323,8 @@ Where: `EvidenceReportView.swift`, `ScenarioRunView.swift`, `AboutReplayView.swi
 One window with two views, "Delay and loss" and "Tolerance atlas", opened from View, Show Results (Primary + R). It reads only the generated results fixture, never raw run files.
 
 - **Colors:** background, surface, `line` and `lineStrong`, `text` and `textSecondary`, `accent` with `bandFill` and the four `atlasStop` tints, and `alert`. `alert` appears only as the failure line in the delay charts and as the small square on atlas entries that fail even at 0 ms. `caution` is not used. No gradients, no shadows.
-- **Charts:** the recovery tracker is a solid `accent` line with filled markers and a `bandFill` interval band. The basic tracker is a dashed `lineStrong` line with hollow markers and interval caps. Lines, markers and caps use the `chart*` sizes in section 5.
-- **Atlas cells:** `atlasCellWidth` by `atlasCellHeight`, filled with an `atlasStop` tint by value, with the value in `text`. A clear winner gets an `accent` inner border of `atlasWinnerBorder`.
+- **Charts:** the recovery tracker is a solid `accent` line with filled markers and a `bandFill` interval band. The naive tracker is a dashed `lineStrong` line with hollow markers and interval caps. Lines, markers and caps use the `chart*` sizes in section 5. The four panels share one error axis, chosen for the selected path and loss type, and a caption next to the controls names its top.
+- **Atlas cells:** `atlasCellWidth` by `atlasCellHeight`, filled with an `atlasStop` tint by value, with the value in `text`. A clear winner gets bold text and an `accent` bar of `atlasWinnerBar` along the bottom edge; the selection ring is drawn outside the cell, so the two never look alike. Legends sit above the charts and the grid.
 - **Wording:** all copy comes from the `results` and `atlas` sections of `ui_text.json` (Swift `UIText.Results` and `UIText.Atlas`, Python `UI_TEXT["results"]` and `UI_TEXT["atlas"]`). Templates use `{name}` placeholders that the view fills in. The window carries one "Simulated results" badge.
 
 ### Buttons

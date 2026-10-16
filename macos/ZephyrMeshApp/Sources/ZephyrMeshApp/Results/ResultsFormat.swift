@@ -15,6 +15,16 @@ enum ResultsFormat {
 
     static func meters(_ value: Double) -> String { "\(metersValue(value)) m" }
 
+    /// "Error axis 0 to 0.700 m for this path and loss type": where the shared error axis ends.
+    static func scaleCaption(top: Double) -> String {
+        Format.fill(UIText.Results.scaleCaption, ["max": metersValue(top)])
+    }
+
+    /// "Failure line 0.250 m": the chart label, metres at three decimals like every other value.
+    static func failureLineLabel(_ value: Double) -> String {
+        Format.fill(UIText.Results.failureLineLabel, ["value": metersValue(value)])
+    }
+
     /// Whole milliseconds, rounded like Python's round(seconds * 1000).
     static func milliseconds(_ seconds: Double) -> Int {
         Int((seconds * 1000).rounded(.toNearestOrEven))
@@ -106,7 +116,7 @@ enum ResultsFormat {
     }
 
     /// The paired comparison for one delay: positive median means recovery had the lower error
-    /// (paired p95 difference is basic minus recovery per seed).
+    /// (paired p95 difference is naive minus recovery per seed).
     static func comparison(series: S6Series, index: Int, delay: Double) -> [String] {
         let tied = series.tieCount[index]
         let total = series.nSeeds[index]
@@ -164,6 +174,21 @@ enum ResultsFormat {
         if ends[0] == ends[1] { return capitalizedFirst(intervalEnd(ends[0])) }
         return capitalizedFirst(Format.fill(UIText.Atlas.intervalSpan, ["low": intervalEnd(ends[0]), "high": intervalEnd(ends[1])]))
     }
+
+    /// The note under the atlas interval tile. A cell that fails at 0 ms but whose interval reaches
+    /// above 0 gets the longer sentence, since "fails at 0" and an interval of up to 200 ms look
+    /// contradictory without it. Everything else gets the general note.
+    static func intervalCaption(_ entry: AtlasEntry?, seeds: Int) -> String {
+        guard let entry, entry.kind == .failsAtZero, entry.intervalS.count == 2, entry.intervalS[1] != .belowZero else {
+            return UIText.Atlas.intervalCaption
+        }
+        return Format.fill(UIText.Atlas.intervalCaptionFailsAtZero, ["seeds": "\(seeds)", "high": intervalEnd(entry.intervalS[1])])
+    }
+
+    /// The first inspector subtitle line for an atlas cell: path and loss. The conditions (the
+    /// stratum title) go on their own line, so a title such as "Central: 10 Hz, 5 cm noise" never
+    /// wraps in the middle of a phrase next to them.
+    static func cellSubtitle(path: String, loss: String) -> String { "\(path), \(loss)" }
 
     static func cause(_ failureMode: String?) -> String {
         switch failureMode {

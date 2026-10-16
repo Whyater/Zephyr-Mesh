@@ -35,7 +35,20 @@ if (Test-Path $pngPath) {
     Write-Warning "Windows icon PNG is missing; continuing without bundled PNG"
 }
 & $Python -m PyInstaller --noconfirm --clean --windowed --name ZephyrMeshWindows `
-    --paths "." @iconArgs @pngArgs --hidden-import tools.release_updater --hidden-import desktop.replay --hidden-import desktop.scenario_run --hidden-import desktop.design_tokens --hidden-import desktop.evidence --hidden-import desktop.scene_projection --hidden-import desktop.ui_settings --hidden-import desktop.replay_session --hidden-import desktop.presentation --hidden-import desktop.ui_format --hidden-import desktop.ui_icons --hidden-import desktop.ui_theme --hidden-import desktop.ui_widgets --hidden-import desktop.scene_view --hidden-import desktop.ui_viewers --hidden-import desktop.results_data --hidden-import desktop.ui_results_chart --hidden-import desktop.ui_results_atlas --hidden-import desktop.ui_results --add-data "runs\s7-swarm\run.json;runs\s7-swarm" --add-data "desktop\evidence_report_example.json;desktop" --add-data "desktop\investigation_report_example.json;desktop" --add-data "desktop\s7_report_example.json;desktop" --add-data "desktop\results_fixture.json;desktop" --distpath "$Output" desktop\windows_preview.py
+    --paths "." @iconArgs @pngArgs `
+    --hidden-import tools.release_updater --hidden-import desktop.replay --hidden-import desktop.scenario_run `
+    --hidden-import desktop.design_tokens --hidden-import desktop.evidence --hidden-import desktop.scene_projection `
+    --hidden-import desktop.ui_settings --hidden-import desktop.replay_session --hidden-import desktop.presentation `
+    --hidden-import desktop.ui_format --hidden-import desktop.ui_icons --hidden-import desktop.ui_theme `
+    --hidden-import desktop.ui_widgets --hidden-import desktop.scene_view --hidden-import desktop.ui_viewers `
+    --hidden-import desktop.results_data --hidden-import desktop.ui_results_chart --hidden-import desktop.ui_results_atlas `
+    --hidden-import desktop.ui_results `
+    --add-data "runs\s7-swarm\run.json;runs\s7-swarm" `
+    --add-data "desktop\evidence_report_example.json;desktop" `
+    --add-data "desktop\investigation_report_example.json;desktop" `
+    --add-data "desktop\s7_report_example.json;desktop" `
+    --add-data "desktop\results_fixture.json;desktop" `
+    --distpath "$Output" desktop\windows_preview.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & $Python -m PyInstaller --noconfirm --clean --console --onefile --name ZephyrMeshUpdater `
     --paths "." --distpath "$Output" --workpath "$Output\build-updater" desktop\windows_updater.py

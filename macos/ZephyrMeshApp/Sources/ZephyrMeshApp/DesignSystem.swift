@@ -59,10 +59,10 @@ enum Theme {
         selectionFill: Color(hex: "273A54", opacity: 1),
         hoverFill: Color(hex: "242D3F", opacity: 1),
         bandFill: Color(hex: "273A54", opacity: 1),
-        atlasStop1: Color(hex: "23344B", opacity: 1),
-        atlasStop2: Color(hex: "2F4764", opacity: 1),
-        atlasStop3: Color(hex: "3B5B7C", opacity: 1),
-        atlasStop4: Color(hex: "476F95", opacity: 1)
+        atlasStop1: Color(hex: "273A54", opacity: 1),
+        atlasStop2: Color(hex: "324C6A", opacity: 1),
+        atlasStop3: Color(hex: "3D5E81", opacity: 1),
+        atlasStop4: Color(hex: "487097", opacity: 1)
     )
     static let light = Palette(
         background: Color(hex: "F6F8FB", opacity: 1),
@@ -646,11 +646,12 @@ enum UIText {
         static let panelLoss = "{percent} % loss"
         static let axisDelay = "Link delay (ms)"
         static let axisError = "p95 error (m)"
-        static let armNaive = "Basic tracker"
+        static let armNaive = "Naive tracker"
         static let armRecovery = "Recovery (capture time)"
         static let legendInterval = "95 % interval, {n} seeds"
         static let legendFailure = "Failure line"
         static let failureLineLabel = "Failure line {value} m"
+        static let scaleCaption = "Error axis 0 to {max} m for this path and loss type"
         static let tileMedian = "p95 error (median)"
         static let tileInterval = "95 % interval"
         static let tileSeedsFailing = "Seeds failing"
@@ -662,7 +663,7 @@ enum UIText {
         static let recoveryLower = "Recovery is lower by {value} m (median of paired seeds)"
         static let recoveryHigher = "Recovery is higher by {value} m (median of paired seeds)"
         static let recoveryNoDifference = "No difference (median of paired seeds)"
-        static let pairedInterval = "Interval, basic minus recovery: {low} to {high} m"
+        static let pairedInterval = "Interval, naive minus recovery: {low} to {high} m"
         static let pairedCounts = "Recovery better in {better}, worse in {worse}, tied in {tied} of {total} seeds"
         static let identicalNoDelay = "Both trackers are identical here (no delay, no loss)"
         static let tiedEverySeed = "Tied in every seed"
@@ -677,7 +678,7 @@ enum UIText {
         static let rangeTemplate = "{low} to {high} m"
         static let pointSubtitle = "{path}, {loss}, {delay} ms"
         static let chartSummary =
-            "p95 error against link delay for the basic tracker and the recovery tracker, {path}, {lossType} loss. Use the arrow keys " +
+            "p95 error against link delay for the naive tracker and the recovery tracker, {path}, {lossType} loss. Use the arrow keys " +
             "to read each point."
         static let loadFailed = "The results file could not be read"
         static let loadFailedHint = "Rebuild the results fixture and the app, then open this window again."
@@ -717,8 +718,8 @@ enum UIText {
         static let intervalBelowZero = "below 0"
         static let intervalAbove = "above 300"
         static let acrossLossTitle = "Across loss levels"
-        static let diffTitle = "Difference from basic tracker"
-        static let diffCaption = "Positive means lower error than the basic tracker."
+        static let diffTitle = "Difference from naive tracker"
+        static let diffCaption = "Positive means lower error than the naive tracker."
         static let diffColumnDelay = "Delay (ms)"
         static let diffColumnMedian = "Median (m)"
         static let diffColumnInterval = "Interval (m)"
@@ -739,6 +740,8 @@ enum UIText {
         static let tieCount = "Tie: {count} trackers"
         static let intervalSpan = "{low} to {high}"
         static let intervalCaption = "The interval shows how far the tolerated delay could move with more seeds."
+        static let intervalCaptionFailsAtZero =
+            "Fails at 0 ms because at least half its seeds fail, but with {seeds} seeds per cell the limit could be as high as {high}."
     }
     struct TransportControl {
         let label: String

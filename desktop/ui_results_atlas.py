@@ -4,8 +4,11 @@ Rows are the stratum's target paths, columns its trackers, and a last
 column names the tracker that takes the most delay. Each cell shows the most
 delay that tracker tolerated, tinted with one of four accent ramp stops (or
 the plain surface plus a small alert square when it fails even at 0 ms).
-Cells shrink toward a measured minimum on a narrow window; past that the
-matrix scrolls sideways instead of clipping text.
+A clear winner has bold text and a 3 pt accent bar along the bottom inside
+edge; the selection ring is a separate accent ring drawn outside the cell,
+with an 8 pt gap between cells so ring and bar never look alike. Cells shrink
+from their full width to the minimum cell width on a narrow window; past that
+the matrix scrolls sideways instead of clipping text.
 """
 from __future__ import annotations
 
@@ -213,14 +216,25 @@ class AtlasGrid:
         self.header_w = min(ctx.px(WIN_LAYOUT["atlasRowHeaderWidth"]), widest_title + ctx.px(SPACE["md"]))
         square = ctx.px(WIN_LAYOUT["statusMarkerSize"])
         fails = square + ctx.px(SPACE["xs"]) + body.measure(rd.ATLAS_TEXT["failsAtZero"])
-        self.min_cell = max(body.measure(rd.ATLAS_TEXT["censored"]), fails, caption.measure(rd.TEXT["notComputed"])) + 2 * cell_pad
-        texts = [rd.ATLAS_TEXT["mostDelayColumn"]]
+        measured = max(body.measure(rd.ATLAS_TEXT["censored"]), fails, caption.measure(rd.TEXT["notComputed"])) + 2 * cell_pad
+        self.min_cell = max(measured, ctx.px(WIN_LAYOUT["atlasCellMinWidth"]))
+        # The "Most delay" column: the label at body size (wrapped when a tie lists several trackers), the delay in caption.
+        self.wrap_w = 2 * ctx.px(WIN_LAYOUT["atlasRowHeaderWidth"])
+        strong = fonts["bodyStrong"]
+        widest = caption.measure(rd.ATLAS_TEXT["mostDelayColumn"])
+        need = ctx.px(WIN_LAYOUT["atlasCellHeight"])
         for variant in stratum["variants"]:
             for loss in stratum["loss_conditions"]:
-                texts.extend(text for text in rd.most_delay_text(data, data.cell(self.stratum, variant, loss)) if text)
-        self.most_w = max(caption.measure(text) for text in texts) + 2 * pad
-        self.gap = ctx.px(SPACE["xs"])
-        self.cell_h = ctx.px(WIN_LAYOUT["atlasCellHeight"])
+                cell = data.cell(self.stratum, variant, loss)
+                label, delay = rd.most_delay_text(data, cell)
+                font = strong if cell and cell["kind"] == "winner" else body
+                lines = rd.wrap_lines(label, self.wrap_w, font.measure)
+                widest = max([widest, caption.measure(delay or "")] + [font.measure(line) for line in lines])
+                need = max(need, len(lines) * int(body.metrics("linespace")) + (int(caption.metrics("linespace")) if delay else 0)
+                           + 2 * cell_pad)
+        self.most_w = widest + 2 * pad
+        self.gap = ctx.px(SPACE["sm"])
+        self.cell_h = need  # every row of a stratum has the same height, so nothing jumps when the loss changes
         self.head_h = 2 * int(caption.metrics("linespace")) + ctx.px(SPACE["sm"])
         rows = len(stratum["variants"])
         self.canvas.configure(height=self.head_h + rows * (self.cell_h + self.gap) + 2 * self.gap)
@@ -254,7 +268,7 @@ class AtlasGrid:
         gap, cell_h = self.gap, self.cell_h
         radius = ctx.px(RADIUS["small"])
         hairline = max(1, ctx.px(WIN_LAYOUT["strokeHairline"]))
-        winner_w = max(1, ctx.px(LAYOUT["atlasWinnerBorder"]))
+        bar = max(1, ctx.px(LAYOUT["atlasWinnerBar"]))
         square = ctx.px(WIN_LAYOUT["statusMarkerSize"])
         line = int(fonts["caption"].metrics("linespace"))
         self._cells = {}
@@ -278,32 +292,38 @@ class AtlasGrid:
                 box = (x0, top, x0 + cell_w, top + cell_h)
                 self._cells[(row, column)] = box
                 entry = data.entry(self.stratum, variant, self.loss, arm)
-                canvas.create_polygon(*rounded_points(*box, radius), smooth=True, fill=stops[rd.entry_stop(entry)],
-                                      outline=p.line, width=hairline, tags=("cell",))
-                if arm in winners:
-                    inset = hairline + winner_w / 2.0
-                    canvas.create_polygon(*rounded_points(box[0] + inset, box[1] + inset, box[2] - inset, box[3] - inset,
-                                                          max(1, radius - hairline)),
-                                          smooth=True, fill="", outline=p.accent, width=winner_w)
+                winner = arm in winners
+                canvas.create_polygon(*rounded_points(*box, radius), smooth=True, fill=stops[rd.entry_stop(entry)], outline="",
+                                      tags=("cell",))
+                if winner:
+                    canvas.create_polygon(*rd.winner_bar_points(box[0], box[2], box[3], radius, bar), fill=p.accent, outline="")
+                canvas.create_polygon(*rounded_points(*box, radius), smooth=True, fill="", outline=p.line, width=hairline)
                 text = rd.entry_cell_text(entry)
                 cx = (box[0] + box[2]) / 2.0
+                font = fonts["bodyStrong"] if winner else fonts["body"]
                 if entry is None:
                     canvas.create_text(cx, middle, text=text, fill=p.textSecondary, font=fonts["caption"])
                 elif entry["kind"] == "fails_at_zero":
-                    total = square + ctx.px(SPACE["xs"]) + fonts["body"].measure(text)
+                    total = square + ctx.px(SPACE["xs"]) + font.measure(text)
                     left = cx - total / 2.0
-                    canvas.create_rectangle(left, middle - square / 2.0, left + square, middle + square / 2.0, fill=p.alert, outline="")
+                    canvas.create_rectangle(left, middle - square / 2.0, left + square, middle + square / 2.0,
+                                            fill=p.alert, outline="")
                     canvas.create_text(left + square + ctx.px(SPACE["xs"]), middle, text=text, anchor="w", fill=p.text,
-                                       font=fonts["body"])
+                                       font=font)
                 else:
-                    canvas.create_text(cx, middle, text=text, fill=p.text, font=fonts["body"])
+                    canvas.create_text(cx, middle, text=text, fill=p.text, font=font)
             label, delay = rd.most_delay_text(data, cell)
             x = most_x + ctx.px(SPACE["sm"])
+            label_font = fonts["bodyStrong"] if winners else fonts["body"]
+            lines = rd.wrap_lines(label, self.wrap_w, label_font.measure)
+            line_h = int(fonts["body"].metrics("linespace"))
+            block = len(lines) * line_h + (line if delay else 0)
+            y = middle - block / 2.0
+            for text in lines:
+                canvas.create_text(x, y, text=text, anchor="nw", fill=p.text if cell else p.textSecondary, font=label_font)
+                y += line_h
             if delay:
-                canvas.create_text(x, middle - line / 2.0, text=label, anchor="w", fill=p.text, font=fonts["caption"])
-                canvas.create_text(x, middle + line / 2.0, text=delay, anchor="w", fill=p.textSecondary, font=fonts["caption"])
-            else:
-                canvas.create_text(x, middle, text=label, anchor="w", fill=p.text if cell else p.textSecondary, font=fonts["caption"])
+                canvas.create_text(x, y, text=delay, anchor="nw", fill=p.textSecondary, font=fonts["caption"])
         height = int(canvas.cget("height"))
         canvas.configure(scrollregion=(0, 0, self._total_width, height))
 
@@ -328,12 +348,12 @@ class AtlasGrid:
                                   width=hairline, tags=("overlay",))
         if selected is not None:
             x0, y0, x1, y1 = self._cells[selected]
-            out = strong / 2.0 + hairline
+            out = 2 * ctx.px(SPACE["xxs"]) - strong / 2.0  # the ring spans 2 to 4 px outside the cell, a 2 px gap from it
             canvas.create_polygon(*rounded_points(x0 - out, y0 - out, x1 + out, y1 + out, radius + out), smooth=True, fill="",
                                   outline=p.accent, width=strong, tags=("overlay",))
         elif self.focused and self.cursor in self._cells:
             x0, y0, x1, y1 = self._cells[self.cursor]
-            out = hairline * 2
+            out = 2 * ctx.px(SPACE["xxs"]) - hairline / 2.0
             canvas.create_polygon(*rounded_points(x0 - out, y0 - out, x1 + out, y1 + out, radius + out), smooth=True, fill="",
                                   outline=p.accent, width=hairline, tags=("overlay",))
 

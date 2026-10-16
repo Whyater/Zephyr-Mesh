@@ -244,7 +244,7 @@ def test_results_tokens_and_strings_reach_both_outputs() -> None:
 
     swift = (ROOT / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
     assert LAYOUT["chartPanelHeight"] == 220 and LAYOUT["chartLineWidth"] == 1.5
-    assert WIN_LAYOUT["resultsWindow"] == {"width": 1240, "height": 840, "minWidth": 980, "minHeight": 680}
+    assert WIN_LAYOUT["resultsWindow"] == {"width": 1440, "height": 840, "minWidth": 980, "minHeight": 680}
     assert WIN_LAYOUT["dashPattern"] == [4, 3]
     assert DARK.atlasStop4 != LIGHT.atlasStop4 and DARK.bandFill.startswith("#")
     assert "static let chartPanelHeight: CGFloat = 220" in swift

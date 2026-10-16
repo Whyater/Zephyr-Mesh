@@ -41,7 +41,7 @@ class ScenePalette:
     grid: SceneColor
     floor: SceneColor
 
-DARK = Palette('#0F1522', '#172033', '#2B3A55', '#5B6B88', '#EEF2F7', '#9AA8C0', '#7CC4FF', '#FFB38A', '#B4A7FF', '#5FD39B', '#FFC857', '#FF5C5C', '#7CC4FF', '#0F1522', '#273A54', '#242D3F', '#273A54', '#23344B', '#2F4764', '#3B5B7C', '#476F95')
+DARK = Palette('#0F1522', '#172033', '#2B3A55', '#5B6B88', '#EEF2F7', '#9AA8C0', '#7CC4FF', '#FFB38A', '#B4A7FF', '#5FD39B', '#FFC857', '#FF5C5C', '#7CC4FF', '#0F1522', '#273A54', '#242D3F', '#273A54', '#273A54', '#324C6A', '#3D5E81', '#487097')
 LIGHT = Palette('#F6F8FB', '#FFFFFF', '#D5DCE6', '#7D8AA1', '#1B2433', '#56627A', '#1F6FD1', '#A8501C', '#5E4BC4', '#1E7F4F', '#8A5A00', '#C62828', '#1F6FD1', '#FFFFFF', '#E0EBF9', '#F4F4F5', '#DBE8F8', '#E4EEF9', '#C9DCF4', '#AAC8EE', '#84B0E6')
 DARK_SCENE3D = ScenePalette(SceneColor('#9AA8C0', 1.0), SceneColor('#9AA8C0', 1.0), SceneColor('#9AA8C0', 1.0), SceneColor('#FFB38A', 1.0), SceneColor('#B4A7FF', 0.12), SceneColor('#2B3A55', 1.0), SceneColor('#0F1522', 1.0))
 LIGHT_SCENE3D = ScenePalette(SceneColor('#56627A', 1.0), SceneColor('#56627A', 1.0), SceneColor('#56627A', 1.0), SceneColor('#A8501C', 1.0), SceneColor('#5E4BC4', 0.18), SceneColor('#D5DCE6', 1.0), SceneColor('#F6F8FB', 1.0))
@@ -110,13 +110,14 @@ WIN_LAYOUT = {'iconSize': 14,
  'tooltipDelayMs': 550,
  'noticeMs': 2400,
  'copiedMs': 1200,
- 'resultsWindow': {'width': 1240, 'height': 840, 'minWidth': 980, 'minHeight': 680},
+ 'resultsWindow': {'width': 1440, 'height': 840, 'minWidth': 980, 'minHeight': 680},
  'resultsSidebarWidth': 200,
  'chartPanelHeight': 220,
  'chartPlotInset': 40,
  'chartMarkerSize': 6,
  'chartCapWidth': 6,
  'atlasCellWidth': 104,
+ 'atlasCellMinWidth': 84,
  'atlasCellHeight': 36,
  'atlasRowHeaderWidth': 168,
  'legendSwatchWidth': 22,
@@ -567,11 +568,12 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
              'panelLoss': '{percent} % loss',
              'axisDelay': 'Link delay (ms)',
              'axisError': 'p95 error (m)',
-             'armNaive': 'Basic tracker',
+             'armNaive': 'Naive tracker',
              'armRecovery': 'Recovery (capture time)',
              'legendInterval': '95 % interval, {n} seeds',
              'legendFailure': 'Failure line',
              'failureLineLabel': 'Failure line {value} m',
+             'scaleCaption': 'Error axis 0 to {max} m for this path and loss type',
              'tileMedian': 'p95 error (median)',
              'tileInterval': '95 % interval',
              'tileSeedsFailing': 'Seeds failing',
@@ -583,7 +585,7 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
              'recoveryLower': 'Recovery is lower by {value} m (median of paired seeds)',
              'recoveryHigher': 'Recovery is higher by {value} m (median of paired seeds)',
              'recoveryNoDifference': 'No difference (median of paired seeds)',
-             'pairedInterval': 'Interval, basic minus recovery: {low} to {high} m',
+             'pairedInterval': 'Interval, naive minus recovery: {low} to {high} m',
              'pairedCounts': 'Recovery better in {better}, worse in {worse}, tied in {tied} of '
                              '{total} seeds',
              'identicalNoDelay': 'Both trackers are identical here (no delay, no loss)',
@@ -599,7 +601,7 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
                               '{total} fail',
              'rangeTemplate': '{low} to {high} m',
              'pointSubtitle': '{path}, {loss}, {delay} ms',
-             'chartSummary': 'p95 error against link delay for the basic tracker and the recovery '
+             'chartSummary': 'p95 error against link delay for the naive tracker and the recovery '
                              'tracker, {path}, {lossType} loss. Use the arrow keys to read each '
                              'point.',
              'loadFailed': 'The results file could not be read',
@@ -640,8 +642,8 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
            'intervalBelowZero': 'below 0',
            'intervalAbove': 'above 300',
            'acrossLossTitle': 'Across loss levels',
-           'diffTitle': 'Difference from basic tracker',
-           'diffCaption': 'Positive means lower error than the basic tracker.',
+           'diffTitle': 'Difference from naive tracker',
+           'diffCaption': 'Positive means lower error than the naive tracker.',
            'diffColumnDelay': 'Delay (ms)',
            'diffColumnMedian': 'Median (m)',
            'diffColumnInterval': 'Interval (m)',
@@ -662,7 +664,10 @@ UI_TEXT = {'$schema': 'zephyr-ui-text-1',
            'tieCount': 'Tie: {count} trackers',
            'intervalSpan': '{low} to {high}',
            'intervalCaption': 'The interval shows how far the tolerated delay could move with more '
-                              'seeds.'},
+                              'seeds.',
+           'intervalCaptionFailsAtZero': 'Fails at 0 ms because at least half its seeds fail, but '
+                                         'with {seeds} seeds per cell the limit could be as high '
+                                         'as {high}.'},
  'windowsText': {'comment': 'Copy used only by the Windows Tk app. Shared wording lives in the '
                             'sections above.',
                  'missingLegend': '– means not recorded',

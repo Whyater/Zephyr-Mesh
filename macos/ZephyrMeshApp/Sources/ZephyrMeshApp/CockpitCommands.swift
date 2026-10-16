@@ -49,7 +49,7 @@ struct CockpitCommands: Commands {
                 .disabled(unavailable || typing)
             Button(UIText.Menus.filterDrones) { model?.requestFilterFocus() }
                 .shortcut("focusFilter")
-                .disabled(unavailable)
+                .disabled(unavailable || store.isResultsWindowKey)
             Divider()
             Button(UIText.Menus.showResults) { openWindow(id: WindowID.results) }
                 .shortcut("showResults")

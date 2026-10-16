@@ -2117,6 +2117,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.open_results or results_select:
             try:
                 app._show_results(args.open_results or "delay", results_select)
+                if args.open_results and app._results is not None:
+                    app._results.stand_alone()
             except ValueError as exc:
                 print(f"--results-select: {exc}", file=sys.stderr)
         if args.smoke_step:

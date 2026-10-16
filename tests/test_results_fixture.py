@@ -88,23 +88,28 @@ def test_builders_reject_source_shape_drift():
 
     mutated = deepcopy(atlas)
     mutated["strata"]["extra"] = {}
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="atlas strata do not match"):
         build_atlas(*_atlas_args(mutated))
 
     mutated = deepcopy(atlas)
     mutated["entries"][0]["loss_model"] = "unknown"
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="atlas contains an unknown loss model"):
         build_atlas(*_atlas_args(mutated))
 
     mutated = deepcopy(atlas)
     mutated["entries"][0]["variant"] = "new_variant"
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="atlas contains an unknown variant"):
+        build_atlas(*_atlas_args(mutated))
+
+    mutated = deepcopy(atlas)
+    mutated["entries"][0]["loss_condition"] = "independent:0.125"
+    with pytest.raises(ValueError, match=r"loss probability 0\.125"):
         build_atlas(*_atlas_args(mutated))
 
     mutated = deepcopy(summary)
     selected = [cell for cell in mutated["cells"] if cell["slice"] == "burst"]
     mutated["cells"].append(deepcopy(selected[0]))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="selected S6 cells contain duplicate keys"):
         build_s6(*_s6_args(mutated))
 
     mutated = deepcopy(summary)
@@ -112,12 +117,17 @@ def test_builders_reject_source_shape_drift():
         cell for cell in mutated["cells"]
         if not (cell["slice"] == "main" and cell["loss_model"] == "independent" and cell["loss_probability"] == 0.5)
     ]
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="series missing one of seven delays"):
         build_s6(*_s6_args(mutated))
 
     mutated = deepcopy(atlas)
     next(entry for entry in mutated["entries"] if entry["arm"] != "naive")["improvement_vs_naive"] = [
         {"delay_s": 0, "median_p95_diff_m": 0, "interval_m": [0, 0]}
     ] * 6
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="atlas improvement delay lists must be sorted and unique"):
+        build_atlas(*_atlas_args(mutated))
+
+    mutated = deepcopy(atlas)
+    del mutated["entries"][0]["arm"]
+    with pytest.raises(ValueError, match="missing source key: arm"):
         build_atlas(*_atlas_args(mutated))

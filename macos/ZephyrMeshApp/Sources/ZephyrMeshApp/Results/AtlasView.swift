@@ -15,8 +15,9 @@ struct AtlasContent: View {
                     .font(TypeScale.body.monospacedDigit())
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
-                AtlasMatrix(model: model, data: data, stratum: stratum)
+                // The legend sits above the grid, as in the delay view.
                 AtlasLegend()
+                AtlasMatrix(model: model, data: data, stratum: stratum)
             } else {
                 Text(ResultsFormat.notComputed)
                     .font(TypeScale.body)
@@ -92,6 +93,7 @@ private struct AtlasMatrix: View {
                             .font(TypeScale.caption)
                             .foregroundStyle(palette.textSecondary)
                             .lineLimit(1)
+                            // "Recovery gated" and the other long names only fit the 8-tracker set when scaled slightly.
                             .minimumScaleFactor(0.85)
                             .frame(width: cellWidth)
                     }

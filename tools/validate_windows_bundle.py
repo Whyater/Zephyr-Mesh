@@ -13,6 +13,7 @@ import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from desktop.replay import ReplayModel
 from desktop.evidence import load_evidence_report
+from desktop.results_data import FIXTURE_NAME as RESULTS_FIXTURE, FixtureError, load_fixture as load_results_fixture
 
 
 WINDOWS_UI_MODULES = (
@@ -69,6 +70,16 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
         evidence_paths.append(evidence)
         evidence_kinds.append(evidence_report["kind"])
     result["evidence"] = ",".join(str(path) for path in evidence_paths)
+    # The Results window reads one bundled file; a build without it, or with a damaged copy, would open an empty window.
+    results_fixture = next((root / "desktop" / RESULTS_FIXTURE for root in resource_roots
+                            if (root / "desktop" / RESULTS_FIXTURE).is_file()), None)
+    if results_fixture is None:
+        raise FileNotFoundError(f"bundled {RESULTS_FIXTURE} is missing")
+    try:
+        results = load_results_fixture(results_fixture)
+    except FixtureError as exc:
+        raise RuntimeError(f"bundled {RESULTS_FIXTURE} is invalid: {exc}") from exc
+    result["results_fixture"] = f"{results_fixture} ({len(results.atlas['strata'])} strata, {len(results.s6['series'])} series)"
     # A PyInstaller windowed executable has no reliable stdout contract. Parse
     # the bundled canonical replay directly so this validator remains useful
     # on CI and on Windows without launching a GUI process.

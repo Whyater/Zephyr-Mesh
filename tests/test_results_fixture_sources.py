@@ -382,11 +382,13 @@ def test_atlas_header_fields(fx, atlas_src):
     c.eq(at["variant_titles"], {v: variant_name(v) for v in all_variants}, "variant_titles values")
     c.eq(at["arm_labels"], {a: ARM_TITLES[a] for a in all_arms}, "arm_labels values")
     c.eq(sorted(at["loss_titles"]), sorted({e["loss_condition"] for e in atlas_src["entries"]}), "loss_titles keys")
+    # Written out by hand from the README loss levels, so a wrong title formula in the builder cannot pass here.
+    expected_titles = {
+        "independent:0": "No loss", "independent:0.1": "10 % random", "independent:0.3": "30 % random",
+        "independent:0.5": "50 % random", "burst:0.1": "10 % bursty", "burst:0.3": "30 % bursty", "burst:0.5": "50 % bursty",
+    }
     for key, title in at["loss_titles"].items():
-        model, prob = key.split(":")
-        want = "No loss" if key == "independent:0" else f"{round(float(prob) * 100):d} % " + (
-            "random" if model == "independent" else "bursty")
-        c.eq(title, want, f"loss_titles[{key}]")
+        c.eq(title, expected_titles.get(key, f"<no hand-written title for {key}>"), f"loss_titles[{key}]")
     c.done()
 
 

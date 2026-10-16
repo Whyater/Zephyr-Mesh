@@ -1,8 +1,9 @@
 """Delay-and-loss small multiples for the Results window, drawn on one Tk canvas.
 
 Four panels (no loss, then 10, 30, and 50 % loss of the chosen type) share
-one x scale (0 to 300 ms) and one y scale computed once from the whole
-fixture, so nothing jumps when the controls change. The recovery tracker is
+one x scale (0 to 300 ms) and one y scale chosen for the path and loss type
+on screen (the same rule as the macOS app), so the straight-path curves are
+not squashed against a scale built for the worst turn. The recovery tracker is
 a solid accent line with filled dots and its interval band; the basic
 tracker is a dashed neutral line with hollow dots and interval caps. The
 red failure line is the only alert color on the chart, and it carries a
@@ -37,6 +38,7 @@ class DelayChart:
         self.on_select = on_select
         self.motion = "constant_velocity"
         self.loss_type = "independent"
+        self.y_scale = data.error_scale(self.motion, self.loss_type)
         self.selected: rd.Point | None = None
         self.hover: rd.Point | None = None
         self.cursor_panel = 0
@@ -49,7 +51,9 @@ class DelayChart:
         self.title_h = int(fonts["bodyStrong"].metrics("linespace")) + ctx.px(SPACE["xs"])
         self.tick_h = int(fonts["caption"].metrics("linespace")) + ctx.px(SPACE["xs"])
         self.axis_title = int(fonts["caption"].metrics("linespace")) + ctx.px(SPACE["xs"])
-        self.panel_h = ctx.px(WIN_LAYOUT["chartPanelHeight"])
+        # The panel keeps SPACE["sm"] of air inside its focus frame on every side, so the frame never hugs the title or the ticks.
+        self.pad = ctx.px(SPACE["sm"])
+        self.panel_h = ctx.px(WIN_LAYOUT["chartPanelHeight"]) + 2 * self.pad
         self.gap = ctx.px(SPACE["lg"])
         height = 2 * self.panel_h + self.gap + self.axis_title
         self.canvas = tk.Canvas(parent, height=height, highlightthickness=0, borderwidth=0, takefocus=1)
@@ -94,6 +98,7 @@ class DelayChart:
             return
         panel = self.panel_of(self.selected) if self.selected else None
         self.motion, self.loss_type = motion, loss_type
+        self.y_scale = self.data.error_scale(motion, loss_type)
         self.hover = None
         if self.selected is not None and panel is not None:
             self.selected = self.point_in_panel(panel, self.selected.arm, self.selected.index)
@@ -180,6 +185,7 @@ class DelayChart:
         inset = ctx.px(WIN_LAYOUT["chartPlotInset"])
         # Room for half of the last tick label ("300"), so it is never clipped at the panel edge.
         right = max(ctx.px(SPACE["sm"]), ctx.fonts["caption"].measure(str(rd.X_TICKS_MS[-1])) / 2.0 + ctx.px(SPACE["xxs"]))
+        right += self.pad
         top = ctx.px(SPACE["xs"])
         result = []
         for index in range(4):
@@ -187,18 +193,18 @@ class DelayChart:
             left = y_title + col * (column + self.gap)
             top_y = row * (self.panel_h + self.gap)
             box = (left, top_y, left + column, top_y + self.panel_h)
-            scale = rd.Scale(x0=left + inset, x1=left + column - right, y0=top_y + self.panel_h - self.tick_h,
-                             y1=top_y + self.title_h + top, x_max_ms=float(rd.X_TICKS_MS[-1]), y_max=self.data.y_max)
+            scale = rd.Scale(x0=left + inset, x1=left + column - right, y0=top_y + self.panel_h - self.tick_h - self.pad,
+                             y1=top_y + self.pad + self.title_h + top, x_max_ms=float(rd.X_TICKS_MS[-1]), y_max=self.y_scale.top)
             result.append((box, scale))
         return result
 
-    def label_slots(self, layout: list[tuple[Any, rd.Scale]], width: float, height: float) -> list[int | None]:
-        """Where each panel puts the failure-line label, clear of that panel's data: 0 right end above the
-        line, 1 right end below, 2 left end above, 3 left end below, or ``None`` (top right of the panel,
-        above the plot) when the data covers all four."""
+    def label_slots(self, layout: list[tuple[Any, rd.Scale]], width: float, height: float) -> list[int]:
+        """Where each panel puts the failure-line label: 0 right end above the line, 1 right end below, 2 left end above,
+        3 left end below. The first one inside the plot that touches no data wins; when all four collide, the one that
+        covers the least of the plotted points and lines (``results_data.label_slot``)."""
         threshold = float(self.data.s6["failure_p95_m"])
         pad = self.ctx.px(SPACE["xxs"])
-        slots: list[int | None] = []
+        slots: list[int] = []
         for (_box, scale), (model, level) in zip(layout, self.panel_keys()):
             line_y = scale.y(threshold)
             candidates = [
@@ -222,7 +228,7 @@ class DelayChart:
                         t = step / 8.0
                         sx, sy = xs[i] + (xs[i + 1] - xs[i]) * t, ys[i] + (ys[i + 1] - ys[i]) * t
                         obstacles.append((sx - pad, sy - pad, sx + pad, sy + pad))
-            slots.append(rd.free_slot(candidates, obstacles))
+            slots.append(rd.label_slot(candidates, obstacles, (scale.x0, scale.y1, scale.x1, scale.y0)))
         return slots
 
     # ---- drawing -------------------------------------------------------------------------
@@ -253,22 +259,25 @@ class DelayChart:
         marker = ctx.px(WIN_LAYOUT["chartMarkerSize"]) / 2.0
         cap = ctx.px(WIN_LAYOUT["chartCapWidth"]) / 2.0
         dash = tuple(max(1, int(round(value * ctx.scale))) for value in WIN_LAYOUT["dashPattern"])
-        ticks = rd.y_ticks(self.data.y_max)
+        y_scale = self.y_scale
+        ticks = y_scale.ticks
         threshold = float(self.data.s6["failure_p95_m"])
-        label = rd.TEXT["failureLineLabel"].format(value=f"{threshold:g}")
+        label = rd.failure_label(threshold)
         label_w = fonts["caption"].measure(label)
         label_h = int(fonts["caption"].metrics("linespace"))
         slots = self.label_slots(layout, label_w, label_h)
         for panel, ((box, scale), (model, level)) in enumerate(zip(layout, self.panel_keys())):
             row, col = divmod(panel, 2)
-            canvas.create_text(box[0] + ctx.px(SPACE["xxs"]), box[1], text=rd.panel_title(level), anchor="nw",
+            canvas.create_text(box[0] + self.pad, box[1] + self.pad, text=rd.panel_title(level), anchor="nw",
                                fill=p.text, font=fonts["bodyStrong"])
             for tick in ticks:
                 y = scale.y(tick)
                 if tick > 0:
                     canvas.create_line(scale.x0, y, scale.x1, y, fill=p.line, width=hairline)
-                canvas.create_text(scale.x0 - ctx.px(SPACE["xs"]), y, text=rd.tick_text(tick, ticks), anchor="e",
+                canvas.create_text(scale.x0 - ctx.px(SPACE["xs"]), y, text=y_scale.label(tick), anchor="e",
                                    fill=p.textSecondary, font=fonts["caption"])
+            for ms in rd.X_TICKS_MS[1:]:  # vertical gridlines at 100, 200, and 300 ms, like the macOS charts
+                canvas.create_line(scale.x(ms), scale.y1, scale.x(ms), scale.y0, fill=p.line, width=hairline)
             canvas.create_line(scale.x0, scale.y1, scale.x0, scale.y0, fill=p.lineStrong, width=hairline)
             canvas.create_line(scale.x0, scale.y0, scale.x1, scale.y0, fill=p.lineStrong, width=hairline)
             for ms in rd.X_TICKS_MS:
@@ -292,13 +301,10 @@ class DelayChart:
             canvas.create_line(scale.x0, line_y, scale.x1, line_y, fill=p.alert, width=_width(ctx, LAYOUT["failureLineWidth"]))
             xxs = ctx.px(SPACE["xxs"])
             slot = slots[panel]
-            if slot is None:
-                canvas.create_text(box[2] - xxs, box[1] + xxs, text=label, anchor="ne", fill=p.textSecondary, font=fonts["caption"])
-            else:
-                label_x = scale.x1 - label_w if slot in (0, 1) else scale.x0 + xxs
-                label_y = line_y - xxs if slot in (0, 2) else line_y + xxs
-                canvas.create_text(label_x, label_y, text=label, anchor="sw" if slot in (0, 2) else "nw", fill=p.textSecondary,
-                                   font=fonts["caption"])
+            below = slot in (1, 3)
+            label_x = scale.x1 - label_w if slot in (0, 1) else scale.x0 + xxs
+            canvas.create_text(label_x, line_y + xxs if below else line_y - xxs, text=label,
+                               anchor="nw" if below else "sw", fill=p.textSecondary, font=fonts["caption"])
             if naive is not None:
                 ys = [scale.y(value) for value in naive["p95_median_m"]]
                 for x, low, high in zip(xs, naive["p95_ci_low_m"], naive["p95_ci_high_m"]):

@@ -141,6 +141,12 @@ final class ResultsFormatTests: XCTestCase {
         XCTAssertEqual(ResultsFormat.metersValue(-0.0249), "-0.025")
     }
 
+    func testFailureLineLabelUsesThreeDecimals() throws {
+        XCTAssertEqual(ResultsFormat.failureLineLabel(0.25), "Failure line 0.250 m")
+        let data = try loadData()
+        XCTAssertEqual(ResultsFormat.failureLineLabel(data.s6.failureP95M), "Failure line 0.250 m")
+    }
+
     func testDelaysRoundHalfToEvenLikePython() {
         XCTAssertEqual(ResultsFormat.delay(0), "0 ms")
         XCTAssertEqual(ResultsFormat.delay(0.025), "25 ms")
@@ -220,15 +226,51 @@ final class ResultsFormatTests: XCTestCase {
         let longTie = try XCTUnwrap(cells.first { $0.kind == .tie && $0.arms.count > 3 })
         XCTAssertEqual(ResultsFormat.classification(longTie, labels: labels), "Tie: \(longTie.arms.count) trackers")
         let shortTie = try XCTUnwrap(cells.first { $0.kind == .tie && $0.arms.count == 2 })
-        XCTAssertEqual(ResultsFormat.classification(shortTie, labels: labels),
-                       "Tie: \(labels[shortTie.arms[0]]!), \(labels[shortTie.arms[1]]!)")
+        let first = try XCTUnwrap(labels[shortTie.arms[0]])
+        let second = try XCTUnwrap(labels[shortTie.arms[1]])
+        XCTAssertEqual(ResultsFormat.classification(shortTie, labels: labels), "Tie: \(first), \(second)")
         let none = try XCTUnwrap(cells.first { $0.kind == .none })
         XCTAssertEqual(ResultsFormat.classification(none, labels: labels), "Nothing passes")
     }
 
+    func testScaleCaptionNamesTheSharedAxisTop() throws {
+        XCTAssertEqual(ResultsFormat.scaleCaption(top: 0.7), "Error axis 0 to 0.700 m for this path and loss type")
+        XCTAssertEqual(ResultsFormat.scaleCaption(top: 1.5), "Error axis 0 to 1.500 m for this path and loss type")
+        let data = try loadData()
+        let top = data.errorScale(motion: "constant_turn", lossModel: "independent").top
+        XCTAssertTrue(ResultsFormat.scaleCaption(top: top).contains("0 to 0.700 m"))
+    }
+
+    func testIntervalCaptionExplainsAFailsAtZeroCellWhoseIntervalReachesAboveZero() throws {
+        let data = try loadData()
+        let seeds = data.atlas.nSeeds
+        let reaching = try XCTUnwrap(data.atlas.entries.first {
+            $0.kind == .failsAtZero && $0.intervalS.count == 2 && $0.intervalS[1] == .seconds(0.2)
+        })
+        XCTAssertEqual(ResultsFormat.intervalCaption(reaching, seeds: seeds),
+                       "Fails at 0 ms because at least half its seeds fail, but with \(seeds) seeds per cell "
+                       + "the limit could be as high as 200 ms.")
+        let closed = try XCTUnwrap(data.atlas.entries.first {
+            $0.kind == .failsAtZero && $0.intervalS.count == 2 && $0.intervalS[1] == .belowZero
+        })
+        XCTAssertEqual(ResultsFormat.intervalCaption(closed, seeds: seeds), UIText.Atlas.intervalCaption, "<0 to <0 keeps the general note")
+        let plain = try XCTUnwrap(data.atlas.entries.first { $0.kind == .value })
+        XCTAssertEqual(ResultsFormat.intervalCaption(plain, seeds: seeds), UIText.Atlas.intervalCaption)
+        XCTAssertEqual(ResultsFormat.intervalCaption(nil, seeds: seeds), UIText.Atlas.intervalCaption)
+    }
+
+    func testCellSubtitleKeepsTheConditionsForTheirOwnLine() {
+        XCTAssertEqual(ResultsFormat.cellSubtitle(path: "Figure 8", loss: "30 % bursty"), "Figure 8, 30 % bursty")
+    }
+
+    func testNaiveTrackerNameComesFromTheUIText() throws {
+        XCTAssertEqual(ResultsFormat.armName("naive"), "Naive tracker")
+        XCTAssertFalse(UIText.Results.armNaive.contains("Basic"))
+    }
+
     func testComparisonSignAndTieWording() throws {
         let data = try loadData()
-        // Straight line, no loss: the paired difference is basic minus recovery, so a positive
+        // Straight line, no loss: the paired difference is naive minus recovery, so a positive
         // median at 300 ms means recovery had the lower error.
         let series = try XCTUnwrap(data.series(motion: "constant_velocity", lossModel: "independent", probability: 0, arm: "recovery"))
         let lines = ResultsFormat.comparison(series: series, index: 6, delay: 0.3)
@@ -244,7 +286,7 @@ final class ResultsFormatTests: XCTestCase {
         let data = try loadData()
         let series = try XCTUnwrap(data.series(motion: "constant_velocity", lossModel: "independent", probability: 0, arm: "naive"))
         XCTAssertEqual(ResultsFormat.hoverText(series: series, index: 6, delays: data.s6.delaysS),
-                       "Basic tracker, 300 ms: 0.359 m (0.355 to 0.363), 50 of 50 fail")
+                       "Naive tracker, 300 ms: 0.359 m (0.355 to 0.363), 50 of 50 fail")
     }
 }
 
@@ -273,6 +315,9 @@ final class ResultsGeometryTests: XCTestCase {
         XCTAssertEqual(NiceScale(maximum: 0.446).ticks.map(NiceScale(maximum: 0.446).label), ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5"])
     }
 
+    /// The intended behaviour (SPEC section 9): the four panels share one error axis chosen per
+    /// path and loss type, not one global axis, so the straight-line curves are not squeezed into the
+    /// bottom of a 0 to 1.5 m axis. The caption beside the controls says where each axis ends.
     func testEachPathAndLossTypeGetsItsOwnScaleFromTheFixture() throws {
         let data = try loadData()
         let expected: [(String, String, Double)] = [("constant_velocity", "independent", 0.4), ("constant_velocity", "burst", 0.5),
@@ -384,22 +429,43 @@ final class ResultsGeometryTests: XCTestCase {
                        "too narrow: cells stop at the minimum and the matrix scrolls")
     }
 
-    func testFailureCaptionMovesAwayFromData() {
+    func testFailureCaptionTakesTheFirstFreeSpotInOrder() {
         let plot = CGRect(x: 0, y: 0, width: 300, height: 200)
         let size = CGSize(width: 100, height: 14)
-        let clear = ChartGeometry.captionOrigin(size: size, lineY: 100, plot: plot, gap: 4, clearance: 3, segments: [])
-        XCTAssertEqual(clear, CGPoint(x: 4, y: 82), "left end above the line when nothing is there")
-        let blocked = [(CGPoint(x: 0, y: 90), CGPoint(x: 120, y: 90))]
-        let moved = ChartGeometry.captionOrigin(size: size, lineY: 100, plot: plot, gap: 4, clearance: 3, segments: blocked)
-        XCTAssertEqual(moved, CGPoint(x: 4, y: 104), "below the line when a curve runs above it")
-        let both = blocked + [(CGPoint(x: 0, y: 110), CGPoint(x: 120, y: 110))]
-        XCTAssertEqual(ChartGeometry.captionOrigin(size: size, lineY: 100, plot: plot, gap: 4, clearance: 3, segments: both),
-                       CGPoint(x: 196, y: 82), "the right end when the left end is taken on both sides")
-        let everywhere = [(CGPoint(x: 0, y: 90), CGPoint(x: 300, y: 90)), (CGPoint(x: 0, y: 110), CGPoint(x: 300, y: 110))]
-        let fallback = ChartGeometry.captionOrigin(size: size, lineY: 100, plot: plot, gap: 4, clearance: 3, segments: everywhere)
-        XCTAssertEqual(fallback, CGPoint(x: 4, y: 82), "no free place: left above, every time")
-        XCTAssertEqual(fallback, ChartGeometry.captionOrigin(size: size, lineY: 100, plot: plot, gap: 4, clearance: 3,
-                                                             segments: everywhere), "same input, same place")
+        func origin(_ segments: [(CGPoint, CGPoint)], lineY: CGFloat = 100) -> CGPoint {
+            ChartGeometry.captionOrigin(size: size, lineY: lineY, plot: plot, gap: 4, clearance: 3, segments: segments)
+        }
+        func bar(_ x0: CGFloat, _ x1: CGFloat, _ y: CGFloat) -> (CGPoint, CGPoint) { (CGPoint(x: x0, y: y), CGPoint(x: x1, y: y)) }
+        let rightAbove = bar(200, 300, 90), rightBelow = bar(200, 300, 110), leftAbove = bar(0, 100, 90), leftBelow = bar(0, 100, 110)
+        XCTAssertEqual(origin([]), CGPoint(x: 196, y: 82), "right end above the line when nothing is there")
+        XCTAssertEqual(origin([bar(0, 100, 90)]), CGPoint(x: 196, y: 82), "data at the left end does not move it")
+        XCTAssertEqual(origin([rightAbove]), CGPoint(x: 196, y: 104), "right below when a curve runs through right above")
+        XCTAssertEqual(origin([rightAbove, rightBelow]), CGPoint(x: 4, y: 82), "left above when both right spots collide")
+        XCTAssertEqual(origin([rightAbove, rightBelow, leftAbove]), CGPoint(x: 4, y: 104), "left below is the last free spot")
+        XCTAssertEqual(origin([], lineY: 10), CGPoint(x: 196, y: 14), "the panel top rules out the spots above")
+        XCTAssertEqual(origin([], lineY: 195), CGPoint(x: 196, y: 177), "near the bottom edge it stays above")
+        XCTAssertEqual(origin([bar(200, 300, 185)], lineY: 195), CGPoint(x: 4, y: 177),
+                       "below is off the plot, so a blocked right-above leaves left above")
+        XCTAssertEqual(origin([bar(200, 300, 20)], lineY: 10), CGPoint(x: 4, y: 14),
+                       "above is off the plot and right below is blocked: left below")
+        XCTAssertEqual(origin([rightAbove, rightBelow]), origin([rightAbove, rightBelow]), "same input, same place")
+
+        // All four collide: the least overlap wins, and the earlier spot wins a tie.
+        let all = [rightAbove, rightBelow, leftAbove, leftBelow]
+        XCTAssertEqual(origin(all), CGPoint(x: 196, y: 82), "equal overlap everywhere: right above, the first in order")
+        let heavyRightAbove = [rightAbove, bar(200, 300, 86), bar(200, 300, 94)]
+        XCTAssertEqual(origin(heavyRightAbove + [rightBelow, leftAbove, leftBelow]), CGPoint(x: 196, y: 104),
+                       "right below touches the fewest segments")
+        XCTAssertEqual(origin(heavyRightAbove + [rightBelow, bar(200, 300, 114), leftAbove, bar(0, 100, 86), bar(0, 100, 94),
+                                                 leftBelow]), CGPoint(x: 4, y: 104), "left below has one hit, the others have more")
+    }
+
+    func testNearestPointNeverNeedsAForceUnwrapAndKeepsTheEarlierTie() {
+        let points = [CGPoint(x: 0, y: 0), CGPoint(x: 20, y: 0), CGPoint(x: 10, y: 10)]
+        XCTAssertNil(ChartGeometry.nearest(to: CGPoint(x: 100, y: 100), in: points, radius: 5))
+        XCTAssertNil(ChartGeometry.nearest(to: .zero, in: [], radius: 5))
+        XCTAssertEqual(ChartGeometry.nearest(to: CGPoint(x: 10, y: 0), in: Array(points.prefix(2)), radius: 10), 0)
+        XCTAssertEqual(ChartGeometry.nearest(to: CGPoint(x: 19, y: 1), in: points, radius: 10), 1)
     }
 }
 

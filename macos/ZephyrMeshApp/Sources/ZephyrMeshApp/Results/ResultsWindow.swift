@@ -61,10 +61,9 @@ private struct ResultsSplitView: View {
         }
         .navigationTitle(UIText.Results.windowTitle)
         .toolbar {
-            ToolbarItem(placement: .navigation) {
+            // Trailing, next to the inspector toggle, so the window title reads first.
+            ToolbarItemGroup(placement: .primaryAction) {
                 ResultsBadge()
-            }
-            ToolbarItem(placement: .primaryAction) {
                 Button {
                     model.showInspector.toggle()
                 } label: {
@@ -132,6 +131,10 @@ private struct ResultsDetail: View {
 private struct DelayLossContent: View {
     @ObservedObject var model: ResultsModel
     let data: ResultsData
+    @Environment(\.palette) private var palette
+
+    /// The shared top of the error axis for the chosen path and loss type.
+    private var scaleTop: Double { data.errorScale(motion: model.delay.motion, lossModel: model.delay.lossModel).top }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Space.lg) {
@@ -145,6 +148,12 @@ private struct DelayLossContent: View {
                     SegmentedChoice(options: [("independent", UIText.Results.lossRandom), ("burst", UIText.Results.lossBursty)],
                                     selection: $model.delay.lossModel, accessibilityLabel: UIText.Results.lossTypeLabel)
                 }
+                // The four panels share one error axis per path and loss type, so say where it ends.
+                Text(ResultsFormat.scaleCaption(top: scaleTop))
+                    .font(TypeScale.caption.monospacedDigit())
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .layoutPriority(-1)
             }
             .frame(height: LayoutMetrics.controlHeight)
             // The legend sits above the panels, so it is on screen without scrolling.

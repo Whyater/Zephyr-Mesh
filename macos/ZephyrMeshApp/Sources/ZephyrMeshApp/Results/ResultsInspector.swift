@@ -138,11 +138,10 @@ private struct AtlasCellInspector: View {
         VStack(alignment: .leading, spacing: Space.lg) {
             VStack(alignment: .leading, spacing: Space.sm) {
                 InspectorHeader(title: ResultsFormat.armLabel(arm, labels: data.atlas.armLabels),
-                                subtitle: Format.fill(UIText.Atlas.cellSubtitle, [
-                                    "path": data.atlas.variantTitles[variant] ?? Format.label(variant),
-                                    "loss": data.atlas.lossTitles[loss] ?? ResultsFormat.notComputed,
-                                    "conditions": stratum.title
-                                ]))
+                                subtitle: ResultsFormat.cellSubtitle(
+                                    path: data.atlas.variantTitles[variant] ?? Format.label(variant),
+                                    loss: data.atlas.lossTitles[loss] ?? ResultsFormat.notComputed),
+                                detail: stratum.title)
                 if let help = ResultsFormat.armHelp(arm) {
                     Text(help)
                         .font(TypeScale.body)
@@ -152,7 +151,7 @@ private struct AtlasCellInspector: View {
             }
             VStack(alignment: .leading, spacing: Space.sm) {
                 tiles(entry)
-                Text(UIText.Atlas.intervalCaption)
+                Text(ResultsFormat.intervalCaption(entry, seeds: data.atlas.nSeeds))
                     .font(TypeScale.caption)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -256,6 +255,8 @@ private struct AtlasCellInspector: View {
 private struct InspectorHeader: View {
     let title: String
     let subtitle: String
+    /// An optional last line, such as the atlas conditions, kept whole on its own line.
+    var detail: String?
     @Environment(\.palette) private var palette
 
     var body: some View {
@@ -267,6 +268,12 @@ private struct InspectorHeader: View {
                 .font(TypeScale.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
+            if let detail {
+                Text(detail)
+                    .font(TypeScale.body)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)

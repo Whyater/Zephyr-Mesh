@@ -76,7 +76,7 @@ def source_block(
             "schema": schema, "git_revision": manifest["git_revision"], "git_tree_state": manifest["git_tree_state"]}
 
 
-def build_s6(
+def _build_s6(
     summary: dict[str, Any],
     summary_raw: bytes,
     manifest: dict[str, Any],
@@ -153,6 +153,13 @@ def build_s6(
         "findings": [{"text": f, "source": "README.md"} for f in README_FINDINGS], "series": series}
 
 
+def build_s6(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    try:
+        return _build_s6(*args, **kwargs)
+    except KeyError as exc:
+        raise ValueError(f"missing source key: {exc.args[0]}") from None
+
+
 def atlas_entry(entry: dict[str, Any]) -> dict[str, Any]:
     tol = entry["max_tolerated_delay_s"]
     if tol["fails_at_zero"]:
@@ -168,7 +175,7 @@ def atlas_entry(entry: dict[str, Any]) -> dict[str, Any]:
         "failure_mode": entry["failure_mode"], "improvement_vs_naive": entry["improvement_vs_naive"]}
 
 
-def build_atlas(
+def _build_atlas(
     atlas: dict[str, Any],
     atlas_raw: bytes,
     manifest: dict[str, Any],
@@ -198,14 +205,19 @@ def build_atlas(
     loss_titles = {}
     for condition in loss_conditions:
         model, prob = condition.split(":")
-        loss_titles[condition] = (
-            "No loss" if condition == "independent:0"
-            else f"{round(float(prob) * 100)} % {'random' if model == 'independent' else 'bursty'}"
-        )
+        if condition == "independent:0":
+            loss_titles[condition] = "No loss"
+        else:
+            pct = float(prob) * 100
+            if abs(pct - round(pct)) > 1e-9:
+                raise ValueError(f"loss probability {prob} does not produce a whole percent")
+            loss_titles[condition] = f"{round(pct)} % {'random' if model == 'independent' else 'bursty'}"
     delays = None
     for entry in entries:
         if entry["arm"] != "naive":
             current = [x["delay_s"] for x in entry["improvement_vs_naive"]]
+            if current != sorted(set(current)):
+                raise ValueError("atlas improvement delay lists must be sorted and unique")
             if delays is None:
                 delays = current
             elif current != delays:
@@ -276,6 +288,13 @@ def build_atlas(
         "findings": [finding], "strata": strata, "variant_titles": {v: variant_title(v) for v in VARIANT_ORDER},
         "arm_labels": {a: arm_label(a) for a in ARM_ORDER}, "loss_titles": loss_titles,
         "entries": ordered_entries, "cells": cells}
+
+
+def build_atlas(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    try:
+        return _build_atlas(*args, **kwargs)
+    except KeyError as exc:
+        raise ValueError(f"missing source key: {exc.args[0]}") from None
 
 
 def build_fixture() -> dict[str, Any]:
