@@ -81,3 +81,19 @@ def test_direct_relay_has_no_per_hop_delivery(tmp_path):
     log = json.loads(path.read_text(encoding="utf-8"))
     row = next(row for row in compare(log) if row["metric"] == "hop1_delivery")
     assert row["agrees"] is True
+
+
+def test_monitor_continuity_counts_no_estimate_as_a_gap(tmp_path):
+    # EXP-035 finding: before the first fix arrives the estimate age is
+    # infinite, which the log stores as null.  The first reader skipped those
+    # checks and reported continuity 1.0 against the mission's 0.990.
+    scenario = Scenario(mission="monitor", seed=1, duration_s=4.0, measurement_delay_s=0.2,
+                        params={"path": "crossing"})
+    result = run_mission(scenario, log=True)
+    path = tmp_path / "monitor.json"
+    write_log(path, result.log)
+    log = json.loads(path.read_text(encoding="utf-8"))
+    row = next(row for row in compare(log) if row["metric"] == "continuity")
+    assert row["exact"] is True
+    assert row["mission_value"] < 1.0
+    assert row["agrees"] is True

@@ -1,0 +1,10 @@
+{
+  "mission": "tag",
+  "seed": 1,
+  "duration_s": 20.0,
+  "adapter": "point_mass",
+  "preset": "clean",
+  "policy": {"degraded_after_s": 0.15, "land_after_s": 1.0},
+  "outages": [{"start_s": 10.0, "end_s": 12.0, "streams": null}],
+  "params": {"target_class": "turn", "mode": "hold"}
+}

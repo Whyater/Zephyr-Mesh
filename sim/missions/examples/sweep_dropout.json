@@ -1,0 +1,8 @@
+{
+  "mission": "sweep",
+  "seed": 1,
+  "duration_s": 120.0,
+  "adapter": "point_mass",
+  "preset": "iid_10",
+  "params": {"dropout": "one", "message_mode": "cumulative"}
+}

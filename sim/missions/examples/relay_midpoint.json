@@ -1,0 +1,7 @@
+{
+  "mission": "relay",
+  "seed": 1,
+  "duration_s": 20.0,
+  "adapter": "point_mass",
+  "params": {"distance_m": 900.0, "relay_fraction": 0.5}
+}

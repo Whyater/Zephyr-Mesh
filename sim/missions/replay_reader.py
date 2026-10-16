@@ -223,13 +223,18 @@ def _monitor(log: dict) -> dict[str, dict]:
     latency = float(alerts[0]["time_s"]) - entry if alerts and entry is not None else None
     age_values = []
     check_values = []
+    # Every observer's frame carries the same ground-station estimate age, so
+    # read it from one observer.  A null age means there is no estimate yet
+    # (the writer stores an infinite age as null): it counts as a gap.
+    with_ages = [series for _, series in sorted(agents.items()) if series.get("estimate_age_s") is not None]
+    ages = with_ages[0]["estimate_age_s"] if with_ages else []
     for i, time in enumerate(times):
-        if abs((float(time) * 10.0) - round(float(time) * 10.0)) <= 1e-6 and inside[i]:
-            for series in agents.values():
-                ages = series.get("estimate_age_s", [])
-                if i < len(ages) and ages[i] is not None:
-                    age_values.append(float(ages[i]))
-                    check_values.append(float(ages[i]) < 0.5)
+        if abs((float(time) * 10.0) - round(float(time) * 10.0)) <= 1e-6 and inside[i] and i < len(ages):
+            if ages[i] is None:
+                check_values.append(False)
+            else:
+                age_values.append(float(ages[i]))
+                check_values.append(float(ages[i]) < 0.5)
     posts = {"o1": np.array([5.0, 5.0, 12.0]), "o2": np.array([55.0, 35.0, 12.0])}
     displacements = []
     horizontal = []

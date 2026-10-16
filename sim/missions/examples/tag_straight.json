@@ -1,0 +1,9 @@
+{
+  "mission": "tag",
+  "seed": 1,
+  "duration_s": 30.0,
+  "adapter": "point_mass",
+  "preset": "clean",
+  "measurement_delay_s": 0.1,
+  "params": {"target_class": "straight", "arm": "recovery", "n_followers": 1}
+}
