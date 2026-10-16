@@ -22,6 +22,8 @@ import jsonschema
 import numpy as np
 from jsonschema.exceptions import best_match
 
+from sim.failsafe import FailsafeConfig
+
 _SCHEMA_PATH = Path(__file__).with_name("mission_log_schema.json")
 _SCHEMA = json.loads(_SCHEMA_PATH.read_text(encoding="utf-8"))
 _VALIDATOR = jsonschema.Draft202012Validator(_SCHEMA)
@@ -101,12 +103,15 @@ def _path(path_parts) -> str:
 
 
 def _check_json_ready(value: Any, where: str) -> None:
-    """Raise ValueError unless ``value`` is plain, finite JSON data."""
+    """Raise ValueError unless ``value`` is plain, finite JSON data.
+
+    ``where`` is the path of ``value``; the top-level object uses "".
+    """
     if value is None or isinstance(value, (bool, str, int)):
         return
     if isinstance(value, float):
         if not math.isfinite(value):
-            raise ValueError(f"{where}: non-finite number is not JSON-ready")
+            raise ValueError(f"{where or '$'}: non-finite number is not JSON-ready")
         return
     if isinstance(value, list):
         for index, item in enumerate(value):
@@ -115,25 +120,27 @@ def _check_json_ready(value: Any, where: str) -> None:
     if isinstance(value, dict):
         for key, item in value.items():
             if not isinstance(key, str):
-                raise ValueError(f"{where}: object keys must be strings, got {type(key).__name__}")
-            _check_json_ready(item, f"{where}.{key}")
+                raise ValueError(f"{where or '$'}: object keys must be strings, got {type(key).__name__}")
+            _check_json_ready(item, f"{where}.{key}" if where else key)
         return
-    raise ValueError(f"{where}: {type(value).__name__} is not JSON-ready")
+    raise ValueError(f"{where or '$'}: {type(value).__name__} is not JSON-ready")
 
 
 def validate_log(obj: dict) -> None:
     """Check a log against the schema and the rules a schema cannot state.
 
-    Raises ValueError that starts with the path of the first problem.
+    Raises ValueError that starts with the path of the first problem.  Every
+    number anywhere in the log must be finite.
     """
+    _check_json_ready(obj, "")
     error = best_match(_VALIDATOR.iter_errors(obj))
     if error is not None:
         raise ValueError(f"{_path(error.absolute_path)}: {error.message}")
 
-    _check_json_ready(obj["scenario"], "scenario")
-    _check_json_ready(obj["metrics"], "metrics")
-    for index, event in enumerate(obj["events"]):
-        _check_json_ready(event["detail"], f"events[{index}].detail")
+    try:
+        FailsafeConfig.from_dict(obj["policy"])
+    except Exception as exc:
+        raise ValueError(f"policy: {exc}") from exc
 
     if scenario_sha256(obj["scenario"]) != obj["scenario_sha256"]:
         raise ValueError("scenario_sha256: does not match scenario")
@@ -221,7 +228,10 @@ class MissionLogRecorder:
         self._events.append({"time_s": t, "kind": kind, "agent": agent, "detail": dict(detail or {})})
 
     def to_log(self, **header: Any) -> dict:
-        """Build the log from the recorded frames, the events and the header fields."""
+        """Build the log from the recorded frames, the events and the header fields.
+
+        The finished log is validated, so a bad header raises ValueError.
+        """
         targets = None if all(item is None for item in self._targets) else list(self._targets)
         series = {}
         for agent in self.agents:
@@ -238,4 +248,6 @@ class MissionLogRecorder:
             frames={"time_s": list(self._times), "target_position_m": targets, "agents": series},
             events=list(self._events),
         )
-        return build_log(**fields)
+        log = build_log(**fields)
+        validate_log(log)
+        return log

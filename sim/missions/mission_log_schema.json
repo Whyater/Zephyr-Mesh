@@ -33,16 +33,17 @@
     "mission": {
       "type": "string",
       "enum": [
-        "hover",
         "tag",
         "sweep",
         "relay",
         "monitor",
-        "formation"
+        "formation",
+        "failsafe",
+        "hover"
       ]
     },
     "scenario": {
-      "type": "object"
+      "$ref": "#/$defs/scenario"
     },
     "scenario_sha256": {
       "type": "string",
@@ -52,13 +53,7 @@
       "type": "string"
     },
     "adapter": {
-      "type": "string",
-      "enum": [
-        "point_mass",
-        "physics",
-        "point_mass_offboard",
-        "physics_offboard"
-      ]
+      "$ref": "#/$defs/adapter"
     },
     "preset": {
       "type": "string"
@@ -67,60 +62,7 @@
       "type": "integer"
     },
     "policy": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "degraded_action",
-        "degraded_after_s",
-        "land_after_s",
-        "loss_window_packets",
-        "low_battery_pct",
-        "slow_speed_mps",
-        "weak_loss_fraction",
-        "weak_rule"
-      ],
-      "properties": {
-        "degraded_action": {
-          "type": "string",
-          "enum": [
-            "hold",
-            "slow"
-          ]
-        },
-        "degraded_after_s": {
-          "type": "number",
-          "minimum": 0
-        },
-        "land_after_s": {
-          "type": "number",
-          "minimum": 0
-        },
-        "loss_window_packets": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "low_battery_pct": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 100
-        },
-        "slow_speed_mps": {
-          "type": "number",
-          "exclusiveMinimum": 0
-        },
-        "weak_loss_fraction": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
-        },
-        "weak_rule": {
-          "type": "string",
-          "enum": [
-            "age",
-            "age_or_loss"
-          ]
-        }
-      }
+      "$ref": "#/$defs/policy"
     },
     "limits": {
       "type": "array",
@@ -173,6 +115,9 @@
           "type": "object",
           "additionalProperties": {
             "$ref": "#/$defs/agent_series"
+          },
+          "propertyNames": {
+            "minLength": 1
           }
         }
       }
@@ -187,6 +132,9 @@
       "type": "object",
       "additionalProperties": {
         "$ref": "#/$defs/link_stat"
+      },
+      "propertyNames": {
+        "minLength": 1
       }
     },
     "metrics": {
@@ -198,6 +146,9 @@
           "string",
           "null"
         ]
+      },
+      "propertyNames": {
+        "minLength": 1
       }
     }
   },
@@ -315,7 +266,7 @@
           ]
         },
         "detail": {
-          "type": "object"
+          "$ref": "#/$defs/json_object"
         }
       }
     },
@@ -373,6 +324,217 @@
           "type": "null"
         }
       ]
+    },
+    "adapter": {
+      "type": "string",
+      "enum": [
+        "point_mass",
+        "physics",
+        "point_mass_offboard",
+        "physics_offboard"
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "degraded_action",
+        "degraded_after_s",
+        "land_after_s",
+        "loss_window_packets",
+        "low_battery_pct",
+        "slow_speed_mps",
+        "weak_loss_fraction",
+        "weak_rule"
+      ],
+      "properties": {
+        "degraded_action": {
+          "type": "string",
+          "enum": [
+            "hold",
+            "slow"
+          ]
+        },
+        "degraded_after_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "land_after_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "loss_window_packets": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "low_battery_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "slow_speed_mps": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "weak_loss_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "weak_rule": {
+          "type": "string",
+          "enum": [
+            "age",
+            "age_or_loss"
+          ]
+        }
+      }
+    },
+    "json_value": {
+      "type": [
+        "null",
+        "boolean",
+        "number",
+        "string",
+        "array",
+        "object"
+      ],
+      "items": {
+        "$ref": "#/$defs/json_value"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/json_value"
+      },
+      "propertyNames": {
+        "minLength": 1
+      }
+    },
+    "json_object": {
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/json_value"
+      }
+    },
+    "outage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_s"
+      ],
+      "properties": {
+        "start_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "end_s": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "streams": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter",
+        "command_delay_s",
+        "duration_s",
+        "measurement_delay_s",
+        "measurement_jitter_s",
+        "mission",
+        "outages",
+        "params",
+        "policy",
+        "preset",
+        "seed"
+      ],
+      "properties": {
+        "adapter": {
+          "$ref": "#/$defs/adapter"
+        },
+        "command_delay_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "duration_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "measurement_delay_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "measurement_jitter_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "mission": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/outage"
+          }
+        },
+        "params": {
+          "$ref": "#/$defs/json_object"
+        },
+        "policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "degraded_action": {
+              "$ref": "#/$defs/policy/properties/degraded_action"
+            },
+            "degraded_after_s": {
+              "$ref": "#/$defs/policy/properties/degraded_after_s"
+            },
+            "land_after_s": {
+              "$ref": "#/$defs/policy/properties/land_after_s"
+            },
+            "loss_window_packets": {
+              "$ref": "#/$defs/policy/properties/loss_window_packets"
+            },
+            "low_battery_pct": {
+              "$ref": "#/$defs/policy/properties/low_battery_pct"
+            },
+            "slow_speed_mps": {
+              "$ref": "#/$defs/policy/properties/slow_speed_mps"
+            },
+            "weak_loss_fraction": {
+              "$ref": "#/$defs/policy/properties/weak_loss_fraction"
+            },
+            "weak_rule": {
+              "$ref": "#/$defs/policy/properties/weak_rule"
+            }
+          }
+        },
+        "preset": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
     }
   }
 }

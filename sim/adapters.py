@@ -284,6 +284,10 @@ class DroneAdapter(ABC):
         return None
 
 
+# A body this close to the floor (or below it) counts as touching it.
+FLOOR_CONTACT_M = 1e-9
+
+
 def _limited(vector: np.ndarray, limit: float) -> np.ndarray:
     """Return ``vector`` scaled down so its length is at most ``limit``."""
     norm = float(np.linalg.norm(vector))
@@ -331,8 +335,12 @@ class SimulatedAdapterCore(DroneAdapter):
       for a degraded link (unless the policy says SLOW), LAND while landing,
       HOLD once landed, KILL after the kill switch.
     * Geofence breach latch: the first step whose TRUE position is outside
-      ``geofence.contains`` records one "geofence_breach" event and latches a
-      FAILSAFE-source HOLD.  The latch survives the vehicle coming back inside
+      ``geofence.contains`` (the box itself, faces inclusive; the margin only
+      shrinks the clip box) records one "geofence_breach" event and latches a
+      FAILSAFE-source HOLD.  The check runs on the position after the step's
+      motion, so the step that crosses a face already reports the breach and
+      the safety authority; it also runs before the motion, which catches a
+      vehicle that starts a step outside.  The latch survives the vehicle coming back inside
       and is released only by :meth:`reset_failsafe`.  A landing or kill
       switch request still outranks the latched hold.  While latched, no
       further breach events are recorded; a breach after a reset is a new
@@ -556,8 +564,12 @@ class SimulatedAdapterCore(DroneAdapter):
             self._event("failsafe_transition", decision.as_dict())
             if decision.state is FailsafeState.KILLED:
                 self._event("kill", {})
+                self._on_kill()
         self._sync_failsafe_authority(decision)
         return decision
+
+    def _on_kill(self) -> None:
+        """Called once when the kill switch latches; models with motors stop them here."""
 
     def _observe_failsafe(self, *, kill_requested: bool = False, recent_loss_fraction: float | None = None) -> FailsafeDecision:
         decision = self.failsafe.observe(
@@ -610,13 +622,26 @@ class SimulatedAdapterCore(DroneAdapter):
         """True simulated position used for geofence and floor checks."""
         raise NotImplementedError
 
-    def _check_geofence(self) -> None:
+    def _check_geofence(self) -> bool:
+        """Latch the breach hold if the true position is outside; True when it just latched."""
         if self._geofence is None or self._geofence_latched:
-            return
+            return False
         truth = self._truth_position()
         if not self._geofence.contains(truth):
             self._geofence_latched = True
             self._event("geofence_breach", {"position_m": truth.tolist()})
+            return True
+        return False
+
+    def _end_step(self) -> None:
+        """Check the geofence on the position this step's motion produced.
+
+        A breach found here publishes the latched hold at once, so the state
+        returned for the crossing step already shows the safety authority.
+        """
+        if self._check_geofence():
+            self._sync_failsafe_authority(self._last_failsafe)
+            self._record_authority(self.authority.select(self._time_s))
 
     def _begin_step(
         self,
@@ -629,8 +654,9 @@ class SimulatedAdapterCore(DroneAdapter):
     ) -> tuple[float, FailsafeDecision, AuthorityDecision]:
         """Advance the clock, evaluate safety, and select this step's command.
 
-        The geofence check runs before the authority selection, so a breach
-        hold and its "authority_change" event take effect in the same step.
+        The geofence check runs before the authority selection, so a vehicle
+        that starts the step outside is held in this same step.  Subclasses
+        call ``_end_step`` after their motion for the crossing check.
         """
         self._require_connected()
         dt = self._dt_s if dt_s is None else float(dt_s)
@@ -678,7 +704,9 @@ class SimAdapter(SimulatedAdapterCore):
     testing command ownership and recovery before a measured actuator model
     or hardware transport exists.  There is no gravity or ground contact
     model beyond a floor clamp, so a killed (motor-stopped) vehicle freezes
-    where it is rather than falling.
+    where it is rather than falling.  The floor does not let the vehicle
+    slide: a step that ends on the floor without climbing stops the vehicle,
+    and one that also started on the floor keeps its horizontal position.
     """
 
     def __init__(
@@ -750,8 +778,14 @@ class SimAdapter(SimulatedAdapterCore):
         The velocity request comes from the error between the goal and the
         ``sensed`` position; the TRUE position integrates the resulting
         velocity and is clamped to the floor.  With ``sensed`` equal to the
-        truth this is the original ``SimAdapter`` law.
+        truth this is the original ``SimAdapter`` law away from the floor.
+
+        Floor contact: if the step ends at or below the floor and the vehicle
+        is not climbing, it stops (full velocity zeroed).  If it was already
+        touching the floor when the step began, it also keeps its horizontal
+        position, so a vehicle on the floor never slides along it.
         """
+        start = self.position.copy()
         if command.kind is CommandKind.POSITION:
             assert command.position_m is not None
             desired = np.asarray(command.position_m, dtype=float)
@@ -771,6 +805,10 @@ class SimAdapter(SimulatedAdapterCore):
         if self.position[2] < self._ground_plane_z_m:
             self.position[2] = self._ground_plane_z_m
             self.velocity[2] = max(0.0, self.velocity[2])
+        if self.position[2] <= self._ground_plane_z_m + FLOOR_CONTACT_M and self.velocity[2] <= 0.0:
+            self.velocity[:] = 0.0
+            if start[2] <= self._ground_plane_z_m + FLOOR_CONTACT_M:
+                self.position[:2] = start[:2]
 
     def step(
         self,
@@ -796,7 +834,10 @@ class SimAdapter(SimulatedAdapterCore):
             speed_limit = self.capabilities.max_speed_mps
             if decision.action is FailsafeAction.SLOW:
                 speed_limit = min(speed_limit, self.failsafe.config.slow_speed_mps)
-            self._move_point_mass(command, sensed=self._sensed_position(), speed_limit=speed_limit, dt=dt)
+            # A landing is the vehicle's own failsafe: it steers from the
+            # vehicle's own state, never from a held offboard fix.
+            sensed = self.position if command.kind is CommandKind.LAND else self._sensed_position()
+            self._move_point_mass(command, sensed=sensed, speed_limit=speed_limit, dt=dt)
             # Touchdown is judged on the true position and velocity.
             if command.kind is CommandKind.LAND and (
                 self.position[2] <= self._ground_plane_z_m + 1e-9
@@ -810,6 +851,7 @@ class SimAdapter(SimulatedAdapterCore):
         # remains held.
         if decision.action is FailsafeAction.KILL:
             self.velocity[:] = 0.0
+        self._end_step()
         return self.get_state()
 
     def get_state(self) -> DroneState:
@@ -825,7 +867,9 @@ class OffboardPointMassAdapter(SimAdapter):
     :meth:`set_position_fix` (held between fixes; the initial position before
     the first fix).  The true position still integrates the commanded
     velocity, sits on the floor clamp, and is what geofence checks, touchdown
-    detection and ``get_state()`` use.
+    detection and ``get_state()`` use.  A LAND failsafe steers from the true
+    state: the landing is the vehicle's own, and the fixes usually stop for
+    the same reason the landing started.
     """
 
     def __init__(self, adapter_id: str, **kwargs: Any) -> None:

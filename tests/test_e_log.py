@@ -10,6 +10,7 @@ import pytest
 from platform_compare import same_tree
 
 from sim.failsafe import FailsafeConfig
+from sim.missions.api import Scenario
 from sim.missions.log import (
     MissionLogRecorder,
     build_log,
@@ -24,6 +25,12 @@ from sim.missions.log import (
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / "sim" / "missions" / "mission_log_example.json"
 SCHEMA = ROOT / "sim" / "missions" / "mission_log_schema.json"
+HOVER_SCENARIO = ROOT / "sim" / "missions" / "examples" / "hover.json"
+
+
+def real_scenario(**changes):
+    """A scenario dictionary in the exact shape Scenario.as_dict() writes."""
+    return Scenario.load(HOVER_SCENARIO).replace(**changes).as_dict()
 
 
 def make_log(**overrides):
@@ -43,7 +50,7 @@ def make_log(**overrides):
     }
     fields = dict(
         mission="tag",
-        scenario={"x": 1},
+        scenario=real_scenario(),
         code_revision="test",
         adapter="point_mass",
         preset="clean",
@@ -114,8 +121,9 @@ def test_policy_rejects_unknown_missing_and_bad_values():
 
 # Issue 10: round the scenario first, then hash it.
 def test_build_log_hashes_the_rounded_scenario():
-    log = make_log(scenario={"gain": 0.123456789, "rate": [1.00000049, 2]})
-    assert log["scenario"] == {"gain": 0.123457, "rate": [1.0, 2]}
+    params = {"gain": 0.123456789, "rate": [1.00000049, 2]}
+    log = make_log(scenario=real_scenario(params=params))
+    assert log["scenario"]["params"] == {"gain": 0.123457, "rate": [1.0, 2]}
     assert log["scenario_sha256"] == scenario_sha256(log["scenario"])
     validate_log(log)
 
@@ -169,7 +177,7 @@ def test_recorder_output_validates_without_estimates():
     for i in range(11):
         recorder.frame(i, i * 0.01, None, {"a": per_agent_frame(), "b": per_agent_frame()})
     log = recorder.to_log(
-        mission="hover", scenario={}, code_revision="x", adapter="point_mass", preset="clean",
+        mission="hover", scenario=real_scenario(), code_revision="x", adapter="point_mass", preset="clean",
         seed=1, policy=FailsafeConfig().as_dict(), limits=[], link_stats={}, metrics={})
     validate_log(log)
     assert log["agents"] == ["a", "b"]
@@ -190,7 +198,7 @@ def test_recorder_keeps_partial_estimates_and_events():
     recorder.event(0.05, "replan", "a", {"gain": np.float64(0.5), "ids": (1, 2)})
     recorder.event(0.1, "mission_end", None)
     log = recorder.to_log(
-        mission="sweep", scenario={}, code_revision="x", adapter="physics", preset="clean",
+        mission="sweep", scenario=real_scenario(), code_revision="x", adapter="physics", preset="clean",
         seed=2, policy=FailsafeConfig().as_dict(), limits=[], link_stats={}, metrics={})
     validate_log(log)
     assert log["frames"]["time_s"] == [0, 0.05, 0.1]
@@ -208,10 +216,11 @@ def test_partial_build_log_for_events_only():
 
 
 def test_mission_enum():
-    for mission in ["hover", "tag", "sweep", "relay", "monitor", "formation"]:
+    for mission in ["tag", "sweep", "relay", "monitor", "formation", "failsafe", "hover"]:
         validate_log(make_log(mission=mission))
-    with pytest.raises(ValueError, match="mission"):
-        validate_log(make_log(mission="failsafe"))
+    for bad in ["failsafe_hold", "Tag", ""]:
+        with pytest.raises(ValueError, match="mission"):
+            validate_log(make_log(mission=bad))
 
 
 def test_estimate_and_target_columns_accept_null_entries():
@@ -308,3 +317,105 @@ def test_validate_does_not_change_input():
     before = copy.deepcopy(log)
     validate_log(log)
     assert log == before
+
+
+# Validation gaps: non-finite numbers anywhere, bad policy, recorder output.
+@pytest.mark.parametrize("path", [
+    ("policy", "low_battery_pct"),
+    ("frames", "time_s", 1),
+    ("frames", "agents", "a0", "position_m", 1, 0),
+    ("frames", "agents", "a1", "link_age_s", 2),
+    ("dt_s",),
+])
+def test_non_finite_numbers_rejected_anywhere(path):
+    for bad in (float("nan"), math.inf):
+        log = make_log()  # built by hand below: round_floats would turn these into null
+        node = log
+        for key in path[:-1]:
+            node = node[key]
+        node[path[-1]] = bad
+        with pytest.raises(ValueError, match="non-finite"):
+            validate_log(log)
+
+
+def test_policy_with_land_before_degraded_rejected():
+    policy = {**FailsafeConfig().as_dict(), "degraded_after_s": 0.5, "land_after_s": 0.1}
+    with pytest.raises(ValueError, match="^policy: "):
+        validate_log(make_log(policy=policy))
+
+
+def test_recorder_validates_what_it_returns():
+    recorder = MissionLogRecorder(["a"], 0.01, 1)
+    recorder.frame(0, 0.0, None, {"a": per_agent_frame()})
+    header = dict(
+        mission="hover", scenario=real_scenario(), code_revision="x", adapter="point_mass",
+        preset="clean", seed=1, policy=FailsafeConfig().as_dict(), limits=[], link_stats={},
+        metrics={})
+    validate_log(recorder.to_log(**header))
+    with pytest.raises(ValueError, match="adapter"):
+        recorder.to_log(**{**header, "adapter": "bogus"})
+    with pytest.raises(ValueError, match="scenario"):
+        recorder.to_log(**{**header, "scenario": {"x": 1}})
+
+
+# Closed scenario block.
+def test_scenario_from_api_round_trips_with_outages_and_policy():
+    scenario = real_scenario(
+        outages=[{"start_s": 1.0, "end_s": None, "streams": None},
+                 {"start_s": 2.0, "end_s": 3.5, "streams": ["cmd:a0", "tel:a0"]}],
+        policy={"land_after_s": 0.5, "degraded_action": "slow"},
+        params={"start_m": [2.0, 2.0, 1.5], "note": None, "nested": {"k": [1, "two", True]}},
+        measurement_delay_s=0.0123456789)
+    log = make_log(scenario=scenario)
+    validate_log(log)
+    assert log["scenario"]["outages"][1]["streams"] == ["cmd:a0", "tel:a0"]
+    assert log["scenario"]["measurement_delay_s"] == 0.012346
+
+
+def test_scenario_rejects_unknown_missing_and_mistyped_keys():
+    good = real_scenario()
+    for scenario in [
+        {**good, "extra": 1},
+        {key: value for key, value in good.items() if key != "preset"},
+        {**good, "seed": "one"},
+        {**good, "seed": -1},
+        {**good, "adapter": "bogus"},
+        {**good, "duration_s": 0},
+        {**good, "command_delay_s": -0.1},
+        {**good, "outages": {}},
+    ]:
+        with pytest.raises(ValueError, match="scenario"):
+            validate_log(make_log(scenario=scenario))
+
+
+def test_scenario_outage_is_closed():
+    for outage in [
+        {"start_s": 1.0, "end_s": None, "streams": None, "extra": 1},
+        {"end_s": 2.0, "streams": None},
+        {"start_s": -1.0, "end_s": None, "streams": None},
+        {"start_s": 1.0, "end_s": "later", "streams": None},
+        {"start_s": 1.0, "end_s": None, "streams": [1]},
+    ]:
+        with pytest.raises(ValueError, match="scenario.outages"):
+            validate_log(make_log(scenario={**real_scenario(), "outages": [outage]}))
+
+
+def test_scenario_policy_is_a_closed_partial_override():
+    validate_log(make_log(scenario=real_scenario(policy={})))
+    validate_log(make_log(scenario=real_scenario(policy={"weak_rule": "age_or_loss"})))
+    for policy in [{"extra": 1}, {"degraded_action": "land"}, {"loss_window_packets": 0},
+                   {"slow_speed_mps": "fast"}, {"low_battery_pct": 101}]:
+        with pytest.raises(ValueError, match="scenario.policy"):
+            validate_log(make_log(scenario={**real_scenario(), "policy": policy}))
+
+
+def test_dynamic_objects_reject_empty_keys_but_allow_any_json():
+    with pytest.raises(ValueError, match="scenario.params"):
+        validate_log(make_log(scenario=real_scenario(params={"": 1})))
+    with pytest.raises(ValueError, match="detail"):
+        validate_log(make_log(events=[{"time_s": 0, "kind": "replan", "agent": None, "detail": {"": 1}}]))
+    with pytest.raises(ValueError, match="metrics"):
+        validate_log(make_log(metrics={"": 1}))
+    with pytest.raises(ValueError, match="link_stats"):
+        validate_log(make_log(link_stats={"": {"sent": 0, "delivered": 0, "lost_loss": 0, "lost_outage": 0}}))
+    validate_log(make_log(metrics={"end_reason": "timeout", "ok": True, "x": None, "y": 1.5}))
