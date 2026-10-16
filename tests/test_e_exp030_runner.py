@@ -3,8 +3,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from tools.e_exp030_tag import (PREDICTION_CORRECTION_2, PREDICTION_TEXT, build_jobs, main)
+import pytest
+
+from tools.e_exp030_tag import (PREDICTION_CORRECTION_2, PREDICTION_SOURCE, PREDICTION_TEXT,
+                                build_jobs, main)
 from tests.platform_compare import same_tree
+from tests.reference_e.hand_checks import tail_follow_time_s
 
 
 def test_grid_builder_counts_and_named_cells():
@@ -18,27 +22,42 @@ def test_grid_builder_counts_and_named_cells():
     assert len(build_jobs(pilot=True)) == 26
 
 
-def test_pilot_outputs_are_deterministic(tmp_path: Path):
-    first, second = tmp_path / "first", tmp_path / "second"
+@pytest.fixture(scope="module")
+def pilot_dirs(tmp_path_factory):
+    base = tmp_path_factory.mktemp("exp030")
+    first, second = base / "first", base / "second"
     main(["--output", str(first), "--pilot", "--processes", "1"])
     main(["--output", str(second), "--pilot", "--processes", "1"])
-    expected = {"tag.csv", "summary.json", "tag_success_delay.png", "tag_success_default_calm.png", "manifest.json"}
+    return first, second
+
+
+def test_pilot_outputs_are_deterministic(pilot_dirs):
+    first, second = pilot_dirs
+    # The pilot has no calm slice, so the default versus calm figure is not drawn.
+    expected = {"tag.csv", "summary.json", "tag_success_delay.png", "manifest.json"}
     assert {p.name for p in first.iterdir()} == expected
     assert (first / "tag.csv").read_bytes() == (second / "tag.csv").read_bytes()
     left = json.loads((first / "summary.json").read_text(encoding="utf-8"))
     right = json.loads((second / "summary.json").read_text(encoding="utf-8"))
     assert same_tree(left, right)
     assert left["pilot"] is True
-    assert left["hand_check"]["observed_median_zone_entry_s"] == "not a metric"
+    assert left["figures_not_drawn"][0]["file"] == "tag_success_default_calm.png"
     assert left["prediction"] == PREDICTION_TEXT
+    assert left["prediction_source"] == PREDICTION_SOURCE
     assert left["prediction_correction_2"] == PREDICTION_CORRECTION_2
+    assert "prediction:" not in PREDICTION_TEXT[:40]
+    assert left["grid_counts"] == {"main": 20000, "calm": 2000, "followers": 2400, "physics": 320}
+    assert left["missing_metrics"]
 
 
-def test_prediction_constants_match_prereg():
-    prereg = Path("/Users/akashi0281/.zm-worktrees/run-e-briefs/prereg.md")
-    if not prereg.exists():
-        import pytest
-        pytest.skip("prereg is outside the repository")
-    text = prereg.read_text(encoding="utf-8")
-    assert PREDICTION_TEXT in text
-    assert PREDICTION_CORRECTION_2 in text
+def test_hand_check_band_comes_from_reference_function(pilot_dirs):
+    # Zone entry (4 - 1) / (1.5 - 0.5) = 3.0 s; the pre-registered entry band is 3.0 to 3.6 s, plus the 2.0 s hold.
+    zone_entry = tail_follow_time_s(4.0, 1.0, 1.5, 0.5)
+    summary = json.loads((pilot_dirs[0] / "summary.json").read_text(encoding="utf-8"))
+    hand = summary["hand_check"]
+    assert hand["zone_entry_reference_s"] == zone_entry
+    assert hand["predicted_time_to_tag_band_s"] == [zone_entry + 0.0 + 2.0, zone_entry + 0.6 + 2.0]
+    median = hand["observed_time_to_tag_s"]["median"]
+    assert hand["inside_predicted_band"] == (median is not None and
+                                              hand["predicted_time_to_tag_band_s"][0] <= median
+                                              <= hand["predicted_time_to_tag_band_s"][1])

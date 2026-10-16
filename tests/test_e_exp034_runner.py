@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+import math
 
-from tools.e_exp034_formation import PREDICTION_TEXT, build_jobs, main
+from tools.e_exp034_formation import PREDICTION_SOURCE, PREDICTION_TEXT, build_jobs, main
 from tests.reference_e.hand_checks import first_order_loop_jitter_std
 
 
@@ -26,12 +26,12 @@ def test_tiny_run_is_reproducible(tmp_path, monkeypatch) -> None:
     tiny = [
         {"labels": {"slice": "tiny", "sigma_m": 0.02, "fix_latency_s": 0.0,
                      "preset": "clean", "adapter": "point_mass_offboard", "seed_index": 0},
-         "scenario": {"mission": "formation", "seed": 1, "duration_s": 5.0,
+         "scenario": {"mission": "formation", "seed": 1, "duration_s": 6.0,
                        "adapter": "point_mass_offboard", "preset": "clean",
                        "params": {"fix_rate_hz": 30.0, "fix_noise_std_m": 0.02, "fix_latency_s": 0.0}}},
         {"labels": {"slice": "tiny", "sigma_m": 0.10, "fix_latency_s": 0.2,
                      "preset": "clean", "adapter": "point_mass_offboard", "seed_index": 1},
-         "scenario": {"mission": "formation", "seed": 2, "duration_s": 5.0,
+         "scenario": {"mission": "formation", "seed": 2, "duration_s": 6.0,
                        "adapter": "point_mass_offboard", "preset": "clean",
                        "params": {"fix_rate_hz": 30.0, "fix_noise_std_m": 0.10, "fix_latency_s": 0.2}}},
     ]
@@ -49,18 +49,23 @@ def test_tiny_run_is_reproducible(tmp_path, monkeypatch) -> None:
     hand = summary["hand_check"]["zero_latency_clean"]
     assert hand
     assert all("observed_to_reference_rms" in entry and "observed_to_reference" in entry and "within_10_percent" in entry for entry in hand)
-    assert any(entry["adapter"] == "point_mass_offboard" and entry["sigma_m"] == 0.02 for entry in hand)
+    entry = next(e for e in hand if e["adapter"] == "point_mass_offboard" and e["sigma_m"] == 0.02)
+    # Independent reference: 3 axes of first-order loop jitter at sigma 0.02 m, 30 Hz fixes, tau 0.25 s.
+    expected_rms = math.sqrt(3.0) * first_order_loop_jitter_std(0.02, 1.0 / 30.0, 0.25)
+    assert math.isclose(entry["reference_rms_error_m"], expected_rms, rel_tol=1e-12)
+    for field in ("observed_to_reference", "observed_to_reference_rms"):
+        assert math.isfinite(entry[field])
+    assert "observed_to_reference_per_axis" not in entry
+    assert summary["prediction"] == PREDICTION_TEXT
+    assert "prediction:" not in PREDICTION_TEXT[:40]
+    assert summary["prediction_source"] == PREDICTION_SOURCE
+    assert "sqrt(2) x 30 x sigma at 30 Hz" in " ".join(summary["notes"])
+    assert summary["deviations"] == []
 
 
-def test_prediction_matches_preregistration_when_present() -> None:
-    prereg = Path("/Users/akashi0281/.zm-worktrees/run-e-briefs/prereg.md")
-    if not prereg.exists():
-        return
-    text = prereg.read_text(encoding="utf-8")
-    expected = (
-        "Claude's prediction: point mass at zero latency matches the hand formula within 10 %; latency up to 0.2 s raises the error by under 30 % "
-        "(the first-order loop with delay stays stable below about (pi/2) tau = 0.39 s, but the margin shrinks); physics adapter errors larger than the point mass at the same sigma "
-        "(PD loop with lower damping passes more noise) and grows faster with latency (Run A: position feedback edge 0.33 s). Separation never near 0.5 m (slots 2 m apart, errors of centimetres)."
-    )
-    assert PREDICTION_TEXT == expected
-    assert PREDICTION_TEXT in text
+def test_pilot_summary_lists_the_shortened_runs() -> None:
+    from tools.e_exp034_formation import summarize
+
+    pilot = summarize([], pilot=True)
+    assert any("10 s" in text for text in pilot["deviations"])
+    assert summarize([], pilot=False)["deviations"] == []

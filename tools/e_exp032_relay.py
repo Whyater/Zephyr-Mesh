@@ -36,7 +36,8 @@ PILOT_SEEDS = 3
 PHYSICS_DISTANCES = (500.0, 900.0)
 PHYSICS_FRACTIONS = (None, 0.5)
 
-PREDICTION_TEXT = ("Claude's prediction: d_max with 0 dB margin is about 600 to 700 m (Run C: d90 409 m, "
+PREDICTION_SOURCE = "pre-registered before the runs (EXP-032 section of the private pre-registration)"
+PREDICTION_TEXT = ("d_max with 0 dB margin is about 600 to 700 m (Run C: d90 409 m, "
                    "d10 746 m for the stress corner); direct delivery near 100 % at 300 m, near 0 beyond "
                    "about 900 m; f = 0.5 keeps delivery above 99 % to about 1100 m; asymmetric relays "
                    "(0.25, 0.75) fail first on the long hop. Latency roughly doubles with the relay (two hops, "
@@ -96,6 +97,29 @@ def _cell_summary(rows: list[dict]) -> dict:
     }
 
 
+def _values_equal(left, right) -> bool:
+    """Equality for metric values where two missing numbers (NaN) count as equal."""
+    if isinstance(left, float) and isinstance(right, float) and left != left and right != right:
+        return True
+    return left == right
+
+
+def physics_matches_point_mass(cell_rows: list[dict], all_rows: list[dict]) -> bool:
+    """True when every physics row equals the point-mass row of the same D, f and seed on every metric."""
+    label_keys = {"adapter", "distance_m", "relay_fraction", "seed"}
+    point_by_key = {(r["distance_m"], r["relay_fraction"], r["seed"]): r
+                    for r in all_rows if r["adapter"] == "point_mass"}
+    for row in cell_rows:
+        partner = point_by_key.get((row["distance_m"], row["relay_fraction"], row["seed"]))
+        if partner is None:
+            return False
+        metric_keys = set(row) | set(partner)
+        for key in sorted(metric_keys - label_keys):
+            if key not in row or key not in partner or not _values_equal(row[key], partner[key]):
+                return False
+    return True
+
+
 def _interpolated_crossing(cell_values: dict[float, float]) -> float | None:
     ordered = sorted(cell_values.items())
     for (d0, v0), (d1, v1) in zip(ordered, ordered[1:]):
@@ -146,6 +170,7 @@ def _make_figures(output: Path, rows: list[dict]) -> None:
 def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None = None,
                    duration_s: float = 60.0, seed_count: int | None = None,
                    argv: list[str] | None = None) -> dict:
+    output_arg = output
     output = prepare_output(Path(output))
     jobs, seeds = build_jobs(pilot=pilot, duration_s=duration_s, seed_count=seed_count)
     nproc = processes(n_processes)
@@ -156,7 +181,10 @@ def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None
                first_columns=("adapter", "distance_m", "relay_fraction", "seed"))
     cells = {}
     for key, cell_rows in group_rows(rows, ("adapter", "distance_m", "relay_fraction")).items():
-        cells["|".join(str(v) for v in key)] = _cell_summary(cell_rows)
+        cell = _cell_summary(cell_rows)
+        if key[0] == "physics":
+            cell["physics_matches_point_mass"] = physics_matches_point_mass(cell_rows, rows)
+        cells["|".join(str(v) for v in key)] = cell
     breakpoint_m = 4.0 * 1.5 * 1.5 / (299_792_458.0 / 2.437e9)
     reference = max_range_dual_slope_m(19.5 - 6.0, -98.0, 40.2, 2.0, breakpoint_m, 4.0, 0.0)
     direct = {float(d): float(np.mean([r["delivery_ratio"] for r in rows
@@ -193,18 +221,27 @@ def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None
                         "direct_50_percent_crossing_m_interpolation": _interpolated_crossing(direct),
                         "relay_f_0_5_50_percent_crossing_m_interpolation": _interpolated_crossing(midpoint)},
         "prediction": PREDICTION_TEXT,
+        "prediction_source": PREDICTION_SOURCE,
         "prediction_correction_3": PREDICTION_CORRECTION_3,
         "prediction_observed": {"text": PREDICTION_CORRECTION_3,
                        "observed_direct": direct, "observed_f_0_5": midpoint},
-        "physics_geometry_note": "Physics rows can only differ from point mass through the vehicle positions, because the radio geometry is fixed by D and f.",
+        "physics_geometry_note": ("Physics rows equal point-mass rows by construction: path loss uses the fixed "
+                                  "commanded positions (sim/missions/relay.py limits), so the physics adapter "
+                                  "only changes the vehicles, not the radio geometry."),
         "missing_metrics": ["retries_mean: RadioMissionLink does not expose per-packet retry counts; mission returns null."],
         "deviations": deviations,
     }
     write_json(output / "summary.json", summary)
     _make_figures(output, rows)
-    actual_argv = [] if argv is None else list(argv)
+    if argv is None:
+        # Called from code: there is no command line, so record none and name a replay command.
+        actual_argv = []
+        replay_argv = ["--output", str(output_arg)] + (["--pilot"] if pilot else [])
+    else:
+        actual_argv = list(argv)
+        replay_argv = actual_argv
     write_manifest(output, schema="zephyr-exp032-runner-1", argv=actual_argv,
-                   command=replay_command("tools/e_exp032_relay.py", actual_argv), config=summary["grid"],
+                   command=replay_command("tools/e_exp032_relay.py", replay_argv), config=summary["grid"],
                    seeds=seeds, outputs=["relay.csv", "summary.json", "delivery_vs_distance.png", "latency_vs_distance.png"],
                    limits=list(MISSION_LIMITS), n_processes=nproc, runtime_s=runtime,
                    hashed_sources=list(MISSION_SOURCES) + ["sim/missions/relay.py", "tools/e_exp032_relay.py"])

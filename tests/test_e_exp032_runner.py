@@ -2,12 +2,9 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
-import pytest
-
-from tools.e_exp032_relay import (PREDICTION_CORRECTION_3, PREDICTION_TEXT,
-                                  build_jobs, run_experiment)
+from tools.e_exp032_relay import (PREDICTION_CORRECTION_3, PREDICTION_SOURCE, PREDICTION_TEXT,
+                                  build_jobs, physics_matches_point_mass, run_experiment)
 from tests.reference_e.hand_checks import max_range_dual_slope_m
 
 
@@ -40,12 +37,28 @@ def test_tiny_run_writes_byte_stable_outputs(tmp_path):
     assert summary["hand_check"]["reference_median_signal_range_m"] > 500.0
     assert (tmp_path / "one" / "delivery_vs_distance.png").exists()
     assert (tmp_path / "one" / "latency_vs_distance.png").exists()
+    assert summary["prediction"] == PREDICTION_TEXT
+    assert "prediction:" not in PREDICTION_TEXT[:40]
+    assert summary["prediction_source"] == PREDICTION_SOURCE
+    assert summary["prediction_correction_3"] == PREDICTION_CORRECTION_3
+    assert summary["physics_geometry_note"].startswith("Physics rows equal point-mass rows by construction")
+    physics_cells = [cell for key, cell in summary["cells"].items() if key.startswith("physics|")]
+    assert physics_cells
+    assert all(isinstance(cell["physics_matches_point_mass"], bool) for cell in physics_cells)
+    point_cells = [cell for key, cell in summary["cells"].items() if key.startswith("point_mass|")]
+    assert all("physics_matches_point_mass" not in cell for cell in point_cells)
+    # Called from code: no command line is recorded, but the replay command still names --output.
+    manifest = json.loads((tmp_path / "one" / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["argv"] == []
+    assert "--output" in manifest["replay_command"]
 
 
-def test_prediction_constants_match_preregistration():
-    prereg = Path("/Users/akashi0281/.zm-worktrees/run-e-briefs/prereg.md")
-    if not prereg.exists():
-        pytest.skip("prereg.md is outside the repository and is unavailable")
-    text = prereg.read_text(encoding="utf-8")
-    assert PREDICTION_TEXT in text
-    assert PREDICTION_CORRECTION_3 in text
+def test_physics_match_flag_compares_every_metric():
+    point = {"adapter": "point_mass", "distance_m": 900.0, "relay_fraction": 0.5, "seed": 7,
+             "delivery_ratio": 0.9, "median_latency_s": None, "p95_latency_s": float("nan")}
+    same = dict(point, adapter="physics")
+    assert physics_matches_point_mass([same], [point, same])
+    different = dict(same, delivery_ratio=0.8)
+    assert not physics_matches_point_mass([different], [point, different])
+    other_seed = dict(same, seed=8)
+    assert not physics_matches_point_mass([other_seed], [point, other_seed])

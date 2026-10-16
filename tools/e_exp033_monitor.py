@@ -50,8 +50,9 @@ DURATION_S = 20.0
 FIX_PERIOD_S = 0.1
 DEBOUNCE_K = 3
 SAFETY_LIMIT_M = 0.5
+PREDICTION_SOURCE = "pre-registered before the runs (EXP-033 section of the private pre-registration)"
 PREDICTION = (
-    "Claude's prediction: clean: latency about 0.25 to 0.4 s, no misses; "
+    "clean: latency about 0.25 to 0.4 s, no misses; "
     "skimming at 2 m outside with 0.5 m noise (fused about 0.35 m) gives a few "
     "percent false alerts at most (3 consecutive needed). Loss raises latency by "
     "about the mean gap; bursts raise it by about the burst length (0.5 s) and "
@@ -148,11 +149,13 @@ def _summary(rows: list[dict], *, pilot: bool) -> dict:
         "design_choices": [
             "20 s mission duration: The unknown drone flies at 3 m/s across the 60 m venue, so 20 s covers the whole crossing and skimming pass (zone edge at x = 20 to 40 m, t = 6.7 to 13.3 s) and about 6.7 s of the loiter circle (it starts circling at 11.3 s).",
             "The preregistration gives no duration, so 20 s is recorded as a runner design choice.",
+            "Mission change before any full run (prereg Addendum D): an estimate older than 1.0 s cannot raise or hold an alert.",
         ],
         "hand_check": {"formula": "(k - 0.5) * 0.1 + delay + estimator_lag (lag taken as 0)", "k": DEBOUNCE_K,
                         "expected_by_delay_s": [{"delay_s": d, "value_s": alert_latency_s(detection_s, d, 0.0)} for d in DELAYS],
                         "observed_clean_crossing": observed},
         "prediction": PREDICTION,
+        "prediction_source": PREDICTION_SOURCE,
         "safety_check": {"limit_m": SAFETY_LIMIT_M,
                          "quantity": "maximum horizontal distance of any observer from its post, over every run",
                          "maximum_observer_horizontal_displacement_m": safety_max,
@@ -162,7 +165,10 @@ def _summary(rows: list[dict], *, pilot: bool) -> dict:
                          "note": ("A lost-link failsafe landing is straight down; it shows in observer_max_displacement_m "
                                   "and runs_with_observer_landing, and a landing observer stops sending fixes.")},
         "continuity_note": ("Continuity counts checks with estimate age under 0.5 s. At 0.5 s measurement delay it is near zero by definition; this is a property of the pre-registered metric."),
-        "deviations": [],
+        "deviations": [
+            "Observer post check uses horizontal displacement (< 0.5 m), not 3-D displacement, because a failsafe landing "
+            "drops 12 m straight down; 3-D displacement and runs with an observer landing are reported per cell.",
+        ],
         "missing_metrics": [],
         "limits": list(MISSION_LIMITS + COMMON_LIMITS),
     }
@@ -219,6 +225,7 @@ def _figures(output: Path, rows: list[dict]) -> list[str]:
 
 def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None = None,
                    jobs: list[dict] | None = None, argv: list[str] | None = None) -> dict:
+    output_arg = output
     output = prepare_output(Path(output))
     start = time.perf_counter()
     run_list = build_jobs(pilot=pilot) if jobs is None else list(jobs)
@@ -229,9 +236,15 @@ def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None
     figures = _figures(output, rows)
     outputs = ["exp033.csv", "summary.json", *figures]
     elapsed = time.perf_counter() - start
-    manifest_argv = argv_or_default(argv)
+    if argv is None:
+        # Called from code: there is no command line, so record none and name a replay command.
+        manifest_argv = []
+        replay_argv = ["--output", str(output_arg)] + (["--pilot"] if pilot else [])
+    else:
+        manifest_argv = list(argv)
+        replay_argv = manifest_argv
     write_manifest(output, schema="zephyr-exp033-1", argv=manifest_argv,
-                   command=replay_command("tools/e_exp033_monitor.py", manifest_argv),
+                   command=replay_command("tools/e_exp033_monitor.py", replay_argv),
                    config={"pilot": pilot, "duration_s": DURATION_S},
                    seeds=seeds_for(33, 3 if pilot else 50), outputs=outputs,
                    limits=list(MISSION_LIMITS), runtime_s=elapsed,

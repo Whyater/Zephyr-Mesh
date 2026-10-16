@@ -12,6 +12,7 @@ import argparse
 import os
 import tempfile
 import time
+from collections import Counter
 from pathlib import Path
 
 os.environ.setdefault("MPLCONFIGDIR", str(Path(tempfile.gettempdir()) / "zephyr-mplconfig"))
@@ -22,6 +23,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from sim.missions.api import Scenario
+from tests.reference_e.hand_checks import tail_follow_time_s
 from tools.c_common import argv_or_default, prepare_output, write_json, write_manifest
 from tools.e_common import (MISSION_LIMITS, MISSION_SOURCES, apply_mission_style, group_rows,
                              make_job, median_summary, processes, rate_summary, replay_command,
@@ -33,7 +35,18 @@ DELAYS = (0.0, 0.1, 0.2, 0.3, 0.5)
 PRESETS = ("clean", "iid_10", "iid_30", "burst_10_0.5s", "burst_30_0.5s")
 ARMS = ("naive", "recovery", "ct", "imm")
 SEEDS = seeds_for(EXP_NUMBER, 50)
-PREDICTION_TEXT = ("Claude's prediction: clean: straight and turn about 100 %, figure eight about 100 %, "
+# Hand check inputs, all from the pre-registration for EXP-030: initial gap 4 m,
+# zone radius 1.0 m, follower limit 1.5 m/s, target 0.5 m/s, and a continuous
+# 2.0 s hold inside the zone.  The pre-registration states the zone-entry band
+# as 3.0 to 3.6 s (3.0 s plus the speed ramp), so the ramp allowance is 0.6 s.
+HAND_GAP_M = 4.0
+HAND_ZONE_RADIUS_M = 1.0
+HAND_FOLLOWER_SPEED_MPS = 1.5
+HAND_TARGET_SPEED_MPS = 0.5
+HAND_SPEED_RAMP_S = 0.6
+HAND_HOLD_S = 2.0
+PREDICTION_SOURCE = "pre-registered before the runs (EXP-030 section of the private pre-registration)"
+PREDICTION_TEXT = ("clean: straight and turn about 100 %, figure eight about 100 %, "
                    "jinking 85 to 100 %. Delay up to 0.3 s barely matters at 0.5 m/s (lag v*d = 0.15 m "
                    "is inside the 0.5 m wide zone ring) for recovery; naive loses a little on jinking at "
                    "0.5 s. iid_10: still high (default T = 0.3 s at 20 Hz fires about 0.07 times per hour "
@@ -127,6 +140,28 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
     return jobs
 
 
+def hand_check_band() -> dict:
+    """Predicted time to tag for a straight target, no delay, clean radio.
+
+    The zone entry reference comes from the reference module; the band adds
+    the 2.0 s hold, and the upper end also adds the speed ramp.
+    """
+    zone_entry_s = tail_follow_time_s(HAND_GAP_M, HAND_ZONE_RADIUS_M,
+                                      HAND_FOLLOWER_SPEED_MPS, HAND_TARGET_SPEED_MPS)
+    return {"zone_entry_reference_s": zone_entry_s,
+            "band_s": [zone_entry_s + 0.0 + HAND_HOLD_S,
+                       zone_entry_s + HAND_SPEED_RAMP_S + HAND_HOLD_S]}
+
+
+def _calm_slice_present(rows: list[dict]) -> bool:
+    return any(row["slice"] == "calm" for row in rows)
+
+
+def _grid_counts() -> dict:
+    counts = Counter(job["labels"]["slice"] for job in build_jobs())
+    return {name: counts[name] for name in ("main", "calm", "followers", "physics")}
+
+
 def _cell_summary(rows: list[dict]) -> dict:
     result = {
         "n": len(rows),
@@ -167,37 +202,61 @@ def summarize(rows: list[dict], *, pilot: bool) -> dict:
                  r["measurement_delay_s"] == 0.0 and r["preset"] == "clean" and r["arm"] == "recovery"]
     observed = median_summary([r["time_to_tag_s"] for r in hand_rows if r["tagged"]])
     observed_median = observed["median"]
+    band = hand_check_band()
+    low, high = band["band_s"]
+    calm_drawn = _calm_slice_present(rows)
     return {
         "experiment": "EXP-030", "simulated": True, "pilot": bool(pilot),
-        "grid_counts": {"main": 4 * 5 * 5 * 4 * 50, "calm": 4 * 5 * 2 * 50,
-                         "followers": 4 * 2 * 3 * 2 * 50, "physics": 4 * 2 * 2 * 20},
+        "grid_counts": _grid_counts(),
         "cells": cells,
-        "hand_check": {"predicted_time_to_tag_s": "5.0 to 5.6 s",
+        "hand_check": {"zone_entry_reference_s": band["zone_entry_reference_s"],
+                        "predicted_time_to_tag_band_s": band["band_s"],
                         "observed_time_to_tag_s": observed,
-                        "inside_predicted_band": observed_median is not None and 5.0 <= observed_median <= 5.6,
-                        "observed_median_zone_entry_s": "not a metric"},
+                        "inside_predicted_band": observed_median is not None and low <= observed_median <= high},
         "prediction": PREDICTION_TEXT,
+        "prediction_source": PREDICTION_SOURCE,
         "prediction_correction_2": PREDICTION_CORRECTION_2,
         "prediction_observed_rates": [{key: value for key, value in cell.items() if key in ("slice", "target_class", "measurement_delay_s", "preset", "arm", "tag_success")} for cell in cells
                                        if cell["arm"] == "recovery"],
-        "deviations": [], "missing_metrics": [],
+        "figures_not_drawn": [] if calm_drawn else [
+            {"file": "tag_success_default_calm.png", "reason": "this run has no calm policy slice"}],
+        "deviations": [],
+        "missing_metrics": ["zone entry time (the mission logs tag_zone_enter events but exposes no zone-entry metric)"],
         "limits": list(MISSION_LIMITS),
     }
 
 
-def _figures(output: Path, rows: list[dict]) -> list[str]:
+def _success_rate(selected: list[dict]) -> float | None:
+    if not selected:
+        return None
+    return sum(bool(r["tagged"]) for r in selected) / len(selected)
+
+
+def _figures(output: Path, rows: list[dict], *, pilot: bool) -> list[str]:
     apply_mission_style("light")
     colors = dict(zip(ARMS, series_colors(len(ARMS))))
+    main_slices = ("pilot",) if pilot else ("main",)
+    pilot_note = " (pilot)" if pilot else ""
     fig, axes = plt.subplots(len(CLASSES), len(PRESETS), figsize=(15, 10), sharey=True)
     for row_index, target_class in enumerate(CLASSES):
         for col_index, preset in enumerate(PRESETS):
             ax = axes[row_index, col_index]
+            drew_any = False
             for arm in ARMS:
-                values = []
+                points = []
                 for delay in DELAYS:
-                    selected = [r for r in rows if r["slice"] == "main" and r["target_class"] == target_class and r["preset"] == preset and r["arm"] == arm and r["measurement_delay_s"] == delay]
-                    values.append(sum(bool(r["tagged"]) for r in selected) / len(selected) if selected else float("nan"))
-                ax.plot(DELAYS, values, marker="o", label=arm, color=colors[arm])
+                    selected = [r for r in rows if r["slice"] in main_slices and r["target_class"] == target_class
+                                and r["preset"] == preset and r["arm"] == arm
+                                and r["measurement_delay_s"] == delay]
+                    rate = _success_rate(selected)
+                    if rate is not None:
+                        points.append((delay, rate))
+                if points:
+                    drew_any = True
+                    ax.plot([x for x, _ in points], [y for _, y in points], marker="o", label=arm,
+                            color=colors[arm])
+            if not drew_any:
+                ax.text(0.5, 0.5, "not in this run", ha="center", va="center", transform=ax.transAxes)
             if row_index == 0:
                 ax.set_title(f"{preset} simulated")
             if col_index == 0:
@@ -205,23 +264,32 @@ def _figures(output: Path, rows: list[dict]) -> list[str]:
             if row_index == len(CLASSES) - 1:
                 ax.set_xlabel("measurement delay (s)")
             ax.set_ylim(0, 1.05)
-    axes[0, -1].legend(fontsize=7)
-    fig.tight_layout()
+    for ax in axes.flat:
+        handles, _ = ax.get_legend_handles_labels()
+        if handles:
+            ax.legend(fontsize=7)
+            break
+    fig.suptitle(f"Tag success by measurement delay, simulated{pilot_note}")
+    fig.tight_layout(rect=(0.0, 0.0, 1.0, 0.97))
     first = "tag_success_delay.png"
     fig.savefig(output / first, dpi=140)
     plt.close(fig)
+    names = [first]
 
+    if not _calm_slice_present(rows):
+        return names
     fig, ax = plt.subplots(figsize=(7, 4))
     for preset in PRESETS:
         vals = []
         for policy in ("default", "calm"):
             selected = [r for r in rows if r["slice"] == ("main" if policy == "default" else "calm")
-                        and r["target_class"] in CLASSES and r["measurement_delay_s"] == 0.3
+                        and r["measurement_delay_s"] == 0.3
                         and r["preset"] == preset and r["arm"] == "recovery"
                         and r["policy_name"] == policy]
-            vals.append(sum(bool(r["tagged"]) for r in selected) / len(selected) if selected else float("nan"))
+            rate = _success_rate(selected)
+            vals.append(float("nan") if rate is None else rate)
         ax.plot(("default", "calm"), vals, marker="o", label=preset)
-    ax.set_title("Default versus calm simulated tag success")
+    ax.set_title(f"Default versus calm simulated tag success{pilot_note}")
     ax.set_ylabel("tag success rate")
     ax.set_ylim(0, 1.05)
     ax.legend(fontsize=7)
@@ -229,7 +297,8 @@ def _figures(output: Path, rows: list[dict]) -> list[str]:
     second = "tag_success_default_calm.png"
     fig.savefig(output / second, dpi=140)
     plt.close(fig)
-    return [first, second]
+    names.append(second)
+    return names
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -246,7 +315,7 @@ def main(argv: list[str] | None = None) -> None:
     write_rows(output / csv_name, rows, first_columns=("slice", "target_class", "measurement_delay_s", "preset", "arm", "n_followers", "adapter", "seed_index", "policy_name", "seed"))
     summary = summarize(rows, pilot=args.pilot)
     write_json(output / "summary.json", summary)
-    figures = _figures(output, rows)
+    figures = _figures(output, rows, pilot=args.pilot)
     outputs = [csv_name, "summary.json", *figures]
     actual_argv = argv_or_default(argv)
     write_manifest(output, schema="zephyr-exp030-1", argv=actual_argv,

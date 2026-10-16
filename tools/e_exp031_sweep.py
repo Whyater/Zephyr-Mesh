@@ -23,6 +23,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from sim.missions.engine import COMMON_LIMITS
+from sim.missions.sweep import SweepMission
 from tests.reference_e.hand_checks import coverage_time_s
 from tools.c_common import prepare_output, write_json, write_manifest
 from tools.e_common import (
@@ -34,6 +35,7 @@ from tools.e_common import (
     median_summary,
     processes,
     rate_summary,
+    replay_command,
     run_jobs,
     seeds_for,
     write_rows,
@@ -50,13 +52,29 @@ PILOT_DURATION_S = 60.0  # long enough for clean runs to finish (hand check 35 t
 CALM_POLICY = {"degraded_after_s": 0.25, "land_after_s": 1.0}
 EXPLORATORY_LABEL = "exploratory, added after the pilot, not pre-registered"
 PREDICTION = (
-    "Claude's prediction: without dropout, loss changes nothing (each drone sweeps its own strip). "
-    "With a dropout and delta messages, loss makes survivors believe covered cells are uncovered, so "
-    "duplication rises roughly with the loss rate (iid_30: about 30 % of the dead drone's reported cells "
-    "unknown, duplicated); cumulative messages remove almost all of it (any single message carries the "
-    "whole map). Bursts hurt delta most. Completion time with dropout: the dead drone's remaining two "
-    "thirds of a strip (about 177 m2) shared by two survivors adds about 177/(2 x 4 x 2) = 11 s plus "
-    "transit, so about 45 to 55 s."
+    "without dropout, loss changes nothing (each drone sweeps its own strip). With a dropout and delta "
+    "messages, loss makes survivors believe covered cells are uncovered, so duplication rises roughly with "
+    "the loss rate (iid_30: about 30 % of the dead drone's reported cells unknown, duplicated); cumulative "
+    "messages remove almost all of it (any single message carries the whole map). Bursts hurt delta most. "
+    "Completion time with dropout: the dead drone's remaining two thirds of a strip (about 177 m^2) shared "
+    "by two survivors adds about 177/(2 x 4 x 2) = 11 s plus transit, so about 45 to 55 s."
+)
+PREDICTION_SOURCE = "pre-registered before the runs (EXP-031 section of the private pre-registration)"
+PREDICTION_NOTE = (
+    'Prediction-before-run check: EXP-031 prediction "without dropout, loss changes nothing" was already '
+    "contradicted by the pilot on iid_30 under the default policy (failsafe landings); this is reported as "
+    "a miss of the prediction, not reworded."
+)
+HAND_CHECK_BAND_S = (35.0, 42.0)
+EXPLORATORY_REASON = (
+    "the default 0.30 s lost-link rule landed drones on iid_30 and burst presets and the field was never "
+    "finished, because a landed drone that keeps sharing is never declared lost"
+)
+MISSION_NOTE = (
+    "Mission changes before any full run: a drone that is landing or landed covers no cells; a drone that "
+    "lands on its own failsafe keeps sharing and is never declared lost, so on lossy links P(complete) "
+    "measures the failsafe (see the mission limits); duplicated_fraction counts cells seen by two or more "
+    "different drones (contract definition)."
 )
 
 
@@ -70,8 +88,18 @@ def _scenario(seed: int, *, preset: str, dropout: str, message_mode: str,
     }
 
 
+def _calm_job(seed: int, seed_index: int, *, preset: str, dropout: str, mode: str,
+              duration_s: float) -> dict:
+    labels = {"slice": EXPLORATORY_LABEL, "preset": preset, "dropout": dropout,
+              "message_mode": mode, "adapter": "point_mass", "policy_name": "calm",
+              "seed_index": seed_index}
+    return make_job(labels, _scenario(seed, preset=preset, dropout=dropout, message_mode=mode,
+                                      policy=CALM_POLICY, duration_s=duration_s))
+
+
 def build_jobs(*, pilot: bool = False) -> list[dict]:
     seeds = seeds_for(EXP_NUMBER, 3 if pilot else 50)
+    duration_s = PILOT_DURATION_S if pilot else DURATION_S
     jobs: list[dict] = []
     main_presets = ("clean", "iid_30") if pilot else PRESETS
     for preset in main_presets:
@@ -82,7 +110,7 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
                               "message_mode": mode, "adapter": "point_mass", "seed_index": seed_index}
                     jobs.append(make_job(labels, _scenario(seed, preset=preset, dropout=dropout,
                                                            message_mode=mode,
-                                                           duration_s=PILOT_DURATION_S if pilot else DURATION_S)))
+                                                           duration_s=duration_s)))
     physics_seeds = seeds[:2] if pilot else seeds[:20]
     physics_cells = (("clean", "one", "delta"),) if pilot else tuple(
         (preset, "one", mode) for preset in PHYSICS_PRESETS for mode in MESSAGE_MODES
@@ -93,21 +121,20 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
                       "message_mode": mode, "adapter": "physics", "seed_index": seed_index}
             jobs.append(make_job(labels, _scenario(seed, preset=preset, dropout=dropout,
                                                    message_mode=mode, adapter="physics",
-                                                   duration_s=PILOT_DURATION_S if pilot else DURATION_S)))
-    if not pilot:
+                                                   duration_s=duration_s)))
+    if pilot:
+        for seed_index, seed in enumerate(seeds[:2]):
+            jobs.append(_calm_job(seed, seed_index, preset="iid_30", dropout="one", mode="delta",
+                                  duration_s=duration_s))
+    else:
         for preset in ("iid_30", "burst_10_0.5s"):
             for dropout in DROPOUTS:
                 for mode in MESSAGE_MODES:
                     for seed_index, seed in enumerate(seeds):
-                        labels = {"slice": EXPLORATORY_LABEL, "preset": preset, "dropout": dropout,
-                                  "message_mode": mode, "adapter": "point_mass", "policy_name": "calm",
-                                  "seed_index": seed_index}
-                        jobs.append(make_job(labels, _scenario(seed, preset=preset, dropout=dropout,
-                                                               message_mode=mode, policy=CALM_POLICY)))
+                        jobs.append(_calm_job(seed, seed_index, preset=preset, dropout=dropout,
+                                              mode=mode, duration_s=duration_s))
     return jobs
 
-
-build_grid = build_jobs
 
 
 def _cell_summary(rows: list[dict]) -> dict:
@@ -132,7 +159,29 @@ def _cell_summary(rows: list[dict]) -> dict:
     }
 
 
-def _summarize(rows: list[dict], *, pilot: bool) -> dict:
+def _hand_check_verdicts(rows: list[dict]) -> list[dict]:
+    """Per message mode: how many clean, no-dropout runs reached t100 and whether the median is in the band."""
+    low, high = HAND_CHECK_BAND_S
+    verdicts = []
+    for mode in MESSAGE_MODES:
+        selected = [r for r in rows if r["slice"] == "main" and r["adapter"] == "point_mass"
+                    and r["preset"] == "clean" and r["dropout"] == "none" and r["message_mode"] == mode]
+        item = {"message_mode": mode, "reference_sweeping_s": coverage_time_s(800, 3, 4.0, 2.0),
+                "predicted_t100_range_s": [low, high], "n_runs": len(selected)}
+        if not selected:
+            item.update({"n_reached_t100": 0, "observed_t100": None, "verdict": "not run"})
+        else:
+            observed = median_summary([r["t100_s"] for r in selected])
+            median = observed["median"]
+            # A cell where no run reached t100 has no median, so it cannot be inside the band.
+            inside = median is not None and low <= median <= high
+            item.update({"n_reached_t100": observed["n"], "observed_t100": observed,
+                         "verdict": "inside" if inside else "outside"})
+        verdicts.append(item)
+    return verdicts
+
+
+def _summarize(rows: list[dict], *, pilot: bool, horizon_s: float) -> dict:
     keys = ("slice", "preset", "dropout", "message_mode", "adapter")
     cells = []
     for coords, grouped in group_rows(rows, keys).items():
@@ -142,37 +191,44 @@ def _summarize(rows: list[dict], *, pilot: bool) -> dict:
             item["policy_name"] = "calm"
         cells.append(item)
     hand_reference = coverage_time_s(800, 3, 4.0, 2.0)
-    hand = []
-    for mode in MESSAGE_MODES:
-        selected = [r for r in rows if r["slice"] == "main" and r["adapter"] == "point_mass"
-                    and r["preset"] == "clean" and r["dropout"] == "none" and r["message_mode"] == mode]
-        if selected:
-            hand.append({"message_mode": mode, "reference_sweeping_s": hand_reference,
-                         "predicted_t100_range_s": [35.0, 42.0],
-                         "observed_t100": median_summary([r["t100_s"] for r in selected])})
+    hand = _hand_check_verdicts(rows)
     atlas = {}
     for coords, grouped in group_rows([r for r in rows if r["slice"] == "main" and r["adapter"] == "point_mass"],
                                       ("preset", "dropout", "message_mode")).items():
         preset, dropout, mode = coords
         atlas[f"{preset}|{dropout}|{mode}"] = {
-            "wilson_lower_p_t100_within_120_s": rate_summary([r["t100_s"] is not None for r in grouped])["wilson_low"],
+            f"wilson_lower_p_t100_within_{horizon_s:g}_s":
+                rate_summary([r["t100_s"] is not None for r in grouped])["wilson_low"],
             "median_duplicated_fraction": median_summary([r["duplicated_fraction"] for r in grouped])["median"],
         }
     exploratory = any(r["slice"] == EXPLORATORY_LABEL for r in rows)
+    deviations = []
+    if pilot:
+        deviations.append(f"Pilot uses a {horizon_s:g} s horizon; the preregistered grid horizon is {DURATION_S:g} s.")
+    if exploratory:
+        calm_seeds = "2 seeds, one cell" if pilot else "both dropouts and message modes, 50 seeds, 400 runs"
+        deviations.append(
+            "Exploratory slice, not pre-registered (Addendum B, written after the pilots): the calm policy "
+            f"(degraded after {CALM_POLICY['degraded_after_s']} s, land after {CALM_POLICY['land_after_s']} s) "
+            f"on iid_30 and burst_10_0.5s ({calm_seeds}). Reason: {EXPLORATORY_REASON}. "
+            "It is reported separately after the pre-registered grid."
+        )
     return {
         "experiment": "EXP-031", "simulated": True, "pilot": bool(pilot),
-        "duration_s": PILOT_DURATION_S if pilot else DURATION_S, "cells": cells, "atlas": atlas,
-        "hand_check": {"reference_sweeping_s": hand_reference, "predicted_t100_range_s": [35.0, 42.0],
-                        "observed_clean_no_dropout": hand},
-        "prediction": {"text": PREDICTION, "observed_clean_no_dropout": hand},
+        "duration_s": horizon_s, "cells": cells, "atlas": atlas,
+        "hand_check": {"reference_sweeping_s": hand_reference, "predicted_t100_range_s": list(HAND_CHECK_BAND_S),
+                       "observed_clean_no_dropout": hand},
+        "prediction": {"text": PREDICTION, "prediction_source": PREDICTION_SOURCE,
+                       "prediction_note": PREDICTION_NOTE, "observed_clean_no_dropout": hand},
         "exploratory_slice": EXPLORATORY_LABEL if exploratory else None,
-        "deviations": (["Pilot uses a 60 s horizon; the preregistered grid horizon is 120 s."] if pilot else []),
+        "deviations": deviations,
         "missing_metrics": [],
-        "limits": list(MISSION_LIMITS + COMMON_LIMITS),
+        "notes": [MISSION_NOTE],
+        "limits": list(MISSION_LIMITS) + list(COMMON_LIMITS) + list(SweepMission.limits),
     }
 
 
-def _figures(output: Path, rows: list[dict]) -> list[str]:
+def _figures(output: Path, rows: list[dict], horizon_s: float) -> list[str]:
     apply_mission_style("light")
     names: list[str] = []
     fig, ax = plt.subplots(figsize=(9, 4.5))
@@ -188,9 +244,9 @@ def _figures(output: Path, rows: list[dict]) -> list[str]:
         if values:
             ax.plot(labels, values, marker="o", label=preset)
     ax.set_ylim(0, 1.05)
-    ax.set_ylabel("P(complete within 120 s)")
+    ax.set_ylabel(f"P(complete within {horizon_s:g} s)")
     ax.set_xlabel("dropout / message mode")
-    ax.set_title("Completion within 120 s simulated")
+    ax.set_title(f"Completion within {horizon_s:g} s simulated")
     ax.legend(fontsize=7)
     fig.tight_layout()
     name = "sweep_completion_simulated.png"
@@ -229,17 +285,18 @@ def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None
     rows = run_jobs(run_list, n_processes=processes(n_processes))
     csv_name = "sweep.csv"
     write_rows(output / csv_name, rows, first_columns=("slice", "preset", "dropout", "message_mode", "adapter", "policy_name", "seed_index", "seed"))
-    summary = _summarize(rows, pilot=pilot)
+    horizon_s = max(float(job["scenario"]["duration_s"]) for job in run_list)
+    summary = _summarize(rows, pilot=pilot, horizon_s=horizon_s)
     write_json(output / "summary.json", summary)
-    figures = _figures(output, rows)
+    figures = _figures(output, rows, horizon_s)
     outputs = [csv_name, "summary.json", *figures]
     actual_argv = list(argv or [])
-    command = "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. ./.venv/bin/python tools/e_exp031_sweep.py" + "".join(" " + str(a) for a in actual_argv)
-    write_manifest(output, schema="zephyr-exp031-1", argv=actual_argv, command=command,
+    write_manifest(output, schema="zephyr-exp031-1", argv=actual_argv,
+                   command=replay_command("tools/e_exp031_sweep.py", actual_argv),
                    config={"experiment": "EXP-031", "pilot": pilot,
-                           "duration_s": PILOT_DURATION_S if pilot else DURATION_S},
+                           "duration_s": horizon_s},
                    seeds=seeds_for(EXP_NUMBER, 3 if pilot else 50), outputs=outputs,
-                   limits=list(MISSION_LIMITS), runtime_s=time.perf_counter() - started,
+                   limits=list(MISSION_LIMITS) + list(SweepMission.limits), runtime_s=time.perf_counter() - started,
                    n_processes=processes(n_processes),
                    hashed_sources=list(MISSION_SOURCES) + ["sim/missions/sweep.py", "tools/e_exp031_sweep.py"])
     return summary

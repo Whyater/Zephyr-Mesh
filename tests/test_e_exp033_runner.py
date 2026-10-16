@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from tools.e_exp033_monitor import build_jobs, run_experiment
+from tools.e_exp033_monitor import PREDICTION, PREDICTION_SOURCE, build_jobs, run_experiment
 from tests.reference_e.hand_checks import alert_latency_s
 
 
@@ -35,3 +35,11 @@ def test_tiny_run_is_reproducible_and_reports_hand_check(tmp_path: Path):
     assert sorted(manifest["outputs"]) == sorted(["exp033.csv", "summary.json", "alert_latency_crossing.png",
                                                   "alert_latency_loiter.png", "continuity_simulated.png"])
     assert summary["safety_check"]["passed"] is True
+    assert summary["prediction"] == PREDICTION
+    assert "prediction:" not in PREDICTION[:40]
+    assert summary["prediction_source"] == PREDICTION_SOURCE
+    assert any("horizontal displacement" in text for text in summary["deviations"])
+    assert any("Addendum D" in text for text in summary["design_choices"])
+    # Called from code: no command line is recorded (not pytest's), but the replay command names --output.
+    assert manifest["argv"] == []
+    assert "--output" in manifest["replay_command"]

@@ -8,6 +8,7 @@ All motion, camera fixes, delays, and link loss are simulated.
 from __future__ import annotations
 
 import argparse
+import math
 import os
 import tempfile
 import time
@@ -39,14 +40,16 @@ from tools.e_common import (
     series_colors,
     write_rows,
 )
+from tools.horizon_mpl import palette
 
 EXP_NUMBER = 34
 SIGMAS = (0.01, 0.02, 0.05, 0.10)
 LATENCIES = (0.0, 0.05, 0.1, 0.2)
 PRESETS = ("clean", "iid_10")
 SEEDS = seeds_for(EXP_NUMBER, 50)
+PREDICTION_SOURCE = "pre-registered before the runs (EXP-034 section of the private pre-registration)"
 PREDICTION_TEXT = (
-    "Claude's prediction: point mass at zero latency matches the hand formula within 10 %; latency up to 0.2 s raises the error by under 30 % "
+    "point mass at zero latency matches the hand formula within 10 %; latency up to 0.2 s raises the error by under 30 % "
     "(the first-order loop with delay stays stable below about (pi/2) tau = 0.39 s, but the margin shrinks); physics adapter errors larger than the point mass at the same sigma "
     "(PD loop with lower damping passes more noise) and grows faster with latency (Run A: position feedback edge 0.33 s). Separation never near 0.5 m (slots 2 m apart, errors of centimetres)."
 )
@@ -140,11 +143,13 @@ def summarize(rows: list[dict], *, pilot: bool) -> dict:
                              "observed_per_axis_std_m": observed_axis,
                              "reference_per_axis_std_m": reference_axis,
                              "observed_to_reference": None if observed_axis["median"] is None else observed_axis["median"] / reference_axis,
-                             "observed_to_reference_per_axis": None if observed_axis["median"] is None else observed_axis["median"] / reference_axis,
                              "observed_rms_error_m": observed_rms,
                              "reference_rms_error_m": reference_rms,
                              "observed_to_reference_rms": ratio,
                              "within_10_percent": None if ratio is None else abs(ratio - 1.0) <= 0.10})
+    deviations = []
+    if pilot:
+        deviations.append("Pilot runs 10 s per run (the full grid runs 30 s) and covers a small subset of the grid with 3 seeds.")
     return {
         "experiment": "EXP-034", "simulated": True, "pilot": bool(pilot),
         "grid_counts": {"point_mass_offboard": 4 * 4 * 2 * 50,
@@ -155,39 +160,53 @@ def summarize(rows: list[dict], *, pilot: bool) -> dict:
                         "zero_latency_clean": hand},
         "notes": [
             "min_separation_m is taken over the whole run, including the start from randomly offset positions.",
-            "The offboard physics adapter differences the last two position fixes for velocity, a contract design choice. At 30 Hz, sigma of fix noise becomes about sqrt(2) x 30 x sigma of velocity noise.",
+            "The offboard physics adapter differences the last two position fixes for velocity, a contract design choice. Velocity noise per axis is about sqrt(2) x 30 x sigma at 30 Hz (difference of two fixes 1/30 s apart).",
         ],
         "prediction": PREDICTION_TEXT,
+        "prediction_source": PREDICTION_SOURCE,
         "prediction_observations": {
             "observed_cells": [{key: value for key, value in cell.items()
                                 if key in ("slice", "sigma_m", "fix_latency_s", "preset", "adapter", "rms_error_m", "minimum_pairwise_separation_m")}
                                for cell in cells],
         },
-        "deviations": [],
+        "deviations": deviations,
         "missing_metrics": [], "limits": list(MISSION_LIMITS),
     }
 
 
 def _figures(output: Path, rows: list[dict]) -> list[str]:
     apply_mission_style("light")
+    colors = dict(zip(SIGMAS, series_colors(len(SIGMAS))))
+    reference_color = palette("light")["textSecondary"]
     fig, axes = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
     for ax, adapter in zip(axes, ("point_mass_offboard", "physics_offboard")):
         sigmas = SIGMAS if adapter == "point_mass_offboard" else (0.02, 0.05)
-        for series_index, sigma in enumerate(sigmas):
-            values = []
+        reference_labelled = False
+        for sigma in sigmas:
+            points = []
             for latency in LATENCIES:
                 selected = [r for r in rows if r["adapter"] == adapter and r["preset"] == "clean"
                             and r["sigma_m"] == sigma and r["fix_latency_s"] == latency]
-                values.append(median_summary([r["rms_error_m"] for r in selected])["median"] if selected else float("nan"))
-            ax.plot(LATENCIES, values, marker="o", color=series_colors(len(sigmas))[series_index], label=f"sigma {sigma:g} m")
-            reference = (3.0 ** 0.5) * first_order_loop_jitter_std(sigma, 1.0 / 30.0, 0.25)
-            if values and not all(v != v for v in values):
-                ax.plot([0.0], [reference], marker="x", color="#555555")
+                if selected:
+                    value = median_summary([r["rms_error_m"] for r in selected])["median"]
+                    if value is not None and math.isfinite(value):
+                        points.append((latency, value))
+            if not points:
+                continue
+            ax.plot([x for x, _ in points], [y for _, y in points], marker="o",
+                    color=colors[sigma], label=f"sigma {sigma:g} m")
+            reference = math.sqrt(3.0) * first_order_loop_jitter_std(sigma, 1.0 / 30.0, 0.25)
+            ax.plot([0.0], [reference], marker="x", linestyle="none", color=reference_color,
+                    label=None if reference_labelled else "hand formula")
+            reference_labelled = True
         ax.set_title(("point mass" if adapter == "point_mass_offboard" else "physics") + " simulated")
         ax.set_xlabel("fix latency (s)")
         ax.grid(True, alpha=0.25)
+        if ax.get_legend_handles_labels()[0]:
+            ax.legend(fontsize=8)
+        else:
+            ax.text(0.5, 0.5, "not in this run", ha="center", va="center", transform=ax.transAxes)
     axes[0].set_ylabel("formation RMS error (m)")
-    axes[-1].legend(fontsize=8)
     fig.tight_layout()
     name = "formation_rms_latency.png"
     fig.savefig(output / name, dpi=140)

@@ -49,9 +49,10 @@ SOURCES = MISSION_SOURCES + (
     "tools/e_exp035_logs.py",
 )
 PREDICTION = (
-    "Claude's prediction: all pass after at most one fix; the most likely mismatch is a metric "
+    "all pass after at most one fix; the most likely mismatch is a metric "
     "computed on 100 Hz state that the 20 Hz log cannot reproduce."
 )
+PREDICTION_SOURCE = "pre-registered before the runs (EXP-035 section of the private pre-registration)"
 
 
 def _git_revision() -> str:
@@ -150,6 +151,7 @@ def run(output: Path, argv: list[str]) -> dict:
         "cases": summaries,
         "all_passed": all(s["passed"] for s in summaries),
         "prediction": PREDICTION,
+        "prediction_source": PREDICTION_SOURCE,
         "notes": [
             "Logs record frames at 20 Hz; metrics computed by the missions on 100 Hz state, on "
             "per-packet radio timing or on internal estimator state are declared not applicable, "
