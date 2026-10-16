@@ -48,6 +48,9 @@ class LinkedDrone:
         self._last_cmd_due = -1
         self._last_tel_due = -1
         self._telemetry_cache = None
+        # Adapters from before the weak-link rule take no loss fraction; look the
+        # signature up once instead of on every control step.
+        self._step_takes_loss = "recent_loss_fraction" in inspect.signature(adapter.step).parameters
         if not adapter.connected:
             adapter.connect()
 
@@ -94,7 +97,7 @@ class LinkedDrone:
         age = max(0.0, now - self._last_cmd_receive)
         step = self.adapter.step
         kwargs = {"link_age_s": age}
-        if "recent_loss_fraction" in inspect.signature(step).parameters:
+        if self._step_takes_loss:
             kwargs["recent_loss_fraction"] = self._loss_window.loss_fraction(self._expected_next_seq(now))
         state = step(dt, **kwargs)
         tel_due = int(math.floor((now + dt) * self.telemetry_rate_hz + 1e-9))
