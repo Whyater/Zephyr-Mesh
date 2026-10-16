@@ -204,6 +204,16 @@ def test_square_and_circle_swaps_remain_separated():
     assert _minimum_pair_distance(circle_history) >= AvoidanceConfig().radius_m - 1e-9
 
 
+@pytest.mark.parametrize("count", [4, 6, 8])
+def test_symmetric_ring_swaps_reach_their_goals(count):
+    angles = np.arange(count, dtype=float) * (2.0 * np.pi / count)
+    ring = np.column_stack((2.0 * np.cos(angles), 2.0 * np.sin(angles), np.ones(count)))
+    goals = ring[(np.arange(count) + count // 2) % count]
+    history, final = _rollout(ring, goals, AvoidanceConfig(), duration=20.0)
+    assert _minimum_pair_distance(history) >= AvoidanceConfig().radius_m - 1e-9
+    assert np.max(np.linalg.norm(final - goals, axis=1)) <= 0.2
+
+
 def test_infeasible_epigraph_fallback_is_exercised():
     config = AvoidanceConfig(max_speed_mps=0.2, emergency_distance_m=0.0)
     # Four neighbors closing in from all sides faster than this observer can move.
@@ -299,6 +309,35 @@ def test_ellipsoid_vertical_stack_uses_scaled_separation():
     scaled = history[:, 1] - history[:, 0]
     scaled = scaled / np.asarray(radii)
     assert np.min(np.linalg.norm(scaled, axis=1)) >= 2.0 - 1e-6
+    assert np.max(np.linalg.norm(history[-1] - starts[::-1], axis=1)) <= 0.2
+
+
+def test_vertical_swap_reaches_goals():
+    starts = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 3.0]])
+    history, final = _rollout(starts, starts[::-1], AvoidanceConfig(), duration=12.0)
+    assert _minimum_pair_distance(history) >= AvoidanceConfig().radius_m - 1e-9
+    assert np.max(np.linalg.norm(final - starts[::-1], axis=1)) <= 0.2
+
+
+@pytest.mark.parametrize("case", range(30))
+def test_pair_halfspaces_are_reciprocal_including_vertical_axes(case):
+    """With responsibility 1/2 the two planes are mirror images: n_B = -n_A and
+    the shifts are equal and opposite, so no velocity pair both permit can collide."""
+    rng = np.random.default_rng(np.random.SeedSequence([20261016, case]))
+    config = AvoidanceConfig()
+    axis = np.array([0.0, 0.0, 1.0 if case % 2 else -1.0]) if case < 10 else rng.normal(size=3)
+    axis /= np.linalg.norm(axis)
+    p_a = rng.uniform(-1.0, 1.0, size=3)
+    p_b = p_a + rng.uniform(0.6, 3.0) * axis
+    if case < 20:
+        closing = rng.uniform(0.1, 1.5)
+        v_a, v_b = closing * axis, -closing * axis
+    else:
+        v_a, v_b = rng.uniform(-1.0, 1.0, size=3), rng.uniform(-1.0, 1.0, size=3)
+    point_a, normal_a = orca_halfspaces(p_a, v_a, [(p_b, v_b)], config)[0]
+    point_b, normal_b = orca_halfspaces(p_b, v_b, [(p_a, v_a)], config)[0]
+    np.testing.assert_allclose(normal_b, -normal_a, atol=1e-12)
+    np.testing.assert_allclose(point_a - v_a, -(point_b - v_b), atol=1e-12)
 
 
 def test_halfspaces_have_boundary_points_and_reciprocal_shift_is_safe():

@@ -88,7 +88,9 @@ def _right_direction(axis: np.ndarray) -> np.ndarray:
     z_up = np.array((0.0, 0.0, 1.0))
     right = np.cross(axis, z_up)
     if np.linalg.norm(right) < _EPS:
-        right = np.array((1.0, 0.0, 0.0))
+        # Vertical line of sight: flip with the axis so the two agents of a
+        # pair get opposite directions and their half-spaces stay reciprocal.
+        right = np.array((1.0 if axis[2] >= 0.0 else -1.0, 0.0, 0.0))
     return right / np.linalg.norm(right)
 
 
@@ -111,14 +113,20 @@ def _vo_correction(
     w = rel_vel - rel_pos / horizon
     w_length = float(np.linalg.norm(w))
     dot_w_p = float(np.dot(w, rel_pos))
+    axial_rel = float(np.dot(rel_vel, axis))
+    closing_tie = axial_rel > 0.0 and float(np.linalg.norm(rel_vel - axial_rel * axis)) < 1.0e-12
     if (
-        w_length > _EPS
+        not closing_tie
+        and w_length > _EPS
         and dot_w_p < 0.0
         and dot_w_p * dot_w_p > radius * radius * w_length * w_length
     ):
-        # Cutoff sphere: the closest boundary point lies along w. This also
-        # covers zero or purely axial relative velocity, so agents at rest or
-        # hovering get an ordinary supporting plane, not a forced sidestep.
+        # Cutoff sphere: the closest boundary point lies along w. Zero relative
+        # velocity stays here, so agents at rest or hovering get an ordinary
+        # supporting plane and are not pushed sideways. An exact closing tie
+        # goes to the cone side instead: its tangent plane also supports the
+        # obstacle and turns the pair to the side, so symmetric swaps do not
+        # stall face to face.
         normal = w / w_length
         return (radius / horizon - w_length) * normal, normal
 
@@ -445,8 +453,11 @@ def safe_velocity(
     support the velocity obstacle, including at zero relative velocity. When
     ``sidestep_right`` is set and an exact head-on tie is being constrained,
     a small right-hand component is added to the preferred velocity only
-    (flag ``tie_break``), so symmetric pairs pass instead of stopping. Only
-    exact ties are chiral; any other setup mirrors exactly.
+    (flag ``tie_break``). Exact closing ties also take the cone-side plane,
+    which turns the pair to the side, so symmetric swaps pass instead of
+    stopping. ``sidestep_right`` controls the nudge and the emergency
+    direction, not which side that geometry picks. Only exact ties are
+    chiral; any other setup mirrors exactly.
     Overlapping pairs use the RVO2 collision rule with a 0.05 second horizon.
     The default active-set projection enumerates the small three-dimensional
     boundary set. ``solver="slsqp"`` keeps the reference optimizer available
@@ -487,9 +498,10 @@ def safe_velocity(
     halfspaces = [space for space in per_neighbor if space is not None]
     capped_preferred, was_capped = _speed_cap(preferred, config.max_speed_mps)
     biased = _tie_break_preference(own_position, capped_preferred, neighbor_data, per_neighbor, config)
-    tie_break = biased is not capped_preferred
+    tie_break = not np.array_equal(biased, capped_preferred)
     if tie_break:
-        capped_preferred, _ = _speed_cap(biased, config.max_speed_mps)
+        capped_preferred, recapped = _speed_cap(biased, config.max_speed_mps)
+        was_capped = was_capped or recapped
     flags = {"orca"} if halfspaces else set()
     if tie_break:
         flags.add("tie_break")
