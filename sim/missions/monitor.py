@@ -16,6 +16,10 @@ VENUE_MIN = np.array([0.0, 0.0], dtype=float)
 VENUE_MAX = np.array([60.0, 40.0], dtype=float)
 ZONE_MIN = np.array([20.0, 12.0], dtype=float)
 ZONE_MAX = np.array([40.0, 28.0], dtype=float)
+# An estimate older than this cannot raise or hold an alert: with no fresh
+# fixes the ground station only extrapolates, and a straight-line guess must
+# not stand in for seeing the drone (Run E design choice, prereg Addendum D).
+STALE_ESTIMATE_S = 1.0
 POSTS = {
     "o1": np.array([5.0, 5.0, 12.0], dtype=float),
     "o2": np.array([55.0, 35.0, 12.0], dtype=float),
@@ -67,6 +71,7 @@ class MonitorMission(Mission):
         "The unknown aircraft follows a scripted path at fixed altitude and speed.",
         "Observers hold their posts; this simulation does not model human movement.",
         "Sensor noise, link delay, jitter, and loss are synthetic assumptions.",
+        "An estimate older than 1.0 s counts as not inside the zone (no alerts from extrapolation alone).",
     )
     defaults = {"path": "crossing"}
 
@@ -174,7 +179,9 @@ class MonitorMission(Mission):
         self._check_rows.append((now, in_venue, self._estimate_age))
         if math.isfinite(self._estimate_age):
             self._max_age = max(self._max_age, self._estimate_age)
-        estimate_inside = self._estimate_position is not None and _inside_zone(self._estimate_position)
+        estimate_inside = (self._estimate_position is not None
+                           and self._estimate_age <= STALE_ESTIMATE_S
+                           and _inside_zone(self._estimate_position))
         if estimate_inside:
             self._inside_count += 1
             self._outside_count = 0

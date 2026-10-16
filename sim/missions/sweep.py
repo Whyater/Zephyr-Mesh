@@ -125,6 +125,8 @@ class SweepMission(Mission):
         "Simulated only: the camera footprint is a 2 m radius disc scored on a 1 m grid at fixed altitude.",
         "Each survivor re-plans on its own belief; no consensus step between survivors.",
         "Lost-peer declaration is a 2.0 s silence rule; a declared peer is never reinstated.",
+        "A drone that lands on its own failsafe keeps sharing, so its peers never declare it lost and its strip is not re-planned; on lossy links completion then measures the failsafe, not coverage sharing.",
+        "duplicated_fraction counts cells seen by two or more different drones (contract definition); one drone's own repeat passes do not count.",
     )
     defaults = {"message_mode": "delta", "dropout": "none"}
 
@@ -369,7 +371,11 @@ class SweepMission(Mission):
 
         result = {d: ctx.drones[d].tick(i) for d in self._DRONES}
         for drone in self._DRONES:
-            if state["active"][drone]:
+            # The 2 m footprint is the camera's at survey altitude: a drone that
+            # is landing (failsafe or scripted) or on the ground covers nothing.
+            surveying = (not result[drone].landed
+                         and result[drone].failsafe_state not in {"landing", "landed", "killed"})
+            if state["active"][drone] and surveying:
                 self._mark_coverage(ctx, drone, result[drone].position_m)
         # The dropout drone still sends the share due at the dropout step, then
         # goes silent.

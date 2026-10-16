@@ -110,3 +110,14 @@ def test_failsafe_landing_is_straight_down_and_stops_monitoring():
             assert sent < 401
         else:
             assert sent == 401
+
+
+def test_no_alert_from_a_stale_estimate():
+    # With both observers' fixes blacked out from before the zone entry
+    # (6.67 s) the estimate only coasts; it must not raise the alert, and the
+    # crossing must be reported as a missed alert.
+    scenario = Scenario(mission="monitor", seed=5, duration_s=20.0, params={"path": "crossing"},
+                        outages=({"start_s": 4.0, "end_s": None, "streams": ["meas:o1", "meas:o2"]},))
+    result = run_mission(scenario)
+    assert result.metrics["alerts_raised"] == 0
+    assert result.metrics["missed_alert"] is True

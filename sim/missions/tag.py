@@ -309,6 +309,7 @@ class TagMission(Mission):
         for agent in ctx.state["ids"]:
             ctx.drones[agent].set_goal(goals[agent])
         states = {agent: ctx.drones[agent].tick(i) for agent in ctx.state["ids"]}
+        ctx.state["last_states"] = states
         target_position = np.asarray(target.position([t])[0], dtype=float)
         outage_window = next((outage for outage in ctx.outages if outage.start_s <= t < outage.end_s), None)
         # Prereg EXP-029 Part B: a separation violation counts as a late
@@ -360,7 +361,10 @@ class TagMission(Mission):
             if outage_window is not None and not state.landed \
                     and abs(float(state.position_m[2]) - target_position[2]) <= 0.3:
                 ctx.state["blind_in_plane"] += ctx.dt
-            if state.link_age_s is not None and state.link_age_s >= 0.33 and state.failsafe_state == "nominal":
+            # Contract section 7: still executing mission motion when the command
+            # age reaches 0.33 s DURING the blackout.
+            if outage_window is not None and state.link_age_s is not None \
+                    and state.link_age_s >= 0.33 and state.failsafe_state == "nominal":
                 ctx.state["nominal_at_age_0_33"] = True
             if late_window and violates:
                 ctx.state["violation_outage"] = True
@@ -383,7 +387,11 @@ class TagMission(Mission):
     def done(self, ctx):
         if ctx.state["tag_complete"] and ctx.params["mode"] == "tag":
             return "tagged"
-        states = [ctx.adapters[agent].get_state() for agent in ctx.state["ids"]]
+        # Decide from the states the drones reported on this step: their
+        # failsafe transition events were recorded in that same step, so a round
+        # that ends on a landing always has the landing event.
+        last = ctx.state.get("last_states") or {}
+        states = [last[agent] for agent in ctx.state["ids"] if agent in last]
         if any(state.failsafe_state == "killed" for state in states):
             return "killed"
         if ctx.params["mode"] == "hold":
@@ -447,9 +455,21 @@ class TagMission(Mission):
             ]
             degraded = next((event for event in transitions if event["detail"].get("state") == "degraded"), None)
             landing = next((event for event in transitions if event["detail"].get("state") == "landing"), None)
+            landings_all = [event for event in ctx.events if event["kind"] == "failsafe_transition"
+                            and event["detail"].get("state") == "landing"]
+            first_landing = min((event["time_s"] for event in landings_all), default=None)
             result.update({
+                # A landing latches, so a follower that landed from link loss
+                # before the blackout spends it on the ground: report that.
+                "first_landing_s": None if first_landing is None else float(first_landing),
+                "airborne_at_blackout": bool(start is None or first_landing is None or first_landing >= start),
                 "outage_reaction_hold_s": None if degraded is None or reaction_origin is None else float(degraded["time_s"] - reaction_origin),
                 "outage_reaction_land_s": None if landing is None or reaction_origin is None else float(landing["time_s"] - reaction_origin),
+                # The drone's own command age at each transition (its failsafe
+                # reaction, which can be shorter than the time since the
+                # blackout began when a command was still in flight).
+                "outage_hold_link_age_s": None if degraded is None else degraded["detail"].get("link_age_s"),
+                "outage_land_link_age_s": None if landing is None else landing["detail"].get("link_age_s"),
                 "nominal_at_age_0_33": bool(ctx.state["nominal_at_age_0_33"]),
                 "violation_during_or_after_outage": bool(ctx.state["violation_outage"]),
                 "blind_in_plane_s": float(ctx.state["blind_in_plane"]),

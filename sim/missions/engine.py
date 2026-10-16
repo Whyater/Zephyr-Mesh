@@ -302,7 +302,10 @@ def run_mission(scenario: Scenario, *, log: bool = False, code_revision: str = "
             end_reason = reason
             break
     end_time = (steps - 1) * DT
-    ctx.events = [e for e in ctx.events if e["time_s"] <= end_time + DT]
+    # Adapter events are stamped with the adapter clock, one step ahead of the
+    # mission's t (time advances before the failsafe is evaluated), so the last
+    # step's events sit at end_time + DT; the tolerance keeps them in.
+    ctx.events = [e for e in ctx.events if e["time_s"] <= end_time + DT + 1e-9]
     ctx.event(end_time, "mission_end", None, {"reason": end_reason})
     metrics = dict(mission.metrics(ctx))
     metrics["end_reason"] = end_reason

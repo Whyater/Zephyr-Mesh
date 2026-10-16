@@ -193,3 +193,25 @@ def test_hold_mode_runs_through_the_blackout_and_times_from_its_start():
     # capped at the 1.5 m/s speed limit), so the 0.3 m drop takes at least
     # 0.3 / 1.5 = 0.2 s and, with the 0.25 s response ramp, well under 0.5 s.
     assert 1.0 + 0.2 <= m["blind_in_plane_s"] <= 1.0 + 0.05 + 0.011 + 0.5
+
+
+def test_hold_mode_reports_landing_before_the_blackout():
+    # On 0.5 s bursts with the default 0.30 s rule a follower often lands before
+    # the scripted blackout; it must be reported as not airborne at the
+    # blackout, with its first landing time, and a run on clean stays airborne.
+    outage = ({"start_s": 15.0, "end_s": 17.0, "streams": None},)
+    seen_grounded = False
+    for seed in range(20261030, 20261036):
+        result = run_mission(_scenario(seed=seed, duration_s=20.0, preset="burst_10_0.5s", outages=outage,
+                                       params={"target_class": "turn", "mode": "hold"}))
+        m = result.metrics
+        if m["landings_before_outage"] > 0:
+            seen_grounded = True
+            assert m["airborne_at_blackout"] is False
+            assert m["first_landing_s"] < 15.0
+        else:
+            assert m["airborne_at_blackout"] is True
+    assert seen_grounded
+    clean = run_mission(_scenario(duration_s=20.0, outages=outage, params={"target_class": "turn", "mode": "hold"}))
+    assert clean.metrics["airborne_at_blackout"] is True
+    assert 0.15 - 1e-9 <= clean.metrics["outage_hold_link_age_s"] <= clean.metrics["outage_reaction_hold_s"] + 1e-9
