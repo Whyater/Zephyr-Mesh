@@ -256,5 +256,27 @@
       "per_seed.csv.gz": "51e673c09c35ec0e95b14ae83a2f467c9a1be5dea1a5175e936bf8216a9b9383",
       "summary.json": "91898ff7f011256cb53c6b6c87e8386e08e25ac5b16c6d9be8be779205b34feb"
     }
+  },
+  {
+    "run_dir": "runs/s7-coop",
+    "command": "PYTHONPATH=. {python} tools/d_generate_s7_coop.py --output {out}",
+    "outputs": {
+      "replay_v1.json": "f377109b261fb66d0c3d399af7a8fe81e44c0160d1e2c0e36f450f4fd5e9a133",
+      "run.json": "c606beb3ed3e7ca2338d4f4136419b97b1c036e79426dfc409daa1b064980136"
+    }
+  },
+  {
+    "run_dir": "runs/d8-consensus",
+    "command": "PYTHONPATH=. {python} tools/d_run_consensus.py --output {out}",
+    "outputs": {
+      "acting.csv": "51d5d723d56c14cb07c0b00ec34a18ad3d3ef0c2d4c22582c778a3622eccc070",
+      "acting_summary.json": "0472510f5e24bd2a8c468f6fc20467308cee16c574a93bab048583930c96d1c5",
+      "consensus_acting.png": "24f4f431402e7935617112e0d25eeb45a6b467fb44c0b56a370174c1ec066760",
+      "consensus_loss.png": "0dd3f1420b58ef3eac245b69fb2bb163bf6c18f970058a3571b6186dad78ffff",
+      "counterexample.json": "2ac0be2429976cfa436705c4a9e39a9afd9c90c395d32ed68bb588b2d8ecd380",
+      "loss_delay.csv": "b56968c11827ae6b962f8bc94fb0fda1d4648a6da4cf000ac370d86fe8c2b0ed",
+      "loss_delay_summary.json": "a4ffdc5a5f2978f7a596b2f9b6fe8a2bc0054b989d2ebcd786c4b42296262b6f",
+      "spectral_check.json": "d8fb6df164717d748d717b43df3c99493efc93ce6ba903041efe28267490b564"
+    }
   }
 ]
