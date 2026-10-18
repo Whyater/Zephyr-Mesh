@@ -1,0 +1,188 @@
+{
+  "argv": [
+    "--output",
+    "runs/d8-consensus",
+    "--processes",
+    "2"
+  ],
+  "code_sha256": {
+    "sim/coop/consensus.py": "b96e83b20f2367857a7a228cf91fe5cb242e52475b64b650be04a261f8670b1c",
+    "tools/d_make_consensus_figure.py": "07d7b7fcd74268361dedc2fdd237e2f5ce6c7fe08b9561b3adc975c90505622a",
+    "tools/d_run_consensus.py": "fcf315ca80a3a94efe62f71a630cf7c17b3aa1d1b5b8081e2d88c509fdbc6ac6"
+  },
+  "config": {
+    "acting_delay_steps": [
+      0,
+      1
+    ],
+    "acting_graphs": [
+      "complete",
+      "line"
+    ],
+    "acting_loss_probabilities": [
+      0.0,
+      0.1,
+      0.3,
+      0.5
+    ],
+    "acting_noise_std": 0.05,
+    "acting_seed_recipe": "SeedSequence([seed, 2, 41]).spawn(n_observers)",
+    "acting_symmetric_loss": true,
+    "acting_truth": [
+      0.0,
+      0.0,
+      1.5
+    ],
+    "acting_updates": [
+      0,
+      1,
+      2,
+      5,
+      10
+    ],
+    "agreement_tolerance": 0.01,
+    "consensus_steps": 400,
+    "delay_steps": [
+      0,
+      1,
+      2,
+      5
+    ],
+    "eps_rule": "1 / (max_degree(adjacency) + 1)",
+    "graphs": [
+      "ring",
+      "line",
+      "star",
+      "complete",
+      "random_geometric"
+    ],
+    "loss_probabilities": [
+      0.0,
+      0.1,
+      0.3,
+      0.5,
+      0.7
+    ],
+    "part_c": {
+      "delays": [
+        0,
+        1
+      ],
+      "graphs": [
+        "complete",
+        "line"
+      ],
+      "loss": [
+        0.0,
+        0.1,
+        0.3,
+        0.5
+      ],
+      "noise_std": 0.05,
+      "truth": [
+        0.0,
+        0.0,
+        1.5
+      ],
+      "updates": [
+        0,
+        1,
+        2,
+        5,
+        10
+      ]
+    },
+    "part_c_note": "Part C was added after pre-registration; exploratory",
+    "pilot": false,
+    "seeds": 50,
+    "spectral_measurement_steps": [
+      20,
+      60
+    ],
+    "spectral_steps": 80,
+    "symmetric_loss": [
+      true,
+      false
+    ]
+  },
+  "config_sha256": "746ba7a29e9c642327cee94d0f9effd051b1c7f0d80a787cce1cf732667c2304",
+  "git_revision": "adde365a668df0944e18e64278a71633a14507d1",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no drone, camera or radio hardware was used, and nothing here is measured.",
+    "Agents are nodes holding a value with no motion.",
+    "Links are abstract with independent per-message loss, no bursts, and fixed whole-step delay.",
+    "Part C uses simulated Gaussian noise of 0.05 m per axis around a fixed truth.",
+    "Five small fixed graphs are used.",
+    "Disagreement is the root-sum-square distance of agents' values from their mean."
+  ],
+  "n_processes": 2,
+  "numpy": "2.5.1",
+  "outputs": {
+    "acting.csv": "51d5d723d56c14cb07c0b00ec34a18ad3d3ef0c2d4c22582c778a3622eccc070",
+    "acting_summary.json": "0472510f5e24bd2a8c468f6fc20467308cee16c574a93bab048583930c96d1c5",
+    "consensus_acting.png": "24f4f431402e7935617112e0d25eeb45a6b467fb44c0b56a370174c1ec066760",
+    "consensus_loss.png": "0dd3f1420b58ef3eac245b69fb2bb163bf6c18f970058a3571b6186dad78ffff",
+    "counterexample.json": "2ac0be2429976cfa436705c4a9e39a9afd9c90c395d32ed68bb588b2d8ecd380",
+    "loss_delay.csv": "b56968c11827ae6b962f8bc94fb0fda1d4648a6da4cf000ac370d86fe8c2b0ed",
+    "loss_delay_summary.json": "a4ffdc5a5f2978f7a596b2f9b6fe8a2bc0054b989d2ebcd786c4b42296262b6f",
+    "spectral_check.json": "d8fb6df164717d748d717b43df3c99493efc93ce6ba903041efe28267490b564"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. python tools/d_run_consensus.py --output {out}",
+  "runtime_s": 110.5700563749997,
+  "schema": "zephyr-d-consensus-manifest-1",
+  "seeds": [
+    371720502,
+    1249878349,
+    3203739156,
+    1790063691,
+    2198230632,
+    15714349,
+    3610559861,
+    1829771177,
+    2622224437,
+    392545655,
+    2373850591,
+    2619257959,
+    1334022989,
+    43804094,
+    1893365211,
+    4210946756,
+    332784139,
+    2026338997,
+    3099017430,
+    553287299,
+    3898823245,
+    2472439644,
+    1741784848,
+    3707003597,
+    1946358077,
+    1655571452,
+    3694342930,
+    2406706314,
+    1117507349,
+    1116636652,
+    1917437640,
+    2780596741,
+    2522806464,
+    2732811857,
+    2952761630,
+    1756269399,
+    3102787614,
+    2249671253,
+    2360937720,
+    1477116850,
+    3989206072,
+    2416831391,
+    3382046516,
+    567654572,
+    2386269301,
+    2047363242,
+    831185547,
+    471843110,
+    818300824,
+    870123567
+  ]
+}
