@@ -9,7 +9,7 @@ import pytest
 
 from sim import s6_recovery as s6
 from sim.coop import observers as observer_module
-from sim.coop.fusion import covariance_intersection_fast
+from sim.coop.fusion import covariance_intersection_fast, information_fusion
 from sim.coop.net import Delivery, LinkSpec, TrafficSpec, make_deliveries
 from sim.estimation.targets import make_target
 
@@ -382,6 +382,82 @@ def test_batched_fast_ci_matches_fusion_reference():
     np.testing.assert_allclose(got[1], expected[1], rtol=0.0, atol=1e-9)
 
 
+@pytest.mark.parametrize("mode", ("ci", "naive"))
+@pytest.mark.parametrize("n_observers", (2, 3, 4, 5, 6))
+def test_batched_fusion_matches_shared_helpers_for_multiple_sizes(mode, n_observers):
+    """Batched CI and information fusion agree with the shared helper formulas."""
+    rng = np.random.default_rng(1200 + n_observers)
+    for _ in range(4):
+        means = [rng.normal(size=6) for _ in range(n_observers)]
+        covs = []
+        for _ in means:
+            matrix = rng.normal(size=(6, 6))
+            covs.append(matrix @ matrix.T + 2.0 * np.eye(6))
+        if mode == "ci":
+            expected = covariance_intersection_fast(means, covs)[:2]
+        else:
+            expected = information_fusion(means, covs)
+        got = observer_module._fuse_tracks(means, covs, mode=mode, ci_mode="fast")
+        np.testing.assert_allclose(got[0], expected[0], rtol=0.0, atol=1e-9)
+        np.testing.assert_allclose(got[1], expected[1], rtol=0.0, atol=1e-9)
+
+
+def test_prediction_matrix_cache_is_bounded():
+    """Distinct prediction steps cannot grow the transition cache without bound."""
+    cache = observer_module._predict_matrices
+    cache.cache_clear()
+    mean = np.zeros(6)
+    covariance = np.eye(6)
+    for index in range(1200):
+        observer_module._predict_full(mean, covariance, 0.0, 0.123 + index * 1e-4, 0.1)
+    info = cache.cache_info()
+    assert info.maxsize == 256
+    assert info.currsize <= 256
+
+
+@pytest.mark.parametrize("capture_index", (1, 21))
+@pytest.mark.parametrize("arm", ("peer_ci", "peer_naive"))
+def test_peer_divergence_before_and_after_burn_in_is_reported(monkeypatch, capture_index, arm):
+    """A non-finite measurement marks divergence without crashing either peer arm."""
+    cell = _cell("cv", n_observers=2, phase="sync")
+    real_truth_and_measurements = observer_module._truth_and_measurements
+
+    def inject_nonfinite(cell, seed, config, phases):
+        target, names, captures, measurements = real_truth_and_measurements(
+            cell, seed, config, phases
+        )
+        measurements["o1"][capture_index] = np.full(3, np.nan)
+        return target, names, captures, measurements
+
+    monkeypatch.setattr(observer_module, "_truth_and_measurements", inject_nonfinite)
+    row = run_seed(cell, int(s6.seed_list(1)[0]), arms=(arm,))[arm]
+    assert row.failed is True
+    assert row.extras["diverged"] is True
+    assert np.isfinite(row.extras["diverged_time_s"])
+    if capture_index == 1:
+        assert row.extras["diverged_time_s"] < 2.0
+        assert row.extras["onboard_o1_p95_m"] is None
+        assert row.extras["onboard_o1_mean_nees"] is None
+    else:
+        assert row.extras["diverged_time_s"] >= 2.0
+        assert row.extras["onboard_o1_p95_m"] is not None
+        assert row.extras["onboard_o1_mean_nees"] is not None
+
+
+def test_exact_ci_optimiser_failure_is_reported_as_divergence(monkeypatch):
+    """A ValueError from the exact CI optimiser marks divergence instead of escaping."""
+    cell = _cell("cv", n_observers=2, phase="sync", ci="exact")
+
+    def failing_ci(means, covariances):
+        raise ValueError("optimiser did not converge")
+
+    monkeypatch.setattr(observer_module, "covariance_intersection_many", failing_ci)
+    row = run_seed(cell, int(s6.seed_list(1)[0]), arms=("peer_ci",))["peer_ci"]
+    assert row.failed is True
+    assert row.extras["diverged"] is True
+    assert np.isfinite(row.extras["diverged_time_s"])
+
+
 def test_cached_cv_prediction_matches_independent_block_prediction():
     """Cached transition matrices preserve the old block prediction to 1e-9."""
     rng = np.random.default_rng(771)
@@ -420,3 +496,69 @@ def test_peer_naive_feedback_n6_is_unhidden(target):
                     link=LinkSpec(mode="abstract", delay_s=0.05, loss_probability=0.3), phase="sync")
     row = run_seed(cell, int(s6.seed_list(1)[0]), arms=("central", "peer_naive"))["peer_naive"]
     assert row.extras.get("diverged", False) or row.mean_nees > 10.0
+
+
+def test_star_average_cached_state_matches_per_query_fusion():
+    """The star-average cached prediction agrees with recomputing each query."""
+    cell = _cell("cv", n_observers=3, phase="random", delay=0.05, loss=0.3)
+    seed = int(s6.seed_list(1)[0])
+    config = s6.RecoveryConfig()
+    names = tuple(f"o{i + 1}" for i in range(cell.n_observers))
+    phases = observer_module._phase_offsets(cell, names, seed)
+    target, names, captures, measurements = observer_module._truth_and_measurements(
+        cell, seed, config, phases
+    )
+    traffic = TrafficSpec("star", names, cell.rate_hz, 108, config.duration_s, phases)
+    table = make_deliveries(traffic, cell.link, seed)
+    settings = observer_module.EstimatorSettings()
+    snapshots = {}
+    for sender in names:
+        estimator = observer_module._new_estimator(target, settings, cell.r_std_m)
+        sender_rows = []
+        for index, capture_time in enumerate(captures[sender]):
+            estimator.update(measurements[sender][index], float(capture_time))
+            mean, covariance = observer_module._state_from_estimator(
+                estimator, float(capture_time), settings
+            )
+            sender_rows.append((mean.copy(), covariance.copy()))
+        snapshots[sender] = sender_rows
+
+    arrivals = []
+    for sender in names:
+        for delivery in observer_module._route(table, sender, "gs"):
+            arrivals.append((float(delivery.receive_time_s), int(delivery.seq), sender))
+    arrivals.sort(key=lambda item: (item[0], item[1], int(item[2][1:])))
+    latest = {}
+    cursor = 0
+    initial_mean, initial_covariance, _ = observer_module._initial_state(target, settings)
+    query_times = observer_module._query_times(config)
+    truth = np.asarray(target.position(query_times), dtype=float)
+    errors = []
+    for query_time in query_times:
+        while cursor < len(arrivals) and arrivals[cursor][0] <= query_time + 1e-12:
+            _, sequence, sender = arrivals[cursor]
+            cursor += 1
+            stamp = float(captures[sender][sequence])
+            latest[sender] = (stamp, *snapshots[sender][sequence])
+        means = []
+        covariances = []
+        for sender in names:
+            if sender in latest:
+                stamp, mean0, covariance0 = latest[sender]
+                mean, covariance = observer_module._predict_full(
+                    mean0, covariance0, stamp, float(query_time), settings.q_acc_psd
+                )
+            else:
+                mean, covariance = observer_module._predict_full(
+                    initial_mean, initial_covariance, 0.0, float(query_time), settings.q_acc_psd
+                )
+            means.append(mean)
+            covariances.append(covariance)
+        mean, _ = observer_module._naive_average_fast(means, covariances)
+        errors.append(float(np.linalg.norm(mean[:3] - truth[len(errors)])))
+
+    scored = np.asarray(errors)[query_times >= config.burn_in_s - 1e-9]
+    expected = run_seed(cell, seed, arms=("star_avg",))["star_avg"]
+    assert float(np.percentile(scored, 95)) == pytest.approx(expected.p95_error_m, abs=1e-12)
+    assert float(np.max(scored)) == pytest.approx(expected.max_error_m, abs=1e-12)
+    assert float(np.sqrt(np.mean(scored ** 2))) == pytest.approx(expected.rmse_m, abs=1e-12)

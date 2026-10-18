@@ -17,6 +17,7 @@ so its overconfidence is observable.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import lru_cache
 from typing import Iterable
 
 import numpy as np
@@ -28,7 +29,7 @@ from sim.estimation.targets import make_target
 from sim.s6_recovery import RecoveryConfig
 from sim.sensor import SensorConfig, SensorModel
 
-from .fusion import covariance_intersection_fast, covariance_intersection_many, information_fusion
+from .fusion import covariance_intersection_many
 from .net import LinkSpec, TrafficSpec, default_phases, make_deliveries
 
 TIME_TOLERANCE_S = 1e-12
@@ -37,9 +38,13 @@ _I6 = np.eye(6)
 BURN_IN_TOLERANCE_S = 1e-9
 ARMS = ("single", "central", "star_avg", "peer_ci", "peer_naive")
 _COVARIANCE_FLOOR = 1e-16
-_FAST_CI_REFERENCE_DONE = False
-_INFO_REFERENCE_DONE = False
-_PREDICT_MATRIX_CACHE = {}
+@lru_cache(maxsize=256)
+def _predict_matrices(dt: float, q: float):
+    """Return bounded-cache CV transition matrices for one time step."""
+    F = np.block([[_I3, dt * _I3], [np.zeros((3, 3)), _I3]])
+    Q = q * np.block([[_I3 * (dt ** 3 / 3.0), _I3 * (dt ** 2 / 2.0)],
+                      [_I3 * (dt ** 2 / 2.0), _I3 * dt]])
+    return F, Q
 
 
 @dataclass(frozen=True)
@@ -55,7 +60,8 @@ class CoopCell:
     deterministic, low-cost scoring; the peer-naive ground-station arm uses
     information fusion to expose its feedback overconfidence. The ground
     station averages the uninformed initial state until each observer's first
-    arrival in ``star_avg``.
+    arrival in ``star_avg``. In ``peer_naive``, it predicts the last fused gs
+    track between arrivals.
     """
 
     target: str = "cv"
@@ -207,15 +213,7 @@ def _predict_full(mean, cov, from_time: float, to_time: float, q: float):
     dt = max(0.0, float(to_time) - float(from_time))
     x = np.asarray(mean, dtype=float)
     p = np.asarray(cov, dtype=float)
-    key = (dt, float(q))
-    matrices = _PREDICT_MATRIX_CACHE.get(key)
-    if matrices is None:
-        F = np.block([[ _I3, dt * _I3], [np.zeros((3, 3)), _I3]])
-        Q = q * np.block([[dt ** 3 / 3.0 * _I3, dt ** 2 / 2.0 * _I3],
-                          [dt ** 2 / 2.0 * _I3, dt * _I3]])
-        matrices = (F, Q)
-        _PREDICT_MATRIX_CACHE[key] = matrices
-    F, Q = matrices
+    F, Q = _predict_matrices(dt, float(q))
     predicted_cov = F @ p @ F.T + Q
     return F @ x, (predicted_cov + predicted_cov.T) / 2.0
 
@@ -287,7 +285,6 @@ def _route(table, sender, receiver):
 
 
 def _fuse_tracks(means, covariances, *, mode: str, ci_mode: str):
-    global _FAST_CI_REFERENCE_DONE, _INFO_REFERENCE_DONE
     if len(means) == 1:
         out = (np.asarray(means[0], dtype=float).copy(), _stabilize_cov(covariances[0]))
         if not np.all(np.isfinite(out[0])) or not np.all(np.isfinite(out[1])):
@@ -297,7 +294,12 @@ def _fuse_tracks(means, covariances, *, mode: str, ci_mode: str):
                    for p in covariances]
     if mode == "ci":
         if ci_mode == "exact":
-            out = covariance_intersection_many(means, covariances)[:2]
+            try:
+                out = covariance_intersection_many(means, covariances)[:2]
+            except ValueError as exc:
+                # The exact weight optimiser can fail on degenerate inputs
+                # (seen with zero measurement noise). Treat it as divergence.
+                raise FloatingPointError(f"exact covariance intersection failed: {exc}") from exc
             if not np.all(np.isfinite(out[0])) or not np.all(np.isfinite(out[1])):
                 raise FloatingPointError("non-finite covariance intersection")
             return out
@@ -309,9 +311,6 @@ def _fuse_tracks(means, covariances, *, mode: str, ci_mode: str):
         # peer event loop.
         xs = np.asarray(means, dtype=float)
         ps = np.asarray(covariances, dtype=float)
-        if not _FAST_CI_REFERENCE_DONE:
-            covariance_intersection_fast(means, covariances)
-            _FAST_CI_REFERENCE_DONE = True
         invs = np.linalg.inv(ps)
         traces = np.trace(ps, axis1=1, axis2=2)
         weights = (1.0 / traces)
@@ -327,9 +326,6 @@ def _fuse_tracks(means, covariances, *, mode: str, ci_mode: str):
     if mode == "naive":
         xs = np.asarray(means, dtype=float)
         ps = np.asarray(covariances, dtype=float)
-        if not _INFO_REFERENCE_DONE:
-            information_fusion(means, covariances)
-            _INFO_REFERENCE_DONE = True
         invs = np.linalg.inv(ps)
         info = np.sum(invs, axis=0)
         cov = np.linalg.inv(info)
@@ -571,7 +567,10 @@ def _peer(cell, config, target, names, captures, measurements, table, mode):
                 when, kind, _, sender, seq, receiver = events[ecursor]
                 ecursor += 1
                 if kind == 0:
-                    local_est[sender].update(measurements[sender][seq], when)
+                    measurement = np.asarray(measurements[sender][seq], dtype=float)
+                    if measurement.shape != (3,) or not np.all(np.isfinite(measurement)):
+                        raise FloatingPointError("non-finite measurement")
+                    local_est[sender].update(measurement, when)
                     # Re-fuse local and every latest neighbor track.  In the
                     # naive arm this feeds the result back into the loop.
                     recompute_observer(sender, when, include_senders=None)
@@ -599,7 +598,7 @@ def _peer(cell, config, target, names, captures, measurements, table, mode):
                         recompute_observer(receiver, when)
                         fused_count += 1
             gm, gp = recompute_gs(t)
-        except (FloatingPointError, np.linalg.LinAlgError, ValueError, OverflowError):
+        except (FloatingPointError, np.linalg.LinAlgError, OverflowError):
             diverged = True
             diverged_time = float(t)
             break
@@ -623,12 +622,12 @@ def _peer(cell, config, target, names, captures, measurements, table, mode):
                              True, result.mean_nees, result.nees_window_means,
                              result.frac_windows_above_band, result.fused_count,
                              result.extras)
-    if onboard_errors:
-        oe = np.asarray(onboard_errors)[mask]
-        result.extras["onboard_o1_p95_m"] = float(np.percentile(oe, 95))
-        result.extras["onboard_o1_mean_nees"] = (
-            float(np.mean([_nees_fast(e, c) for e, c in onboard_covs])) if onboard_covs else None
-        )
+    oe = np.asarray(onboard_errors, dtype=float)[mask] if onboard_errors else np.empty(0)
+    result.extras["onboard_o1_p95_m"] = float(np.percentile(oe, 95)) if oe.size else None
+    result.extras["onboard_o1_mean_nees"] = (
+        float(np.mean([_nees_fast(e, c) for e, c in onboard_covs]))
+        if oe.size and onboard_covs else None
+    )
     return result
 
 
