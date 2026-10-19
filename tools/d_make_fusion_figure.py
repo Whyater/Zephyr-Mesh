@@ -60,12 +60,12 @@ def make_figures(directory: Path):
             if arm == "peer_naive":
                 points = []
                 for cell, value in zip(selected, y_values):
-                    failed = (cell["fail_rate"]["rate"] > 0.0 or
+                    failed = (cell["fail_rate"]["rate"] >= 0.5 or
                               cell["diverged_count"] > 0 or value is None)
                     points.append(ymax * 0.94 if failed else value)
                 axis.plot(x_values, points, marker="o", label=arm, color=colors[arm])
                 for x, cell in zip(x_values, selected):
-                    failed = (cell["fail_rate"]["rate"] > 0.0 or
+                    failed = (cell["fail_rate"]["rate"] >= 0.5 or
                               cell["diverged_count"] > 0 or cell["p95_error_m"]["median"] is None)
                     if failed:
                         rate = 100.0 * cell["fail_rate"]["rate"]

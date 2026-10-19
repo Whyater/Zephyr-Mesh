@@ -29,12 +29,26 @@ def _float_or_none(value):
     return None if value == "" else float(value)
 
 
+def _strict_json(path: Path):
+    def reject_constant(value):
+        raise ValueError(f"non-standard JSON constant: {value}")
+
+    return json.loads(path.read_text(encoding="utf-8"), parse_constant=reject_constant)
+
+
 def _row_map(path: Path):
     with path.open(encoding="utf-8", newline="") as handle:
         return list(csv.DictReader(handle))
 
 
 def _assert_row_matches(row, outcome):
+    assert int(row["n_observers"]) >= 1
+    assert float(row["noise_std_m"]) == 0.05
+    assert row["target"] == "turn"
+    assert float(row["loss_probability"]) in (0.0, 0.3)
+    assert row["arm"] in ARMS
+    assert row["ci"] in ("fast", "exact")
+    assert int(row["seed"]) > 0
     for name in ("p95_error_m", "max_error_m", "rmse_m", "mean_nees",
                  "frac_windows_above_band"):
         actual = _float_or_none(row[name])
@@ -83,7 +97,9 @@ def test_pilot_reproducible_independent_rows_math_figures_and_manifest(tmp_path)
                              arms=("peer_ci",))["peer_ci"]
     _assert_row_matches(exact_row, exact_outcome)
 
-    checks = json.loads((first / "math_checks.json").read_text(encoding="utf-8"))
+    summary = _strict_json(first / "summary.json")
+    assert summary["cells"]
+    checks = _strict_json(first / "math_checks.json")
     reported = next(item for item in checks["sigma2_over_n"] if item["n"] == 3)
     rng = np.random.default_rng(np.random.SeedSequence([918273, 44, 3]))
     draws = rng.normal(0.0, 0.7, (12000, 3, 3))
