@@ -213,3 +213,19 @@ def test_diverged_seed_is_a_failure_without_metric_numbers(monkeypatch):
     summary = runner._summarize(rows)[0]
     assert summary["fail_rate"]["count"] == 1 and summary["diverged_count"] == 1
     assert summary["p95_error_m"]["median"] is None and summary["p95_error_m"]["n"] == 0
+
+
+def test_exact_subset_compares_only_the_matching_fast_cell():
+    from tools.d_run_fusion import _exact_subset
+
+    def row(target, noise, ci, p95):
+        return {"arm": "peer_ci", "n_observers": 6, "loss_probability": 0.0, "seed": 1,
+                "target": target, "noise_std_m": noise, "ci": ci,
+                "p95_error_m": p95, "mean_nees": 1.0}
+
+    exact = [row("turn", 0.05, "exact", 0.10)]
+    # The matching fast row comes first; a later row from another cell must not replace it.
+    fast = [row("turn", 0.05, "fast", 0.12), row("jinking", 0.10, "fast", 0.17)]
+    [cell] = _exact_subset(fast, exact)
+    assert cell["n_seeds"] == 1
+    assert cell["fast"]["p95_error_m"]["median"] == 0.12
