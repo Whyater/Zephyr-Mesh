@@ -91,7 +91,7 @@ def _finite_or_none(value) -> float | None:
 
 
 def _job(job: dict) -> dict:
-    """Run one simulated cell and retain divergence and worker CPU details."""
+    """Run one simulated cell; a diverged seed is a failure with empty metrics."""
     started = time.process_time()
     cell = _cell(job)
     selected_arms = tuple(job.get("arms", ARMS))
@@ -111,7 +111,7 @@ def _job(job: dict) -> dict:
             "arm": arm,
             "ci": cell.ci,
             "seed": int(job["seed"]),
-            "failed": bool(outcome.failed),
+            "failed": bool(outcome.failed) or diverged,
             "fused_count": int(outcome.fused_count),
             "diverged": diverged,
             "diverged_time_s": diverged_time,
@@ -119,6 +119,10 @@ def _job(job: dict) -> dict:
         for name in METRIC_FIELDS:
             row[name] = _finite_or_none(getattr(outcome, name))
         row["nonfinite_metric_count"] = sum(row[name] is None for name in METRIC_FIELDS)
+        if diverged:
+            # A diverged seed is a failure, never a number in the medians.
+            for name in METRIC_FIELDS:
+                row[name] = None
         rows.append(row)
     return {
         "rows": rows,
@@ -321,7 +325,7 @@ def run(output: Path, *, pilot: bool = False, processes: int | None = None, argv
     exact_jobs = _jobs(exact_ns, (0.05,), (TARGETS[1],), losses, seeds, "exact")
     for job in exact_jobs:
         job["arms"] = ("peer_ci",)
-    worker_count = min(2, processes or default_processes())
+    worker_count = processes or default_processes()
     fast_results = run_jobs(fast_jobs, "tools.d_run_fusion:_job", processes=worker_count, progress=False)
     exact_results = run_jobs(exact_jobs, "tools.d_run_fusion:_job", processes=worker_count, progress=False)
     calibration_jobs = []
@@ -374,7 +378,7 @@ def run(output: Path, *, pilot: bool = False, processes: int | None = None, argv
         "filter_measurement_std_m": 0.05,
         "seeds": seed_count, "active_n_observers": list(ns),
         "active_noise_std_m": list(noises), "active_targets": [label for label, _, _ in targets],
-        "exact_ci_subset": {"n_observers": [2, 3, 6], "target": "turn", "noise_std_m": 0.05,
+        "exact_ci_subset": {"n_observers": list(exact_ns), "target": "turn", "noise_std_m": 0.05,
                             "loss_probability": [0.0, 0.3], "seeds": seed_count},
         "recovery_config": dataclasses.asdict(RecoveryConfig()),
     }

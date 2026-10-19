@@ -49,15 +49,17 @@ def _assert_row_matches(row, outcome):
     assert row["arm"] in ARMS
     assert row["ci"] in ("fast", "exact")
     assert int(row["seed"]) > 0
+    diverged = bool((outcome.extras or {}).get("diverged", False))
     for name in ("p95_error_m", "max_error_m", "rmse_m", "mean_nees",
                  "frac_windows_above_band"):
         actual = _float_or_none(row[name])
         expected_value = getattr(outcome, name)
         expected = None if expected_value is None or not np.isfinite(expected_value) else float(expected_value)
+        if diverged:
+            expected = None
         assert actual == expected
-    assert row["failed"] == ("true" if outcome.failed else "false")
+    assert row["failed"] == ("true" if (outcome.failed or diverged) else "false")
     assert int(row["fused_count"]) == outcome.fused_count
-    diverged = bool((outcome.extras or {}).get("diverged", False))
     assert row["diverged"] == ("true" if diverged else "false")
     expected_time = (outcome.extras or {}).get("diverged_time_s")
     assert _float_or_none(row["diverged_time_s"]) == expected_time
@@ -105,7 +107,9 @@ def test_pilot_reproducible_independent_rows_math_figures_and_manifest(tmp_path)
     draws = rng.normal(0.0, 0.7, (12000, 3, 3))
     independent_means = np.mean(draws, axis=1)
     measured = float(np.var(independent_means[:, 0], ddof=1))
-    assert abs(measured - reported["measured_variance"]) < 0.08
+    hand_variance = 0.49 / 3
+    assert abs(measured - hand_variance) < 0.012
+    assert abs(reported["measured_variance"] - hand_variance) < 0.01
     assert abs(reported["ratio"] - 1.0) < 0.04
     assert np.allclose(checks["ci_hand"]["information_covariance"], 0.5 * np.eye(3))
     assert checks["ci_consistency"]["fast"]["min_eigenvalue"] >= -1e-10
@@ -183,3 +187,29 @@ print(json.dumps(sorted(set(paths))))
                                check=True, capture_output=True, text=True)
     loaded = set(json.loads(completed.stdout.strip().splitlines()[-1]))
     assert loaded <= set(manifest_a["code_sha256"])
+
+
+def test_diverged_seed_is_a_failure_without_metric_numbers(monkeypatch):
+    import tools.d_run_fusion as runner
+    from types import SimpleNamespace
+
+    def fake_run_seed(cell, seed, arms, config):
+        outcome = SimpleNamespace(
+            failed=False, fused_count=7, p95_error_m=0.03, max_error_m=0.5, rmse_m=0.02,
+            mean_nees=4.0, frac_windows_above_band=0.1,
+            extras={"diverged": True, "diverged_time_s": 3.5})
+        return {arm: outcome for arm in arms}
+
+    monkeypatch.setattr(runner, "run_seed", fake_run_seed)
+    job = {"n_observers": 2, "noise_std_m": 0.05, "target_label": "turn", "target": "ct",
+           "target_params": (), "loss_probability": 0.0, "seed": 1, "ci": "fast",
+           "arms": ("peer_naive",)}
+    rows = runner._job(job)["rows"]
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["failed"] is True and row["diverged"] is True
+    for name in ("p95_error_m", "max_error_m", "rmse_m", "mean_nees", "frac_windows_above_band"):
+        assert row[name] is None
+    summary = runner._summarize(rows)[0]
+    assert summary["fail_rate"]["count"] == 1 and summary["diverged_count"] == 1
+    assert summary["p95_error_m"]["median"] is None and summary["p95_error_m"]["n"] == 0
