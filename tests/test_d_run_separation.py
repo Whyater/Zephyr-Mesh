@@ -3,24 +3,29 @@ from __future__ import annotations
 
 import csv
 import json
+import shutil
 import subprocess
 import sys
+from collections import Counter
 from pathlib import Path
 
 from jsonschema import Draft202012Validator
+import pytest
 
 from sim.coop.separation import EncounterSpec, run_encounter
 from sim.s6_recovery import wilson_interval
 from tools.d_common import seeds_for
 from tools.d_run_separation import MIN_SEPARATION_M, search_radius_table, separation_grid
+from tools.d_make_separation_figure import make_figures
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON = "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python"
 
 
-def _run_pilot(path: Path) -> None:
-    command = [PYTHON, "tools/d_run_separation.py", "--output", str(path), "--pilot", "--processes", "6"]
-    subprocess.run(command, cwd=ROOT, env={"PYTHONPATH": "."}, check=True, capture_output=True, text=True)
+def _run_pilot(path: Path) -> str:
+    command = [PYTHON, "tools/d_run_separation.py", "--output", str(path), "--pilot", "--processes", "2"]
+    return subprocess.run(command, cwd=ROOT, env={"PYTHONPATH": "."}, check=True,
+                          capture_output=True, text=True).stdout
 
 
 def test_search_logic_and_wilson_rule():
@@ -31,6 +36,7 @@ def test_search_logic_and_wilson_rule():
     result = search_radius_table(table)
     assert result["required_buffer_m"] == 0.05 and result["failing_radius_m"] == 0.35
     assert result["censored"] is False and result["max_radius_searched_m"] == 0.4
+    assert result["first_violation_seed_index"] == 3
     censored = search_radius_table([{"avoidance_radius_m": 0.35, "violations": 1, "seeds_run": 1}])
     assert censored["censored"] is True and censored["required_buffer_m"] is None
     assert censored["max_radius_searched_m"] == 1.5
@@ -75,12 +81,12 @@ def test_one_written_row_recomputed_from_run_encounter(tmp_path):
     output = tmp_path / "pilot"
     _run_pilot(output)
     with (output / "encounters.csv").open(encoding="utf-8", newline="") as handle:
-        row = next(csv.DictReader(handle))
+        row = next(item for item in csv.DictReader(handle) if item["kind"] == "head_on")
     condition = EncounterSpec(kind=row["kind"], speed_mps=float(row["speed_mps"]), delay_s=float(row["delay_s"]),
                               loss_probability=float(row["loss_probability"]), noise_std_m=float(row["noise_std_m"]),
                               dead_reckoning=row["dead_reckoning"].lower() == "true",
-                              avoidance_radius_m=float(row["avoidance_radius_m"]))
-    seed = 0
+                              avoidance_radius_m=float(row["avoidance_radius_m"]),
+                              lateral_offset_m=float(row["lateral_offset_m"]))
     seeds = seeds_for("separation", 2)
     results = [run_encounter(condition, seed) for seed in seeds]
     assert int(row["violations"]) == sum(bool(result["violated"]) for result in results)
@@ -88,5 +94,61 @@ def test_one_written_row_recomputed_from_run_encounter(tmp_path):
     assert float(row["min_center_distance_m"]) == min(float(result["min_center_distance_m"]) for result in results)
 
 
-def test_processes_are_capped():
-    assert separation_grid(pilot=True)
+def test_printed_estimate_matches_measured_formula(tmp_path):
+    from tools.d_run_separation import N_SEEDS, RADIUS_COUNT
+
+    output = tmp_path / "estimate"
+    stdout = _run_pilot(output)
+    line = next(line for line in stdout.splitlines() if "full-run worst-case estimate:" in line)
+    printed = float(line.split("full-run worst-case estimate: ", 1)[1].split(" CPU s", 1)[0])
+    rates_text = line.split("measured CPU s per encounter by kind: ", 1)[1]
+    rates = {item.split("=", 1)[0]: float(item.split("=", 1)[1])
+             for item in rates_text.split(", ")}
+    full = separation_grid()
+    counts = Counter(cell["kind"] for cell in full)
+    expected_worst = sum(rates[kind] * count * N_SEEDS * RADIUS_COUNT
+                         for kind, count in counts.items())
+    expected_best = sum(rates[kind] * count * N_SEEDS
+                        for kind, count in counts.items())
+    best_line = next(line for line in stdout.splitlines() if "full-run best-case estimate:" in line)
+    printed_best = float(best_line.split("full-run best-case estimate: ", 1)[1].split(" CPU s", 1)[0])
+    assert printed == pytest.approx(round(expected_worst, 1), abs=0.05)
+    assert printed_best == pytest.approx(round(expected_best, 1), abs=0.05)
+
+
+def test_processes_are_capped(tmp_path):
+    import tools.d_run_separation as runner
+
+    captured = {}
+    conditions = separation_grid(pilot=False)
+
+    def fake_run_jobs(jobs, target, *, processes, checkpoint_dir, fingerprint, progress):
+        captured["processes"] = processes
+        return [{"baseline": {"seeds_run": 75}} for _ in jobs]
+
+    original_run_jobs = runner.run_jobs
+    original_write_outputs = runner._write_outputs
+    runner.run_jobs = fake_run_jobs
+    runner._write_outputs = lambda *args, **kwargs: None
+    try:
+        runner.run(tmp_path / "cap", processes=6)
+    finally:
+        runner.run_jobs = original_run_jobs
+        runner._write_outputs = original_write_outputs
+    assert len(conditions) > 0
+    assert captured["processes"] == 4
+
+
+def test_buffer_figure_changes_when_buffer_data_change(tmp_path):
+    first = tmp_path / "first"
+    second = tmp_path / "second"
+    _run_pilot(first)
+    shutil.copytree(first, second)
+    buffer_path = second / "buffer.json"
+    data = json.loads(buffer_path.read_text(encoding="utf-8"))
+    assert data["envelope"]
+    data["envelope"][0]["required_buffer_m"] = 0.99
+    data["envelope"][0]["censored"] = False
+    buffer_path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    make_figures(second)
+    assert (first / "separation_buffer.png").read_bytes() != (second / "separation_buffer.png").read_bytes()
