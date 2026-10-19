@@ -10,12 +10,14 @@ from pathlib import Path
 
 import numpy as np
 
+import sim.estimation.cv  # noqa: F401
 from sim.coop.boundary import tolerated
 from sim.coop.net import LinkSpec, predicted_channel_use
 from sim.coop.observers import CoopCell, run_seed
 from sim.s6_recovery import median_interval, wilson_interval
-from sim.estimation.sweep import run_jobs, write_csv, write_csv_gz
+from sim.estimation.sweep import run_jobs, sha256_json, write_csv, write_csv_gz
 from tools.d_common import argv_or_default, prepare_output, seeds_for, write_json, write_manifest
+from tools.d_make_tolerance_figure import make_figure
 
 NS = (1, 2, 3, 4, 6)
 DELAYS = (0.0, 0.025, 0.05, 0.10, 0.15, 0.20, 0.30)
@@ -59,7 +61,7 @@ def _cell(job: dict) -> CoopCell:
     target = next(item[1:] for item in TARGETS if item[0] == str(job["target"]))
     return CoopCell(target=target[0], target_params=target[1], n_observers=n_observers,
                     rate_hz=rate_hz, noise_std_m=0.05, r_std_m=None, link=link,
-                    phase="sync", ci="fast")
+                    phase="random", ci="fast")
 
 
 def _registered_arms(n_observers: int) -> tuple[str, ...]:
@@ -134,17 +136,13 @@ def _mean(values):
     return float(np.mean(present)) if present else None
 
 
-def _write_cells(output: Path, rows: list[dict], seeds: list[int]) -> None:
+def _write_cells(output: Path, grouped: dict[tuple, list[dict]], seeds: list[int]) -> None:
     columns = ("link", "target", "loss_model", "loss", "arm", "n", "delay", "n_seeds",
                "fail_count", "fail_rate", "fail_rate_wilson_lo", "fail_rate_wilson_hi",
                "p95_median", "p95_median_interval", "max_median", "rmse_median",
                "mean_nees", "busy_fraction", "delivery_ratio")
-    keys = sorted({(r["link"], r["target"], r["loss_model"], r["loss"], r["arm"],
-                    r["n"], r["delay"]) for r in rows})
     cell_rows = []
-    for key in keys:
-        selected = [r for r in rows if (r["link"], r["target"], r["loss_model"], r["loss"],
-                                        r["arm"], r["n"], r["delay"]) == key]
+    for key, selected in sorted(grouped.items()):
         failed = sum(bool(r["failed"]) for r in selected)
         median, low, high = median_interval([r["p95"] for r in selected])
         wilson_low, wilson_high = wilson_interval(failed, len(seeds))
@@ -161,16 +159,22 @@ def _write_cells(output: Path, rows: list[dict], seeds: list[int]) -> None:
     write_csv(output / "cells.csv", cell_rows, columns)
 
 
-def _build_boundaries(rows: list[dict], delays: tuple[float, ...], n_seeds: int) -> dict:
+def _group_rows(rows: list[dict]) -> dict[tuple, list[dict]]:
+    grouped: dict[tuple, list[dict]] = {}
+    for row in rows:
+        key = (row["link"], row["target"], row["loss_model"], row["loss"], row["arm"],
+               row["n"], row["delay"])
+        grouped.setdefault(key, []).append(row)
+    return grouped
+
+
+def _build_boundaries(grouped: dict[tuple, list[dict]], delays: tuple[float, ...], n_seeds: int) -> dict:
     """Aggregate per-seed failure counts into atlas-compatible boundaries."""
     boundaries = {}
-    keys = sorted({(r["link"], r["target"], r["loss_model"], r["loss"], r["arm"], r["n"])
-                   for r in rows})
+    keys = sorted({key[:6] for key in grouped})
     for link, target, loss_model, loss, arm, n in keys:
-        counts = [sum(bool(r["failed"]) for r in rows
-                      if (r["link"], r["target"], r["loss_model"], r["loss"],
-                          r["arm"], r["n"], r["delay"]) ==
-                      (link, target, loss_model, loss, arm, n, delay))
+        counts = [sum(bool(r["failed"]) for r in grouped.get(
+            (link, target, loss_model, loss, arm, n, delay), ()))
                   for delay in delays]
         result = tolerated(delays, counts, n_seeds)
         result["fail_counts"] = counts
@@ -200,30 +204,25 @@ def _build_best(boundaries, links, targets, losses, ns):
     return best
 
 
-def _build_gaps(rows: list[dict]) -> dict:
+def _build_gaps(grouped: dict[tuple, list[dict]]) -> dict:
     fields = ("all_lost_fraction", "hand_all_lost_fraction", "mean_gap_s",
               "hand_mean_gap_s", "valid_capture_steps", "all_lost_steps")
-    keys = sorted({(r["link"], r["target"], r["loss_model"], r["loss"], r["arm"],
-                    r["n"], r["delay"]) for r in rows if r["gap_check"] is not None})
+    keys = sorted(key for key, values in grouped.items()
+                  if any(row["gap_check"] is not None for row in values))
     output = {}
     for key in keys:
-        values = [r["gap_check"] for r in rows
-                  if (r["link"], r["target"], r["loss_model"], r["loss"], r["arm"],
-                      r["n"], r["delay"]) == key]
+        values = [r["gap_check"] for r in grouped[key] if r["gap_check"] is not None]
         label = "|".join((str(key[0]), str(key[1]), str(key[2]), f"{key[3]:g}",
                           str(key[4]), str(key[5]), f"{key[6]:g}"))
         output[label] = {field: _mean([item[field] for item in values]) for field in fields}
     return output
 
 
-def _build_channel_use(rows: list[dict]) -> dict:
-    keys = sorted({(r["link"], r["target"], r["loss_model"], r["loss"], r["arm"],
-                    r["n"], r["delay"]) for r in rows})
+def _build_channel_use(grouped: dict[tuple, list[dict]]) -> dict:
+    keys = sorted(grouped)
     entries = {}
     for link, target, loss_model, loss, arm, n, delay in keys:
-        values = [r for r in rows if (r["link"], r["target"], r["loss_model"], r["loss"],
-                                     r["arm"], r["n"], r["delay"]) ==
-                  (link, target, loss_model, loss, arm, n, delay)]
+        values = grouped[(link, target, loss_model, loss, arm, n, delay)]
         traffic_n = 1 if arm == "single" else n
         rate_hz = 50.0 if link == "radio_stress" else 10.0
         predicted = predicted_channel_use(traffic_n, rate_hz, MESSAGE_BYTES[arm],
@@ -251,7 +250,8 @@ def _config(ns, delays, losses, targets, links, seeds):
         "rates_hz": {"abstract": 10.0, "radio_gym": 10.0, "radio_stress": 50.0},
         "radio_geometry": "ground station at (0,0,1), observers on radius-3 m circle around (2,0,1.5)",
         "background": {"nodes": 4, "rate_hz": 50.0, "message_bytes": 200, "receiver": "bg_sink"},
-        "phase": "sync", "noise_std_m": 0.05, "r_std_m": None, "ci": "fast",
+        "phase": "random (o1 at 0, others seeded per run)", "noise_std_m": 0.05,
+        "r_std_m": None, "ci": "fast",
         "duration_s": 12.0, "burn_in_s": 2.0, "query_dt_s": 0.02,
         "control_dt_s": 0.02, "log_every": 1, "burst_mean_packets": 5,
         "delay_added_after_radio": True,
@@ -262,6 +262,11 @@ def _config(ns, delays, losses, targets, links, seeds):
 def _source_paths() -> list[Path]:
     root = Path(__file__).resolve().parents[1]
     paths = set()
+    paths.update({Path(__file__).resolve(), root / "tools/d_make_tolerance_figure.py",
+                  root / "tools/horizon_mpl.py", root / "sim/coop/__init__.py",
+                  root / "sim/coop/observers.py", root / "sim/coop/net.py",
+                  root / "sim/coop/fusion.py", root / "sim/coop/boundary.py",
+                  root / "sim/estimation/cv.py"})
     for module in sys.modules.values():
         filename = getattr(module, "__file__", None)
         if not filename:
@@ -280,15 +285,39 @@ def _source_paths() -> list[Path]:
 def _checkpoint_fingerprint(config: dict) -> str:
     root = Path(__file__).resolve().parents[1]
     names = set(_source_paths())
-    names.update({Path(__file__).resolve(), root / "sim/coop/observers.py",
-                  root / "sim/coop/net.py", root / "sim/coop/fusion.py",
-                  root / "sim/coop/boundary.py"})
     digest = hashlib.sha256()
     for path in sorted(names):
         digest.update(str(path.relative_to(root)).encode("utf-8"))
         digest.update(path.read_bytes())
     digest.update(json.dumps(config, sort_keys=True, separators=(",", ":")).encode("utf-8"))
     return "tolerance-" + digest.hexdigest()
+
+
+def _check_checkpoint_fingerprint(checkpoint: Path, fingerprint: str) -> None:
+    for path in sorted(checkpoint.glob("*.json")):
+        try:
+            record = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise ValueError(f"checkpoint directory {checkpoint} contains invalid JSON") from exc
+        if not isinstance(record, dict) or record.get("fingerprint") != fingerprint:
+            raise ValueError(f"checkpoint directory {checkpoint} contains a mismatched fingerprint")
+
+
+def _count_cached_jobs(checkpoint: Path | None, jobs: list[dict], fingerprint: str) -> int:
+    if checkpoint is None:
+        return 0
+    cached = 0
+    for job in jobs:
+        path = checkpoint / f"{sha256_json(job)[:16]}.json"
+        if not path.is_file():
+            continue
+        try:
+            record = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if isinstance(record, dict) and record.get("fingerprint") == fingerprint:
+            cached += 1
+    return cached
 
 
 def _validate_rows(rows: list[dict], jobs: list[dict]) -> None:
@@ -307,6 +336,37 @@ def _validate_rows(rows: list[dict], jobs: list[dict]) -> None:
         missing = sorted(expected - actual)
         extra = sorted(actual - expected)
         raise RuntimeError(f"runner rows do not match grid; missing={missing[:3]}, extra={extra[:3]}")
+
+
+def _cpu_per_job_by_n(measured: dict[int, float], wanted: tuple[int, ...]) -> dict[int, float]:
+    """Mean worker CPU seconds per job for each wanted N.
+
+    Measured values are used as they are. An N that was not measured is placed on the straight
+    line through the two nearest measured points (interpolation or extrapolation). If cost
+    grows faster than linearly in N, extrapolating past the largest measured N is a lower bound.
+    """
+    known = sorted(measured)
+    if len(known) < 2:
+        raise ValueError("need CPU measured at two or more N values to estimate the rest")
+    estimate = {}
+    for n in wanted:
+        if n in measured:
+            estimate[n] = float(measured[n])
+            continue
+        left, right = sorted(sorted(known, key=lambda item: (abs(item - n), item))[:2])
+        slope = (measured[right] - measured[left]) / float(right - left)
+        estimate[n] = float(measured[left] + slope * (n - left))
+    return estimate
+
+
+def _stress_background_note(rows: list[dict]) -> str:
+    """Text for the figure: median on-air occupancy at N=1 on radio_stress, to the nearest 5 %."""
+    values = [float(r["busy_fraction"]) for r in rows
+              if r["link"] == "radio_stress" and int(r["n"]) == 1
+              and r["busy_fraction"] is not None]
+    if not values:
+        return ""
+    return f"~{5 * round(100.0 * float(np.median(values)) / 5.0):d} % background"
 
 
 def main(argv=None):
@@ -331,18 +391,32 @@ def main(argv=None):
     delays = (0.0, 0.1, 0.2) if pilot else DELAYS
     losses = (("independent", 0.5), ("burst", 0.3)) if pilot else LOSSES
     targets = (TARGETS[1],) if pilot else TARGETS
-    links = ("abstract", "radio_stress") if pilot else ("abstract", "radio_gym", "radio_stress")
+    links = ("abstract", "radio_gym", "radio_stress") if pilot else (
+        "abstract", "radio_gym", "radio_stress")
     config = _config(ns, delays, losses, targets, links, seeds)
     jobs = [{"link": link, "target": target[0], "loss_model": model, "loss": loss,
              "n": n, "delay": delay, "seed": seed}
             for link in links for target in targets for model, loss in losses for n in ns
             for delay in delays for seed in seeds]
+    fingerprint = _checkpoint_fingerprint(config)
+    if checkpoint is not None:
+        checkpoint.mkdir(parents=True, exist_ok=True)
+        _check_checkpoint_fingerprint(checkpoint, fingerprint)
+    cached_jobs = _count_cached_jobs(checkpoint, jobs, fingerprint)
     start = time.perf_counter()
     raw = run_jobs(jobs, "tools.d_run_tolerance:_job", processes=args.processes,
-                   checkpoint_dir=checkpoint, fingerprint=_checkpoint_fingerprint(config),
+                   checkpoint_dir=checkpoint, fingerprint=fingerprint,
                    progress=False)
     runtime_s = time.perf_counter() - start
     worker_cpu_s = float(sum(float(result["worker_cpu_s"]) for result in raw))
+    pilot_cpu_groups: dict[tuple[str, int], list[float]] = {}
+    for job, result in zip(jobs, raw):
+        key = (str(job["link"]), int(job["n"]))
+        pilot_cpu_groups.setdefault(key, []).append(float(result["worker_cpu_s"]))
+    pilot_cpu_by_link_n = {
+        f"{link}|{n}": float(np.mean(values))
+        for (link, n), values in sorted(pilot_cpu_groups.items())
+    }
     rows = [row for result in raw for row in result["rows"]]
     _validate_rows(rows, jobs)
     columns = ("link", "target", "loss_model", "loss", "arm", "n", "delay", "seed",
@@ -355,20 +429,31 @@ def main(argv=None):
                                  if row["gap_check"] is not None else None)
         encoded_rows.append(encoded)
     write_csv_gz(output / "per_seed.csv.gz", encoded_rows, columns)
-    boundaries = _build_boundaries(rows, delays, len(seeds))
+    grouped = _group_rows(rows)
+    boundaries = _build_boundaries(grouped, delays, len(seeds))
     write_json(output / "boundaries.json", boundaries)
     write_json(output / "best_n.json", _build_best(boundaries, links, targets, losses, ns))
-    _write_cells(output, rows, seeds)
-    write_json(output / "gaps.json", _build_gaps(rows))
-    write_json(output / "channel_use.json", _build_channel_use(rows))
-    from tools.d_make_tolerance_figure import make_figure
-
-    make_figure(output / "boundaries.json", output / "tolerance_vs_n.png", pilot=pilot)
-    full_jobs = len(NS) * len(DELAYS) * len(LOSSES) * len(TARGETS) * 3 * 20
-    estimated_cpu_s = worker_cpu_s * full_jobs / len(jobs)
+    _write_cells(output, grouped, seeds)
+    write_json(output / "gaps.json", _build_gaps(grouped))
+    write_json(output / "channel_use.json", _build_channel_use(grouped))
+    make_figure(output / "boundaries.json", output / "tolerance_vs_n.png", pilot=pilot,
+                rates_hz=config["rates_hz"],
+                link_notes={"radio_stress": _stress_background_note(rows)})
+    full_jobs_per_link_n = len(DELAYS) * len(LOSSES) * len(TARGETS) * 20
+    estimated_cpu_s = 0.0
+    estimated_cpu_per_job = {}
+    for link in links:
+        measured = {n: float(np.mean(pilot_cpu_groups[(link, n)])) for n in ns}
+        per_job = _cpu_per_job_by_n(measured, NS)
+        estimated_cpu_per_job.update({f"{link}|{n}": value for n, value in per_job.items()})
+        estimated_cpu_s += sum(per_job.values()) * full_jobs_per_link_n
     estimated_wall_s = estimated_cpu_s / 4.0
     timing = {"pilot_worker_cpu_s": worker_cpu_s, "full_run_estimate_cpu_s": estimated_cpu_s,
-              "full_run_estimate_wall_s_at_4_processes": estimated_wall_s, "runtime_s": runtime_s}
+              "full_run_estimate_wall_s_at_4_processes": estimated_wall_s, "runtime_s": runtime_s,
+              "checkpoint_loaded_jobs": cached_jobs,
+              "checkpoint_recomputed_jobs": len(jobs) - cached_jobs,
+              "pilot_cpu_by_link_n": pilot_cpu_by_link_n,
+              "estimated_cpu_per_job_by_link_n": estimated_cpu_per_job}
     write_json(output / "timing.json", timing)
     print(f"pilot_runtime_s={runtime_s:.3f}")
     print(f"pilot_worker_cpu_s={worker_cpu_s:.3f}")
@@ -397,12 +482,17 @@ def main(argv=None):
                             "none are measured."),
                            "Twenty seeds are thin and one-step boundary differences are weak.",
                            ("The burst model is simple, the thresholds are research criteria, and "
-                            "background load is chosen.")],
+                            "background load is chosen."),
+                           ("radio_stress runs at 50 Hz, so its N=1 result is not the 10 Hz atlas "
+                            "anchor, and a 5-packet burst lasts 0.1 s there instead of 0.5 s; "
+                            "compare links only at the same capture rate.")],
                    runtime_s=runtime_s, n_processes=args.processes, hashed_sources=hashed_sources,
                    extra={"volatile_fields": ["runtime_s", "git_revision", "git_tree_state", "platform",
                                                "n_processes", "argv", "pilot_worker_cpu_s",
                                                "full_run_estimate_cpu_s",
-                                               "full_run_estimate_wall_s_at_4_processes"],
+                                               "full_run_estimate_wall_s_at_4_processes",
+                                               "checkpoint_loaded_jobs", "checkpoint_recomputed_jobs",
+                                               "pilot_cpu_by_link_n"],
                           "n_cells": len(jobs) // len(seeds), "n_runs": len(jobs),
                           "source_note": ("At N=1 the o1 route uses the S6 single-tracker loss seed. "
                                           "For N>=2 each route loss stream is the same for every N; "
