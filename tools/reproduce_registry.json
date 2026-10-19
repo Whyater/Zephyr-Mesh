@@ -1,282 +1,303 @@
 [
-  {
-    "run_dir": "runs/s0-baseline",
-    "command": "{python} main.py --output {out} --no-plot",
-    "outputs": {
-      "telemetry.csv": "66f542dcd128df4e9e695e7dda7668179755ea37a1f746d74e2e8351ccfc7391"
-    }
-  },
-  {
-    "run_dir": "runs/s2-physics",
-    "command": "{python} tools/make_s2_convergence.py --output {out}/convergence.json",
-    "outputs": {
-      "convergence.json": "916ffc271f34e7411c1fc42d4ddd96132876be5396fab5e6a9c50da2d1bce609"
-    }
-  },
-  {
-    "run_dir": "runs/s6-recovery",
-    "command": "PYTHONPATH=. {python} tools/run_s6_recovery.py --output {out} && PYTHONPATH=. {python} tools/make_s6_figure.py --output-dir {out} {out}/summary.json",
-    "outputs": {
-      "per_seed.csv": "ef45a41b8263be67de4b16f8e58d1295f877cead9d8c595d30fbb944534c426a",
-      "summary.json": "a3b04116e93e5e734f0d5f5bfd5e5ebfabb4fe2585110895019d8ff66bbe96eb",
-      "s6_recovery.png": "3aaf4ad6c278fa982ebca09d7beb2a02a0c644b573c981080215c191aa4da3d7",
-      "s6_recovery_all_noise.png": "7ed1841a38204ecd5dd48915d874e41c8e923a5e063063cac653da6438d7aa30"
-    }
-  },
-  {
-    "run_dir": "runs/s7-swarm",
-    "command": "cd {out}/../.. && PYTHONPATH=. {python} tools/generate_s7_fixture.py",
-    "outputs": {
-      "run.json": "73039284032d824c943972bd79c2f96f61e28582b79d8335d4d9d3e7d032585b"
-    }
-  },
-  {
-    "run_dir": "runs/s0-baseline-v2",
-    "command": "PYTHONPATH=. {python} tools/a_make_s0_baseline_v2.py --output-dir {out}",
-    "outputs": {
-      "a_s0_baseline_v2.png": "06b64aa6d60e7d5725f7154472627765b4e6f3e5dab37109070826929bff784f",
-      "lateral.csv": "33b12e8b7f740f266f7e217969a5fc83f5835f8191012d2d28880f8e9885a8bf",
-      "report.json": "d41207d8310b16719cc78672fca977d9186cb9ce79e5b1ce668b719f68a051dc",
-      "vertical.csv": "a59202c84ecfeb06ce523c7e37cd9621c2092c16bd20c4dd3cd2bb58181b3337",
-      "yaw.csv": "b95f74b18961f30f2d77b7873f2e9f42614ca31b4c1b3bbe8ed17781b6ce7416"
-    }
-  },
-  {
-    "run_dir": "runs/s2-physics-v2",
-    "command": "PYTHONPATH=. {python} tools/a_make_s2_physics_v2.py --output-dir {out}",
-    "outputs": {
-      "a_s2_convergence.png": "763de92b702af619538961ee2f51cb0342805576ec4c2bdaf60b29a432a7490d",
-      "convergence.json": "916ffc271f34e7411c1fc42d4ddd96132876be5396fab5e6a9c50da2d1bce609"
-    }
-  },
-  {
-    "run_dir": "runs/a7-disturbance",
-    "command": "PYTHONPATH=. {python} tools/a_run_disturbance_response.py --output-dir {out}",
-    "outputs": {
-      "a7_disturbance.png": "5cbfde9d9468a192a6309eda182ef74c2200de31c4da15ec52fcb8a01e70075b",
-      "per_run.csv": "3f8c3a21091f5321faea5ff5ff4190f0b8e17646e2a892c073db8c209bdde237",
-      "summary.json": "d716aa00615fcb325a99b44c5a2b396d4fb861446d90a9a2f0354a09570c9d29"
-    }
-  },
-  {
-    "run_dir": "runs/a7-model-checks",
-    "command": "PYTHONPATH=. {python} tools/a_make_disturbance_model_checks.py --output-dir {out}",
-    "outputs": {
-      "model_checks.json": "e699e4e1bae6f843c17ca4c6770616e5dada866fa5fe765e86ddc30e6cc8b15b"
-    }
-  },
-  {
-    "run_dir": "runs/a4-vehicle-chain",
-    "command": "PYTHONPATH=. {python} tools/a_make_vehicle_chain_report.py --output-dir {out}",
-    "outputs": {
-      "a4_vehicle_chain.png": "139104752678bdd566c98d45e14a2c126a6e0fdf7b0d897e4d2f6fc707d2f0ef",
-      "report.json": "f850c4c546fb828247f76bbe15d593b0fdacb298162dbcbae85378f8ab5d3d89"
-    }
-  },
-  {
-    "run_dir": "runs/a5-sensitivity",
-    "command": "PYTHONPATH=. {python} tools/a_profile_sensitivity.py --output-dir {out}",
-    "outputs": {
-      "a5_sensitivity.png": "6e42f354eefae65a655974029f80503d8660de3f8537683aafa5e62b57f39d90",
-      "sensitivity.csv": "f4a7fc561790f5a291609df463442c759fa667ce8ef99dac75fff590f2154fa5",
-      "sensitivity.json": "284891779179ac180eb8ca2adf65fc830d44185b87a1d0a69a7b69adce32825b"
-    }
-  },
-  {
-    "run_dir": "runs/a6-control-tolerance",
-    "command": "PYTHONPATH=. {python} tools/a_run_control_tolerance.py --output-dir {out} --workers 2",
-    "outputs": {
-      "a6_control_tolerance.png": "45eeef9f051636afdd774f74362ac12f91e8769fdd3afbd6512e9f7b58490d7c",
-      "d_crit.json": "3de04b8235f2ad8f89968acb77424f7eb3dd852c07a5498c99fb6f18e41a831d",
-      "per_run.csv": "5949fd0e864fa501d52cd9ffddb5f54288b6d7f62e98ab532df427d237cc45f8",
-      "summary.json": "4544173d3d292f5e86c9f7089cb25cbe318244804519fb27e4ed6f49f3c44056"
-    }
-  },
-  {
-    "run_dir": "runs/a6-long-check",
-    "command": "PYTHONPATH=. {python} tools/a_make_dcrit_long_check.py --output-dir {out}",
-    "outputs": {
-      "long_check.json": "ec1c70c3ea9b5256527cef253ced4ee4ea11173cd48c64244584e718125fad36"
-    }
-  },
-  {
-    "run_dir": "runs/c-exp013-channel",
-    "command": "PYTHONPATH=. {python} tools/c_exp013_channel.py --output {out}",
-    "outputs": {
-      "curves.csv": "1daddc067f8c1037fe5735e2e4c1580cb52828ecd865519228c11e7157575567",
-      "exp013_delivery_vs_distance.png": "e16b91835a99d59c5505bdb021967f6c74657ec516c9ec0c7339e5295166c256",
-      "summary.json": "9f497f8d40800e5e9c3304c866b021a01d0fef733231557c90cbfffcae40ee86"
-    }
-  },
-  {
-    "run_dir": "runs/c5-heartbeat",
-    "command": "PYTHONPATH=. {python} tools/c_exp016_heartbeat.py --output {out}",
-    "outputs": {
-      "detection_delay.csv": "0ebf878c8fd376ae28fa9d875c7dd232ad5b67645093f9946080bc29bf592e1c",
-      "exp016_false_alarms.png": "6bc600b506852a60d84287b68ee6e12f54ef71537a0f354e557a4a460ed1affb",
-      "exp016_rule_300ms.png": "4cba578f788ddbe934d02156f7056e15c23f88d76ef8e51f03f67f988af4dbab",
-      "false_alarms.csv": "ca0a21e47868eba7e2fc338d29af8f526b78875f6e5ebcfd1812b7b6f5f070ce",
-      "interference.csv": "3520e79e8f7a2034dd4c0104b963e11583dd75e1c9b49d190a768737b8dcbdf5",
-      "summary.json": "43d563641147e2833a90b9256df91317fd535e6e56a977565a7f83cd699cfb6d",
-      "thresholds.json": "8d0f7af78fc41495c14d4990c6502beb5662ec198223bb96d4184a7f968f4a5f"
-    }
-  },
-  {
-    "run_dir": "runs/c-exp015-network",
-    "command": "PYTHONPATH=. {python} tools/c_exp015_network.py --output {out} --seeds 20 --processes 2",
-    "outputs": {
-      "cells.csv": "ad13c4f85ca901726ace3f1b57d670e148e20318bcc1bdcd331926e523ec7f46",
-      "exp015_cost.png": "826052fe7665046d446ed61f540b8ed3624b9ad62cd1b69aaea9e2d56cbe06cd",
-      "exp015_delivery.png": "412f87d03a4c1026b9f266db2955dc69a3cec8301fb763b51e2b5fdfdbb06c2e",
-      "per_seed.csv": "15e4a357b17208d805a37fca24307098ed675a94b489532d6f0cd57d3cc6e4b4",
-      "summary.json": "e7c53a6f337b1aa495057d70b9bcad16d907bc85dbb6658510881f03044776f1"
-    }
-  },
-  {
-    "run_dir": "runs/c-exp014-mac-r2",
-    "command": "PYTHONPATH=. {python} tools/c_exp014_mac.py --output {out} --seeds 20",
-    "outputs": {
-      "cells.csv": "b27401989eeeb08b5a9743f6f806c62c821fbc9f16f4f2d2359bbeac882e3c21",
-      "exp014_delivery.png": "03e17ad1813c0f6f2c7cf808268d4573b7422763deedabde5b7d125f37a0ff15",
-      "exp014_latency.png": "ff35c54c5bd112c7f27103786aea88a002459191d47f8b7dce1c9b2ce842f47e",
-      "per_seed.csv": "9bce1990c92672e7e931768752de033fa5381c829636b415c6ab1f7cb9de1f8b",
-      "summary.json": "994384f6fc083b740a493a628446f79a5eb3eb76e762ade9b6ab3813ddd0a34b"
-    }
-  },
-  {
-    "run_dir": "runs/c-exp017-tolerance-r2",
-    "command": "PYTHONPATH=. {python} tools/c_exp017_tolerance.py --output {out}",
-    "outputs": {
-      "cells.csv": "2ef63f91381e0c26870b8de4f46bdbbd6fe06bec1722f6262c71e11d58348dc2",
-      "exp017_boundary.png": "a95c08f426645dd287ab4f75da36fcbaec006a54f94bfe917b4d5c936af97b41",
-      "exp017_contention.png": "e79efb35ed3818b69724e5de0db03079708c5b4ee334c7519b266057f9ca3648",
-      "exp017_distance.png": "6e5260c66ac192338e020a65272128c6317fe9ea9f4ce68fe5919d46b43292c2",
-      "per_seed.csv": "e290967e2583f8152175ae100cb609e546533d45e0e100d87d8e1082f5151b03",
-      "summary.json": "ebe6a796f95cb7dd23fd5da2de2487ceb91925e5a751aee774d88a86d7775741"
-    }
-  },
-  {
-    "run_dir": "runs/c-exp018-recovery-r2",
-    "command": "PYTHONPATH=. {python} tools/c_exp018_recovery.py --output {out}",
-    "outputs": {
-      "exp018_coverage.png": "0b46b9058c99acbb9021e2642ff5f8e9dba2f9ea773a1df803435764c0f1987b",
-      "exp018_design.png": "e0bbd6f291fbedb880b801f647293fac163f3d01aeca1ebe7719d7429615359d",
-      "recovery.csv": "808b1b86a40bfcb7bf4a600bfa7f676b2e01a1fd1a3aaf76aaea9a933e44382e",
-      "summary.json": "4101d96b067b75bec9bf9f84b71b9740be079f67a27ee277374c25cb45cb112a",
-      "sweeps.csv": "9e7e1911c4474841f9ff6c15c67ede1eab655c1a46b37ccab0510893a3d2214e"
-    }
-  },
-  {
-    "run_dir": "runs/s6-retro",
-    "command": "PYTHONPATH=. {python} tools/run_s6_retro.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_retro_figure.py {out}",
-    "outputs": {
-      "cells.csv": "518a561843ae94ea070964959c7bbb26c5e468ad3cae522feef42eba81cd27c8",
-      "per_seed.csv.gz": "fb3bf0e7d231e6ff5ef6f93da9631ba94a1a49d078e5e99e25c7ad5d72b520b4",
-      "s6_retro.png": "44b4ef48399782668c7db28ab8caa19a3d8df1b7a1327f752509a4da2e66b2a6",
-      "s6_retro_reorder.png": "cc93948923b6e44339a9c84e132be4160bccb0ca68dd67107b999b790a4a1437",
-      "summary.json": "b5b0167215e8de3de67a58209ae2610ebc79d7f7ba1439a3bbefcc5e533c76d5"
-    }
-  },
-  {
-    "run_dir": "runs/s6-tuning",
-    "command": "PYTHONPATH=. {python} tools/run_s6_tuning.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_tuning_figure.py {out}",
-    "outputs": {
-      "cells.csv": "4719f190d14be9b19a2e4b566b5ac0ea0e9d8063c3d20d7b161f63c2e8213f88",
-      "consistency_check.json": "8f3c881baee699fbf6841feaf7f88fecc029301a3bf12f41c43a60abea6c3602",
-      "per_seed.csv.gz": "b6f6a98b80c3c8990e87f11243bcc11c614b7cea1c905efa86baf7735e9cc6dd",
-      "s6_tuning.png": "cb38d028423e1730857682a3d915f5fe348d542036399c28070a8725d4286a94",
-      "s6_tuning_monitor.png": "09b1a5c3aabec2898c8f4e078b65a0e10f530951aa0e4db12c29c9b08d442c1f",
-      "summary.json": "b209e00b6468fa028e2bf4c2f0ed93c9484e70e07be10026f2404cb2165fc8b9"
-    }
-  },
-  {
-    "run_dir": "runs/s6-clocks",
-    "command": "PYTHONPATH=. {python} tools/run_s6_clocks.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_clocks_figure.py {out}",
-    "outputs": {
-      "cells.csv": "4f94eee41e251af64d001cc930b5e66b481daccb31135236d21fd44a417ba8d1",
-      "per_seed.csv.gz": "2ac3924db9e555899f586147735d0d6eb518a68d4233ef37657f5ef1e8c755be",
-      "s6_clocks.png": "3ac2c058015ae52a41ad75a3e1aba776710b21d5dbda8a074fce89183fb4b961",
-      "s6_clocks_sync.png": "25373116f9eca6262f66d1d55c10f521cdd40a84cd0603423090b5ad3cea935d",
-      "summary.json": "795992765aef597aafdfdac8c62e8930e08ac9ebfae430f60338116e2f136f17"
-    }
-  },
-  {
-    "run_dir": "runs/s6-sensitivity",
-    "command": "PYTHONPATH=. {python} tools/run_s6_sensitivity.py --output {out} --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_sensitivity_figure.py {out}",
-    "outputs": {
-      "morris.json": "0fcbdbbd8116fb658050bd543321feec43a3b57a657d687f7facc53776130c73",
-      "oat.csv": "be5dabd69d8d57c98c80c7cb2ca390fe87fabc092f11c8f4a4ff66bb5261677f",
-      "oat.json": "135743ba978143d089d2c6cb120103c013ed7228a8f731910bf0526f102c7517",
-      "per_seed.csv.gz": "9f12f7938b5d2384a1c5312c12a251917784a2c1cdcf35c088e9c8143c9b0c75",
-      "ranking.json": "54c9bf1c46ec2a4f0d56e806ba8d3f4c535b2a929db82d473288f5fae1b27e3f",
-      "s6_sensitivity_morris.png": "9818157204b24d2543e19888e856f3395b873d4d5c3c3e1fc44c851ee8fc05b3",
-      "s6_sensitivity_oat.png": "3e94d52e9f9b4dc7bb70a63e7cb398e4c580699a3c5c68625a932469784fdf68",
-      "summary.json": "95134027efcedb2551cc6ff58dd04b5f2830b739dabe38a8b37e6281907e6115"
-    }
-  },
-  {
-    "run_dir": "runs/s6-turn",
-    "command": "PYTHONPATH=. {python} tools/run_s6_turn.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_turn_figure.py {out}",
-    "outputs": {
-      "cells.csv": "3ad6a257fdb738d407d57b841ac7a500b281faafb022f2b68c5696fcebb89175",
-      "per_seed.csv.gz": "2c36ea0cb8134ae249b3e2e5aa9339e4c5708537042658d3f325ae6dbeb88f2e",
-      "s6_turn.png": "26900a81ca8e3de718342b5797a853af16695b47228b124d7670ca6444a4f61b",
-      "s6_turn_phases.png": "ed9be05de9362700fd42928263c7135feb484ead4b3a0d9fa72d08229a6abe07",
-      "summary.json": "9580d36b69a08e6f6323e135b8ddfc443d0edb676adb6e99d8c80b7de1f8207c"
-    }
-  },
-  {
-    "run_dir": "runs/s6-sending",
-    "command": "PYTHONPATH=. {python} tools/run_s6_sending.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_sending_figure.py {out}",
-    "outputs": {
-      "cells.csv": "fa99cdb3665a0f53eecd8eb166f049f7747ad01f4642169022445e97ea10c2e6",
-      "per_seed.csv.gz": "1a54dadd612c390d40ece9f71a458bee6c40b93b4e2ae678e1462589100c49b0",
-      "s6_sending_bytes.png": "bf3e72140a22c8deb0ea896e01678c1c26a7621cd377313d0473044eb5d86022",
-      "s6_sending_packets.png": "a5642ef1f4ca542c55b1da8965163d493f616b2d47caffaabdf0c113a34a5985",
-      "summary.json": "392017cdfe809b54b758e0daa51388f8e76f9cdfda2d59d609a258a1071ef70c"
-    }
-  },
-  {
-    "run_dir": "runs/s6-atlas",
-    "command": "PYTHONPATH=. {python} tools/run_s6_atlas.py --output {out} --seeds 20 --imm-strata central,student_t,jitter --speed-variants-central-only --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_atlas_figure.py {out}",
-    "outputs": {
-      "atlas.json": "8c2b7ed189fe7b432318b698f5e28771e71971fb35f818ef395355be8df2086b",
-      "atlas_overview.png": "59f87849330b853dcf1b7892ef3e9a5f3b85deaee28b5411315869c8ab12b19e",
-      "atlas_overview_jitter.png": "e10f4ad2a37fae999c48c71de32755400d5c4cf13a4d681254f86e111a663b2a",
-      "atlas_overview_noise0.png": "9f3cccc7986505ea48b5b899f806aa7f0564cd6f02b58ff347d5dbc4af05b23c",
-      "atlas_overview_noise10.png": "aff8beacd011a72d45c83034f8d67c7b067446bb92f1845e7a93bfcf4d062dc5",
-      "atlas_overview_noise2.png": "08b572240ea484ffbeb1229ef37a889784bdabc6f970478defc01927f26141a8",
-      "atlas_overview_rate20.png": "bf1860035b53bcecc2e81740a36b3c52b921e2cd71aeeb199c2a19406c1ea3ba",
-      "atlas_overview_rate5.png": "de3fe275bbc00cafcf26e8208f1477d72e0c566bff5261aa175d46f31be11e4c",
-      "atlas_overview_rate50.png": "6b29e189930fbb18878110c38c968a4373ffedaa014e12237a4aaaa8cf536a6a",
-      "atlas_overview_student_t.png": "ab3dbeccd5e7a3839eb8eeff412c11c9bf50a1cfbbff50fdd60a2fbde81738ed",
-      "atlas_which_method.png": "67ad0aa88ba5ca4f44a2473abb962c2ca63298cee4166b2eb3770734a72facdf",
-      "cells.csv": "0e9174bef972d44ca25f04d335fa93519b387578a8dfdd0cda9276946933c1bf",
-      "counterfactuals.json": "cbc2a46a0f01beea7f9f1f5bf6c1a455a7cffcaa138f33d3edbecdb8013e2c58",
-      "per_seed.csv.gz": "51e673c09c35ec0e95b14ae83a2f467c9a1be5dea1a5175e936bf8216a9b9383",
-      "summary.json": "91898ff7f011256cb53c6b6c87e8386e08e25ac5b16c6d9be8be779205b34feb"
-    }
-  },
-  {
-    "run_dir": "runs/s7-coop",
-    "command": "PYTHONPATH=. {python} tools/d_generate_s7_coop.py --output {out}",
-    "outputs": {
-      "replay_v1.json": "f377109b261fb66d0c3d399af7a8fe81e44c0160d1e2c0e36f450f4fd5e9a133",
-      "run.json": "c606beb3ed3e7ca2338d4f4136419b97b1c036e79426dfc409daa1b064980136"
-    }
-  },
-  {
-    "run_dir": "runs/d8-consensus",
-    "command": "PYTHONPATH=. {python} tools/d_run_consensus.py --output {out}",
-    "outputs": {
-      "acting.csv": "51d5d723d56c14cb07c0b00ec34a18ad3d3ef0c2d4c22582c778a3622eccc070",
-      "acting_summary.json": "0472510f5e24bd2a8c468f6fc20467308cee16c574a93bab048583930c96d1c5",
-      "consensus_acting.png": "24f4f431402e7935617112e0d25eeb45a6b467fb44c0b56a370174c1ec066760",
-      "consensus_loss.png": "0dd3f1420b58ef3eac245b69fb2bb163bf6c18f970058a3571b6186dad78ffff",
-      "counterexample.json": "2ac0be2429976cfa436705c4a9e39a9afd9c90c395d32ed68bb588b2d8ecd380",
-      "loss_delay.csv": "b56968c11827ae6b962f8bc94fb0fda1d4648a6da4cf000ac370d86fe8c2b0ed",
-      "loss_delay_summary.json": "a4ffdc5a5f2978f7a596b2f9b6fe8a2bc0054b989d2ebcd786c4b42296262b6f",
-      "spectral_check.json": "d8fb6df164717d748d717b43df3c99493efc93ce6ba903041efe28267490b564"
-    }
+ {
+  "run_dir": "runs/s0-baseline",
+  "command": "{python} main.py --output {out} --no-plot",
+  "outputs": {
+   "telemetry.csv": "66f542dcd128df4e9e695e7dda7668179755ea37a1f746d74e2e8351ccfc7391"
   }
+ },
+ {
+  "run_dir": "runs/s2-physics",
+  "command": "{python} tools/make_s2_convergence.py --output {out}/convergence.json",
+  "outputs": {
+   "convergence.json": "916ffc271f34e7411c1fc42d4ddd96132876be5396fab5e6a9c50da2d1bce609"
+  }
+ },
+ {
+  "run_dir": "runs/s6-recovery",
+  "command": "PYTHONPATH=. {python} tools/run_s6_recovery.py --output {out} && PYTHONPATH=. {python} tools/make_s6_figure.py --output-dir {out} {out}/summary.json",
+  "outputs": {
+   "per_seed.csv": "ef45a41b8263be67de4b16f8e58d1295f877cead9d8c595d30fbb944534c426a",
+   "summary.json": "a3b04116e93e5e734f0d5f5bfd5e5ebfabb4fe2585110895019d8ff66bbe96eb",
+   "s6_recovery.png": "3aaf4ad6c278fa982ebca09d7beb2a02a0c644b573c981080215c191aa4da3d7",
+   "s6_recovery_all_noise.png": "7ed1841a38204ecd5dd48915d874e41c8e923a5e063063cac653da6438d7aa30"
+  }
+ },
+ {
+  "run_dir": "runs/s7-swarm",
+  "command": "cd {out}/../.. && PYTHONPATH=. {python} tools/generate_s7_fixture.py",
+  "outputs": {
+   "run.json": "73039284032d824c943972bd79c2f96f61e28582b79d8335d4d9d3e7d032585b"
+  }
+ },
+ {
+  "run_dir": "runs/s0-baseline-v2",
+  "command": "PYTHONPATH=. {python} tools/a_make_s0_baseline_v2.py --output-dir {out}",
+  "outputs": {
+   "a_s0_baseline_v2.png": "06b64aa6d60e7d5725f7154472627765b4e6f3e5dab37109070826929bff784f",
+   "lateral.csv": "33b12e8b7f740f266f7e217969a5fc83f5835f8191012d2d28880f8e9885a8bf",
+   "report.json": "d41207d8310b16719cc78672fca977d9186cb9ce79e5b1ce668b719f68a051dc",
+   "vertical.csv": "a59202c84ecfeb06ce523c7e37cd9621c2092c16bd20c4dd3cd2bb58181b3337",
+   "yaw.csv": "b95f74b18961f30f2d77b7873f2e9f42614ca31b4c1b3bbe8ed17781b6ce7416"
+  }
+ },
+ {
+  "run_dir": "runs/s2-physics-v2",
+  "command": "PYTHONPATH=. {python} tools/a_make_s2_physics_v2.py --output-dir {out}",
+  "outputs": {
+   "a_s2_convergence.png": "763de92b702af619538961ee2f51cb0342805576ec4c2bdaf60b29a432a7490d",
+   "convergence.json": "916ffc271f34e7411c1fc42d4ddd96132876be5396fab5e6a9c50da2d1bce609"
+  }
+ },
+ {
+  "run_dir": "runs/a7-disturbance",
+  "command": "PYTHONPATH=. {python} tools/a_run_disturbance_response.py --output-dir {out}",
+  "outputs": {
+   "a7_disturbance.png": "5cbfde9d9468a192a6309eda182ef74c2200de31c4da15ec52fcb8a01e70075b",
+   "per_run.csv": "3f8c3a21091f5321faea5ff5ff4190f0b8e17646e2a892c073db8c209bdde237",
+   "summary.json": "d716aa00615fcb325a99b44c5a2b396d4fb861446d90a9a2f0354a09570c9d29"
+  }
+ },
+ {
+  "run_dir": "runs/a7-model-checks",
+  "command": "PYTHONPATH=. {python} tools/a_make_disturbance_model_checks.py --output-dir {out}",
+  "outputs": {
+   "model_checks.json": "e699e4e1bae6f843c17ca4c6770616e5dada866fa5fe765e86ddc30e6cc8b15b"
+  }
+ },
+ {
+  "run_dir": "runs/a4-vehicle-chain",
+  "command": "PYTHONPATH=. {python} tools/a_make_vehicle_chain_report.py --output-dir {out}",
+  "outputs": {
+   "a4_vehicle_chain.png": "139104752678bdd566c98d45e14a2c126a6e0fdf7b0d897e4d2f6fc707d2f0ef",
+   "report.json": "f850c4c546fb828247f76bbe15d593b0fdacb298162dbcbae85378f8ab5d3d89"
+  }
+ },
+ {
+  "run_dir": "runs/a5-sensitivity",
+  "command": "PYTHONPATH=. {python} tools/a_profile_sensitivity.py --output-dir {out}",
+  "outputs": {
+   "a5_sensitivity.png": "6e42f354eefae65a655974029f80503d8660de3f8537683aafa5e62b57f39d90",
+   "sensitivity.csv": "f4a7fc561790f5a291609df463442c759fa667ce8ef99dac75fff590f2154fa5",
+   "sensitivity.json": "284891779179ac180eb8ca2adf65fc830d44185b87a1d0a69a7b69adce32825b"
+  }
+ },
+ {
+  "run_dir": "runs/a6-control-tolerance",
+  "command": "PYTHONPATH=. {python} tools/a_run_control_tolerance.py --output-dir {out} --workers 2",
+  "outputs": {
+   "a6_control_tolerance.png": "45eeef9f051636afdd774f74362ac12f91e8769fdd3afbd6512e9f7b58490d7c",
+   "d_crit.json": "3de04b8235f2ad8f89968acb77424f7eb3dd852c07a5498c99fb6f18e41a831d",
+   "per_run.csv": "5949fd0e864fa501d52cd9ffddb5f54288b6d7f62e98ab532df427d237cc45f8",
+   "summary.json": "4544173d3d292f5e86c9f7089cb25cbe318244804519fb27e4ed6f49f3c44056"
+  }
+ },
+ {
+  "run_dir": "runs/a6-long-check",
+  "command": "PYTHONPATH=. {python} tools/a_make_dcrit_long_check.py --output-dir {out}",
+  "outputs": {
+   "long_check.json": "ec1c70c3ea9b5256527cef253ced4ee4ea11173cd48c64244584e718125fad36"
+  }
+ },
+ {
+  "run_dir": "runs/c-exp013-channel",
+  "command": "PYTHONPATH=. {python} tools/c_exp013_channel.py --output {out}",
+  "outputs": {
+   "curves.csv": "1daddc067f8c1037fe5735e2e4c1580cb52828ecd865519228c11e7157575567",
+   "exp013_delivery_vs_distance.png": "e16b91835a99d59c5505bdb021967f6c74657ec516c9ec0c7339e5295166c256",
+   "summary.json": "9f497f8d40800e5e9c3304c866b021a01d0fef733231557c90cbfffcae40ee86"
+  }
+ },
+ {
+  "run_dir": "runs/c5-heartbeat",
+  "command": "PYTHONPATH=. {python} tools/c_exp016_heartbeat.py --output {out}",
+  "outputs": {
+   "detection_delay.csv": "0ebf878c8fd376ae28fa9d875c7dd232ad5b67645093f9946080bc29bf592e1c",
+   "exp016_false_alarms.png": "6bc600b506852a60d84287b68ee6e12f54ef71537a0f354e557a4a460ed1affb",
+   "exp016_rule_300ms.png": "4cba578f788ddbe934d02156f7056e15c23f88d76ef8e51f03f67f988af4dbab",
+   "false_alarms.csv": "ca0a21e47868eba7e2fc338d29af8f526b78875f6e5ebcfd1812b7b6f5f070ce",
+   "interference.csv": "3520e79e8f7a2034dd4c0104b963e11583dd75e1c9b49d190a768737b8dcbdf5",
+   "summary.json": "43d563641147e2833a90b9256df91317fd535e6e56a977565a7f83cd699cfb6d",
+   "thresholds.json": "8d0f7af78fc41495c14d4990c6502beb5662ec198223bb96d4184a7f968f4a5f"
+  }
+ },
+ {
+  "run_dir": "runs/c-exp015-network",
+  "command": "PYTHONPATH=. {python} tools/c_exp015_network.py --output {out} --seeds 20 --processes 2",
+  "outputs": {
+   "cells.csv": "ad13c4f85ca901726ace3f1b57d670e148e20318bcc1bdcd331926e523ec7f46",
+   "exp015_cost.png": "826052fe7665046d446ed61f540b8ed3624b9ad62cd1b69aaea9e2d56cbe06cd",
+   "exp015_delivery.png": "412f87d03a4c1026b9f266db2955dc69a3cec8301fb763b51e2b5fdfdbb06c2e",
+   "per_seed.csv": "15e4a357b17208d805a37fca24307098ed675a94b489532d6f0cd57d3cc6e4b4",
+   "summary.json": "e7c53a6f337b1aa495057d70b9bcad16d907bc85dbb6658510881f03044776f1"
+  }
+ },
+ {
+  "run_dir": "runs/c-exp014-mac-r2",
+  "command": "PYTHONPATH=. {python} tools/c_exp014_mac.py --output {out} --seeds 20",
+  "outputs": {
+   "cells.csv": "b27401989eeeb08b5a9743f6f806c62c821fbc9f16f4f2d2359bbeac882e3c21",
+   "exp014_delivery.png": "03e17ad1813c0f6f2c7cf808268d4573b7422763deedabde5b7d125f37a0ff15",
+   "exp014_latency.png": "ff35c54c5bd112c7f27103786aea88a002459191d47f8b7dce1c9b2ce842f47e",
+   "per_seed.csv": "9bce1990c92672e7e931768752de033fa5381c829636b415c6ab1f7cb9de1f8b",
+   "summary.json": "994384f6fc083b740a493a628446f79a5eb3eb76e762ade9b6ab3813ddd0a34b"
+  }
+ },
+ {
+  "run_dir": "runs/c-exp017-tolerance-r2",
+  "command": "PYTHONPATH=. {python} tools/c_exp017_tolerance.py --output {out}",
+  "outputs": {
+   "cells.csv": "2ef63f91381e0c26870b8de4f46bdbbd6fe06bec1722f6262c71e11d58348dc2",
+   "exp017_boundary.png": "a95c08f426645dd287ab4f75da36fcbaec006a54f94bfe917b4d5c936af97b41",
+   "exp017_contention.png": "e79efb35ed3818b69724e5de0db03079708c5b4ee334c7519b266057f9ca3648",
+   "exp017_distance.png": "6e5260c66ac192338e020a65272128c6317fe9ea9f4ce68fe5919d46b43292c2",
+   "per_seed.csv": "e290967e2583f8152175ae100cb609e546533d45e0e100d87d8e1082f5151b03",
+   "summary.json": "ebe6a796f95cb7dd23fd5da2de2487ceb91925e5a751aee774d88a86d7775741"
+  }
+ },
+ {
+  "run_dir": "runs/c-exp018-recovery-r2",
+  "command": "PYTHONPATH=. {python} tools/c_exp018_recovery.py --output {out}",
+  "outputs": {
+   "exp018_coverage.png": "0b46b9058c99acbb9021e2642ff5f8e9dba2f9ea773a1df803435764c0f1987b",
+   "exp018_design.png": "e0bbd6f291fbedb880b801f647293fac163f3d01aeca1ebe7719d7429615359d",
+   "recovery.csv": "808b1b86a40bfcb7bf4a600bfa7f676b2e01a1fd1a3aaf76aaea9a933e44382e",
+   "summary.json": "4101d96b067b75bec9bf9f84b71b9740be079f67a27ee277374c25cb45cb112a",
+   "sweeps.csv": "9e7e1911c4474841f9ff6c15c67ede1eab655c1a46b37ccab0510893a3d2214e"
+  }
+ },
+ {
+  "run_dir": "runs/s6-retro",
+  "command": "PYTHONPATH=. {python} tools/run_s6_retro.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_retro_figure.py {out}",
+  "outputs": {
+   "cells.csv": "518a561843ae94ea070964959c7bbb26c5e468ad3cae522feef42eba81cd27c8",
+   "per_seed.csv.gz": "fb3bf0e7d231e6ff5ef6f93da9631ba94a1a49d078e5e99e25c7ad5d72b520b4",
+   "s6_retro.png": "44b4ef48399782668c7db28ab8caa19a3d8df1b7a1327f752509a4da2e66b2a6",
+   "s6_retro_reorder.png": "cc93948923b6e44339a9c84e132be4160bccb0ca68dd67107b999b790a4a1437",
+   "summary.json": "b5b0167215e8de3de67a58209ae2610ebc79d7f7ba1439a3bbefcc5e533c76d5"
+  }
+ },
+ {
+  "run_dir": "runs/s6-tuning",
+  "command": "PYTHONPATH=. {python} tools/run_s6_tuning.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_tuning_figure.py {out}",
+  "outputs": {
+   "cells.csv": "4719f190d14be9b19a2e4b566b5ac0ea0e9d8063c3d20d7b161f63c2e8213f88",
+   "consistency_check.json": "8f3c881baee699fbf6841feaf7f88fecc029301a3bf12f41c43a60abea6c3602",
+   "per_seed.csv.gz": "b6f6a98b80c3c8990e87f11243bcc11c614b7cea1c905efa86baf7735e9cc6dd",
+   "s6_tuning.png": "cb38d028423e1730857682a3d915f5fe348d542036399c28070a8725d4286a94",
+   "s6_tuning_monitor.png": "09b1a5c3aabec2898c8f4e078b65a0e10f530951aa0e4db12c29c9b08d442c1f",
+   "summary.json": "b209e00b6468fa028e2bf4c2f0ed93c9484e70e07be10026f2404cb2165fc8b9"
+  }
+ },
+ {
+  "run_dir": "runs/s6-clocks",
+  "command": "PYTHONPATH=. {python} tools/run_s6_clocks.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_clocks_figure.py {out}",
+  "outputs": {
+   "cells.csv": "4f94eee41e251af64d001cc930b5e66b481daccb31135236d21fd44a417ba8d1",
+   "per_seed.csv.gz": "2ac3924db9e555899f586147735d0d6eb518a68d4233ef37657f5ef1e8c755be",
+   "s6_clocks.png": "3ac2c058015ae52a41ad75a3e1aba776710b21d5dbda8a074fce89183fb4b961",
+   "s6_clocks_sync.png": "25373116f9eca6262f66d1d55c10f521cdd40a84cd0603423090b5ad3cea935d",
+   "summary.json": "795992765aef597aafdfdac8c62e8930e08ac9ebfae430f60338116e2f136f17"
+  }
+ },
+ {
+  "run_dir": "runs/s6-sensitivity",
+  "command": "PYTHONPATH=. {python} tools/run_s6_sensitivity.py --output {out} --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_sensitivity_figure.py {out}",
+  "outputs": {
+   "morris.json": "0fcbdbbd8116fb658050bd543321feec43a3b57a657d687f7facc53776130c73",
+   "oat.csv": "be5dabd69d8d57c98c80c7cb2ca390fe87fabc092f11c8f4a4ff66bb5261677f",
+   "oat.json": "135743ba978143d089d2c6cb120103c013ed7228a8f731910bf0526f102c7517",
+   "per_seed.csv.gz": "9f12f7938b5d2384a1c5312c12a251917784a2c1cdcf35c088e9c8143c9b0c75",
+   "ranking.json": "54c9bf1c46ec2a4f0d56e806ba8d3f4c535b2a929db82d473288f5fae1b27e3f",
+   "s6_sensitivity_morris.png": "9818157204b24d2543e19888e856f3395b873d4d5c3c3e1fc44c851ee8fc05b3",
+   "s6_sensitivity_oat.png": "3e94d52e9f9b4dc7bb70a63e7cb398e4c580699a3c5c68625a932469784fdf68",
+   "summary.json": "95134027efcedb2551cc6ff58dd04b5f2830b739dabe38a8b37e6281907e6115"
+  }
+ },
+ {
+  "run_dir": "runs/s6-turn",
+  "command": "PYTHONPATH=. {python} tools/run_s6_turn.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_turn_figure.py {out}",
+  "outputs": {
+   "cells.csv": "3ad6a257fdb738d407d57b841ac7a500b281faafb022f2b68c5696fcebb89175",
+   "per_seed.csv.gz": "2c36ea0cb8134ae249b3e2e5aa9339e4c5708537042658d3f325ae6dbeb88f2e",
+   "s6_turn.png": "26900a81ca8e3de718342b5797a853af16695b47228b124d7670ca6444a4f61b",
+   "s6_turn_phases.png": "ed9be05de9362700fd42928263c7135feb484ead4b3a0d9fa72d08229a6abe07",
+   "summary.json": "9580d36b69a08e6f6323e135b8ddfc443d0edb676adb6e99d8c80b7de1f8207c"
+  }
+ },
+ {
+  "run_dir": "runs/s6-sending",
+  "command": "PYTHONPATH=. {python} tools/run_s6_sending.py --output {out} --seeds 50 --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_sending_figure.py {out}",
+  "outputs": {
+   "cells.csv": "fa99cdb3665a0f53eecd8eb166f049f7747ad01f4642169022445e97ea10c2e6",
+   "per_seed.csv.gz": "1a54dadd612c390d40ece9f71a458bee6c40b93b4e2ae678e1462589100c49b0",
+   "s6_sending_bytes.png": "bf3e72140a22c8deb0ea896e01678c1c26a7621cd377313d0473044eb5d86022",
+   "s6_sending_packets.png": "a5642ef1f4ca542c55b1da8965163d493f616b2d47caffaabdf0c113a34a5985",
+   "summary.json": "392017cdfe809b54b758e0daa51388f8e76f9cdfda2d59d609a258a1071ef70c"
+  }
+ },
+ {
+  "run_dir": "runs/s6-atlas",
+  "command": "PYTHONPATH=. {python} tools/run_s6_atlas.py --output {out} --seeds 20 --imm-strata central,student_t,jitter --speed-variants-central-only --no-checkpoint && PYTHONPATH=. {python} tools/make_s6_atlas_figure.py {out}",
+  "outputs": {
+   "atlas.json": "8c2b7ed189fe7b432318b698f5e28771e71971fb35f818ef395355be8df2086b",
+   "atlas_overview.png": "59f87849330b853dcf1b7892ef3e9a5f3b85deaee28b5411315869c8ab12b19e",
+   "atlas_overview_jitter.png": "e10f4ad2a37fae999c48c71de32755400d5c4cf13a4d681254f86e111a663b2a",
+   "atlas_overview_noise0.png": "9f3cccc7986505ea48b5b899f806aa7f0564cd6f02b58ff347d5dbc4af05b23c",
+   "atlas_overview_noise10.png": "aff8beacd011a72d45c83034f8d67c7b067446bb92f1845e7a93bfcf4d062dc5",
+   "atlas_overview_noise2.png": "08b572240ea484ffbeb1229ef37a889784bdabc6f970478defc01927f26141a8",
+   "atlas_overview_rate20.png": "bf1860035b53bcecc2e81740a36b3c52b921e2cd71aeeb199c2a19406c1ea3ba",
+   "atlas_overview_rate5.png": "de3fe275bbc00cafcf26e8208f1477d72e0c566bff5261aa175d46f31be11e4c",
+   "atlas_overview_rate50.png": "6b29e189930fbb18878110c38c968a4373ffedaa014e12237a4aaaa8cf536a6a",
+   "atlas_overview_student_t.png": "ab3dbeccd5e7a3839eb8eeff412c11c9bf50a1cfbbff50fdd60a2fbde81738ed",
+   "atlas_which_method.png": "67ad0aa88ba5ca4f44a2473abb962c2ca63298cee4166b2eb3770734a72facdf",
+   "cells.csv": "0e9174bef972d44ca25f04d335fa93519b387578a8dfdd0cda9276946933c1bf",
+   "counterfactuals.json": "cbc2a46a0f01beea7f9f1f5bf6c1a455a7cffcaa138f33d3edbecdb8013e2c58",
+   "per_seed.csv.gz": "51e673c09c35ec0e95b14ae83a2f467c9a1be5dea1a5175e936bf8216a9b9383",
+   "summary.json": "91898ff7f011256cb53c6b6c87e8386e08e25ac5b16c6d9be8be779205b34feb"
+  }
+ },
+ {
+  "run_dir": "runs/s7-coop",
+  "command": "PYTHONPATH=. {python} tools/d_generate_s7_coop.py --output {out}",
+  "outputs": {
+   "replay_v1.json": "f377109b261fb66d0c3d399af7a8fe81e44c0160d1e2c0e36f450f4fd5e9a133",
+   "run.json": "c606beb3ed3e7ca2338d4f4136419b97b1c036e79426dfc409daa1b064980136"
+  }
+ },
+ {
+  "run_dir": "runs/d8-consensus",
+  "command": "PYTHONPATH=. {python} tools/d_run_consensus.py --output {out}",
+  "outputs": {
+   "acting.csv": "51d5d723d56c14cb07c0b00ec34a18ad3d3ef0c2d4c22582c778a3622eccc070",
+   "acting_summary.json": "0472510f5e24bd2a8c468f6fc20467308cee16c574a93bab048583930c96d1c5",
+   "consensus_acting.png": "24f4f431402e7935617112e0d25eeb45a6b467fb44c0b56a370174c1ec066760",
+   "consensus_loss.png": "0dd3f1420b58ef3eac245b69fb2bb163bf6c18f970058a3571b6186dad78ffff",
+   "counterexample.json": "2ac0be2429976cfa436705c4a9e39a9afd9c90c395d32ed68bb588b2d8ecd380",
+   "loss_delay.csv": "b56968c11827ae6b962f8bc94fb0fda1d4648a6da4cf000ac370d86fe8c2b0ed",
+   "loss_delay_summary.json": "a4ffdc5a5f2978f7a596b2f9b6fe8a2bc0054b989d2ebcd786c4b42296262b6f",
+   "spectral_check.json": "d8fb6df164717d748d717b43df3c99493efc93ce6ba903041efe28267490b564"
+  }
+ },
+ {
+  "run_dir": "runs/d7-decisions",
+  "command": "PYTHONPATH=. {python} tools/d_run_decisions.py --output {out}",
+  "outputs": {
+   "decisions_outage.png": "4f877ec7b94c45a99d00140fc1145fc04b0f2193d3e36962308083f0ae804854",
+   "decisions_traffic.png": "ef6b5707e3e1dae5d4b6e58de098304fbd46cb8122c216bcaf1761dfc421ce96",
+   "per_seed.csv": "3e0ef3ca5e02644f4d860d70189095960652f8e925c2149fd3a954b81bc28e83",
+   "summary.json": "906dd287fe0d580365e0579f08aa70971b96c364bd8221596501aaf0a6ad2bb7",
+   "timeline.csv": "6f3da33cb07e6715797f2c132eae8234660f8b7988e11ce311cc77dff03d5a41"
+  }
+ },
+ {
+  "run_dir": "runs/d6-dropout",
+  "command": "PYTHONPATH=. {python} tools/d_run_dropout.py --output {out}",
+  "outputs": {
+   "dropout_timeline.png": "2cf27c95da14a094310ade4914d18800a29fde91f397e822c8cbde73f8083f5b",
+   "dropout_times.png": "c9ef03abe1b0602c4d75dbaec70fb3e79e28ccedfd29975e896df15197a9c83a",
+   "per_seed.csv": "86713addc16f63e3e926657f27a6963f05ea0d42d625f4df034886049abacb1e",
+   "summary.json": "e8be7e5fe82d4e8acfdc97e369c322253689b8288eddda3a259cc2689376ebdf"
+  }
+ }
 ]
