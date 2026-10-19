@@ -160,7 +160,7 @@ def _save(fig: Any, path: Path) -> None:
     fig.savefig(path, dpi=150, metadata={"Software": None})
 
 
-def _buffer_figure(directory: Path, data: dict[str, Any], palette: dict[str, str]) -> None:
+def _buffer_figure(directory: Path, data: dict[str, Any], palette: dict[str, str]) -> list[str]:
     import matplotlib.pyplot as plt
 
     points = _envelope_points(data)
@@ -214,13 +214,15 @@ def _buffer_figure(directory: Path, data: dict[str, Any], palette: dict[str, str
                     s=48,
                     facecolors=palette["caution"],
                     edgecolors=palette["caution"],
-                    label="censored" if speed == all_speeds[0] else None,
+                    label="censored",
                     zorder=4,
                 )
             if not dr:
                 hand = _hand_points(data, speed, xs)
-                ax.plot(xs, hand, linestyle="--", linewidth=0.9, color=color, alpha=0.8,
-                        label="hand model (no dead reckoning)" if speed == all_speeds[0] else None)
+                ax.plot(
+                    xs, hand, linestyle="--", linewidth=0.9, color=color, alpha=0.8,
+                    label="hand model (no dead reckoning)",
+                )
         ax.set_xlabel("one-way delay (s)")
         ax.set_xticks(delays)
         ax.set_title("Dead reckoning on" if dr else "Dead reckoning off")
@@ -235,15 +237,16 @@ def _buffer_figure(directory: Path, data: dict[str, Any], palette: dict[str, str
             if label not in labels:
                 handles.append(handle)
                 labels.append(label)
-    if handles:
-        fig.legend(handles, labels, loc="upper center", ncol=3)
     fig.suptitle(
         "Simulated required separation buffer\n"
         "Worst case over encounter type, loss, and noise"
     )
-    fig.tight_layout()
+    if handles:
+        fig.legend(handles, labels, loc="lower center", ncol=3, bbox_to_anchor=(0.5, 0.01))
+    fig.tight_layout(rect=(0.0, 0.10, 1.0, 0.88))
     _save(fig, directory / "separation_buffer.png")
     plt.close(fig)
+    return labels
 
 
 def _baseline_figure(directory: Path, rows: list[dict[str, Any]], palette: dict[str, str]) -> None:
@@ -253,7 +256,13 @@ def _baseline_figure(directory: Path, rows: list[dict[str, Any]], palette: dict[
         raise ValueError("encounters.csv contains no baseline rows")
     settings = _available_baseline_settings(rows)
     preferred = (0.3, 0.05, False)
-    setting = preferred if preferred in settings else settings[0]
+    if preferred in settings:
+        setting = preferred
+    else:
+        pilot_run = any(row.get("radius_status") == "not passed (pilot)" for row in rows)
+        if not pilot_run:
+            raise ValueError("encounters.csv is missing the requested baseline setting")
+        setting = settings[0]
     loss, noise, dr = setting
     palette_colors = (
         palette["accent"], palette["target"], palette["ok"], palette["keepOut"]

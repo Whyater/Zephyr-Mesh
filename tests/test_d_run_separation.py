@@ -16,23 +16,31 @@ from sim.coop.separation import EncounterSpec, run_encounter
 from sim.s6_recovery import wilson_interval
 from tools.d_common import seeds_for
 from tools.d_run_separation import MIN_SEPARATION_M, search_radius_table, separation_grid
-from tools.d_make_separation_figure import make_figures
+from tools.d_make_separation_figure import _baseline_figure, _buffer_figure, make_figures
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON = "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python"
 
 
 def _run_pilot(path: Path) -> str:
-    command = [PYTHON, "tools/d_run_separation.py", "--output", str(path), "--pilot", "--processes", "2"]
-    return subprocess.run(command, cwd=ROOT, env={"PYTHONPATH": "."}, check=True,
-                          capture_output=True, text=True).stdout
+    command = [
+        PYTHON, "tools/d_run_separation.py", "--output", str(path), "--pilot", "--processes", "2"
+    ]
+    return subprocess.run(
+        command, cwd=ROOT, env={"PYTHONPATH": "."}, check=True,
+        capture_output=True, text=True,
+    ).stdout
 
 
 def test_search_logic_and_wilson_rule():
     assert wilson_interval(0, 75)[1] <= 0.05
     assert wilson_interval(1, 75)[1] > 0.05
-    table = [{"avoidance_radius_m": 0.35, "violations": 1, "seeds_run": 75, "first_violation_seed_index": 3},
-             {"avoidance_radius_m": 0.40, "violations": 0, "seeds_run": 75, "first_violation_seed_index": None}]
+    table = [
+        {"avoidance_radius_m": 0.35, "violations": 1, "seeds_run": 75,
+         "first_violation_seed_index": 3},
+        {"avoidance_radius_m": 0.40, "violations": 0, "seeds_run": 75,
+         "first_violation_seed_index": None},
+    ]
     result = search_radius_table(table)
     assert result["required_buffer_m"] == 0.05 and result["failing_radius_m"] == 0.35
     assert result["censored"] is False and result["max_radius_searched_m"] == 0.4
@@ -46,7 +54,10 @@ def test_grid_is_fixed_and_ring_first():
     full = separation_grid()
     assert full[0]["kind"] == "ring_swap"
     assert any(c["loss_probability"] == 0.1 for c in full)
-    assert any(c["kind"] == "head_on" and c["speed_mps"] == 0.5 and c["delay_s"] == 0.0 and c["lateral_offset_m"] == 0.0 for c in full)
+    assert any(
+        c["kind"] == "head_on" and c["speed_mps"] == 0.5 and c["delay_s"] == 0.0
+        and c["lateral_offset_m"] == 0.0 for c in full
+    )
     assert any(c["kind"] == "head_on" and c["lateral_offset_m"] == 0.1 for c in full)
     assert len(full) == 4 * 2 * 2 + 2 * 3 * 6 * 3 * 2 * 2 + 3 * 6 * 3 * 2 * 2
 
@@ -82,16 +93,20 @@ def test_one_written_row_recomputed_from_run_encounter(tmp_path):
     _run_pilot(output)
     with (output / "encounters.csv").open(encoding="utf-8", newline="") as handle:
         row = next(item for item in csv.DictReader(handle) if item["kind"] == "head_on")
-    condition = EncounterSpec(kind=row["kind"], speed_mps=float(row["speed_mps"]), delay_s=float(row["delay_s"]),
-                              loss_probability=float(row["loss_probability"]), noise_std_m=float(row["noise_std_m"]),
-                              dead_reckoning=row["dead_reckoning"].lower() == "true",
-                              avoidance_radius_m=float(row["avoidance_radius_m"]),
-                              lateral_offset_m=float(row["lateral_offset_m"]))
+    condition = EncounterSpec(
+        kind=row["kind"], speed_mps=float(row["speed_mps"]), delay_s=float(row["delay_s"]),
+        loss_probability=float(row["loss_probability"]), noise_std_m=float(row["noise_std_m"]),
+        dead_reckoning=row["dead_reckoning"].lower() == "true",
+        avoidance_radius_m=float(row["avoidance_radius_m"]),
+        lateral_offset_m=float(row["lateral_offset_m"]),
+    )
     seeds = seeds_for("separation", 2)
     results = [run_encounter(condition, seed) for seed in seeds]
     assert int(row["violations"]) == sum(bool(result["violated"]) for result in results)
     assert int(row["seeds_run"]) == len(results)
-    assert float(row["min_center_distance_m"]) == min(float(result["min_center_distance_m"]) for result in results)
+    assert float(row["min_center_distance_m"]) == min(
+        float(result["min_center_distance_m"]) for result in results
+    )
 
 
 def test_printed_estimate_matches_measured_formula(tmp_path):
@@ -106,11 +121,14 @@ def test_printed_estimate_matches_measured_formula(tmp_path):
              for item in rates_text.split(", ")}
     full = separation_grid()
     counts = Counter(cell["kind"] for cell in full)
-    expected_worst = sum(rates[kind] * count * N_SEEDS * RADIUS_COUNT
-                         for kind, count in counts.items())
+    expected_worst = sum(
+        rates[kind] * count * N_SEEDS * RADIUS_COUNT for kind, count in counts.items()
+    )
     expected_best = sum(rates[kind] * count * N_SEEDS
                         for kind, count in counts.items())
-    best_line = next(line for line in stdout.splitlines() if "full-run best-case estimate:" in line)
+    best_line = next(
+        line for line in stdout.splitlines() if "full-run best-case estimate:" in line
+    )
     printed_best = float(best_line.split("full-run best-case estimate: ", 1)[1].split(" CPU s", 1)[0])
     assert printed == pytest.approx(round(expected_worst, 1), abs=0.05)
     assert printed_best == pytest.approx(round(expected_best, 1), abs=0.05)
@@ -152,3 +170,67 @@ def test_buffer_figure_changes_when_buffer_data_change(tmp_path):
     buffer_path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     make_figures(second)
     assert (first / "separation_buffer.png").read_bytes() != (second / "separation_buffer.png").read_bytes()
+
+
+def test_buffer_legend_keeps_censored_and_hand_labels(tmp_path):
+    from tools.horizon_mpl import apply_style
+
+    data = {
+        "entries": [
+            {"kind": "head_on", "speed_mps": 1.0, "delay_s": 0.0,
+             "loss_probability": 0.0, "noise_std_m": 0.0, "dead_reckoning": False,
+             "hand_buffer_m": 0.1},
+            {"kind": "head_on", "speed_mps": 2.0, "delay_s": 0.0,
+             "loss_probability": 0.0, "noise_std_m": 0.0, "dead_reckoning": False,
+             "hand_buffer_m": 0.2},
+        ],
+        "envelope": [
+            {"speed_mps": 1.0, "delay_s": 0.0, "dead_reckoning": False,
+             "required_buffer_m": 0.05, "censored": False},
+            {"speed_mps": 2.0, "delay_s": 0.0, "dead_reckoning": False,
+             "required_buffer_m": None, "censored": True},
+        ],
+    }
+    labels = _buffer_figure(tmp_path, data, apply_style("light"))
+    assert "censored" in labels
+    assert "hand model (no dead reckoning)" in labels
+
+
+def test_full_baseline_figure_rejects_missing_setting(tmp_path):
+    rows = [{
+        "pass": "pass", "avoidance_radius_m": "0.35", "loss_probability": "0.0",
+        "noise_std_m": "0.0", "dead_reckoning": "False", "radius_status": "pass",
+    }]
+    from tools.horizon_mpl import apply_style
+
+    with pytest.raises(ValueError, match="missing the requested baseline setting"):
+        _baseline_figure(tmp_path, rows, apply_style("light"))
+
+
+def test_fresh_worker_modules_are_in_manifest(tmp_path):
+    output = tmp_path / "pilot"
+    _run_pilot(output)
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    code = """
+import json
+import sys
+from tools.d_run_separation import _condition_job, separation_grid
+from tools.d_common import seeds_for
+_condition_job({**separation_grid(pilot=True)[0], "seeds": seeds_for("separation", 2)})
+root = __import__("pathlib").Path.cwd().resolve()
+paths = []
+for module in sys.modules.values():
+    filename = getattr(module, "__file__", None)
+    if filename:
+        try:
+            paths.append(str(__import__("pathlib").Path(filename).resolve().relative_to(root)))
+        except ValueError:
+            pass
+print(json.dumps(sorted(set(paths))))
+"""
+    result = subprocess.run(
+        [PYTHON, "-c", code], cwd=ROOT, env={"PYTHONPATH": "."}, check=True,
+        capture_output=True, text=True,
+    )
+    loaded = set(json.loads(result.stdout))
+    assert loaded <= set(manifest["code_sha256"])

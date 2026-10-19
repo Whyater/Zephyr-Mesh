@@ -13,6 +13,7 @@ from typing import Any, Iterable
 
 from sim.estimation.sweep import run_jobs, write_csv
 from sim.s6_recovery import median_interval, wilson_interval
+import sim.coop.separation
 from tools.d_common import (
     REPO_ROOT,
     argv_or_default,
@@ -98,6 +99,8 @@ def _repo_module_sources() -> list[str]:
     paths: set[str] = {
         "tools/d_run_separation.py",
         "tools/d_make_separation_figure.py",
+        "tools/horizon_mpl.py",
+        "sim/link.py",
     }
     root = REPO_ROOT.resolve()
     for module in sys.modules.values():
@@ -116,9 +119,8 @@ def _repo_module_sources() -> list[str]:
 def _checkpoint_fingerprint(jobs: list[dict[str, Any]]) -> str:
     """Hash runner and cooperative simulation sources together with job config."""
     digest = hashlib.sha256()
-    source_paths = [REPO_ROOT / "tools/d_run_separation.py"]
-    source_paths.extend(sorted((REPO_ROOT / "sim/coop").glob("*.py")))
-    for path in source_paths:
+    for relative in _repo_module_sources():
+        path = REPO_ROOT / relative
         digest.update(path.relative_to(REPO_ROOT).as_posix().encode("utf-8"))
         digest.update(path.read_bytes())
     digest.update(json.dumps(jobs, sort_keys=True, separators=(",", ":")).encode("utf-8"))
@@ -280,26 +282,6 @@ def search_radius_table(table: Iterable[dict[str, Any]], *, n_seeds: int = N_SEE
     }
 
 
-def _condition_work(condition: dict[str, Any]) -> int:
-    """Return the simulated control-step work units for one condition."""
-    kind = str(condition["kind"])
-    speed = float(condition["speed_mps"])
-    if kind == "head_on":
-        path_length = 8.0
-        n_agents = 2
-    elif kind == "crossing":
-        path_length = 8.0
-        n_agents = 2
-    elif kind == "ring_swap":
-        path_length = 6.0
-        n_agents = 6
-    else:
-        raise ValueError(f"unknown encounter kind: {kind}")
-    duration = path_length / speed + 6.0
-    steps = int(math.ceil(duration / CONTROL_DT_S - 1.0e-12))
-    return n_agents * steps
-
-
 def _pilot_cpu_rates(outcomes: Iterable[dict[str, Any]], *, pilot_seeds: int) -> dict[str, float]:
     rows = list(outcomes)
     if not rows or pilot_seeds < 1:
@@ -321,11 +303,10 @@ def estimate_full_run_cpu(outcomes: Iterable[dict[str, Any]], *, pilot_seeds: in
     """Estimate full-grid CPU from measured per-kind condition CPU.
 
     The worst estimate assumes every condition tests all 24 radii and all 75
-    seeds.  The best estimate assumes the baseline radius passes immediately,
-    so each condition runs one radius over all 75 seeds.  Pilot CPU is divided
-    by the measured number of radii, seeds, and control-step work units before
-    the full-grid counts are applied.  This accounts for speed, duration, and
-    the six-agent ring versus two-agent pair.  Crossing uses its measured row.
+    seeds. The best estimate assumes the baseline radius passes immediately,
+    so each condition runs one radius over all 75 seeds. The per-kind rate is
+    measured at 1 m/s only and applied to all speeds. Pair conditions are
+    likely about 20% low because speed-specific costs are omitted.
     """
     rows = list(outcomes)
     full = list(separation_grid(pilot=False) if full_grid is None else full_grid)
@@ -575,7 +556,7 @@ def run(
             f"pilot runtime: {time.perf_counter() - started:.2f} s; measured pilot CPU: {total_cpu:.2f} s; "
             f"full-run best-case estimate: {best_cpu:.1f} CPU s, {best_cpu / 4.0:.1f} wall s; "
             f"expected estimate: {expected_cpu:.1f} CPU s, {expected_cpu / 4.0:.1f} wall s (about 3x best; "
-            f"early stopping is usually partial and ring conditions dominate); "
+            f"sampled full conditions ran about 3x the one-radius cost); "
             f"full-run worst-case estimate: {worst_cpu:.1f} CPU s, {worst_cpu / 4.0:.1f} wall s "
             f"at 4 free processes, assuming cores are free; formula: "
             f"sum_k(mean_cpu_k / (pilot_seeds * tested_radii_k)) * "
