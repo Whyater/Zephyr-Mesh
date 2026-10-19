@@ -221,19 +221,23 @@ def run_encounter(spec: EncounterSpec, seed: int) -> dict[str, Any]:
     flags = {"orca": 0, "infeasible": 0, "emergency": 0, "speed_cap": 0}
     min_center = float("inf")
     min_ellipsoid = float("inf")
+    ellipsoid_scales = 2.0 * np.asarray((0.12, 0.12, 0.30), dtype=float)
+    pair_i, pair_j = np.triu_indices(n, 1)
     age_samples: list[float] = []
     perceived_trace: list[dict[str, Any]] = []
     max_delta = float(spec.max_accel_mps2) * dt
+    avoidance_config = AvoidanceConfig(radius_m=spec.avoidance_radius_m,
+                                       time_horizon_s=spec.time_horizon_s,
+                                       max_speed_mps=spec.max_speed_mps,
+                                       safety_margin_m=0.0)
 
     def update_point_minima(state: np.ndarray) -> None:
         """Include exact distances at one state before any segment is integrated."""
         nonlocal min_center, min_ellipsoid
-        for i in range(n):
-            for j in range(i + 1, n):
-                delta = state[i] - state[j]
-                min_center = min(min_center, float(np.linalg.norm(delta)))
-                scaled = delta / (2.0 * np.asarray((0.12, 0.12, 0.30), dtype=float))
-                min_ellipsoid = min(min_ellipsoid, float(np.linalg.norm(scaled)))
+        delta = state[pair_i] - state[pair_j]
+        min_center = min(min_center, float(np.min(np.linalg.norm(delta, axis=1))))
+        scaled = delta / ellipsoid_scales
+        min_ellipsoid = min(min_ellipsoid, float(np.min(np.linalg.norm(scaled, axis=1))))
 
     def update_segment_minima(start: np.ndarray, end: np.ndarray) -> None:
         """Include the exact minimum over each linear control-step segment.
@@ -245,16 +249,13 @@ def run_encounter(spec: EncounterSpec, seed: int) -> dict[str, Any]:
         ellipsoid metric uses the same projection after scaling each axis.
         """
         nonlocal min_center, min_ellipsoid
-        scales = 2.0 * np.asarray((0.12, 0.12, 0.30), dtype=float)
         for i in range(n):
             for j in range(i + 1, n):
                 relative_start = start[i] - start[j]
                 relative_end = end[i] - end[j]
                 min_center = min(min_center, _linear_segment_minimum(relative_start, relative_end))
-                min_ellipsoid = min(
-                    min_ellipsoid,
-                    _linear_segment_minimum(relative_start, relative_end, scales),
-                )
+                min_ellipsoid = min(min_ellipsoid, _linear_segment_minimum(
+                    relative_start, relative_end, ellipsoid_scales))
 
     update_point_minima(positions)
     for step in range(n_steps):
@@ -328,13 +329,9 @@ def run_encounter(spec: EncounterSpec, seed: int) -> dict[str, Any]:
             preferred = np.zeros(3) if at_goal else _unit_preferred(
                 positions[agent], goals[agent], float(spec.speed_mps)
             )
-            config = AvoidanceConfig(radius_m=spec.avoidance_radius_m,
-                                     time_horizon_s=spec.time_horizon_s,
-                                     max_speed_mps=spec.max_speed_mps,
-                                     safety_margin_m=0.0)
             neighbors = perceived[agent] if spec.avoid else []
             value, result_flags = safe_velocity(
-                positions[agent], velocities[agent], preferred, neighbors, config,
+                positions[agent], velocities[agent], preferred, neighbors, avoidance_config,
                 solver="active_set",
             )
             chosen[agent] = value
@@ -351,9 +348,9 @@ def run_encounter(spec: EncounterSpec, seed: int) -> dict[str, Any]:
             positions[agent] += velocities[agent] * dt
         update_segment_minima(previous_positions, positions)
         # Once every agent is within the goal tolerance, preferred velocity is
-        # zero and the remaining configured horizon would leave the state
-        # unchanged.  Stop integrating while retaining the configured duration
-        # in the result below.
+        # zero.  Stop integrating after arrival while retaining the configured
+        # duration in the result below; the remaining horizon is irrelevant to
+        # the encounter minima because the agents decelerate into their goals.
         if bool(np.all(np.linalg.norm(positions - goals, axis=1) <= 0.3)):
             break
 
