@@ -1,0 +1,116 @@
+{
+  "ci_consistency": {
+    "exact": {
+      "claims_too_little_fraction": 0.0,
+      "min_eigenvalue": -4.497384554451466e-15
+    },
+    "fast": {
+      "claims_too_little_fraction": 0.0,
+      "min_eigenvalue": 0.001132482383289927
+    },
+    "information": {
+      "claims_too_little_fraction": 0.669,
+      "min_eigenvalue": -4.330370241259527
+    },
+    "trials": 2000
+  },
+  "ci_hand": {
+    "exact_covariance": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "exact_weights": [
+      0.5,
+      0.5
+    ],
+    "fast_covariance": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "fast_weights": [
+      0.5,
+      0.5
+    ],
+    "information_covariance": [
+      [
+        0.5,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.5,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.5
+      ]
+    ]
+  },
+  "sigma2_over_n": [
+    {
+      "hand_variance": 0.48999999999999994,
+      "measured_variance": 0.4913925963167974,
+      "n": 1,
+      "ratio": 1.0028420332995867
+    },
+    {
+      "hand_variance": 0.24499999999999997,
+      "measured_variance": 0.2433161286239658,
+      "n": 2,
+      "ratio": 0.9931270556080237
+    },
+    {
+      "hand_variance": 0.1633333333333333,
+      "measured_variance": 0.16371658203325687,
+      "n": 3,
+      "ratio": 1.002346420611777
+    },
+    {
+      "hand_variance": 0.12249999999999998,
+      "measured_variance": 0.12232505764212835,
+      "n": 4,
+      "ratio": 0.9985718991194152
+    },
+    {
+      "hand_variance": 0.09799999999999999,
+      "measured_variance": 0.09741424030730728,
+      "n": 5,
+      "ratio": 0.9940228602786457
+    },
+    {
+      "hand_variance": 0.08166666666666665,
+      "measured_variance": 0.0820214014471403,
+      "n": 6,
+      "ratio": 1.0043436911894732
+    }
+  ]
+}
