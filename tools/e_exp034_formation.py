@@ -56,25 +56,27 @@ PREDICTION_TEXT = (
     "(PD loop with lower damping passes more noise) and grows faster with latency (Run A: position feedback edge 0.33 s). Separation never near 0.5 m (slots 2 m apart, errors of centimetres)."
 )
 # Pre-registered slices per adapter (the pilot slices stand in for them in a
-# pilot run).  Both run Run D's separation rule ("coop").
+# pilot run).  Both run the registered 0.8 m guard ("local", decision D-126).
 PREREGISTERED_SLICES = {
     "point_mass_offboard": ("main", "pilot"),
     "physics_offboard": ("physics", "pilot_physics"),
 }
-COMPARISON_SLICE = "local_guard_comparison"
+MAIN_RULE = "local"
+COMPARISON_RULE = "coop"
+COMPARISON_SLICE = "coop_comparison"
 RULE_DEVIATIONS = (
-    "Drone-to-drone separation uses Run D's cooperative reciprocal velocity rule (separation_rule coop, "
-    "decision D-123, made after the pre-registration), not the pre-registered pairwise 0.8 m stand-in guard. "
-    "The switch applies to the pre-registered main grid itself (point mass and physics slices).",
-    "The local_guard_comparison slice (point mass, clean preset, separation_rule local, the earlier 0.8 m "
-    "stand-in guard) was added afterwards, for comparison only; it is not part of the pre-registered grid.",
-    "guard_activations now counts drone control steps where the coop rule changed the velocity; in the "
-    "local_guard_comparison slice it counts pair-steps inside 0.8 m.",
+    "The pre-registered grid (main and physics slices) runs the registered pairwise 0.8 m guard "
+    "(separation_rule local), as pre-registered (decision D-126).",
+    "The coop_comparison slice (point mass, clean preset, Run D's cooperative reciprocal velocity rule, "
+    "separation_rule coop, decision D-123) was added after the pre-registration, for comparison only; it is "
+    "not part of the pre-registered grid.",
+    "guard_activations counts pair-steps inside 0.8 m in the local slices; in the coop_comparison slice it "
+    "counts drone control steps where the coop rule changed the velocity.",
 )
 
 
 def _scenario(seed: int, *, sigma: float, latency: float, preset: str, adapter: str,
-              duration_s: float = 30.0, separation_rule: str = "coop") -> dict:
+              duration_s: float = 30.0, separation_rule: str = MAIN_RULE) -> dict:
     return {
         "mission": "formation",
         "seed": int(seed),
@@ -91,8 +93,8 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
 
     Full grid arithmetic: point mass 4 sigma x 4 latency x 2 presets x 50
     seeds = 1600, physics 2 sigma x 2 latency x 2 presets x 50 = 400, both on
-    Run D's separation rule ("coop", decision D-123 within D-120), plus a
-    comparison slice on the earlier local 0.8 m stand-in guard: point mass,
+    the registered 0.8 m guard ("local", decision D-126), plus a comparison
+    slice on Run D's separation rule ("coop", decision D-123): point mass,
     4 sigma x 4 latency, clean, 50 seeds = 800.
     """
     jobs: list[dict] = []
@@ -101,13 +103,13 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
             for latency in (0.0, 0.2):
                 for seed_index, seed in enumerate(SEEDS[:3]):
                     labels = {"slice": "pilot", "sigma_m": sigma, "fix_latency_s": latency,
-                              "preset": "clean", "adapter": "point_mass_offboard", "separation_rule": "coop",
+                              "preset": "clean", "adapter": "point_mass_offboard", "separation_rule": MAIN_RULE,
                               "seed_index": seed_index}
                     jobs.append(make_job(labels, _scenario(seed, sigma=sigma, latency=latency,
                                                            preset="clean", adapter="point_mass_offboard", duration_s=10.0)))
         for seed_index, seed in enumerate(SEEDS[:2]):
             labels = {"slice": "pilot_physics", "sigma_m": 0.05, "fix_latency_s": 0.1,
-                      "preset": "clean", "adapter": "physics_offboard", "separation_rule": "coop",
+                      "preset": "clean", "adapter": "physics_offboard", "separation_rule": MAIN_RULE,
                       "seed_index": seed_index}
             jobs.append(make_job(labels, _scenario(seed, sigma=0.05, latency=0.1,
                                                    preset="clean", adapter="physics_offboard", duration_s=10.0)))
@@ -123,17 +125,17 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
                     for seed_index, seed in enumerate(SEEDS):
                         labels = {"slice": "main" if adapter == "point_mass_offboard" else "physics",
                                   "sigma_m": sigma, "fix_latency_s": latency, "preset": preset,
-                                  "adapter": adapter, "separation_rule": "coop", "seed_index": seed_index}
+                                  "adapter": adapter, "separation_rule": MAIN_RULE, "seed_index": seed_index}
                         jobs.append(make_job(labels, _scenario(seed, sigma=sigma, latency=latency,
                                                                preset=preset, adapter=adapter)))
     for sigma in SIGMAS:
         for latency in LATENCIES:
             for seed_index, seed in enumerate(SEEDS):
-                labels = {"slice": "local_guard_comparison", "sigma_m": sigma, "fix_latency_s": latency,
-                          "preset": "clean", "adapter": "point_mass_offboard", "separation_rule": "local",
+                labels = {"slice": COMPARISON_SLICE, "sigma_m": sigma, "fix_latency_s": latency,
+                          "preset": "clean", "adapter": "point_mass_offboard", "separation_rule": COMPARISON_RULE,
                           "seed_index": seed_index}
                 jobs.append(make_job(labels, _scenario(seed, sigma=sigma, latency=latency, preset="clean",
-                                                       adapter="point_mass_offboard", separation_rule="local")))
+                                                       adapter="point_mass_offboard", separation_rule=COMPARISON_RULE)))
     return jobs
 
 
@@ -189,15 +191,15 @@ def summarize(rows: list[dict], *, pilot: bool) -> dict:
     for adapter, sigmas in (("point_mass_offboard", SIGMAS), ("physics_offboard", (0.02, 0.05))):
         for sigma in sigmas:
             entry = _hand_entry(rows, adapter=adapter, sigma=sigma,
-                                slices=PREREGISTERED_SLICES[adapter], rule="coop")
+                                slices=PREREGISTERED_SLICES[adapter], rule=MAIN_RULE)
             if entry is not None:
                 hand.append(entry)
-    local_hand = []
+    comparison_hand = []
     for sigma in SIGMAS:
         entry = _hand_entry(rows, adapter="point_mass_offboard", sigma=sigma,
-                            slices=(COMPARISON_SLICE,), rule="local")
+                            slices=(COMPARISON_SLICE,), rule=COMPARISON_RULE)
         if entry is not None:
-            local_hand.append(entry)
+            comparison_hand.append(entry)
     deviations = list(RULE_DEVIATIONS)
     if pilot:
         deviations.append("Pilot runs 10 s per run (the full grid runs 30 s) and covers a small subset of the grid with 3 seeds.")
@@ -208,10 +210,10 @@ def summarize(rows: list[dict], *, pilot: bool) -> dict:
         "hand_check": {"fix_period_s": 1.0 / 30.0, "response_time_s": 0.25,
                         "hand_formula": "per-axis std = sigma * sqrt(a / (2 - a)), a = 1 - exp(-(1/30)/0.25)",
                         "zero_latency_clean": hand,
-                        "zero_latency_clean_local_rule_comparison": local_hand,
-                        "local_rule_comparison_note": "Same hand formula applied to the local_guard_comparison "
-                                                      "slice (separation_rule local), added after the "
-                                                      "pre-registration for comparison only."},
+                        "zero_latency_clean_coop_rule_comparison": comparison_hand,
+                        "coop_rule_comparison_note": "Same hand formula applied to the coop_comparison "
+                                                     "slice (separation_rule coop), added after the "
+                                                     "pre-registration for comparison only."},
         "notes": [
             "min_separation_m is taken over the whole run, including the start from randomly offset positions.",
             "The offboard physics adapter differences the last two position fixes for velocity, a contract design choice. Velocity noise per axis is about sqrt(2) x 30 x sigma at 30 Hz (difference of two fixes 1/30 s apart).",
@@ -253,18 +255,18 @@ def _figures(output: Path, rows: list[dict]) -> list[str]:
         reference_labelled = False
         for sigma in sigmas:
             points = _median_points(rows, adapter=adapter, sigma=sigma,
-                                    slices=PREREGISTERED_SLICES[adapter], rule="coop")
+                                    slices=PREREGISTERED_SLICES[adapter], rule=MAIN_RULE)
             if not points:
                 continue
             ax.plot([x for x, _ in points], [y for _, y in points], marker="o",
-                    color=colors[sigma], label=f"sigma {sigma:g} m, coop rule")
+                    color=colors[sigma], label=f"sigma {sigma:g} m, registered 0.8 m guard")
             if adapter == "point_mass_offboard":
-                local_points = _median_points(rows, adapter=adapter, sigma=sigma,
-                                              slices=(COMPARISON_SLICE,), rule="local")
-                if local_points:
-                    ax.plot([x for x, _ in local_points], [y for _, y in local_points], marker="o",
+                comparison_points = _median_points(rows, adapter=adapter, sigma=sigma,
+                                                   slices=(COMPARISON_SLICE,), rule=COMPARISON_RULE)
+                if comparison_points:
+                    ax.plot([x for x, _ in comparison_points], [y for _, y in comparison_points], marker="o",
                             linestyle="--", color=colors[sigma],
-                            label=f"sigma {sigma:g} m, local rule (comparison)")
+                            label=f"sigma {sigma:g} m, Run D rule (comparison)")
             reference = math.sqrt(3.0) * first_order_loop_jitter_std(sigma, 1.0 / 30.0, 0.25)
             ax.plot([0.0], [reference], marker="x", linestyle="none", color=reference_color,
                     label=None if reference_labelled else "hand formula")
