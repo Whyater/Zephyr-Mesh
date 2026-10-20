@@ -210,8 +210,8 @@ def stopping_buffer_m(speed, data_age_s, reaction_s, max_decel):
 
         buffer = v (age + reaction) + v**2 / (2 a).
 
-    Run E uses this as its stand-in separation buffer because Run D's buffer
-    is not available.
+    Run E uses this for the follower-to-target guard; follower-to-follower
+    separation uses Run D's rule (sim/coop).
     """
     v = float(speed)
     a = float(max_decel)

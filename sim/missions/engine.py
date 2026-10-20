@@ -64,8 +64,8 @@ def stopping_buffer_m(speed_mps: float, age_s: float, reaction_s: float = 0.05,
                       max_decel_mps2: float = 4.0) -> float:
     """Distance covered while acting on old data, then braking to a stop.
 
-    ``v * (age + reaction) + v^2 / (2 a)``.  Run E's stand-in for Run D's
-    separation buffer (not available on this branch).
+    ``v * (age + reaction) + v^2 / (2 a)``.  Used by the one-follower target
+    guard; followers keep apart from each other with Run D's rule (sim/coop).
     """
     v = abs(float(speed_mps))
     age = 0.0 if not math.isfinite(age_s) else max(0.0, float(age_s))

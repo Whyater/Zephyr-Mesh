@@ -155,8 +155,9 @@ ADAPTER_LABELS = {
     "point_mass_offboard": "point mass, position loop closed on camera-like fixes",
     "physics_offboard": "physics (crazyflie-class, literature-derived), position loop closed on camera-like fixes",
 }
-FOLLOWERS_NOTE = ("Two and three followers use a local stand-in separation rule (0.6 m follower-follower guard) "
-                  "until Run D; not a Run D result.")
+FOLLOWERS_NOTE = ("Two and three followers keep apart with Run D's reciprocal velocity rule (separation_rule "
+                  "coop) unless the entry is labelled local, the earlier 0.6 m follower-follower stand-in kept "
+                  "for comparison.")
 EXPLORATORY_NOTE = ("Calm policy (degraded after 0.25 s, land after 1.0 s) added after the pilots (Addendum B); "
                     "exploratory, not pre-registered.")
 RELAY_PHYSICS_NOTE = ("Physics rows equal point-mass rows by construction: path loss uses the fixed commanded "
@@ -170,7 +171,8 @@ LIMITS = (
     "and a modelled floor).",
     "Every entry names its adapter: the full grids run on the point-mass adapter; physics entries are the "
     "pre-registered physics subsets (fewer seeds and cells) and are labelled as such.",
-    "Multi-follower tag entries use a local stand-in separation rule (0.6 m follower-follower guard) until Run D.",
+    "Multi-follower tag and formation entries use Run D's reciprocal velocity rule by default; entries labelled "
+    "local use the earlier stand-in guard and exist only for comparison.",
     "The EXP-031 calm-policy slice is exploratory (Addendum B, added after the pilots, not pre-registered) and is "
     "labelled in every entry; pre-registered grids are listed first.",
     "Goal thresholds are Run E reporting choices fixed before any full-grid run (Addendum A), not product rules.",
