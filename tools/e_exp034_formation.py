@@ -12,6 +12,7 @@ import math
 import os
 import tempfile
 import time
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -23,6 +24,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from sim.missions.formation import FormationMission
 from tests.reference_e.hand_checks import first_order_loop_jitter_std
 from tools.c_common import argv_or_default, prepare_output, write_json, write_manifest
 from tools.e_common import (
@@ -52,6 +54,22 @@ PREDICTION_TEXT = (
     "point mass at zero latency matches the hand formula within 10 %; latency up to 0.2 s raises the error by under 30 % "
     "(the first-order loop with delay stays stable below about (pi/2) tau = 0.39 s, but the margin shrinks); physics adapter errors larger than the point mass at the same sigma "
     "(PD loop with lower damping passes more noise) and grows faster with latency (Run A: position feedback edge 0.33 s). Separation never near 0.5 m (slots 2 m apart, errors of centimetres)."
+)
+# Pre-registered slices per adapter (the pilot slices stand in for them in a
+# pilot run).  Both run Run D's separation rule ("coop").
+PREREGISTERED_SLICES = {
+    "point_mass_offboard": ("main", "pilot"),
+    "physics_offboard": ("physics", "pilot_physics"),
+}
+COMPARISON_SLICE = "local_guard_comparison"
+RULE_DEVIATIONS = (
+    "Drone-to-drone separation uses Run D's cooperative reciprocal velocity rule (separation_rule coop, "
+    "decision D-123, made after the pre-registration), not the pre-registered pairwise 0.8 m stand-in guard. "
+    "The switch applies to the pre-registered main grid itself (point mass and physics slices).",
+    "The local_guard_comparison slice (point mass, clean preset, separation_rule local, the earlier 0.8 m "
+    "stand-in guard) was added afterwards, for comparison only; it is not part of the pre-registered grid.",
+    "guard_activations now counts drone control steps where the coop rule changed the velocity; in the "
+    "local_guard_comparison slice it counts pair-steps inside 0.8 m.",
 )
 
 
@@ -133,6 +151,32 @@ def _cell_summary(rows: list[dict]) -> dict:
     }
 
 
+def _grid_counts() -> dict:
+    return dict(Counter(job["labels"]["slice"] for job in build_jobs()))
+
+
+def _hand_entry(rows: list[dict], *, adapter: str, sigma: float, slices: tuple, rule: str) -> dict | None:
+    """Zero-latency clean rows of one adapter, sigma, slice set and rule against the hand formula."""
+    selected = [r for r in rows if r["slice"] in slices and r["separation_rule"] == rule
+                and r["preset"] == "clean" and r["adapter"] == adapter
+                and r["sigma_m"] == sigma and r["fix_latency_s"] == 0.0]
+    if not selected:
+        return None
+    observed_axis = median_summary([r["per_axis_std_m"] for r in selected])
+    observed_rms = median_summary([r["rms_error_m"] for r in selected])
+    reference_axis = first_order_loop_jitter_std(sigma, 1.0 / 30.0, 0.25)
+    reference_rms = float(np.sqrt(3.0) * reference_axis)
+    ratio = None if observed_rms["median"] is None else observed_rms["median"] / reference_rms
+    return {"adapter": adapter, "sigma_m": sigma, "slice": selected[0]["slice"], "separation_rule": rule,
+            "observed_per_axis_std_m": observed_axis,
+            "reference_per_axis_std_m": reference_axis,
+            "observed_to_reference": None if observed_axis["median"] is None else observed_axis["median"] / reference_axis,
+            "observed_rms_error_m": observed_rms,
+            "reference_rms_error_m": reference_rms,
+            "observed_to_reference_rms": ratio,
+            "within_10_percent": None if ratio is None else abs(ratio - 1.0) <= 0.10}
+
+
 def summarize(rows: list[dict], *, pilot: bool) -> dict:
     keys = ("slice", "sigma_m", "fix_latency_s", "preset", "adapter", "separation_rule")
     cells = []
@@ -144,33 +188,30 @@ def summarize(rows: list[dict], *, pilot: bool) -> dict:
     hand = []
     for adapter, sigmas in (("point_mass_offboard", SIGMAS), ("physics_offboard", (0.02, 0.05))):
         for sigma in sigmas:
-            selected = [r for r in rows if r["preset"] == "clean" and r["adapter"] == adapter
-                        and r["sigma_m"] == sigma and r["fix_latency_s"] == 0.0]
-            if selected:
-                observed_axis = median_summary([r["per_axis_std_m"] for r in selected])
-                observed_rms = median_summary([r["rms_error_m"] for r in selected])
-                reference_axis = first_order_loop_jitter_std(sigma, 1.0 / 30.0, 0.25)
-                reference_rms = float(np.sqrt(3.0) * reference_axis)
-                ratio = None if observed_rms["median"] is None else observed_rms["median"] / reference_rms
-                hand.append({"adapter": adapter, "sigma_m": sigma,
-                             "observed_per_axis_std_m": observed_axis,
-                             "reference_per_axis_std_m": reference_axis,
-                             "observed_to_reference": None if observed_axis["median"] is None else observed_axis["median"] / reference_axis,
-                             "observed_rms_error_m": observed_rms,
-                             "reference_rms_error_m": reference_rms,
-                             "observed_to_reference_rms": ratio,
-                             "within_10_percent": None if ratio is None else abs(ratio - 1.0) <= 0.10})
-    deviations = []
+            entry = _hand_entry(rows, adapter=adapter, sigma=sigma,
+                                slices=PREREGISTERED_SLICES[adapter], rule="coop")
+            if entry is not None:
+                hand.append(entry)
+    local_hand = []
+    for sigma in SIGMAS:
+        entry = _hand_entry(rows, adapter="point_mass_offboard", sigma=sigma,
+                            slices=(COMPARISON_SLICE,), rule="local")
+        if entry is not None:
+            local_hand.append(entry)
+    deviations = list(RULE_DEVIATIONS)
     if pilot:
         deviations.append("Pilot runs 10 s per run (the full grid runs 30 s) and covers a small subset of the grid with 3 seeds.")
     return {
         "experiment": "EXP-034", "simulated": True, "pilot": bool(pilot),
-        "grid_counts": {"point_mass_offboard": 4 * 4 * 2 * 50,
-                         "physics_offboard": 2 * 2 * 2 * 50},
+        "grid_counts": _grid_counts(),
         "cells": cells,
         "hand_check": {"fix_period_s": 1.0 / 30.0, "response_time_s": 0.25,
                         "hand_formula": "per-axis std = sigma * sqrt(a / (2 - a)), a = 1 - exp(-(1/30)/0.25)",
-                        "zero_latency_clean": hand},
+                        "zero_latency_clean": hand,
+                        "zero_latency_clean_local_rule_comparison": local_hand,
+                        "local_rule_comparison_note": "Same hand formula applied to the local_guard_comparison "
+                                                      "slice (separation_rule local), added after the "
+                                                      "pre-registration for comparison only."},
         "notes": [
             "min_separation_m is taken over the whole run, including the start from randomly offset positions.",
             "The offboard physics adapter differences the last two position fixes for velocity, a contract design choice. Velocity noise per axis is about sqrt(2) x 30 x sigma at 30 Hz (difference of two fixes 1/30 s apart).",
@@ -179,12 +220,27 @@ def summarize(rows: list[dict], *, pilot: bool) -> dict:
         "prediction_source": PREDICTION_SOURCE,
         "prediction_observations": {
             "observed_cells": [{key: value for key, value in cell.items()
-                                if key in ("slice", "sigma_m", "fix_latency_s", "preset", "adapter", "rms_error_m", "minimum_pairwise_separation_m")}
+                                if key in ("slice", "sigma_m", "fix_latency_s", "preset", "adapter", "separation_rule",
+                                           "rms_error_m", "minimum_pairwise_separation_m")}
                                for cell in cells],
         },
         "deviations": deviations,
-        "missing_metrics": [], "limits": list(MISSION_LIMITS),
+        "missing_metrics": [], "limits": list(MISSION_LIMITS) + list(FormationMission.limits),
     }
+
+
+def _median_points(rows: list[dict], *, adapter: str, sigma: float, slices: tuple, rule: str) -> list[tuple]:
+    """(latency, median RMS error) for clean rows of one adapter, sigma, slice set and rule."""
+    points = []
+    for latency in LATENCIES:
+        selected = [r for r in rows if r["slice"] in slices and r["separation_rule"] == rule
+                    and r["adapter"] == adapter and r["preset"] == "clean"
+                    and r["sigma_m"] == sigma and r["fix_latency_s"] == latency]
+        if selected:
+            value = median_summary([r["rms_error_m"] for r in selected])["median"]
+            if value is not None and math.isfinite(value):
+                points.append((latency, value))
+    return points
 
 
 def _figures(output: Path, rows: list[dict]) -> list[str]:
@@ -196,18 +252,19 @@ def _figures(output: Path, rows: list[dict]) -> list[str]:
         sigmas = SIGMAS if adapter == "point_mass_offboard" else (0.02, 0.05)
         reference_labelled = False
         for sigma in sigmas:
-            points = []
-            for latency in LATENCIES:
-                selected = [r for r in rows if r["adapter"] == adapter and r["preset"] == "clean"
-                            and r["sigma_m"] == sigma and r["fix_latency_s"] == latency]
-                if selected:
-                    value = median_summary([r["rms_error_m"] for r in selected])["median"]
-                    if value is not None and math.isfinite(value):
-                        points.append((latency, value))
+            points = _median_points(rows, adapter=adapter, sigma=sigma,
+                                    slices=PREREGISTERED_SLICES[adapter], rule="coop")
             if not points:
                 continue
             ax.plot([x for x, _ in points], [y for _, y in points], marker="o",
-                    color=colors[sigma], label=f"sigma {sigma:g} m")
+                    color=colors[sigma], label=f"sigma {sigma:g} m, coop rule")
+            if adapter == "point_mass_offboard":
+                local_points = _median_points(rows, adapter=adapter, sigma=sigma,
+                                              slices=(COMPARISON_SLICE,), rule="local")
+                if local_points:
+                    ax.plot([x for x, _ in local_points], [y for _, y in local_points], marker="o",
+                            linestyle="--", color=colors[sigma],
+                            label=f"sigma {sigma:g} m, local rule (comparison)")
             reference = math.sqrt(3.0) * first_order_loop_jitter_std(sigma, 1.0 / 30.0, 0.25)
             ax.plot([0.0], [reference], marker="x", linestyle="none", color=reference_color,
                     label=None if reference_labelled else "hand formula")
@@ -216,7 +273,7 @@ def _figures(output: Path, rows: list[dict]) -> list[str]:
         ax.set_xlabel("fix latency (s)")
         ax.grid(True, alpha=0.25)
         if ax.get_legend_handles_labels()[0]:
-            ax.legend(fontsize=8)
+            ax.legend(fontsize=7)
         else:
             ax.text(0.5, 0.5, "not in this run", ha="center", va="center", transform=ax.transAxes)
     axes[0].set_ylabel("formation RMS error (m)")
