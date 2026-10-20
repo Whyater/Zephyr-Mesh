@@ -399,6 +399,9 @@
             "fast",
             "exact"
           ]
+        },
+        "share_slot_claims": {
+          "type": "boolean"
         }
       }
     },

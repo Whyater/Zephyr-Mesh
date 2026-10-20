@@ -88,6 +88,11 @@ class CoopSwarmConfig:
     gs_outage: tuple = ()
     metric_windows: tuple = ((0.0, 5.0), (5.0, 10.0), (10.0, 20.0))
     ci_mode: str = "fast"
+    # Proposal (EXP-026 close-pass review): each drone broadcasts the slot it
+    # is flying to, and every planner uses those shared claims for the switch
+    # penalty. False keeps the original private hysteresis, which can lock two
+    # survivors onto the same slot after a dropout.
+    share_slot_claims: bool = True
 
     def __post_init__(self) -> None:
         if isinstance(self.n_agents, bool) or int(self.n_agents) != self.n_agents or not 1 <= int(self.n_agents) <= 12:
@@ -109,6 +114,8 @@ class CoopSwarmConfig:
             raise ValueError("decision must be onboard or ground")
         if self.ci_mode not in {"fast", "exact"}:
             raise ValueError("ci_mode must be fast or exact")
+        if not isinstance(self.share_slot_claims, (bool, np.bool_)):
+            raise ValueError("share_slot_claims must be boolean")
         if int(self.log_every) != self.log_every or self.log_every < 1:
             raise ValueError("log_every must be a positive integer")
         ids = set(self.agent_ids)
@@ -158,6 +165,7 @@ class _Agent:
     previous_slots: dict[str, int] = field(default_factory=dict)
     previous_alive: tuple[str, ...] = ()
     slot_index: int = 0
+    slot_count: int = 0
     believed_assignment: dict[str, int] = field(default_factory=dict)
     flags: set[str] = field(default_factory=set)
     leaving_sent: bool = False
@@ -464,6 +472,25 @@ class CoopSwarmSimulator:
             positions[peer] = position
         return positions
 
+    def _previous_slots(self, agent: _Agent, alive: tuple[str, ...]) -> dict[str, int]:
+        """Return the slot indices that the switch penalty should favour."""
+        if not self.config.share_slot_claims:
+            return {key: value for key, value in agent.previous_slots.items() if key in alive}
+        # Shared claims: own slot plus each peer's last broadcast slot, kept only
+        # when it was chosen on a ring with the current number of slots, so an
+        # index from the old ring never pulls a drone to a different place.
+        size = len(alive)
+        previous: dict[str, int] = {}
+        if agent.slot_count == size:
+            previous[agent.agent_id] = int(agent.slot_index)
+        for peer in alive:
+            message = agent.latest.get(peer)
+            if peer == agent.agent_id or message is None:
+                continue
+            if int(message.get("slot_count", 0)) == size:
+                previous[peer] = int(message["slot_index"])
+        return previous
+
     def _ground_command(self, t: float, gs_mean: np.ndarray | None) -> None:
         if self.config.decision != "ground" or gs_mean is None:
             return
@@ -541,6 +568,9 @@ class CoopSwarmSimulator:
                         "cov": covariance.copy(),
                         "source_time": source_time if source_time is not None else t,
                     }
+                    if c.share_slot_claims:
+                        message["slot_index"] = int(agent.slot_index)
+                        message["slot_count"] = int(agent.slot_count)
                     for receiver in c.agent_ids:
                         if receiver != aid and receiver not in agent.left_peers:
                             self._send(aid, receiver, t, "state", message)
@@ -601,7 +631,7 @@ class CoopSwarmSimulator:
                         alive,
                         self._positions_view(agent, alive, t),
                         slots,
-                        {key: value for key, value in agent.previous_slots.items() if key in alive},
+                        self._previous_slots(agent, alive),
                         switch_penalty_m=c.switch_penalty_m,
                     )
                     slot_index = int(assignment[aid])
@@ -612,6 +642,7 @@ class CoopSwarmSimulator:
                 agent.previous_slots = dict(assignment)
                 agent.previous_alive = alive
                 agent.slot_index = slot_index
+                agent.slot_count = len(alive)
                 agent.believed_assignment = dict(assignment)
             step_disagreement_count = _count_disagreements(alive_cache, assignments)
             if k < n_steps:
@@ -893,6 +924,9 @@ class CoopSwarmSimulator:
 def _config_dict(config: CoopSwarmConfig) -> dict[str, Any]:
     result = asdict(config)
     result["avoidance"] = asdict(config.avoidance)
+    if not config.share_slot_claims:
+        # Original behaviour: write the same config block as before the option existed.
+        result.pop("share_slot_claims")
     result["dropouts"] = [list(row) for row in config.dropouts]
     result["target_params"] = [list(row) for row in config.target_params]
     result["gs_outage"] = [list(row) for row in config.gs_outage]
