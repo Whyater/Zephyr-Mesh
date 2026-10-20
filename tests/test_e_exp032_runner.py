@@ -213,3 +213,17 @@ def test_prediction_observations_split_stored_text_and_use_row_values():
     verdict_words = ("confirmed", "contradicted", "verdict", "correct", "wrong", "met", "pass")
     text = json.dumps([o["observed"] for o in observations]).lower()
     assert not any(f'"{word}' in text or f" {word} " in text for word in verdict_words)
+
+
+def test_longer_hop_follows_the_relay_geometry():
+    from tools.e_exp032_relay import longer_hop
+
+    # sim/missions/relay.py puts the relay at fraction * D from the ground
+    # station, so hop 1 (far drone to relay) is (1 - fraction) * D long and
+    # hop 2 (relay to ground station) is fraction * D long.
+    distance = 1000.0
+    for fraction in (0.25, 0.4, 0.6, 0.75):
+        hop1 = (1.0 - fraction) * distance
+        hop2 = fraction * distance
+        assert longer_hop(fraction) == ("hop1" if hop1 > hop2 else "hop2")
+    assert longer_hop(0.5) == "equal"

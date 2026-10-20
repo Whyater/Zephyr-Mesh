@@ -233,6 +233,17 @@ def split_sentences(text: str) -> list[str]:
     return re.split(r"(?<=[a-z%)]\.)\s+(?=[A-Z])", text)
 
 
+def longer_hop(fraction: float) -> str:
+    """Which hop is longer: the relay sits at fraction * D from the ground
+    station (sim/missions/relay.py), so hop 1 (far drone to relay) is
+    (1 - fraction) * D and hop 2 (relay to ground station) is fraction * D."""
+    if fraction < 0.5:
+        return "hop1"
+    if fraction > 0.5:
+        return "hop2"
+    return "equal"
+
+
 def prediction_observations(cells: dict, hand_check: dict, rows: list[dict]) -> list[dict]:
     """For every sentence of the stored prediction and its correction, the observed numbers it refers to."""
     distances = sorted({float(key.split("|")[1]) for key in cells if key.startswith("point_mass|")})
@@ -254,7 +265,7 @@ def prediction_observations(cells: dict, hand_check: dict, rows: list[dict]) -> 
             gap_row[str(d)] = mid["delivery_ratio_mean"] - side["delivery_ratio_mean"]
             hop_row[str(d)] = {"hop1_delivery_median": side["hop1_delivery"]["median"],
                                "hop2_delivery_median": side["hop2_delivery"]["median"],
-                               "longer_hop": "hop1" if fraction > 0.5 else "hop2"}
+                               "longer_hop": longer_hop(fraction)}
         asymmetric_gap[str(fraction)] = gap_row
         hops[str(fraction)] = hop_row
 
