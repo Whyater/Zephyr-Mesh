@@ -190,3 +190,33 @@ def test_vertical_step_matches_second_order_overshoot_and_peak_time():
     assert abs(heights[-1] - 1.0) < 1e-3
     assert thrust == pytest.approx(drone.mass * GRAVITY, rel=1e-3)
     assert np.allclose(drone.position[:2], 0.0, atol=1e-12)
+
+
+def test_sensor_noise_std_dropout_rate_and_bias_random_walk_growth():
+    """Independent facts: textbook statistics of the three sensor error sources.
+
+    1. White noise: the sample std of N draws of N(0, sigma) is within a few
+       sigma / sqrt(2N) of sigma.
+    2. Independent dropout with probability p: the dropped count is
+       Binomial(N, p), so the fraction is within 4 sqrt(p (1 - p) / N) of p.
+    3. Random-walk bias: after k independent steps of std w, the bias variance
+       is k w^2 (variances of independent steps add), checked across seeds.
+    """
+    sigma, p, n = 0.3, 0.1, 20_000
+    model = SensorModel(SensorConfig(noise_std_m=sigma, dropout_probability=p), seed=5)
+    samples = [model.sample((1.0, 2.0, 3.0), 0.01 * (i + 1)) for i in range(n)]
+    noise = np.array([s.noise_m for s in samples])
+    assert noise.std() == pytest.approx(sigma, abs=4 * sigma / np.sqrt(2 * noise.size))
+    dropped = np.mean([not s.available for s in samples])
+    assert dropped == pytest.approx(p, abs=4 * np.sqrt(p * (1 - p) / n))
+
+    w, k, seeds = 0.02, 50, 400
+    final_bias = []
+    for seed in range(seeds):
+        walk = SensorModel(SensorConfig(random_walk_std_m=w), seed=seed)
+        for i in range(k):
+            sample = walk.sample((0.0, 0.0, 0.0), 0.01 * (i + 1))
+        final_bias.append(sample.bias_m)
+    var = np.var(np.array(final_bias), axis=0, ddof=1)
+    # Sample variance of 400 normal values has relative std sqrt(2/399), about 7 percent.
+    assert np.allclose(var, k * w**2, rtol=4 * np.sqrt(2 / (seeds - 1)))
