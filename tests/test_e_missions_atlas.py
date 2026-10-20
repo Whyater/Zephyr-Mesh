@@ -155,3 +155,14 @@ def test_tag_separation_rule_groups_and_labels_local():
     assert len(entries) == 2
     local = next(e for e in entries if any("comparison rule" in n for n in e["notes"]))
     assert local["cells"][0]["met"] is False
+
+
+def test_seed_count_note_when_zero_events_cannot_pass():
+    # 20 runs, 0 events: Wilson upper bound = z^2 / (n + z^2) = 3.8415 / 23.8415 = 0.161 > 0.10.
+    z = 1.959963984540054
+    assert z * z / (20 + z * z) > 0.10
+    cell = {"conditions": [{"statistic": "wilson_high", "met": False, "summary": {"n": 20, "count": 0}}]}
+    note = atlas.seed_count_note({"cells": [cell]})
+    assert note is not None and "20 runs with zero events" in note
+    passing = {"conditions": [{"statistic": "wilson_high", "met": False, "summary": {"n": 50, "count": 3}}]}
+    assert atlas.seed_count_note({"cells": [passing]}) is None

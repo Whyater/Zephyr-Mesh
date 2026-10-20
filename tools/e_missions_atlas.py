@@ -503,8 +503,28 @@ def monitor_entries(rows: list[dict]) -> list[dict]:
                                 axis="delay_s", unit="s", conditions_for=monitor_conditions_for(path),
                                 describe=lambda labels: {"path": labels["path"], "preset": labels["preset"],
                                                          "notes": []})
+    for entry in entries:
+        note = seed_count_note(entry)
+        if note:
+            entry["notes"].append(note)
     order = {SCOPE_GOAL: 0, SCOPE_PHYSICS: 1}
     return sorted(entries, key=lambda e: order[e["scope"]])
+
+
+def seed_count_note(entry: dict) -> str | None:
+    """A note for cells that fail a Wilson upper-bound goal with zero events.
+
+    With n runs and no events the Wilson upper bound is still above zero, so a
+    small seed count can miss the goal even when nothing went wrong.
+    """
+    counts = sorted({c["summary"]["n"] for cell in entry["cells"] for c in cell["conditions"]
+                     if c["statistic"] == "wilson_high" and not c["met"]
+                     and c["summary"]["n"] and c["summary"]["count"] == 0})
+    if not counts:
+        return None
+    seeds = ", ".join(str(n) for n in counts)
+    return (f"Some cells are not met only because {seeds} runs with zero events still give a Wilson upper "
+            "bound above the goal; no event was observed in those cells.")
 
 
 def formation_conditions(rows: list[dict]) -> list[dict]:
