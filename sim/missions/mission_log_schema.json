@@ -181,7 +181,14 @@
         "failsafe_state": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "nominal",
+              "degraded",
+              "landing",
+              "landed",
+              "killed"
+            ]
           }
         },
         "authority": {

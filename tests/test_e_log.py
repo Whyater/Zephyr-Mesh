@@ -419,3 +419,13 @@ def test_dynamic_objects_reject_empty_keys_but_allow_any_json():
     with pytest.raises(ValueError, match="link_stats"):
         validate_log(make_log(link_stats={"": {"sent": 0, "delivered": 0, "lost_loss": 0, "lost_outage": 0}}))
     validate_log(make_log(metrics={"end_reason": "timeout", "ok": True, "x": None, "y": 1.5}))
+
+
+def test_schema_rejects_an_unknown_failsafe_state():
+    log = make_log()
+    log["frames"]["agents"]["a0"]["failsafe_state"][1] = "bogus"
+    with pytest.raises(ValueError):
+        validate_log(log)
+    for state in ("nominal", "degraded", "landing", "landed", "killed"):
+        log["frames"]["agents"]["a0"]["failsafe_state"][1] = state
+        validate_log(log)

@@ -23,6 +23,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from sim.missions.api import Scenario
+from sim.missions.tag import TagMission
 from tests.reference_e.hand_checks import tail_follow_time_s
 from tools.c_common import argv_or_default, prepare_output, write_json, write_manifest
 from tools.e_common import (MISSION_LIMITS, MISSION_SOURCES, apply_mission_style, group_rows,
@@ -83,6 +84,15 @@ def _scenario(seed: int, *, target_class: str, delay: float, preset: str, arm: s
 # comparison, the earlier local stand-in ("local").  With one follower the rule
 # has no effect, so those rows are labelled "one follower".
 ONE_FOLLOWER_RULE = "one follower"
+RULE_DEVIATIONS = (
+    "Follower-to-follower separation in the 2 and 3 follower slice uses Run D's cooperative reciprocal "
+    "velocity rule (separation_rule coop, decision D-123, made after the pre-registration), not the "
+    "pre-registered pairwise 0.6 m stand-in guard.",
+    "The separation_rule local rows of the followers slice (the pre-registered 0.6 m stand-in guard) were "
+    "added afterwards, for comparison only.",
+    "guard_activations now counts follower control steps where the coop rule changed the velocity; in the "
+    "separation_rule local rows it counts pair-steps inside 0.6 m.",
+)
 
 
 def build_jobs(*, pilot: bool = False) -> list[dict]:
@@ -205,6 +215,12 @@ def _cell_summary(rows: list[dict]) -> dict:
     return result
 
 
+# Label keys kept beside each recovery-arm tag success rate; n_followers and
+# separation_rule keep the followers cells apart.
+RATE_KEYS = ("slice", "target_class", "measurement_delay_s", "preset", "arm", "n_followers",
+             "separation_rule", "tag_success")
+
+
 def summarize(rows: list[dict], *, pilot: bool) -> dict:
     keys = ("slice", "target_class", "measurement_delay_s", "preset", "arm", "n_followers", "separation_rule",
             "adapter", "policy_name")
@@ -231,13 +247,13 @@ def summarize(rows: list[dict], *, pilot: bool) -> dict:
         "prediction": PREDICTION_TEXT,
         "prediction_source": PREDICTION_SOURCE,
         "prediction_correction_2": PREDICTION_CORRECTION_2,
-        "prediction_observed_rates": [{key: value for key, value in cell.items() if key in ("slice", "target_class", "measurement_delay_s", "preset", "arm", "tag_success")} for cell in cells
-                                       if cell["arm"] == "recovery"],
+        "prediction_observed_rates": [{key: value for key, value in cell.items() if key in RATE_KEYS}
+                                       for cell in cells if cell["arm"] == "recovery"],
         "figures_not_drawn": [] if calm_drawn else [
             {"file": "tag_success_default_calm.png", "reason": "this run has no calm policy slice"}],
-        "deviations": [],
+        "deviations": list(RULE_DEVIATIONS),
         "missing_metrics": ["zone entry time (the mission logs tag_zone_enter events but exposes no zone-entry metric)"],
-        "limits": list(MISSION_LIMITS),
+        "limits": list(MISSION_LIMITS) + list(TagMission.limits),
     }
 
 

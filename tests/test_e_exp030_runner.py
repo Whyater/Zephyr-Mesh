@@ -64,3 +64,44 @@ def test_hand_check_band_comes_from_reference_function(pilot_dirs):
     assert hand["inside_predicted_band"] == (median is not None and
                                               hand["predicted_time_to_tag_band_s"][0] <= median
                                               <= hand["predicted_time_to_tag_band_s"][1])
+
+
+def _fake_follower_row(rule: str, n_followers: int, *, tagged: bool, seed_index: int) -> dict:
+    # Synthetic followers-slice rows with every column the summary reads.
+    return {"slice": "followers", "target_class": "jink", "measurement_delay_s": 0.0, "preset": "clean",
+            "arm": "recovery", "n_followers": n_followers, "separation_rule": rule, "adapter": "point_mass",
+            "policy_name": "default", "seed_index": seed_index, "tagged": tagged,
+            "time_to_tag_s": 5.0 if tagged else None, "min_separation_m": 1.0, "separation_violations": 0,
+            "holds": 0, "landings": 0, "end_reason": "tagged" if tagged else "timeout",
+            "guard_activations": 0, "follower_follower_min_m": 1.0}
+
+
+def test_prediction_rates_tell_follower_cells_apart():
+    from tools.e_exp030_tag import summarize
+
+    rows = []
+    for n_followers in (2, 3):
+        for rule in ("coop", "local"):
+            for seed_index in range(2):
+                rows.append(_fake_follower_row(rule, n_followers, tagged=(rule == "coop"), seed_index=seed_index))
+    rates = summarize(rows, pilot=False)["prediction_observed_rates"]
+    assert len(rates) == 4
+    keys = {(r["n_followers"], r["separation_rule"]) for r in rates}
+    assert keys == {(2, "coop"), (2, "local"), (3, "coop"), (3, "local")}
+    for entry in rates:
+        assert entry["tag_success"]["rate"] == (1.0 if entry["separation_rule"] == "coop" else 0.0)
+
+
+def test_deviations_and_limits_describe_the_rule_switch(pilot_dirs):
+    from sim.missions.tag import TagMission
+    from tools.e_exp030_tag import summarize
+
+    pilot_summary = json.loads((pilot_dirs[0] / "summary.json").read_text(encoding="utf-8"))
+    for summary in (pilot_summary, summarize([], pilot=False)):
+        text = " ".join(summary["deviations"])
+        assert "D-123" in text
+        assert "after the pre-registration" in text
+        assert "for comparison only" in text
+        assert "changed the velocity" in text
+        for line in TagMission.limits:
+            assert line in summary["limits"]

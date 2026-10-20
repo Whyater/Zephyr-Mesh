@@ -368,3 +368,12 @@ def test_point_mass_and_physics_follow_the_same_safety_rules():
     events = point_mass[-1][1]
     assert events.count("kill") == 1
     assert "failsafe_transition" in events and "authority_change" in events
+
+
+def test_powered_physics_vehicle_on_the_floor_does_not_spin():
+    adapter = make("physics", position=(2.0, 2.0, 0.0))
+    for _ in range(steps(0.2)):
+        adapter.send_setpoint(np.array((6.0, 2.0, -1.0)))  # sideways and into the floor
+        adapter.step(DT, link_age_s=0.0)
+        spin = adapter.vehicle.drone.angular_velocity
+        assert np.array_equal(spin, np.zeros(3)), spin
