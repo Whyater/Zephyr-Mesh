@@ -277,8 +277,9 @@ class PhysicsAdapter(SimulatedAdapterCore):
             drone.velocity[2] = max(0.0, drone.velocity[2])
         if drone.position[2] > self._ground + FLOOR_CONTACT_M or drone.velocity[2] > 0.0:
             return  # airborne, or climbing away from the floor
-        # Inelastic, no-slide floor.
+        # Inelastic, no-slide, no-spin floor.
         drone.velocity[:] = 0.0
+        drone.angular_velocity[:] = 0.0
         if start[2] <= self._ground + FLOOR_CONTACT_M:
             drone.position[:2] = start[:2]
         if self.failsafe.state in {FailsafeState.KILLED, FailsafeState.LANDED}:
