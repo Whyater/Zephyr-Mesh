@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
 import tempfile
 import time
@@ -22,7 +23,9 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from sim.failsafe import FailsafeConfig
 from sim.missions.engine import COMMON_LIMITS
+from sim.missions.presets import get_preset
 from sim.missions.sweep import SweepMission
 from tests.reference_e.hand_checks import coverage_time_s
 from tools.c_common import prepare_output, write_json, write_manifest
@@ -38,6 +41,7 @@ from tools.e_common import (
     replay_command,
     run_jobs,
     seeds_for,
+    series_colors,
     write_rows,
 )
 
@@ -66,6 +70,23 @@ PREDICTION_NOTE = (
     "a miss of the prediction, not reworded."
 )
 HAND_CHECK_BAND_S = (35.0, 42.0)
+
+
+def _prediction_sentences(text: str) -> list[str]:
+    """The stored prediction split into sentences (a full stop followed by a capital letter)."""
+    return re.split(r"(?<=\.)\s+(?=[A-Z])", text.strip())
+
+
+def _band_from_text(text: str) -> tuple[float, float]:
+    """The completion band with a dropout, read from the last sentence of the stored prediction."""
+    found = re.search(r"about (\d+(?:\.\d+)?) to (\d+(?:\.\d+)?) s\.$", _prediction_sentences(text)[-1])
+    if found is None:
+        raise ValueError("the stored prediction has no dropout completion band")
+    return float(found.group(1)), float(found.group(2))
+
+
+# Completion time with one dropout, as pre-registered in the EXP-031 prediction ("about 45 to 55 s").
+DROPOUT_BAND_S = _band_from_text(PREDICTION)
 EXPLORATORY_REASON = (
     "the default 0.30 s lost-link rule landed drones on iid_30 and burst presets and the field was never "
     "finished, because a landed drone that keeps sharing is never declared lost"
@@ -181,6 +202,185 @@ def _hand_check_verdicts(rows: list[dict]) -> list[dict]:
     return verdicts
 
 
+def _main_rows(rows: list[dict], slice_name: str = "main") -> list[dict]:
+    return [r for r in rows if r["slice"] == slice_name and r["adapter"] == "point_mass"]
+
+
+def _diff(left: float | None, right: float | None) -> float | None:
+    """left minus right, rounded to 6 decimals; None when either side is missing."""
+    if left is None or right is None:
+        return None
+    return round(float(left) - float(right), 6)
+
+
+def _cell_rows(rows: list[dict], preset: str, dropout: str, mode: str) -> list[dict]:
+    return [r for r in rows if r["preset"] == preset and r["dropout"] == dropout and r["message_mode"] == mode]
+
+
+def _presets_present(rows: list[dict]) -> list[str]:
+    return [preset for preset in PRESETS if any(r["preset"] == preset for r in rows)]
+
+
+def _cell_numbers(grouped: list[dict], fields: tuple[str, ...]) -> dict:
+    """Observed numbers for one cell: the requested metrics plus runs with a failsafe landing."""
+    item: dict = {"n_runs": len(grouped)}
+    for field in fields:
+        if field == "p_t100_reached":
+            item[field] = rate_summary([r["t100_s"] is not None for r in grouped])
+        else:
+            item[field] = median_summary([r[field] for r in grouped])
+    item["runs_with_failsafe_landing"] = rate_summary([int(r["failsafe_landings"]) > 0 for r in grouped])
+    return item
+
+
+def _cells(rows: list[dict], dropout: str, fields: tuple[str, ...]) -> list[dict]:
+    """One entry per preset and message mode that has rows, in grid order."""
+    cells = []
+    for preset in _presets_present(rows):
+        link = get_preset(preset)
+        for mode in MESSAGE_MODES:
+            grouped = _cell_rows(rows, preset, dropout, mode)
+            if not grouped:
+                continue
+            item = {"preset": preset, "message_mode": mode, "loss_probability": link.loss_probability,
+                    "burst_mean_s": link.burst_mean_s}
+            item.update(_cell_numbers(grouped, fields))
+            cells.append(item)
+    return cells
+
+
+def _observe_no_dropout(rows: list[dict]) -> dict:
+    cells = _cells(rows, "none", ("p_t100_reached", "t100_s"))
+    clean = {c["message_mode"]: c for c in cells if c["preset"] == "clean"}
+    for cell in cells:
+        base = clean.get(cell["message_mode"])
+        cell["t100_median_minus_clean_s"] = _diff(cell["t100_s"]["median"],
+                                                  base["t100_s"]["median"] if base else None)
+        cell["p_t100_minus_clean"] = _diff(cell["p_t100_reached"]["rate"],
+                                           base["p_t100_reached"]["rate"] if base else None)
+    return {"what": "completion within the horizon and t100 per preset and message mode, no dropout",
+            "dropout": "none", "cells": cells}
+
+
+def _observe_dropout_duplication(rows: list[dict]) -> dict:
+    cells = _cells(rows, "one", ("duplicated_fraction", "belief_error_cells"))
+    by_key = {(c["preset"], c["message_mode"]): c for c in cells}
+    differences = []
+    for preset in _presets_present(rows):
+        delta, cumulative = by_key.get((preset, "delta")), by_key.get((preset, "cumulative"))
+        if delta is None or cumulative is None:
+            continue
+        differences.append({
+            "preset": preset,
+            "duplicated_fraction_median": _diff(cumulative["duplicated_fraction"]["median"],
+                                                delta["duplicated_fraction"]["median"]),
+            "belief_error_cells_median": _diff(cumulative["belief_error_cells"]["median"],
+                                               delta["belief_error_cells"]["median"]),
+        })
+    return {"what": "duplicated fraction and belief error cells per preset and message mode, one dropout",
+            "dropout": "one", "cells": cells, "cumulative_minus_delta": differences}
+
+
+def _burst_iid_pairs(rows: list[dict]) -> list[tuple[str, str]]:
+    """Each burst preset with the independent-loss preset of the same long-run loss probability."""
+    present = _presets_present(rows)
+    pairs = []
+    for burst in present:
+        if get_preset(burst).loss_model != "burst":
+            continue
+        for iid in present:
+            link = get_preset(iid)
+            if link.loss_model == "independent" and link.loss_probability == get_preset(burst).loss_probability:
+                pairs.append((iid, burst))
+    return pairs
+
+
+def _observe_bursts(rows: list[dict]) -> dict:
+    fields = ("p_t100_reached", "duplicated_fraction", "belief_error_cells")
+    pairs = []
+    for iid, burst in _burst_iid_pairs(rows):
+        by_mode = []
+        for mode in MESSAGE_MODES:
+            iid_rows, burst_rows = _cell_rows(rows, iid, "one", mode), _cell_rows(rows, burst, "one", mode)
+            if not iid_rows or not burst_rows:
+                continue
+            left, right = _cell_numbers(iid_rows, fields), _cell_numbers(burst_rows, fields)
+            by_mode.append({
+                "message_mode": mode, "iid": left, "burst": right,
+                "burst_minus_iid": {
+                    "duplicated_fraction_median": _diff(right["duplicated_fraction"]["median"],
+                                                        left["duplicated_fraction"]["median"]),
+                    "belief_error_cells_median": _diff(right["belief_error_cells"]["median"],
+                                                       left["belief_error_cells"]["median"]),
+                    "p_t100_reached": _diff(right["p_t100_reached"]["rate"], left["p_t100_reached"]["rate"]),
+                },
+            })
+        if by_mode:
+            link = get_preset(burst)
+            pairs.append({"iid_preset": iid, "burst_preset": burst, "loss_probability": link.loss_probability,
+                          "burst_mean_s": link.burst_mean_s, "by_mode": by_mode})
+    return {"what": "burst presets against independent-loss presets of the same loss probability, one dropout",
+            "dropout": "one", "burst_vs_iid": pairs}
+
+
+def _observe_dropout_time(rows: list[dict]) -> dict:
+    low, high = DROPOUT_BAND_S
+    cells = _cells(rows, "one", ("p_t100_reached", "t100_s"))
+    for cell in cells:
+        median = cell["t100_s"]["median"]
+        cell["t100_median_in_band"] = None if median is None else bool(low <= median <= high)
+    return {"what": "t100 with one dropout per preset and message mode (median over runs that reached t100)",
+            "dropout": "one", "band_s": [low, high], "cells": cells}
+
+
+# Each stored prediction sentence, matched by its opening words, and the observation it refers to.
+SENTENCE_OBSERVERS = (
+    ("without dropout", _observe_no_dropout),
+    ("With a dropout and delta", _observe_dropout_duplication),
+    ("Bursts hurt delta", _observe_bursts),
+    ("Completion time with dropout", _observe_dropout_time),
+)
+
+
+def _prediction_observations(rows: list[dict]) -> list[dict]:
+    """For each pre-registered prediction sentence, the observed numbers it refers to (no judgement)."""
+    default_policy = FailsafeConfig()
+    calm_rows = _main_rows(rows, EXPLORATORY_LABEL)
+    observations = []
+    for sentence in _prediction_sentences(PREDICTION):
+        observers = [fn for opening, fn in SENTENCE_OBSERVERS if sentence.startswith(opening)]
+        if len(observers) != 1:
+            raise ValueError(f"no single observation for prediction sentence: {sentence!r}")
+        observed = {"slice": "main", "adapter": "point_mass",
+                    "policy": {"name": "default", "degraded_after_s": default_policy.degraded_after_s,
+                               "land_after_s": default_policy.land_after_s}}
+        observed.update(observers[0](_main_rows(rows)))
+        calm = None
+        if calm_rows:
+            calm = {"slice": EXPLORATORY_LABEL, "adapter": "point_mass",
+                    "policy": dict(CALM_POLICY, name="calm")}
+            calm.update(observers[0](calm_rows))
+        observations.append({"sentence": sentence, "observed": observed, "exploratory_calm_policy": calm})
+    return observations
+
+
+def _dropout_band_check(rows: list[dict]) -> dict:
+    """Clean link, one dropout, per message mode: the observed median t100 against the predicted band."""
+    low, high = DROPOUT_BAND_S
+    items = []
+    for mode in MESSAGE_MODES:
+        selected = _cell_rows(_main_rows(rows), "clean", "one", mode)
+        item = {"message_mode": mode, "n_runs": len(selected)}
+        observed = median_summary([r["t100_s"] for r in selected])
+        median = observed["median"]
+        item.update({"n_reached_t100": observed["n"], "observed_t100": observed,
+                     "median_in_band": None if median is None else bool(low <= median <= high)})
+        items.append(item)
+    return {"predicted_t100_range_s": [low, high],
+            "band_source": "last sentence of the stored EXP-031 prediction",
+            "observed_clean_one_dropout": items}
+
+
 def _summarize(rows: list[dict], *, pilot: bool, horizon_s: float) -> dict:
     keys = ("slice", "preset", "dropout", "message_mode", "adapter")
     cells = []
@@ -219,7 +419,9 @@ def _summarize(rows: list[dict], *, pilot: bool, horizon_s: float) -> dict:
         "hand_check": {"reference_sweeping_s": hand_reference, "predicted_t100_range_s": list(HAND_CHECK_BAND_S),
                        "observed_clean_no_dropout": hand},
         "prediction": {"text": PREDICTION, "prediction_source": PREDICTION_SOURCE,
-                       "prediction_note": PREDICTION_NOTE, "observed_clean_no_dropout": hand},
+                       "prediction_note": PREDICTION_NOTE, "observed_clean_no_dropout": hand,
+                       "prediction_observations": _prediction_observations(rows),
+                       "dropout_completion_band_check": _dropout_band_check(rows)},
         "exploratory_slice": EXPLORATORY_LABEL if exploratory else None,
         "deviations": deviations,
         "missing_metrics": [],
@@ -228,52 +430,162 @@ def _summarize(rows: list[dict], *, pilot: bool, horizon_s: float) -> dict:
     }
 
 
-def _figures(output: Path, rows: list[dict], horizon_s: float) -> list[str]:
-    apply_mission_style("light")
-    names: list[str] = []
-    fig, ax = plt.subplots(figsize=(9, 4.5))
-    for preset in PRESETS:
-        labels, values = [], []
-        for dropout in DROPOUTS:
-            for mode in MESSAGE_MODES:
-                selected = [r for r in rows if r["slice"] == "main" and r["adapter"] == "point_mass"
-                            and r["preset"] == preset and r["dropout"] == dropout and r["message_mode"] == mode]
-                if selected:
-                    labels.append(f"{dropout}/{mode}")
-                    values.append(rate_summary([r["t100_s"] is not None for r in selected])["rate"])
-        if values:
-            ax.plot(labels, values, marker="o", label=preset)
-    ax.set_ylim(0, 1.05)
-    ax.set_ylabel(f"P(complete within {horizon_s:g} s)")
-    ax.set_xlabel("dropout / message mode")
-    ax.set_title(f"Completion within {horizon_s:g} s simulated")
-    ax.legend(fontsize=7)
-    fig.tight_layout()
-    name = "sweep_completion_simulated.png"
-    fig.savefig(output / name, dpi=140)
-    plt.close(fig)
-    names.append(name)
+MODE_MARKERS = {"delta": "o", "cumulative": "s"}
+FAILSAFE_MARKERS = {"delta": "v", "cumulative": "^"}
 
-    fig, ax = plt.subplots(figsize=(8, 4.5))
-    for preset in PRESETS:
-        vals = []
+
+def _runs_per_cell_text(rows: list[dict], dropouts: tuple[str, ...]) -> str:
+    rows = _main_rows(rows)
+    counts = sorted({len(_cell_rows(rows, preset, dropout, mode))
+                     for preset in _presets_present(rows) for dropout in dropouts for mode in MESSAGE_MODES
+                     if _cell_rows(rows, preset, dropout, mode)})
+    if not counts:
+        return "no runs"
+    if len(counts) == 1:
+        return f"{counts[0]} runs per cell"
+    return f"{counts[0]} to {counts[-1]} runs per cell"
+
+
+def _slice_text(rows: list[dict], dropouts: tuple[str, ...]) -> str:
+    """Which runs a figure shows, built from the rows and the mission's default failsafe policy."""
+    policy = FailsafeConfig()
+    shown = " and ".join(dropouts)
+    return (f"Slice: main (pre-registered grid), point mass adapter, default policy (hold after "
+            f"{policy.degraded_after_s:g} s, land after {policy.land_after_s:g} s), dropout: {shown}, "
+            f"{_runs_per_cell_text(rows, dropouts)}.")
+
+
+def _failsafe_caption(rows: list[dict], dropouts: tuple[str, ...]) -> str:
+    """Names the presets where more than half of the shown runs had a lost-link failsafe landing."""
+    shown = [r for r in _main_rows(rows) if r["dropout"] in dropouts]
+    heavy = []
+    for preset in _presets_present(shown):
+        summary = rate_summary([int(r["failsafe_landings"]) > 0 for r in shown if r["preset"] == preset])
+        if summary["count"] * 2 > summary["n"]:
+            heavy.append(f"{preset} ({summary['count']} of {summary['n']} runs)")
+    if not heavy:
+        return "No preset had a lost-link failsafe landing in most runs."
+    return ("Lost-link failsafe landings in most runs: " + ", ".join(heavy)
+            + "; on these presets the results mostly reflect those landings, not coverage sharing.")
+
+
+def _caption(fig, rows: list[dict], dropouts: tuple[str, ...], extra: str) -> None:
+    lines = [_slice_text(rows, dropouts), _failsafe_caption(rows, dropouts), extra]
+    if any(r["slice"] == EXPLORATORY_LABEL for r in rows):
+        lines.append("The exploratory calm policy slice and the physics slice are not shown.")
+    elif any(r["slice"] == "physics" for r in rows):
+        lines.append("The physics slice is not shown.")
+    fig.text(0.01, 0.01, "\n".join(lines), ha="left", va="bottom", fontsize=7, wrap=True)
+
+
+def _categorical_axis(ax, presets: list[str]) -> None:
+    ax.set_xticks(range(len(presets)))
+    ax.set_xticklabels(presets, fontsize=7)
+    ax.set_xlim(-0.6, len(presets) - 0.4)
+    ax.set_xlabel("link preset")
+
+
+def _plot_rate(ax, xs: list[float], summaries: list[dict], **style) -> None:
+    rates = [s["rate"] for s in summaries]
+    # Interval ends can sit a rounding error past the rate at 0 or 1; error bar lengths cannot be negative.
+    below = [max(0.0, s["rate"] - s["wilson_low"]) for s in summaries]
+    above = [max(0.0, s["wilson_high"] - s["rate"]) for s in summaries]
+    ax.errorbar(xs, rates, yerr=[below, above], linestyle="none", capsize=2, **style)
+
+
+def _plot_median(ax, xs: list[float], summaries: list[dict], **style) -> None:
+    kept = [(x, s) for x, s in zip(xs, summaries) if s["median"] is not None]
+    if not kept:
+        return
+    medians = [s["median"] for _, s in kept]
+    below = [max(0.0, s["median"] - s["low"]) for _, s in kept]
+    above = [max(0.0, s["high"] - s["median"]) for _, s in kept]
+    ax.errorbar([x for x, _ in kept], medians, yerr=[below, above], linestyle="none", capsize=2, **style)
+
+
+def _completion_figure(rows: list[dict], horizon_s: float):
+    pal = apply_mission_style("light")
+    colors = dict(zip(MESSAGE_MODES, series_colors(len(MESSAGE_MODES))))
+    main = _main_rows(rows)
+    presets = _presets_present(main)
+    # Four series per preset, each at its own sideways offset so equal values stay visible.
+    offsets = {("complete", "delta"): -0.27, ("complete", "cumulative"): -0.09,
+               ("failsafe", "delta"): 0.09, ("failsafe", "cumulative"): 0.27}
+    fig, axes = plt.subplots(1, 2, figsize=(11, 5.4), sharey=True)
+    for ax, dropout in zip(axes, DROPOUTS):
         for mode in MESSAGE_MODES:
-            selected = [r for r in rows if r["slice"] == "main" and r["adapter"] == "point_mass"
-                        and r["preset"] == preset and r["dropout"] == "one" and r["message_mode"] == mode]
-            vals.append(median_summary([r["belief_error_cells"] for r in selected])["median"] if selected else float("nan"))
-        if any(v == v for v in vals):
-            ax.plot(MESSAGE_MODES, vals, marker="o", label=preset)
-    ax.set_ylabel("belief error cells (median)")
-    ax.set_xlabel("message mode")
-    ax.set_title("Belief error cells simulated")
-    handles, labels = ax.get_legend_handles_labels()
+            for kind in ("complete", "failsafe"):
+                xs, summaries = [], []
+                for index, preset in enumerate(presets):
+                    grouped = _cell_rows(main, preset, dropout, mode)
+                    if not grouped:
+                        continue
+                    xs.append(index + offsets[(kind, mode)])
+                    if kind == "complete":
+                        summaries.append(rate_summary([r["t100_s"] is not None for r in grouped]))
+                    else:
+                        summaries.append(rate_summary([int(r["failsafe_landings"]) > 0 for r in grouped]))
+                if not xs:
+                    continue
+                if kind == "complete":
+                    _plot_rate(ax, xs, summaries, marker=MODE_MARKERS[mode], color=colors[mode],
+                               label=f"complete within {horizon_s:g} s, {mode}")
+                else:
+                    _plot_rate(ax, xs, summaries, marker=FAILSAFE_MARKERS[mode], color=pal["caution"],
+                               markerfacecolor="none", label=f"runs with a failsafe landing, {mode}")
+        _categorical_axis(ax, presets)
+        ax.set_ylim(-0.05, 1.05)
+        ax.set_title(f"dropout: {dropout}", fontsize=9)
+    axes[0].set_ylabel("fraction of runs (95 % Wilson interval)")
+    handles, labels = axes[0].get_legend_handles_labels()
+    if not handles:
+        handles, labels = axes[1].get_legend_handles_labels()
     if handles:
-        ax.legend(fontsize=7)
-    fig.tight_layout()
-    name = "sweep_belief_error_simulated.png"
-    fig.savefig(output / name, dpi=140)
-    plt.close(fig)
-    names.append(name)
+        fig.legend(handles, labels, loc="lower center", ncol=4, fontsize=7, bbox_to_anchor=(0.5, 0.115))
+    fig.suptitle(f"Sweep completion within {horizon_s:g} s and failsafe landings, simulated", fontsize=11)
+    _caption(fig, rows, DROPOUTS, "Points are offset sideways by series; presets are categories, not a scale.")
+    fig.tight_layout(rect=(0, 0.17, 1, 0.95))
+    return fig
+
+
+def _belief_figure(rows: list[dict]):
+    apply_mission_style("light")
+    colors = dict(zip(MESSAGE_MODES, series_colors(len(MESSAGE_MODES))))
+    main = _main_rows(rows)
+    presets = _presets_present(main)
+    offsets = {"delta": -0.12, "cumulative": 0.12}
+    panels = (("belief_error_cells", "belief error cells (median, 95 % interval)"),
+              ("duplicated_fraction", "duplicated fraction of area (median, 95 % interval)"))
+    fig, axes = plt.subplots(1, 2, figsize=(11, 5.4))
+    for ax, (field, ylabel) in zip(axes, panels):
+        for mode in MESSAGE_MODES:
+            xs, summaries = [], []
+            for index, preset in enumerate(presets):
+                grouped = _cell_rows(main, preset, "one", mode)
+                if grouped:
+                    xs.append(index + offsets[mode])
+                    summaries.append(median_summary([r[field] for r in grouped]))
+            if xs:
+                _plot_median(ax, xs, summaries, marker=MODE_MARKERS[mode], color=colors[mode], label=mode)
+        _categorical_axis(ax, presets)
+        ax.set_ylabel(ylabel, fontsize=8)
+        if ax.containers:
+            ax.legend(fontsize=7, title="message mode", title_fontsize=7)
+    axes[0].set_title("belief error cells, dropout: one", fontsize=9)
+    axes[1].set_title("duplicated fraction, dropout: one", fontsize=9)
+    fig.suptitle("Coverage belief and duplication after one dropout, simulated", fontsize=11)
+    _caption(fig, rows, ("one",), "Message modes are offset sideways; presets are categories, not a scale.")
+    fig.tight_layout(rect=(0, 0.13, 1, 0.95))
+    return fig
+
+
+def _figures(output: Path, rows: list[dict], horizon_s: float) -> list[str]:
+    names: list[str] = []
+    for name, fig in (("sweep_completion_simulated.png", _completion_figure(rows, horizon_s)),
+                      ("sweep_belief_error_simulated.png", _belief_figure(rows))):
+        fig.savefig(output / name, dpi=140)
+        plt.close(fig)
+        names.append(name)
     return names
 
 
