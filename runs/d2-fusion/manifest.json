@@ -35,8 +35,8 @@
     "tools/__init__.py": "951ea81ff0224e39e6f39ddd01b6bf632c1a0dc1480f1e19ed83dfd9b06a4ed4",
     "tools/c_common.py": "ab3697780e05514a0270bc09edc461b75d4cdf0a113d5d56a64bb84c0a7887d6",
     "tools/d_common.py": "676e5ce72b37f60c2c9faa9fbee28aa55ca47657cde517602b706fe7b6a82a0e",
-    "tools/d_make_fusion_figure.py": "f9a0aa7d4ffb32a0ab7f048c1f29467c6e498ed879bb30ae458b8667f0a35d89",
-    "tools/d_run_fusion.py": "f90f55805acfb771b1adfe4db9a8551cb72dd188f6002f44fd5309a02f5a6780",
+    "tools/d_make_fusion_figure.py": "bfafc3997a56b3ca6af70dcfa1bbc8269b35b59a8f3358c882c34b16e5256e91",
+    "tools/d_run_fusion.py": "68432887f712146d74dd2e62ba25e1db6b6344010464c599a4610883c3e074e3",
     "tools/horizon_mpl.py": "016a70cedc02c7acb02d4e11ebb96885bff8ab29a91911aef63548ce5fff4eaa"
   },
   "config": {
@@ -138,58 +138,58 @@
   "config_sha256": "f6af030f9c083697ca41f7517ca7d97c3b94642b6d31adbd01e67354e3172811",
   "full_run_estimate_by_job_type": {
     "exact:peer_ci:N=2": {
-      "full_cpu_s": 138.06833,
+      "full_cpu_s": 108.99264500000001,
       "full_jobs": 100,
-      "full_wall_s_4_processes": 34.5170825,
-      "mean_worker_cpu_s": 1.3806833,
+      "full_wall_s_4_processes": 27.248161250000003,
+      "mean_worker_cpu_s": 1.08992645,
       "pilot_jobs": 100
     },
     "exact:peer_ci:N=3": {
-      "full_cpu_s": 484.177875,
+      "full_cpu_s": 388.24836200000004,
       "full_jobs": 100,
-      "full_wall_s_4_processes": 121.04446875,
-      "mean_worker_cpu_s": 4.84177875,
+      "full_wall_s_4_processes": 97.06209050000001,
+      "mean_worker_cpu_s": 3.8824836200000004,
       "pilot_jobs": 100
     },
     "exact:peer_ci:N=6": {
-      "full_cpu_s": 4168.497530999998,
+      "full_cpu_s": 3593.9890629999995,
       "full_jobs": 100,
-      "full_wall_s_4_processes": 1042.1243827499995,
-      "mean_worker_cpu_s": 41.684975309999984,
+      "full_wall_s_4_processes": 898.4972657499999,
+      "mean_worker_cpu_s": 35.939890629999994,
       "pilot_jobs": 100
     },
     "fast:single,central,star_avg,peer_ci,peer_naive:N=2": {
-      "full_cpu_s": 253.50882500000017,
+      "full_cpu_s": 205.72490699999994,
       "full_jobs": 600,
-      "full_wall_s_4_processes": 63.37720625000004,
-      "mean_worker_cpu_s": 0.4225147083333336,
+      "full_wall_s_4_processes": 51.431226749999986,
+      "mean_worker_cpu_s": 0.34287484499999993,
       "pilot_jobs": 600
     },
     "fast:single,central,star_avg,peer_ci,peer_naive:N=3": {
-      "full_cpu_s": 442.1193360000001,
+      "full_cpu_s": 295.80393299999986,
       "full_jobs": 600,
-      "full_wall_s_4_processes": 110.52983400000002,
-      "mean_worker_cpu_s": 0.7368655600000001,
+      "full_wall_s_4_processes": 73.95098324999996,
+      "mean_worker_cpu_s": 0.4930065549999998,
       "pilot_jobs": 600
     },
     "fast:single,central,star_avg,peer_ci,peer_naive:N=4": {
-      "full_cpu_s": 673.1946579999999,
+      "full_cpu_s": 436.3122049999997,
       "full_jobs": 600,
-      "full_wall_s_4_processes": 168.29866449999997,
-      "mean_worker_cpu_s": 1.1219910966666664,
+      "full_wall_s_4_processes": 109.07805124999993,
+      "mean_worker_cpu_s": 0.7271870083333328,
       "pilot_jobs": 600
     },
     "fast:single,central,star_avg,peer_ci,peer_naive:N=6": {
-      "full_cpu_s": 1478.2437220000008,
+      "full_cpu_s": 1043.6020519999997,
       "full_jobs": 600,
-      "full_wall_s_4_processes": 369.5609305000002,
-      "mean_worker_cpu_s": 2.463739536666668,
+      "full_wall_s_4_processes": 260.90051299999993,
+      "mean_worker_cpu_s": 1.7393367533333328,
       "pilot_jobs": 600
     }
   },
-  "full_run_estimate_cpu_s": 7637.810276999999,
-  "full_run_estimate_wall_s_4_processes": 1909.4525692499997,
-  "git_revision": "3807c6985e6083a79a8124ad6ffc1b9004268fff",
+  "full_run_estimate_cpu_s": 6072.673166999999,
+  "full_run_estimate_wall_s_4_processes": 1518.1682917499998,
+  "git_revision": "e8e8a542b4843ac48877105f288f1914d7621ac2",
   "git_tree_state": "dirty",
   "limits": [
     "Simulated only: no drone, camera or radio hardware was used, and nothing here is measured.",
@@ -202,17 +202,17 @@
   "n_processes": 4,
   "numpy": "2.5.1",
   "outputs": {
-    "fusion_consistency.png": "23c307bcd6e6f8e5de0914846ff7990ad84d121b3290f2618b4438e23a5d20a3",
-    "fusion_error.png": "4956d7a7755ae53957b9b061ab5c715b2bee5dd1dc0be425da8039622e94f78e",
+    "fusion_consistency.png": "ef0ae175430a0a5955f7a937988a814a0b6ea91238222342518f427f1909d223",
+    "fusion_error.png": "be9e2bc98de9ee7e036c9b8a55cb943c1ef4af6d1d56a43e1892253cbb9d3262",
     "math_checks.json": "fd3efa0da1b803a40dd1288037ec6dcd25668b19ca5a23a60eada539f8e99d92",
     "per_seed.csv": "308880232e8263c5f7dda20e6881e0735f26f84f2efd3e2364c06963db4fdbb3",
-    "summary.json": "99081b5d159723d9621a6b711e1432fc6260987ceefe04dd1d59e9b35ddeb847"
+    "summary.json": "cebde0794255fc2d5cf9a49ae7068e40edcdb63919c12a483333fd83ccb4badf"
   },
-  "pilot_worker_cpu_s": 7637.810277,
+  "pilot_worker_cpu_s": 6072.673166999999,
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
   "replay_command": "PYTHONPATH=. {python} tools/d_run_fusion.py --output {out} --processes 4",
-  "runtime_s": 2053.77674979101,
+  "runtime_s": 1844.8218515420012,
   "schema": "zephyr-d-fusion-manifest-1",
   "seeds": [
     613272490,
