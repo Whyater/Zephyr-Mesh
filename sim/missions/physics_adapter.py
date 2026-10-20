@@ -52,10 +52,11 @@ position loop has no velocity limit, so the adapter feeds it a carrot:
 Floor.  After every step a true z below ``ground_plane_z_m`` is set to the
 floor.  A body that ends the step at or below the floor without climbing
 does not slide: its linear velocity is zeroed, and if it was already on the
-floor when the step began it keeps its horizontal position.  Powered, the
-attitude stays with the controller (so a take-off command still works);
-while the kill switch is latched or after touchdown the angular velocity is
-zeroed as well, so an unpowered body that hits the floor stays where it hit.
+floor when the step began it keeps its horizontal position, and its angular
+velocity is zeroed, so it neither slides nor spins.  A take-off command
+still works because a climbing body skips the floor rule.  A body that
+starts tilted on the floor re-levels slowly, so it lifts off later than a
+level one (no mission starts tilted).
 
 Unpowered (kill switch, or landed): the rotor speeds are set to zero as soon
 as the kill switch latches and held there, the controller is not called,

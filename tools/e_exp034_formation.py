@@ -227,7 +227,10 @@ def summarize(rows: list[dict], *, pilot: bool) -> dict:
                                for cell in cells],
         },
         "deviations": deviations,
-        "missing_metrics": [], "limits": list(MISSION_LIMITS) + list(FormationMission.limits),
+        "missing_metrics": [],
+        "limits": list(MISSION_LIMITS) + list(FormationMission.limits) + [
+            "In EXP-034 the pre-registered grid uses separation_rule local (the registered 0.8 m guard) and "
+            "the coop_comparison slice uses separation_rule coop; the mission's own default does not apply here."],
     }
 
 

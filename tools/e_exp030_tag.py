@@ -88,8 +88,8 @@ RULE_DEVIATIONS = (
     "Follower-to-follower separation in the 2 and 3 follower slice uses Run D's cooperative reciprocal "
     "velocity rule (separation_rule coop, decision D-123, made after the pre-registration), not the "
     "pre-registered pairwise 0.6 m stand-in guard.",
-    "The separation_rule local rows of the followers slice (the earlier 0.6 m stand-in guard) were added "
-    "afterwards, for comparison only.",
+    "The separation_rule local rows of the followers slice (the pre-registered 0.6 m stand-in guard) were "
+    "added afterwards, for comparison only.",
     "guard_activations now counts follower control steps where the coop rule changed the velocity; in the "
     "separation_rule local rows it counts pair-steps inside 0.6 m.",
 )
