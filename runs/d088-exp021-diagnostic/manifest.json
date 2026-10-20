@@ -1,0 +1,42 @@
+{
+  "argv": [
+    "--output-dir",
+    "runs/d088-exp021-diagnostic"
+  ],
+  "config": {
+    "min_height_m": 0.0,
+    "source": "runs/a6-control-tolerance",
+    "tilt_limit_deg": 45.0
+  },
+  "config_sha256": "16ef1bd82c3ae6e8d680152ecb7190212c65dbf22d23c282fb99f19d83fa5576",
+  "git_revision": "5e240a933728eee919295a525d6aa53271459b97",
+  "git_tree_state": "dirty",
+  "limits": [
+    "diagnostic only, does not replace EXP-021",
+    "simulated only",
+    "literature-derived profiles",
+    "per-run part omits y and z growth"
+  ],
+  "n_processes": 1,
+  "numpy": "2.5.1",
+  "outputs": {
+    "diagnostic.json": "cf816597a268416ef1f9500bb85a8b52078a271bdf0b0a7733892f03305bf4d2"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. python tools/d088_exp021_diagnostic.py --output-dir runs/d088-exp021-diagnostic",
+  "runtime_s": 33.04370020900387,
+  "schema": "zephyr-d088-exp021-diagnostic-manifest-1",
+  "seeds": [
+    0
+  ],
+  "volatile_fields": [
+    "runtime_s",
+    "git_revision",
+    "git_tree_state",
+    "platform",
+    "python",
+    "numpy",
+    "n_processes"
+  ]
+}

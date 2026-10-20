@@ -1,0 +1,157 @@
+{
+  "d_crit_loss0_seed0_20s": [
+    {
+      "arm": "b",
+      "d088_failed_delay_s": 0.36,
+      "d088_failed_side": {
+        "failed_to_fly": true,
+        "failed_to_fly_reason": "growing_error",
+        "failed_to_fly_time_s": 20.0,
+        "max_error_m": 1.7560372907678496,
+        "rms_error_m": 0.9229653083340544,
+        "unstable_reason": "growing_oscillation",
+        "unstable_time_s": 20.0,
+        "whole_run_max_error_m": 1.7560372907678496,
+        "whole_run_max_tilt_deg": 29.2916166065659,
+        "whole_run_min_z_m": 0.9155847541206108
+      },
+      "d088_stable_delay_s": 0.35,
+      "d088_stable_side": {
+        "failed_to_fly": false,
+        "failed_to_fly_reason": null,
+        "failed_to_fly_time_s": null,
+        "max_error_m": 1.2964372741275902,
+        "rms_error_m": 0.7588893037318993,
+        "unstable_reason": null,
+        "unstable_time_s": null,
+        "whole_run_max_error_m": 1.2964372741275902,
+        "whole_run_max_tilt_deg": 22.99921952125747,
+        "whole_run_min_z_m": 0.9522933404195973
+      },
+      "old_rule_stable_delay_s": 0.35,
+      "old_rule_unstable_delay_s": 0.36,
+      "profile": "esp-fly-class"
+    },
+    {
+      "arm": "c",
+      "d088_failed_delay_s": 0.03,
+      "d088_failed_side": {
+        "failed_to_fly": true,
+        "failed_to_fly_reason": "tilt_above_45_deg",
+        "failed_to_fly_time_s": 6.0200000000000005,
+        "max_error_m": 4.2389375393638895,
+        "rms_error_m": 3.261379558572523,
+        "unstable_reason": null,
+        "unstable_time_s": null,
+        "whole_run_max_error_m": 4.2389375393638895,
+        "whole_run_max_tilt_deg": 67.89344500803445,
+        "whole_run_min_z_m": -3.238877969304989
+      },
+      "d088_stable_delay_s": 0.02,
+      "d088_stable_side": {
+        "failed_to_fly": false,
+        "failed_to_fly_reason": null,
+        "failed_to_fly_time_s": null,
+        "max_error_m": 1.0,
+        "rms_error_m": 0.20491560689744778,
+        "unstable_reason": null,
+        "unstable_time_s": null,
+        "whole_run_max_error_m": 1.0,
+        "whole_run_max_tilt_deg": 14.120992268599258,
+        "whole_run_min_z_m": 0.9858811151349868
+      },
+      "old_rule_stable_delay_s": 0.03,
+      "old_rule_unstable_delay_s": 0.04,
+      "profile": "esp-fly-class"
+    },
+    {
+      "arm": "b",
+      "d088_failed_delay_s": 0.36,
+      "d088_failed_side": {
+        "failed_to_fly": true,
+        "failed_to_fly_reason": "growing_error",
+        "failed_to_fly_time_s": 20.0,
+        "max_error_m": 1.762055582908746,
+        "rms_error_m": 0.924639119076715,
+        "unstable_reason": "growing_oscillation",
+        "unstable_time_s": 20.0,
+        "whole_run_max_error_m": 1.762055582908746,
+        "whole_run_max_tilt_deg": 29.311647829958538,
+        "whole_run_min_z_m": 0.9113597844078872
+      },
+      "d088_stable_delay_s": 0.35,
+      "d088_stable_side": {
+        "failed_to_fly": false,
+        "failed_to_fly_reason": null,
+        "failed_to_fly_time_s": null,
+        "max_error_m": 1.299261731141701,
+        "rms_error_m": 0.7596991038133817,
+        "unstable_reason": null,
+        "unstable_time_s": null,
+        "whole_run_max_error_m": 1.299261731141701,
+        "whole_run_max_tilt_deg": 23.01729970646972,
+        "whole_run_min_z_m": 0.950018244518048
+      },
+      "old_rule_stable_delay_s": 0.35,
+      "old_rule_unstable_delay_s": 0.36,
+      "profile": "crazyflie-class"
+    },
+    {
+      "arm": "c",
+      "d088_failed_delay_s": 0.03,
+      "d088_failed_side": {
+        "failed_to_fly": true,
+        "failed_to_fly_reason": "tilt_above_45_deg",
+        "failed_to_fly_time_s": 5.36,
+        "max_error_m": 2.910208894301832,
+        "rms_error_m": 1.016565704566362,
+        "unstable_reason": "tilt_above_80_deg",
+        "unstable_time_s": 7.09,
+        "whole_run_max_error_m": 2.910208894301832,
+        "whole_run_max_tilt_deg": 80.31974183876831,
+        "whole_run_min_z_m": -1.907724773542487
+      },
+      "d088_stable_delay_s": 0.02,
+      "d088_stable_side": {
+        "failed_to_fly": false,
+        "failed_to_fly_reason": null,
+        "failed_to_fly_time_s": null,
+        "max_error_m": 1.0,
+        "rms_error_m": 0.20493060559876977,
+        "unstable_reason": null,
+        "unstable_time_s": null,
+        "whole_run_max_error_m": 1.0,
+        "whole_run_max_tilt_deg": 14.247675868713348,
+        "whole_run_min_z_m": 0.9849408863888277
+      },
+      "old_rule_stable_delay_s": 0.02,
+      "old_rule_unstable_delay_s": 0.03,
+      "profile": "crazyflie-class"
+    }
+  ],
+  "label": "DIAGNOSTIC ONLY. EXP-021 stays reported under its pre-registered rules; these numbers do not replace that result (D-088).",
+  "per_run_partial": {
+    "cells": 178,
+    "cells_that_change": [
+      {
+        "arm": "c",
+        "d088_failed_lower_bound": 1,
+        "delay_s": 0.03,
+        "loss_probability": 0.0,
+        "old_unstable": 0,
+        "profile_id": "esp-fly-class",
+        "reference": "step",
+        "runs": 1
+      }
+    ],
+    "d088_failed_runs_lower_bound": 766,
+    "newly_failed_by_thresholds": {
+      "tilt_above_45_deg and height_below_0_m": 1
+    },
+    "not_checked": "growth of the y or z error (needs the full trajectory, not stored in per_run.csv)",
+    "old_unstable_runs": 765,
+    "runs": 2266
+  },
+  "rule_set": "d088_failed_to_fly",
+  "schema": "zephyr-d088-exp021-diagnostic-1"
+}
