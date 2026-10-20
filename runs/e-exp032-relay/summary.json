@@ -1,0 +1,2298 @@
+{
+  "cells": {
+    "physics|500.0|0.5": {
+      "delivery_pooled": {
+        "delivered": 12020,
+        "ratio": 1.0,
+        "sent": 12020,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9996805131842558
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 20
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 20
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 20
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999994646,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999994646,
+        "n": 20
+      },
+      "n_seeds": 20,
+      "p95_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 20
+      },
+      "physics_matches_point_mass": true,
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "physics|500.0|none": {
+      "delivery_pooled": {
+        "delivered": 12017,
+        "ratio": 0.9997504159733777,
+        "sent": 12020,
+        "wilson_high": 0.9999151153595653,
+        "wilson_low": 0.9992663892490574
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 20
+      },
+      "delivery_ratio_mean": 0.9997504159733775,
+      "hop1_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "hop2_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "median_latency_s": {
+        "high": 0.0008420000000004535,
+        "low": 0.0008420000000004535,
+        "median": 0.0008420000000004535,
+        "n": 20
+      },
+      "n_seeds": 20,
+      "p95_latency_s": {
+        "high": 0.003425999999999263,
+        "low": 0.0029240000000001487,
+        "median": 0.0030804999999936777,
+        "n": 20
+      },
+      "physics_matches_point_mass": true,
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "physics|900.0|0.5": {
+      "delivery_pooled": {
+        "delivered": 12020,
+        "ratio": 1.0,
+        "sent": 12020,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9996805131842558
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 20
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 20
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 20
+      },
+      "median_latency_s": {
+        "high": 0.0026840000000003528,
+        "low": 0.0026840000000003528,
+        "median": 0.0026840000000003528,
+        "n": 20
+      },
+      "n_seeds": 20,
+      "p95_latency_s": {
+        "high": 0.004726000000001562,
+        "low": 0.0046660000000073865,
+        "median": 0.004705999999995214,
+        "n": 20
+      },
+      "physics_matches_point_mass": true,
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "physics|900.0|none": {
+      "delivery_pooled": {
+        "delivered": 2579,
+        "ratio": 0.21455906821963394,
+        "sent": 12020,
+        "wilson_high": 0.22198847410737318,
+        "wilson_low": 0.20731205156064994
+      },
+      "delivery_ratio_interval": {
+        "high": 0.22129783693843594,
+        "low": 0.2079866888519135,
+        "median": 0.21381031613976706,
+        "n": 20
+      },
+      "delivery_ratio_mean": 0.21455906821963389,
+      "hop1_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "hop2_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "median_latency_s": {
+        "high": 0.005547999999997444,
+        "low": 0.005146000000006978,
+        "median": 0.005346500000000143,
+        "n": 20
+      },
+      "n_seeds": 20,
+      "p95_latency_s": {
+        "high": 0.029365999999997245,
+        "low": 0.02585500000001062,
+        "median": 0.028064499999990028,
+        "n": 20
+      },
+      "physics_matches_point_mass": true,
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|1100.0|0.25": {
+      "delivery_pooled": {
+        "delivered": 12206,
+        "ratio": 0.40618968386023296,
+        "sent": 30050,
+        "wilson_high": 0.4117541599797345,
+        "wilson_low": 0.40064918926515003
+      },
+      "delivery_ratio_interval": {
+        "high": 0.41430948419301167,
+        "low": 0.40099833610648916,
+        "median": 0.40765391014975044,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.40618968386023296,
+      "hop1_delivery": {
+        "high": 0.41430948419301167,
+        "low": 0.40099833610648916,
+        "median": 0.40765391014975044,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.006727999999995404,
+        "low": 0.006337999999992405,
+        "median": 0.006548999999998806,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.030234000000010752,
+        "low": 0.027793999999987662,
+        "median": 0.02906799999999271,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|1100.0|0.4": {
+      "delivery_pooled": {
+        "delivered": 27427,
+        "ratio": 0.912712146422629,
+        "sent": 30050,
+        "wilson_high": 0.9158509409225715,
+        "wilson_low": 0.9094678468266106
+      },
+      "delivery_ratio_interval": {
+        "high": 0.9184692179700499,
+        "low": 0.9068219633943427,
+        "median": 0.913477537437604,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.9127121464226288,
+      "hop1_delivery": {
+        "high": 0.9184692179700499,
+        "low": 0.9068219633943427,
+        "median": 0.913477537437604,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.004425999999995156,
+        "low": 0.004346000000008843,
+        "median": 0.004381000000002189,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.019685999999997972,
+        "low": 0.01887800000000669,
+        "median": 0.01939749999999283,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|1100.0|0.5": {
+      "delivery_pooled": {
+        "delivered": 29916,
+        "ratio": 0.995540765391015,
+        "sent": 30050,
+        "wilson_high": 0.9962333663454765,
+        "wilson_low": 0.9947214851601733
+      },
+      "delivery_ratio_interval": {
+        "high": 0.9966722129783694,
+        "low": 0.9950083194675541,
+        "median": 0.9966722129783694,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.9955407653910149,
+      "hop1_delivery": {
+        "high": 0.9983361064891847,
+        "low": 0.9983361064891847,
+        "median": 0.9983361064891847,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 0.9983333333333333,
+        "low": 0.9966722129783694,
+        "median": 0.9983291550577607,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.003985999999990497,
+        "low": 0.0038860000000013883,
+        "median": 0.003945999999999783,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.011658899999999757,
+        "low": 0.010834000000012623,
+        "median": 0.011322099999996466,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|1100.0|0.6": {
+      "delivery_pooled": {
+        "delivered": 27387,
+        "ratio": 0.9113810316139767,
+        "sent": 30050,
+        "wilson_high": 0.9145418846834305,
+        "wilson_low": 0.9081150137325821
+      },
+      "delivery_ratio_interval": {
+        "high": 0.9168053244592346,
+        "low": 0.9068219633943427,
+        "median": 0.9118136439267887,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.9113810316139767,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 0.9168053244592346,
+        "low": 0.9068219633943427,
+        "median": 0.9118136439267887,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.00438599999999667,
+        "low": 0.004285999999993351,
+        "median": 0.0043409999999912685,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.019857700000016888,
+        "low": 0.019342999999991672,
+        "median": 0.01952700000001125,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|1100.0|0.75": {
+      "delivery_pooled": {
+        "delivered": 12499,
+        "ratio": 0.41594009983361063,
+        "sent": 30050,
+        "wilson_high": 0.42152325341567515,
+        "wilson_low": 0.4103784351946754
+      },
+      "delivery_ratio_interval": {
+        "high": 0.4209650582362729,
+        "low": 0.4059900166389351,
+        "median": 0.41430948419301167,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.41594009983361063,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 0.4209650582362729,
+        "low": 0.4059900166389351,
+        "median": 0.41430948419301167,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0066680000000012285,
+        "low": 0.006428000000010314,
+        "median": 0.006548499999993851,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.029385000000000702,
+        "low": 0.02792599999999864,
+        "median": 0.02864650000001534,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|1100.0|none": {
+      "delivery_pooled": {
+        "delivered": 771,
+        "ratio": 0.025657237936772048,
+        "sent": 30050,
+        "wilson_high": 0.027506448994689806,
+        "wilson_low": 0.023929287130383663
+      },
+      "delivery_ratio_interval": {
+        "high": 0.028286189683860232,
+        "low": 0.02329450915141431,
+        "median": 0.024958402662229616,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.02565723793677204,
+      "hop1_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "hop2_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "median_latency_s": {
+        "high": 0.006627999999992085,
+        "low": 0.005006000000005173,
+        "median": 0.0058370000000023126,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.02888600000000742,
+        "low": 0.02328400000001238,
+        "median": 0.02587499999999976,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|1300.0|0.25": {
+      "delivery_pooled": {
+        "delivered": 3172,
+        "ratio": 0.10555740432612312,
+        "sent": 30050,
+        "wilson_high": 0.10908209847550449,
+        "wilson_low": 0.10213354487306406
+      },
+      "delivery_ratio_interval": {
+        "high": 0.10981697171381032,
+        "low": 0.09983361064891846,
+        "median": 0.1064891846921797,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.10555740432612312,
+      "hop1_delivery": {
+        "high": 0.10981697171381032,
+        "low": 0.09983361064891846,
+        "median": 0.1064891846921797,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.007489999999990005,
+        "low": 0.0069480000000012865,
+        "median": 0.00715949999999399,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.030587000000013922,
+        "low": 0.026995999999991846,
+        "median": 0.028197499999994755,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|1300.0|0.4": {
+      "delivery_pooled": {
+        "delivered": 16738,
+        "ratio": 0.5570049916805324,
+        "sent": 30050,
+        "wilson_high": 0.5626137095075813,
+        "wilson_low": 0.5513817011853995
+      },
+      "delivery_ratio_interval": {
+        "high": 0.5640599001663894,
+        "low": 0.5474209650582362,
+        "median": 0.5557404326123128,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.5570049916805324,
+      "hop1_delivery": {
+        "high": 0.5640599001663894,
+        "low": 0.5490848585690515,
+        "median": 0.5557404326123128,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.00690799999998859,
+        "low": 0.00658800000000781,
+        "median": 0.006774000000004499,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.029433999999997518,
+        "low": 0.027972999999999627,
+        "median": 0.0289863000000029,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|1300.0|0.5": {
+      "delivery_pooled": {
+        "delivered": 25914,
+        "ratio": 0.8623627287853577,
+        "sent": 30050,
+        "wilson_high": 0.8662117199650347,
+        "wilson_low": 0.8584211037570134
+      },
+      "delivery_ratio_interval": {
+        "high": 0.8668885191347754,
+        "low": 0.8519134775374376,
+        "median": 0.8618968386023295,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.8623627287853577,
+      "hop1_delivery": {
+        "high": 0.9334442595673876,
+        "low": 0.9251247920133111,
+        "median": 0.9292845257903494,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 0.9322638146167558,
+        "low": 0.9219600725952813,
+        "median": 0.927304050400513,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.006857999999995035,
+        "low": 0.006690000000000751,
+        "median": 0.0067279999999987905,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.02884119999999228,
+        "low": 0.02701559999999005,
+        "median": 0.027654400000006418,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|1300.0|0.6": {
+      "delivery_pooled": {
+        "delivered": 16844,
+        "ratio": 0.5605324459234609,
+        "sent": 30050,
+        "wilson_high": 0.5661359932935988,
+        "wilson_low": 0.5549134241322811
+      },
+      "delivery_ratio_interval": {
+        "high": 0.5640599001663894,
+        "low": 0.5507487520798668,
+        "median": 0.5557404326123128,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.5605324459234609,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 0.565,
+        "low": 0.5516666666666666,
+        "median": 0.5562035496394897,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.006927999999994938,
+        "low": 0.006587999999997152,
+        "median": 0.0068280000000005,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.028775999999996138,
+        "low": 0.027310300000011608,
+        "median": 0.028155999999991188,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|1300.0|0.75": {
+      "delivery_pooled": {
+        "delivered": 3192,
+        "ratio": 0.10622296173044925,
+        "sent": 30050,
+        "wilson_high": 0.10975720637440162,
+        "wilson_low": 0.10278938164075163
+      },
+      "delivery_ratio_interval": {
+        "high": 0.10981697171381032,
+        "low": 0.09983361064891846,
+        "median": 0.1064891846921797,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.10622296173044925,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 0.10981697171381032,
+        "low": 0.09983361064891846,
+        "median": 0.1064891846921797,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.007657999999995724,
+        "low": 0.006910000000011962,
+        "median": 0.007413499999994855,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.03092300000001522,
+        "low": 0.02766600000001771,
+        "median": 0.029655999999989288,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|1300.0|none": {
+      "delivery_pooled": {
+        "delivered": 86,
+        "ratio": 0.0028618968386023296,
+        "sent": 30050,
+        "wilson_high": 0.003532726711138799,
+        "wilson_low": 0.0023181545834081684
+      },
+      "delivery_ratio_interval": {
+        "high": 0.0033277870216306157,
+        "low": 0.0016638935108153079,
+        "median": 0.0033277870216306157,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.002861896838602329,
+      "hop1_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "hop2_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "median_latency_s": {
+        "high": 0.009545999999999388,
+        "low": 0.0036459999999962633,
+        "median": 0.005105000000005688,
+        "n": 43
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.015412899999995844,
+        "low": 0.0051260000000077355,
+        "median": 0.009087999999991325,
+        "n": 43
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 7
+    },
+    "point_mass|300.0|0.25": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999994646,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999994646,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|300.0|0.4": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999994646,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999994646,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|300.0|0.5": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999994646,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999994646,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|300.0|0.6": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999994646,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999994646,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|300.0|0.75": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999994646,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999994646,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|300.0|none": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "hop2_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "median_latency_s": {
+        "high": 0.0008419999999995653,
+        "low": 0.0008419999999995653,
+        "median": 0.0008419999999995653,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.0008420000000022299,
+        "low": 0.0008420000000022299,
+        "median": 0.0008420000000022299,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|500.0|0.25": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999994646,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999994646,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|500.0|0.4": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999994646,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999994646,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|500.0|0.5": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999994646,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999994646,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|500.0|0.6": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999994646,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999994646,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|500.0|0.75": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999994646,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999994646,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|500.0|none": {
+      "delivery_pooled": {
+        "delivered": 30045,
+        "ratio": 0.9998336106489185,
+        "sent": 30050,
+        "wilson_high": 0.9999289263870347,
+        "wilson_low": 0.9996105182180867
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.9998336106489184,
+      "hop1_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "hop2_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "median_latency_s": {
+        "high": 0.0008420000000004535,
+        "low": 0.0008420000000004535,
+        "median": 0.0008420000000004535,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.003325999999998608,
+        "low": 0.0029240000000001487,
+        "median": 0.0029506000000013187,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|700.0|0.25": {
+      "delivery_pooled": {
+        "delivered": 30037,
+        "ratio": 0.999567387687188,
+        "sent": 30050,
+        "wilson_high": 0.999747151151975,
+        "wilson_low": 0.9992599155865124
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.9995673876871881,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026840000000003528,
+        "low": 0.0026840000000003528,
+        "median": 0.0026840000000003528,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.006687999999989813,
+        "low": 0.006456900000002269,
+        "median": 0.006558999999993986,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|700.0|0.4": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999999087,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999999087,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.0039059999999935258,
+        "low": 0.0037859999999909633,
+        "median": 0.0038460000000011263,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|700.0|0.5": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999994646,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999994646,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|700.0|0.6": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026839999999999087,
+        "low": 0.0026839999999994646,
+        "median": 0.0026839999999999087,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.0039060000000077366,
+        "low": 0.003805999999990206,
+        "median": 0.0038259999999983307,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|700.0|0.75": {
+      "delivery_pooled": {
+        "delivered": 30030,
+        "ratio": 0.9993344425956738,
+        "sent": 30050,
+        "wilson_high": 0.9995690941595226,
+        "wilson_low": 0.9989721419456601
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.9993344425956738,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026840000000003528,
+        "low": 0.0026840000000003528,
+        "median": 0.0026840000000003528,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.006567999999994356,
+        "low": 0.006170000000002316,
+        "median": 0.0063189999999993425,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|700.0|none": {
+      "delivery_pooled": {
+        "delivered": 24517,
+        "ratio": 0.815873544093178,
+        "sent": 30050,
+        "wilson_high": 0.8202153073983421,
+        "wilson_low": 0.8114510313627638
+      },
+      "delivery_ratio_interval": {
+        "high": 0.8186356073211315,
+        "low": 0.8086522462562395,
+        "median": 0.8119800332778702,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.8158735440931779,
+      "hop1_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "hop2_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "median_latency_s": {
+        "high": 0.0028240000000039345,
+        "low": 0.0027449999999991093,
+        "median": 0.0027840000000001197,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.022080000000013904,
+        "low": 0.020251999999992165,
+        "median": 0.02089989999999488,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|900.0|0.25": {
+      "delivery_pooled": {
+        "delivered": 26517,
+        "ratio": 0.8824292845257904,
+        "sent": 30050,
+        "wilson_high": 0.8860222921329138,
+        "wilson_low": 0.8787385132866637
+      },
+      "delivery_ratio_interval": {
+        "high": 0.8868552412645591,
+        "low": 0.8768718801996672,
+        "median": 0.8810316139767055,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.8824292845257902,
+      "hop1_delivery": {
+        "high": 0.8868552412645591,
+        "low": 0.8768718801996672,
+        "median": 0.8810316139767055,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.004485999999992885,
+        "low": 0.004386000000003332,
+        "median": 0.004405999999999799,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.021048399999990856,
+        "low": 0.02013400000001333,
+        "median": 0.020476549999991708,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|900.0|0.4": {
+      "delivery_pooled": {
+        "delivered": 30020,
+        "ratio": 0.9990016638935109,
+        "sent": 30050,
+        "wilson_high": 0.9993005763867451,
+        "wilson_low": 0.9985751873851454
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 0.9983361064891847,
+        "median": 0.9991680532445923,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.9990016638935107,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 0.9983361064891847,
+        "median": 0.9991680532445923,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.007152000000007948,
+        "low": 0.006967999999993424,
+        "median": 0.007069999999998176,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|900.0|0.5": {
+      "delivery_pooled": {
+        "delivered": 30050,
+        "ratio": 1.0,
+        "sent": 30050,
+        "wilson_high": 1.0,
+        "wilson_low": 0.9998721807717674
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "delivery_ratio_mean": 1.0,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.0026840000000003528,
+        "low": 0.0026840000000003528,
+        "median": 0.0026840000000003528,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.004706000000009425,
+        "low": 0.0046660000000073865,
+        "median": 0.004686000000006629,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|900.0|0.6": {
+      "delivery_pooled": {
+        "delivered": 30008,
+        "ratio": 0.9986023294509151,
+        "sent": 30050,
+        "wilson_high": 0.9989657531583258,
+        "wilson_low": 0.9981114438136136
+      },
+      "delivery_ratio_interval": {
+        "high": 1.0,
+        "low": 0.9983361064891847,
+        "median": 0.9983361064891847,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.9986023294509151,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 1.0,
+        "low": 0.9983361064891847,
+        "median": 0.9983361064891847,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.002684000000005682,
+        "low": 0.002684000000005682,
+        "median": 0.002684000000005682,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.007209999999993499,
+        "low": 0.006928000000002044,
+        "median": 0.007088499999989039,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|900.0|0.75": {
+      "delivery_pooled": {
+        "delivered": 26491,
+        "ratio": 0.8815640599001664,
+        "sent": 30050,
+        "wilson_high": 0.8851687582035844,
+        "wilson_low": 0.8778618191494328
+      },
+      "delivery_ratio_interval": {
+        "high": 0.8885191347753744,
+        "low": 0.8752079866888519,
+        "median": 0.8785357737104825,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.8815640599001662,
+      "hop1_delivery": {
+        "high": 1.0,
+        "low": 1.0,
+        "median": 1.0,
+        "n": 50
+      },
+      "hop2_delivery": {
+        "high": 0.8885191347753744,
+        "low": 0.8752079866888519,
+        "median": 0.8785357737104825,
+        "n": 50
+      },
+      "median_latency_s": {
+        "high": 0.004416000000000864,
+        "low": 0.004305999999996257,
+        "median": 0.004360999999999393,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.02145399999998787,
+        "low": 0.020258100000004095,
+        "median": 0.020743050000006348,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    },
+    "point_mass|900.0|none": {
+      "delivery_pooled": {
+        "delivered": 6428,
+        "ratio": 0.21391014975041597,
+        "sent": 30050,
+        "wilson_high": 0.21858293069281237,
+        "wilson_low": 0.20931050437574783
+      },
+      "delivery_ratio_interval": {
+        "high": 0.22129783693843594,
+        "low": 0.2079866888519135,
+        "median": 0.2146422628951747,
+        "n": 50
+      },
+      "delivery_ratio_mean": 0.213910149750416,
+      "hop1_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "hop2_delivery": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "median_latency_s": {
+        "high": 0.005506000000000455,
+        "low": 0.005066000000001125,
+        "median": 0.005291500000003335,
+        "n": 50
+      },
+      "n_seeds": 50,
+      "p95_latency_s": {
+        "high": 0.0290920000000085,
+        "low": 0.026960000000002607,
+        "median": 0.027950000000005068,
+        "n": 50
+      },
+      "retries_mean": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "seeds_without_delivered_packet": 0
+    }
+  },
+  "deviations": [
+    "The pre-registration names a Wilson interval for end-to-end delivery. Each cell reports delivery_pooled: total delivered over total sent across its seeds, with a Wilson 95 % interval that treats every packet as an independent trial. The rows carry only delivery_ratio, so the counts are rebuilt from the mission's fixed send schedule (one packet at t = 0 and one every 1 / rate_hz s up to the run duration) and accepted only where ratio x sent is a whole number. The order-statistic median interval of the per-seed ratios (delivery_ratio_interval) is also reported, because it does not assume packets are independent within a run and because the Addendum A relay goal rule is written on it."
+  ],
+  "duration_s": 60.0,
+  "experiment": "EXP-032",
+  "grid": {
+    "actual_physics_seeds": 20,
+    "actual_point_mass_seeds": 50,
+    "distances_m": [
+      300.0,
+      500.0,
+      700.0,
+      900.0,
+      1100.0,
+      1300.0
+    ],
+    "physics_distances_m": [
+      500.0,
+      900.0
+    ],
+    "physics_fractions": [
+      "none",
+      0.5
+    ],
+    "physics_seeds": 20,
+    "point_mass_seeds": 50,
+    "relay_fractions": [
+      "none",
+      0.25,
+      0.4,
+      0.5,
+      0.6,
+      0.75
+    ]
+  },
+  "hand_check": {
+    "direct_50_percent_crossing_m_interpolation": 804.9477583061529,
+    "reference_median_signal_range_m": 518.3685778326127,
+    "relay_f_0_5_50_percent_crossing_m_interpolation": null,
+    "two_d_max_m": 1036.7371556652254
+  },
+  "limits": [
+    "Simulated only: no drone or radio hardware was used.",
+    "Link loss patterns are synthetic (named presets in sim/missions/presets.py), never measured.",
+    "Vehicle parameters are literature-derived (point mass, or the crazyflie-class physics profile).",
+    "Simulated only: the radio channel and retry behavior are model outputs, not measurements.",
+    "Radio geometry is fixed at the commanded hover positions; vehicle motion and antenna attitude are not coupled to path loss.",
+    "retries_mean is null because RadioMissionLink does not expose per-packet retry counts in its public event records.",
+    "Each hop is its own radio model, so the far drone's and the relay's transmissions never compete for airtime (one shared channel would add contention; at 10 Hz and 32 B that is small, Run C EXP-014).",
+    "Latency (median and p95) is computed over delivered packets only, so it is conditional on delivery: at long range it describes the packets that got through, not the lost ones. Each cell reports seeds_without_delivered_packet."
+  ],
+  "missing_metrics": [
+    "retries_mean: RadioMissionLink does not expose per-packet retry counts; mission returns null."
+  ],
+  "mission_defaults": {
+    "altitude_m": 30.0,
+    "distance_m": 900.0,
+    "forward_delay_s": 0.001,
+    "message_bytes": 32,
+    "rate_hz": 10.0,
+    "relay_fraction": null,
+    "retries": 5
+  },
+  "physics_geometry_note": "Physics rows equal point-mass rows by construction: path loss uses the fixed commanded positions (sim/missions/relay.py limits), so the physics adapter only changes the vehicles, not the radio geometry.",
+  "pilot": false,
+  "prediction": "d_max with 0 dB margin is about 600 to 700 m (Run C: d90 409 m, d10 746 m for the stress corner); direct delivery near 100 % at 300 m, near 0 beyond about 900 m; f = 0.5 keeps delivery above 99 % to about 1100 m; asymmetric relays (0.25, 0.75) fail first on the long hop. Latency roughly doubles with the relay (two hops, plus retries on the weaker hop) but stays under 10 ms median.",
+  "prediction_correction_3": "3. EXP-032 prediction: the median-signal range for the stress corner with 0 dB margin and -98 dBm sensitivity is about 518 m (reference computation), not 600 to 700 m. Corrected: direct delivery falls through 50 % somewhere around 500 to 750 m (shadowing and 5 retries push it outward); a relay at f = 0.5 holds high delivery to about 1000 to 1300 m.",
+  "prediction_observations": [
+    {
+      "observed": {
+        "asymmetric_hop_delivery": {
+          "0.25": {
+            "1100.0": {
+              "hop1_delivery_median": 0.40765391014975044,
+              "hop2_delivery_median": 1.0,
+              "longer_hop": "hop1"
+            },
+            "1300.0": {
+              "hop1_delivery_median": 0.1064891846921797,
+              "hop2_delivery_median": 1.0,
+              "longer_hop": "hop1"
+            },
+            "300.0": {
+              "hop1_delivery_median": 1.0,
+              "hop2_delivery_median": 1.0,
+              "longer_hop": "hop1"
+            },
+            "500.0": {
+              "hop1_delivery_median": 1.0,
+              "hop2_delivery_median": 1.0,
+              "longer_hop": "hop1"
+            },
+            "700.0": {
+              "hop1_delivery_median": 1.0,
+              "hop2_delivery_median": 1.0,
+              "longer_hop": "hop1"
+            },
+            "900.0": {
+              "hop1_delivery_median": 0.8810316139767055,
+              "hop2_delivery_median": 1.0,
+              "longer_hop": "hop1"
+            }
+          },
+          "0.75": {
+            "1100.0": {
+              "hop1_delivery_median": 1.0,
+              "hop2_delivery_median": 0.41430948419301167,
+              "longer_hop": "hop2"
+            },
+            "1300.0": {
+              "hop1_delivery_median": 1.0,
+              "hop2_delivery_median": 0.1064891846921797,
+              "longer_hop": "hop2"
+            },
+            "300.0": {
+              "hop1_delivery_median": 1.0,
+              "hop2_delivery_median": 1.0,
+              "longer_hop": "hop2"
+            },
+            "500.0": {
+              "hop1_delivery_median": 1.0,
+              "hop2_delivery_median": 1.0,
+              "longer_hop": "hop2"
+            },
+            "700.0": {
+              "hop1_delivery_median": 1.0,
+              "hop2_delivery_median": 1.0,
+              "longer_hop": "hop2"
+            },
+            "900.0": {
+              "hop1_delivery_median": 1.0,
+              "hop2_delivery_median": 0.8785357737104825,
+              "longer_hop": "hop2"
+            }
+          }
+        },
+        "direct_50_percent_crossing_m": 804.9477583061529,
+        "direct_delivery_at_300_m": {
+          "mean": 1.0,
+          "n_seeds": 50,
+          "pooled_wilson_high": 1.0,
+          "pooled_wilson_low": 0.9998721807717674
+        },
+        "direct_delivery_at_900_m_and_beyond": {
+          "1100.0": {
+            "mean": 0.02565723793677204,
+            "n_seeds": 50,
+            "pooled_wilson_high": 0.027506448994689806,
+            "pooled_wilson_low": 0.023929287130383663
+          },
+          "1300.0": {
+            "mean": 0.002861896838602329,
+            "n_seeds": 50,
+            "pooled_wilson_high": 0.003532726711138799,
+            "pooled_wilson_low": 0.0023181545834081684
+          },
+          "900.0": {
+            "mean": 0.213910149750416,
+            "n_seeds": 50,
+            "pooled_wilson_high": 0.21858293069281237,
+            "pooled_wilson_low": 0.20931050437574783
+          }
+        },
+        "f_0_5_delivery_up_to_1100_m": {
+          "1100.0": {
+            "mean": 0.9955407653910149,
+            "n_seeds": 50,
+            "pooled_wilson_high": 0.9962333663454765,
+            "pooled_wilson_low": 0.9947214851601733
+          },
+          "300.0": {
+            "mean": 1.0,
+            "n_seeds": 50,
+            "pooled_wilson_high": 1.0,
+            "pooled_wilson_low": 0.9998721807717674
+          },
+          "500.0": {
+            "mean": 1.0,
+            "n_seeds": 50,
+            "pooled_wilson_high": 1.0,
+            "pooled_wilson_low": 0.9998721807717674
+          },
+          "700.0": {
+            "mean": 1.0,
+            "n_seeds": 50,
+            "pooled_wilson_high": 1.0,
+            "pooled_wilson_low": 0.9998721807717674
+          },
+          "900.0": {
+            "mean": 1.0,
+            "n_seeds": 50,
+            "pooled_wilson_high": 1.0,
+            "pooled_wilson_low": 0.9998721807717674
+          }
+        },
+        "f_0_5_minus_asymmetric_delivery": {
+          "0.25": {
+            "1100.0": 0.5893510815307819,
+            "1300.0": 0.7568053244592345,
+            "300.0": 0.0,
+            "500.0": 0.0,
+            "700.0": 0.0004326123128118864,
+            "900.0": 0.11757071547420983
+          },
+          "0.75": {
+            "1100.0": 0.5796006655574042,
+            "1300.0": 0.7561397670549085,
+            "300.0": 0.0,
+            "500.0": 0.0,
+            "700.0": 0.000665557404326167,
+            "900.0": 0.11843594009983383
+          }
+        },
+        "reference_median_signal_range_m": 518.3685778326127
+      },
+      "sentence": "d_max with 0 dB margin is about 600 to 700 m (Run C: d90 409 m, d10 746 m for the stress corner); direct delivery near 100 % at 300 m, near 0 beyond about 900 m; f = 0.5 keeps delivery above 99 % to about 1100 m; asymmetric relays (0.25, 0.75) fail first on the long hop.",
+      "source": "prediction"
+    },
+    {
+      "observed": {
+        "cells_with_seeds_without_delivered_packet": {
+          "point_mass|1300.0|none": 7
+        },
+        "largest_per_seed_median_latency_s": {
+          "distance_m": 1300.0,
+          "relay_fraction": "none",
+          "seed": 447274091,
+          "value": 0.03105200000001318
+        },
+        "max_cell_median_latency_s": {
+          "cell": "point_mass|1300.0|0.75",
+          "n_seeds": 50,
+          "seeds_with_a_delivered_packet": 50,
+          "value": 0.007413499999994855
+        },
+        "median_latency_ratio_relay_over_direct": {
+          "0.25": {
+            "1100.0": 1.121980469418573,
+            "1300.0": 1.4024485798209623,
+            "300.0": 3.187648456058017,
+            "500.0": 3.1876484560546543,
+            "700.0": 0.9640804597702002,
+            "900.0": 0.8326561466497254
+          },
+          "0.4": {
+            "1100.0": 0.7505567928731288,
+            "1300.0": 1.3269343780601275,
+            "300.0": 3.187648456058017,
+            "500.0": 3.1876484560546543,
+            "700.0": 0.9640804597700406,
+            "900.0": 0.5072285741290731
+          },
+          "0.5": {
+            "1100.0": 0.67603220832589,
+            "1300.0": 1.317923604307795,
+            "300.0": 3.187648456058017,
+            "500.0": 3.1876484560546543,
+            "700.0": 0.9640804597698812,
+            "900.0": 0.507228574128066
+          },
+          "0.6": {
+            "1100.0": 0.7437039575106302,
+            "1300.0": 1.3375122428977262,
+            "300.0": 3.187648456058017,
+            "500.0": 3.1876484560546543,
+            "700.0": 0.9640804597700406,
+            "900.0": 0.5072285741290731
+          },
+          "0.75": {
+            "1100.0": 1.1218948089757164,
+            "1300.0": 1.452203721838706,
+            "300.0": 3.187648456058017,
+            "500.0": 3.1876484560546543,
+            "700.0": 0.9640804597702002,
+            "900.0": 0.8241519417928082
+          }
+        },
+        "note": "Latency is over delivered packets only."
+      },
+      "sentence": "Latency roughly doubles with the relay (two hops, plus retries on the weaker hop) but stays under 10 ms median.",
+      "source": "prediction"
+    },
+    {
+      "observed": {
+        "reference_median_signal_range_m": 518.3685778326127
+      },
+      "sentence": "3. EXP-032 prediction: the median-signal range for the stress corner with 0 dB margin and -98 dBm sensitivity is about 518 m (reference computation), not 600 to 700 m.",
+      "source": "prediction_correction_3"
+    },
+    {
+      "observed": {
+        "direct_50_percent_crossing_m": 804.9477583061529,
+        "direct_delivery_by_distance": {
+          "1100.0": {
+            "mean": 0.02565723793677204,
+            "n_seeds": 50,
+            "pooled_wilson_high": 0.027506448994689806,
+            "pooled_wilson_low": 0.023929287130383663
+          },
+          "1300.0": {
+            "mean": 0.002861896838602329,
+            "n_seeds": 50,
+            "pooled_wilson_high": 0.003532726711138799,
+            "pooled_wilson_low": 0.0023181545834081684
+          },
+          "300.0": {
+            "mean": 1.0,
+            "n_seeds": 50,
+            "pooled_wilson_high": 1.0,
+            "pooled_wilson_low": 0.9998721807717674
+          },
+          "500.0": {
+            "mean": 0.9998336106489184,
+            "n_seeds": 50,
+            "pooled_wilson_high": 0.9999289263870347,
+            "pooled_wilson_low": 0.9996105182180867
+          },
+          "700.0": {
+            "mean": 0.8158735440931779,
+            "n_seeds": 50,
+            "pooled_wilson_high": 0.8202153073983421,
+            "pooled_wilson_low": 0.8114510313627638
+          },
+          "900.0": {
+            "mean": 0.213910149750416,
+            "n_seeds": 50,
+            "pooled_wilson_high": 0.21858293069281237,
+            "pooled_wilson_low": 0.20931050437574783
+          }
+        },
+        "f_0_5_delivery_from_1000_to_1300_m": {
+          "1100.0": {
+            "mean": 0.9955407653910149,
+            "n_seeds": 50,
+            "pooled_wilson_high": 0.9962333663454765,
+            "pooled_wilson_low": 0.9947214851601733
+          },
+          "1300.0": {
+            "mean": 0.8623627287853577,
+            "n_seeds": 50,
+            "pooled_wilson_high": 0.8662117199650347,
+            "pooled_wilson_low": 0.8584211037570134
+          }
+        }
+      },
+      "sentence": "Corrected: direct delivery falls through 50 % somewhere around 500 to 750 m (shadowing and 5 retries push it outward); a relay at f = 0.5 holds high delivery to about 1000 to 1300 m.",
+      "source": "prediction_correction_3"
+    }
+  ],
+  "prediction_observed": {
+    "observed_direct": {
+      "300.0": 1.0,
+      "500.0": 0.9998336106489184,
+      "700.0": 0.8158735440931779,
+      "900.0": 0.213910149750416,
+      "1100.0": 0.02565723793677204,
+      "1300.0": 0.002861896838602329
+    },
+    "observed_f_0_5": {
+      "300.0": 1.0,
+      "500.0": 1.0,
+      "700.0": 1.0,
+      "900.0": 1.0,
+      "1100.0": 0.9955407653910149,
+      "1300.0": 0.8623627287853577
+    },
+    "text": "3. EXP-032 prediction: the median-signal range for the stress corner with 0 dB margin and -98 dBm sensitivity is about 518 m (reference computation), not 600 to 700 m. Corrected: direct delivery falls through 50 % somewhere around 500 to 750 m (shadowing and 5 retries push it outward); a relay at f = 0.5 holds high delivery to about 1000 to 1300 m."
+  },
+  "prediction_source": "pre-registered before the runs (EXP-032 section of the private pre-registration)",
+  "simulated": true
+}
