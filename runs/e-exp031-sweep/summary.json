@@ -1,0 +1,4178 @@
+{
+  "atlas": {
+    "burst_10_0.5s|none|cumulative": {
+      "median_duplicated_fraction": 0.0,
+      "wilson_lower_p_t100_within_120_s": 6.938893903907228e-18
+    },
+    "burst_10_0.5s|none|delta": {
+      "median_duplicated_fraction": 0.0,
+      "wilson_lower_p_t100_within_120_s": 6.938893903907228e-18
+    },
+    "burst_10_0.5s|one|cumulative": {
+      "median_duplicated_fraction": 0.0,
+      "wilson_lower_p_t100_within_120_s": 6.938893903907228e-18
+    },
+    "burst_10_0.5s|one|delta": {
+      "median_duplicated_fraction": 0.0,
+      "wilson_lower_p_t100_within_120_s": 6.938893903907228e-18
+    },
+    "burst_30_0.5s|none|cumulative": {
+      "median_duplicated_fraction": 0.0,
+      "wilson_lower_p_t100_within_120_s": 6.938893903907228e-18
+    },
+    "burst_30_0.5s|none|delta": {
+      "median_duplicated_fraction": 0.0,
+      "wilson_lower_p_t100_within_120_s": 6.938893903907228e-18
+    },
+    "burst_30_0.5s|one|cumulative": {
+      "median_duplicated_fraction": 0.0,
+      "wilson_lower_p_t100_within_120_s": 6.938893903907228e-18
+    },
+    "burst_30_0.5s|one|delta": {
+      "median_duplicated_fraction": 0.0,
+      "wilson_lower_p_t100_within_120_s": 6.938893903907228e-18
+    },
+    "clean|none|cumulative": {
+      "median_duplicated_fraction": 0.03,
+      "wilson_lower_p_t100_within_120_s": 0.9286524008666414
+    },
+    "clean|none|delta": {
+      "median_duplicated_fraction": 0.03,
+      "wilson_lower_p_t100_within_120_s": 0.9286524008666414
+    },
+    "clean|one|cumulative": {
+      "median_duplicated_fraction": 0.035,
+      "wilson_lower_p_t100_within_120_s": 0.9286524008666414
+    },
+    "clean|one|delta": {
+      "median_duplicated_fraction": 0.035,
+      "wilson_lower_p_t100_within_120_s": 0.9286524008666414
+    },
+    "iid_10|none|cumulative": {
+      "median_duplicated_fraction": 0.03,
+      "wilson_lower_p_t100_within_120_s": 0.9286524008666414
+    },
+    "iid_10|none|delta": {
+      "median_duplicated_fraction": 0.03,
+      "wilson_lower_p_t100_within_120_s": 0.9286524008666414
+    },
+    "iid_10|one|cumulative": {
+      "median_duplicated_fraction": 0.035,
+      "wilson_lower_p_t100_within_120_s": 0.9286524008666414
+    },
+    "iid_10|one|delta": {
+      "median_duplicated_fraction": 0.055,
+      "wilson_lower_p_t100_within_120_s": 0.9286524008666414
+    },
+    "iid_30|none|cumulative": {
+      "median_duplicated_fraction": 0.020625,
+      "wilson_lower_p_t100_within_120_s": 0.17474170665911232
+    },
+    "iid_30|none|delta": {
+      "median_duplicated_fraction": 0.020625,
+      "wilson_lower_p_t100_within_120_s": 0.17474170665911232
+    },
+    "iid_30|one|cumulative": {
+      "median_duplicated_fraction": 0.00875,
+      "wilson_lower_p_t100_within_120_s": 0.1429739139699173
+    },
+    "iid_30|one|delta": {
+      "median_duplicated_fraction": 0.03125,
+      "wilson_lower_p_t100_within_120_s": 0.1429739139699173
+    }
+  },
+  "cells": [
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.03,
+          "low": 0.03,
+          "median": 0.03,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "replans": {
+          "mean": 0.0
+        },
+        "t100_s": {
+          "high": 37.8,
+          "low": 37.8,
+          "median": 37.8,
+          "n": 50
+        },
+        "t95_s": {
+          "high": 34.47,
+          "low": 34.47,
+          "median": 34.47,
+          "n": 50
+        }
+      },
+      "preset": "clean",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.03,
+          "low": 0.03,
+          "median": 0.03,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "replans": {
+          "mean": 0.0
+        },
+        "t100_s": {
+          "high": 37.8,
+          "low": 37.8,
+          "median": 37.8,
+          "n": 50
+        },
+        "t95_s": {
+          "high": 34.47,
+          "low": 34.47,
+          "median": 34.47,
+          "n": 50
+        }
+      },
+      "preset": "clean",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.035,
+          "low": 0.035,
+          "median": 0.035,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "replans": {
+          "mean": 2.0
+        },
+        "t100_s": {
+          "high": 55.7,
+          "low": 55.7,
+          "median": 55.7,
+          "n": 50
+        },
+        "t95_s": {
+          "high": 50.13,
+          "low": 50.13,
+          "median": 50.13,
+          "n": 50
+        }
+      },
+      "preset": "clean",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.035,
+          "low": 0.035,
+          "median": 0.035,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "replans": {
+          "mean": 2.0
+        },
+        "t100_s": {
+          "high": 55.7,
+          "low": 55.7,
+          "median": 55.7,
+          "n": 50
+        },
+        "t95_s": {
+          "high": 50.13,
+          "low": 50.13,
+          "median": 50.13,
+          "n": 50
+        }
+      },
+      "preset": "clean",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.03,
+          "low": 0.03,
+          "median": 0.03,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "replans": {
+          "mean": 0.0
+        },
+        "t100_s": {
+          "high": 37.9,
+          "low": 37.85,
+          "median": 37.85,
+          "n": 50
+        },
+        "t95_s": {
+          "high": 34.53,
+          "low": 34.49,
+          "median": 34.52,
+          "n": 50
+        }
+      },
+      "preset": "iid_10",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.03,
+          "low": 0.03,
+          "median": 0.03,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "replans": {
+          "mean": 0.0
+        },
+        "t100_s": {
+          "high": 37.9,
+          "low": 37.85,
+          "median": 37.85,
+          "n": 50
+        },
+        "t95_s": {
+          "high": 34.53,
+          "low": 34.49,
+          "median": 34.52,
+          "n": 50
+        }
+      },
+      "preset": "iid_10",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 17.0,
+          "low": 12.0,
+          "median": 14.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.05875,
+          "low": 0.05125,
+          "median": 0.055,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "replans": {
+          "mean": 2.0
+        },
+        "t100_s": {
+          "high": 56.47,
+          "low": 55.96,
+          "median": 56.055,
+          "n": 50
+        },
+        "t95_s": {
+          "high": 50.4,
+          "low": 50.27,
+          "median": 50.325,
+          "n": 50
+        }
+      },
+      "preset": "iid_10",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.035,
+          "low": 0.035,
+          "median": 0.035,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "replans": {
+          "mean": 2.0
+        },
+        "t100_s": {
+          "high": 55.85,
+          "low": 55.8,
+          "median": 55.8,
+          "n": 50
+        },
+        "t95_s": {
+          "high": 50.28,
+          "low": 50.23,
+          "median": 50.25,
+          "n": 50
+        }
+      },
+      "preset": "iid_10",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.02375,
+          "low": 0.01625,
+          "median": 0.020625,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 37,
+            "n": 50,
+            "rate": 0.74,
+            "wilson_high": 0.8412847250644762,
+            "wilson_low": 0.6044684273515117
+          },
+          "total": 92
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 2,
+            "n": 50,
+            "rate": 0.04,
+            "wilson_high": 0.1346009068750702,
+            "wilson_low": 0.011038884327619805
+          },
+          "total": 2
+        },
+        "missed_cells": {
+          "max": 635,
+          "median": {
+            "high": 183.0,
+            "low": 51.0,
+            "median": 132.5,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 14,
+          "n": 50,
+          "rate": 0.28,
+          "wilson_high": 0.4166512369595657,
+          "wilson_low": 0.17474170665911232
+        },
+        "replans": {
+          "mean": 0.04
+        },
+        "t100_s": {
+          "high": 38.53,
+          "low": 38.16,
+          "median": 38.295,
+          "n": 14
+        },
+        "t95_s": {
+          "high": 35.12,
+          "low": 34.84,
+          "median": 34.97,
+          "n": 17
+        }
+      },
+      "preset": "iid_30",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.02375,
+          "low": 0.01625,
+          "median": 0.020625,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 37,
+            "n": 50,
+            "rate": 0.74,
+            "wilson_high": 0.8412847250644762,
+            "wilson_low": 0.6044684273515117
+          },
+          "total": 92
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 2,
+            "n": 50,
+            "rate": 0.04,
+            "wilson_high": 0.1346009068750702,
+            "wilson_low": 0.011038884327619805
+          },
+          "total": 2
+        },
+        "missed_cells": {
+          "max": 635,
+          "median": {
+            "high": 183.0,
+            "low": 51.0,
+            "median": 132.5,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 14,
+          "n": 50,
+          "rate": 0.28,
+          "wilson_high": 0.4166512369595657,
+          "wilson_low": 0.17474170665911232
+        },
+        "replans": {
+          "mean": 0.04
+        },
+        "t100_s": {
+          "high": 38.53,
+          "low": 38.16,
+          "median": 38.295,
+          "n": 14
+        },
+        "t95_s": {
+          "high": 35.12,
+          "low": 34.84,
+          "median": 34.97,
+          "n": 17
+        }
+      },
+      "preset": "iid_30",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 53.0,
+          "low": 45.0,
+          "median": 49.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.04125,
+          "low": 0.02125,
+          "median": 0.03125,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 39,
+            "n": 50,
+            "rate": 0.78,
+            "wilson_high": 0.8724608402978559,
+            "wilson_low": 0.6475845041874634
+          },
+          "total": 71
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 1,
+            "n": 50,
+            "rate": 0.02,
+            "wilson_high": 0.10495443589637815,
+            "wilson_low": 0.003539259271646236
+          },
+          "total": 1
+        },
+        "missed_cells": {
+          "max": 647,
+          "median": {
+            "high": 235.0,
+            "low": 80.0,
+            "median": 145.5,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 12,
+          "n": 50,
+          "rate": 0.24,
+          "wilson_high": 0.3741268375794292,
+          "wilson_low": 0.1429739139699173
+        },
+        "replans": {
+          "mean": 2.0
+        },
+        "t100_s": {
+          "high": 57.17,
+          "low": 56.41,
+          "median": 56.585,
+          "n": 12
+        },
+        "t95_s": {
+          "high": 51.54,
+          "low": 50.96,
+          "median": 51.085,
+          "n": 16
+        }
+      },
+      "preset": "iid_30",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 2.0,
+          "low": 0.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.01875,
+          "low": 0.00875,
+          "median": 0.00875,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 39,
+            "n": 50,
+            "rate": 0.78,
+            "wilson_high": 0.8724608402978559,
+            "wilson_low": 0.6475845041874634
+          },
+          "total": 71
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 1,
+            "n": 50,
+            "rate": 0.02,
+            "wilson_high": 0.10495443589637815,
+            "wilson_low": 0.003539259271646236
+          },
+          "total": 1
+        },
+        "missed_cells": {
+          "max": 647,
+          "median": {
+            "high": 234.0,
+            "low": 80.0,
+            "median": 145.5,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 12,
+          "n": 50,
+          "rate": 0.24,
+          "wilson_high": 0.3741268375794292,
+          "wilson_low": 0.1429739139699173
+        },
+        "replans": {
+          "mean": 2.0
+        },
+        "t100_s": {
+          "high": 56.58,
+          "low": 56.25,
+          "median": 56.41,
+          "n": 12
+        },
+        "t95_s": {
+          "high": 51.34,
+          "low": 50.88,
+          "median": 51.015,
+          "n": 16
+        }
+      },
+      "preset": "iid_30",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 12.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.005,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 50,
+            "n": 50,
+            "rate": 1.0,
+            "wilson_high": 1.0,
+            "wilson_low": 0.9286524008666414
+          },
+          "total": 150
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 22,
+            "n": 50,
+            "rate": 0.44,
+            "wilson_high": 0.5769397197834315,
+            "wilson_low": 0.3116219921125717
+          },
+          "total": 132
+        },
+        "missed_cells": {
+          "max": 764,
+          "median": {
+            "high": 704.0,
+            "low": 582.0,
+            "median": 652.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "replans": {
+          "mean": 2.64
+        },
+        "t100_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "t95_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        }
+      },
+      "preset": "burst_10_0.5s",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.005,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 50,
+            "n": 50,
+            "rate": 1.0,
+            "wilson_high": 1.0,
+            "wilson_low": 0.9286524008666414
+          },
+          "total": 150
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 22,
+            "n": 50,
+            "rate": 0.44,
+            "wilson_high": 0.5769397197834315,
+            "wilson_low": 0.3116219921125717
+          },
+          "total": 132
+        },
+        "missed_cells": {
+          "max": 764,
+          "median": {
+            "high": 704.0,
+            "low": 582.0,
+            "median": 652.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "replans": {
+          "mean": 2.64
+        },
+        "t100_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "t95_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        }
+      },
+      "preset": "burst_10_0.5s",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 8.0,
+          "low": 8.0,
+          "median": 8.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.005,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 50,
+            "n": 50,
+            "rate": 1.0,
+            "wilson_high": 1.0,
+            "wilson_low": 0.9286524008666414
+          },
+          "total": 137
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 22,
+            "n": 50,
+            "rate": 0.44,
+            "wilson_high": 0.5769397197834315,
+            "wilson_low": 0.3116219921125717
+          },
+          "total": 48
+        },
+        "missed_cells": {
+          "max": 764,
+          "median": {
+            "high": 704.0,
+            "low": 582.0,
+            "median": 652.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "replans": {
+          "mean": 2.92
+        },
+        "t100_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "t95_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        }
+      },
+      "preset": "burst_10_0.5s",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.005,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 50,
+            "n": 50,
+            "rate": 1.0,
+            "wilson_high": 1.0,
+            "wilson_low": 0.9286524008666414
+          },
+          "total": 137
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 22,
+            "n": 50,
+            "rate": 0.44,
+            "wilson_high": 0.5769397197834315,
+            "wilson_low": 0.3116219921125717
+          },
+          "total": 48
+        },
+        "missed_cells": {
+          "max": 764,
+          "median": {
+            "high": 704.0,
+            "low": 582.0,
+            "median": 652.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "replans": {
+          "mean": 2.92
+        },
+        "t100_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "t95_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        }
+      },
+      "preset": "burst_10_0.5s",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 36.0,
+          "low": 12.0,
+          "median": 24.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 50,
+            "n": 50,
+            "rate": 1.0,
+            "wilson_high": 1.0,
+            "wilson_low": 0.9286524008666414
+          },
+          "total": 150
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 48,
+            "n": 50,
+            "rate": 0.96,
+            "wilson_high": 0.9889611156723802,
+            "wilson_low": 0.8653990931249297
+          },
+          "total": 288
+        },
+        "missed_cells": {
+          "max": 764,
+          "median": {
+            "high": 758.0,
+            "low": 734.0,
+            "median": 752.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "replans": {
+          "mean": 5.76
+        },
+        "t100_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "t95_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        }
+      },
+      "preset": "burst_30_0.5s",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 50,
+            "n": 50,
+            "rate": 1.0,
+            "wilson_high": 1.0,
+            "wilson_low": 0.9286524008666414
+          },
+          "total": 150
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 48,
+            "n": 50,
+            "rate": 0.96,
+            "wilson_high": 0.9889611156723802,
+            "wilson_low": 0.8653990931249297
+          },
+          "total": 288
+        },
+        "missed_cells": {
+          "max": 764,
+          "median": {
+            "high": 758.0,
+            "low": 734.0,
+            "median": 752.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "replans": {
+          "mean": 5.76
+        },
+        "t100_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "t95_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        }
+      },
+      "preset": "burst_30_0.5s",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 24.0,
+          "low": 16.0,
+          "median": 16.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 50,
+            "n": 50,
+            "rate": 1.0,
+            "wilson_high": 1.0,
+            "wilson_low": 0.9286524008666414
+          },
+          "total": 149
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 48,
+            "n": 50,
+            "rate": 0.96,
+            "wilson_high": 0.9889611156723802,
+            "wilson_low": 0.8653990931249297
+          },
+          "total": 124
+        },
+        "missed_cells": {
+          "max": 764,
+          "median": {
+            "high": 758.0,
+            "low": 734.0,
+            "median": 752.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "replans": {
+          "mean": 4.2
+        },
+        "t100_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "t95_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        }
+      },
+      "preset": "burst_30_0.5s",
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 50,
+            "n": 50,
+            "rate": 1.0,
+            "wilson_high": 1.0,
+            "wilson_low": 0.9286524008666414
+          },
+          "total": 149
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 48,
+            "n": 50,
+            "rate": 0.96,
+            "wilson_high": 0.9889611156723802,
+            "wilson_low": 0.8653990931249297
+          },
+          "total": 124
+        },
+        "missed_cells": {
+          "max": 764,
+          "median": {
+            "high": 758.0,
+            "low": 734.0,
+            "median": 752.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "replans": {
+          "mean": 4.2
+        },
+        "t100_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "t95_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        }
+      },
+      "preset": "burst_30_0.5s",
+      "slice": "main"
+    },
+    {
+      "adapter": "physics",
+      "dropout": "one",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 20
+        },
+        "duplicated_fraction": {
+          "high": 0.035,
+          "low": 0.035,
+          "median": 0.035,
+          "n": 20
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 20,
+            "rate": 0.0,
+            "wilson_high": 0.16112515805281938,
+            "wilson_low": 0.0
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 20,
+            "rate": 0.0,
+            "wilson_high": 0.16112515805281938,
+            "wilson_low": 0.0
+          },
+          "total": 0
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 20
+          }
+        },
+        "n_runs": 20,
+        "p_t100_reached": {
+          "count": 20,
+          "n": 20,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.8388748419471806
+        },
+        "replans": {
+          "mean": 2.0
+        },
+        "t100_s": {
+          "high": 64.35,
+          "low": 64.35,
+          "median": 64.35,
+          "n": 20
+        },
+        "t95_s": {
+          "high": 58.99,
+          "low": 58.99,
+          "median": 58.99,
+          "n": 20
+        }
+      },
+      "preset": "clean",
+      "slice": "physics"
+    },
+    {
+      "adapter": "physics",
+      "dropout": "one",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 20
+        },
+        "duplicated_fraction": {
+          "high": 0.035,
+          "low": 0.035,
+          "median": 0.035,
+          "n": 20
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 20,
+            "rate": 0.0,
+            "wilson_high": 0.16112515805281938,
+            "wilson_low": 0.0
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 20,
+            "rate": 0.0,
+            "wilson_high": 0.16112515805281938,
+            "wilson_low": 0.0
+          },
+          "total": 0
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 20
+          }
+        },
+        "n_runs": 20,
+        "p_t100_reached": {
+          "count": 20,
+          "n": 20,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.8388748419471806
+        },
+        "replans": {
+          "mean": 2.0
+        },
+        "t100_s": {
+          "high": 64.35,
+          "low": 64.35,
+          "median": 64.35,
+          "n": 20
+        },
+        "t95_s": {
+          "high": 58.99,
+          "low": 58.99,
+          "median": 58.99,
+          "n": 20
+        }
+      },
+      "preset": "clean",
+      "slice": "physics"
+    },
+    {
+      "adapter": "physics",
+      "dropout": "one",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 47.0,
+          "low": 38.0,
+          "median": 39.0,
+          "n": 20
+        },
+        "duplicated_fraction": {
+          "high": 0.0425,
+          "low": 0.00625,
+          "median": 0.015,
+          "n": 20
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 19,
+            "n": 20,
+            "rate": 0.95,
+            "wilson_high": 0.9911185511992047,
+            "wilson_low": 0.763868806553258
+          },
+          "total": 32
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 1,
+            "n": 20,
+            "rate": 0.05,
+            "wilson_high": 0.23613119344674205,
+            "wilson_low": 0.008881448800795402
+          },
+          "total": 1
+        },
+        "missed_cells": {
+          "max": 680,
+          "median": {
+            "high": 465.0,
+            "low": 57.0,
+            "median": 193.5,
+            "n": 20
+          }
+        },
+        "n_runs": 20,
+        "p_t100_reached": {
+          "count": 1,
+          "n": 20,
+          "rate": 0.05,
+          "wilson_high": 0.23613119344674205,
+          "wilson_low": 0.008881448800795402
+        },
+        "replans": {
+          "mean": 2.0
+        },
+        "t100_s": {
+          "high": 83.18,
+          "low": 83.18,
+          "median": 83.18,
+          "n": 1
+        },
+        "t95_s": {
+          "high": 77.59,
+          "low": 72.0,
+          "median": 74.34,
+          "n": 3
+        }
+      },
+      "preset": "iid_30",
+      "slice": "physics"
+    },
+    {
+      "adapter": "physics",
+      "dropout": "one",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 1.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 20
+        },
+        "duplicated_fraction": {
+          "high": 0.01875,
+          "low": 0.005,
+          "median": 0.008125,
+          "n": 20
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 19,
+            "n": 20,
+            "rate": 0.95,
+            "wilson_high": 0.9911185511992047,
+            "wilson_low": 0.763868806553258
+          },
+          "total": 32
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 1,
+            "n": 20,
+            "rate": 0.05,
+            "wilson_high": 0.23613119344674205,
+            "wilson_low": 0.008881448800795402
+          },
+          "total": 1
+        },
+        "missed_cells": {
+          "max": 680,
+          "median": {
+            "high": 465.0,
+            "low": 57.0,
+            "median": 193.5,
+            "n": 20
+          }
+        },
+        "n_runs": 20,
+        "p_t100_reached": {
+          "count": 1,
+          "n": 20,
+          "rate": 0.05,
+          "wilson_high": 0.23613119344674205,
+          "wilson_low": 0.008881448800795402
+        },
+        "replans": {
+          "mean": 2.0
+        },
+        "t100_s": {
+          "high": 83.18,
+          "low": 83.18,
+          "median": 83.18,
+          "n": 1
+        },
+        "t95_s": {
+          "high": 77.59,
+          "low": 72.0,
+          "median": 74.34,
+          "n": 3
+        }
+      },
+      "preset": "iid_30",
+      "slice": "physics"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.02875,
+          "low": 0.0275,
+          "median": 0.0275,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 1,
+            "n": 50,
+            "rate": 0.02,
+            "wilson_high": 0.10495443589637815,
+            "wilson_low": 0.003539259271646236
+          },
+          "total": 1
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "replans": {
+          "mean": 0.02
+        },
+        "t100_s": {
+          "high": 38.14,
+          "low": 38.05,
+          "median": 38.095,
+          "n": 50
+        },
+        "t95_s": {
+          "high": 34.78,
+          "low": 34.74,
+          "median": 34.77,
+          "n": 50
+        }
+      },
+      "policy_name": "calm",
+      "preset": "iid_30",
+      "slice": "exploratory, added after the pilot, not pre-registered"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.02875,
+          "low": 0.0275,
+          "median": 0.0275,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 1,
+            "n": 50,
+            "rate": 0.02,
+            "wilson_high": 0.10495443589637815,
+            "wilson_low": 0.003539259271646236
+          },
+          "total": 1
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "replans": {
+          "mean": 0.02
+        },
+        "t100_s": {
+          "high": 38.14,
+          "low": 38.05,
+          "median": 38.095,
+          "n": 50
+        },
+        "t95_s": {
+          "high": 34.78,
+          "low": 34.74,
+          "median": 34.77,
+          "n": 50
+        }
+      },
+      "policy_name": "calm",
+      "preset": "iid_30",
+      "slice": "exploratory, added after the pilot, not pre-registered"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 55.0,
+          "low": 47.0,
+          "median": 50.5,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.055,
+          "low": 0.05125,
+          "median": 0.05375,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 1,
+            "n": 50,
+            "rate": 0.02,
+            "wilson_high": 0.10495443589637815,
+            "wilson_low": 0.003539259271646236
+          },
+          "total": 1
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "replans": {
+          "mean": 2.0
+        },
+        "t100_s": {
+          "high": 56.51,
+          "low": 56.32,
+          "median": 56.425,
+          "n": 50
+        },
+        "t95_s": {
+          "high": 50.81,
+          "low": 50.72,
+          "median": 50.765,
+          "n": 50
+        }
+      },
+      "policy_name": "calm",
+      "preset": "iid_30",
+      "slice": "exploratory, added after the pilot, not pre-registered"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 2.0,
+          "low": 1.0,
+          "median": 2.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.035,
+          "low": 0.0325,
+          "median": 0.03375,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 0,
+            "n": 50,
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872,
+            "wilson_low": 6.938893903907228e-18
+          },
+          "total": 0
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 1,
+            "n": 50,
+            "rate": 0.02,
+            "wilson_high": 0.10495443589637815,
+            "wilson_low": 0.003539259271646236
+          },
+          "total": 1
+        },
+        "missed_cells": {
+          "max": 0,
+          "median": {
+            "high": 0.0,
+            "low": 0.0,
+            "median": 0.0,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "replans": {
+          "mean": 2.0
+        },
+        "t100_s": {
+          "high": 56.3,
+          "low": 56.15,
+          "median": 56.230000000000004,
+          "n": 50
+        },
+        "t95_s": {
+          "high": 50.77,
+          "low": 50.68,
+          "median": 50.73,
+          "n": 50
+        }
+      },
+      "policy_name": "calm",
+      "preset": "iid_30",
+      "slice": "exploratory, added after the pilot, not pre-registered"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.0225,
+          "low": 0.01,
+          "median": 0.0125,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 35,
+            "n": 50,
+            "rate": 0.7,
+            "wilson_high": 0.8089644649911906,
+            "wilson_low": 0.562496495355466
+          },
+          "total": 105
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 16,
+            "n": 50,
+            "rate": 0.32,
+            "wilson_high": 0.45810297308144077,
+            "wilson_low": 0.20758216260656845
+          },
+          "total": 96
+        },
+        "missed_cells": {
+          "max": 758,
+          "median": {
+            "high": 472.0,
+            "low": 54.0,
+            "median": 301.5,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 15,
+          "n": 50,
+          "rate": 0.3,
+          "wilson_high": 0.437503504644534,
+          "wilson_low": 0.19103553500880954
+        },
+        "replans": {
+          "mean": 1.92
+        },
+        "t100_s": {
+          "high": 39.51,
+          "low": 38.4,
+          "median": 38.9,
+          "n": 15
+        },
+        "t95_s": {
+          "high": 35.96,
+          "low": 35.05,
+          "median": 35.5,
+          "n": 17
+        }
+      },
+      "policy_name": "calm",
+      "preset": "burst_10_0.5s",
+      "slice": "exploratory, added after the pilot, not pre-registered"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "none",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.0225,
+          "low": 0.01,
+          "median": 0.0125,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 35,
+            "n": 50,
+            "rate": 0.7,
+            "wilson_high": 0.8089644649911906,
+            "wilson_low": 0.562496495355466
+          },
+          "total": 105
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 16,
+            "n": 50,
+            "rate": 0.32,
+            "wilson_high": 0.45810297308144077,
+            "wilson_low": 0.20758216260656845
+          },
+          "total": 96
+        },
+        "missed_cells": {
+          "max": 758,
+          "median": {
+            "high": 472.0,
+            "low": 54.0,
+            "median": 301.5,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 15,
+          "n": 50,
+          "rate": 0.3,
+          "wilson_high": 0.437503504644534,
+          "wilson_low": 0.19103553500880954
+        },
+        "replans": {
+          "mean": 1.92
+        },
+        "t100_s": {
+          "high": 39.51,
+          "low": 38.4,
+          "median": 38.9,
+          "n": 15
+        },
+        "t95_s": {
+          "high": 35.96,
+          "low": 35.05,
+          "median": 35.5,
+          "n": 17
+        }
+      },
+      "policy_name": "calm",
+      "preset": "burst_10_0.5s",
+      "slice": "exploratory, added after the pilot, not pre-registered"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "delta",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 22.0,
+          "low": 10.0,
+          "median": 16.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.00875,
+          "low": 0.00625,
+          "median": 0.00875,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 42,
+            "n": 50,
+            "rate": 0.84,
+            "wilson_high": 0.916625793219666,
+            "wilson_low": 0.7148578393696501
+          },
+          "total": 98
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 21,
+            "n": 50,
+            "rate": 0.42,
+            "wilson_high": 0.5576655823142176,
+            "wilson_low": 0.2937500335471198
+          },
+          "total": 46
+        },
+        "missed_cells": {
+          "max": 758,
+          "median": {
+            "high": 501.0,
+            "low": 216.0,
+            "median": 385.5,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 8,
+          "n": 50,
+          "rate": 0.16,
+          "wilson_high": 0.2851421606303499,
+          "wilson_low": 0.08337420678033404
+        },
+        "replans": {
+          "mean": 2.88
+        },
+        "t100_s": {
+          "high": 63.34,
+          "low": 55.86,
+          "median": 56.93,
+          "n": 8
+        },
+        "t95_s": {
+          "high": 52.27,
+          "low": 50.67,
+          "median": 51.53,
+          "n": 9
+        }
+      },
+      "policy_name": "calm",
+      "preset": "burst_10_0.5s",
+      "slice": "exploratory, added after the pilot, not pre-registered"
+    },
+    {
+      "adapter": "point_mass",
+      "dropout": "one",
+      "message_mode": "cumulative",
+      "metrics": {
+        "belief_error_cells": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "duplicated_fraction": {
+          "high": 0.00875,
+          "low": 0.00625,
+          "median": 0.00875,
+          "n": 50
+        },
+        "failsafe_landings": {
+          "runs_with_any": {
+            "count": 42,
+            "n": 50,
+            "rate": 0.84,
+            "wilson_high": 0.916625793219666,
+            "wilson_low": 0.7148578393696501
+          },
+          "total": 98
+        },
+        "false_loss_declarations": {
+          "runs_with_any": {
+            "count": 21,
+            "n": 50,
+            "rate": 0.42,
+            "wilson_high": 0.5576655823142176,
+            "wilson_low": 0.2937500335471198
+          },
+          "total": 46
+        },
+        "missed_cells": {
+          "max": 758,
+          "median": {
+            "high": 501.0,
+            "low": 216.0,
+            "median": 385.5,
+            "n": 50
+          }
+        },
+        "n_runs": 50,
+        "p_t100_reached": {
+          "count": 8,
+          "n": 50,
+          "rate": 0.16,
+          "wilson_high": 0.2851421606303499,
+          "wilson_low": 0.08337420678033404
+        },
+        "replans": {
+          "mean": 2.88
+        },
+        "t100_s": {
+          "high": 58.5,
+          "low": 55.7,
+          "median": 56.93,
+          "n": 8
+        },
+        "t95_s": {
+          "high": 52.05,
+          "low": 50.67,
+          "median": 51.53,
+          "n": 9
+        }
+      },
+      "policy_name": "calm",
+      "preset": "burst_10_0.5s",
+      "slice": "exploratory, added after the pilot, not pre-registered"
+    }
+  ],
+  "deviations": [
+    "Exploratory slice, not pre-registered (Addendum B, written after the pilots): the calm policy (degraded after 0.25 s, land after 1.0 s) on iid_30 and burst_10_0.5s (both dropouts and message modes, 50 seeds, 400 runs). Reason: the default 0.30 s lost-link rule landed drones on iid_30 and burst presets and the field was never finished, because a landed drone that keeps sharing is never declared lost. It is reported separately after the pre-registered grid."
+  ],
+  "duration_s": 120.0,
+  "experiment": "EXP-031",
+  "exploratory_slice": "exploratory, added after the pilot, not pre-registered",
+  "hand_check": {
+    "observed_clean_no_dropout": [
+      {
+        "message_mode": "delta",
+        "n_reached_t100": 50,
+        "n_runs": 50,
+        "observed_t100": {
+          "high": 37.8,
+          "low": 37.8,
+          "median": 37.8,
+          "n": 50
+        },
+        "predicted_t100_range_s": [
+          35.0,
+          42.0
+        ],
+        "reference_sweeping_s": 33.333333333333336,
+        "verdict": "inside"
+      },
+      {
+        "message_mode": "cumulative",
+        "n_reached_t100": 50,
+        "n_runs": 50,
+        "observed_t100": {
+          "high": 37.8,
+          "low": 37.8,
+          "median": 37.8,
+          "n": 50
+        },
+        "predicted_t100_range_s": [
+          35.0,
+          42.0
+        ],
+        "reference_sweeping_s": 33.333333333333336,
+        "verdict": "inside"
+      }
+    ],
+    "predicted_t100_range_s": [
+      35.0,
+      42.0
+    ],
+    "reference_sweeping_s": 33.333333333333336
+  },
+  "limits": [
+    "Simulated only: no drone or radio hardware was used.",
+    "Link loss patterns are synthetic (named presets in sim/missions/presets.py), never measured.",
+    "Vehicle parameters are literature-derived (point mass, or the crazyflie-class physics profile).",
+    "Simulated only: no drone was flown and no radio was measured.",
+    "Link loss patterns are synthetic (independent or two-state bursts on a 10 ms grid) and blackouts are scripted.",
+    "Vehicle and radio parameters are literature-derived, not measured.",
+    "Simulated only: the camera footprint is a 2 m radius disc scored on a 1 m grid at fixed altitude.",
+    "Each survivor re-plans on its own belief; no consensus step between survivors.",
+    "Lost-peer declaration is a 2.0 s silence rule; a declared peer is never reinstated.",
+    "A drone that lands on its own failsafe keeps sharing, so its peers never declare it lost and its strip is not re-planned; on lossy links completion then measures the failsafe, not coverage sharing.",
+    "duplicated_fraction counts cells seen by two or more different drones (contract definition); one drone's own repeat passes do not count."
+  ],
+  "missing_metrics": [],
+  "notes": [
+    "Mission changes before any full run: a drone that is landing or landed covers no cells; a drone that lands on its own failsafe keeps sharing and is never declared lost, so on lossy links P(complete) measures the failsafe (see the mission limits); duplicated_fraction counts cells seen by two or more different drones (contract definition)."
+  ],
+  "pilot": false,
+  "prediction": {
+    "dropout_completion_band_check": {
+      "band_source": "last sentence of the stored EXP-031 prediction",
+      "observed_clean_one_dropout": [
+        {
+          "median_in_band": false,
+          "message_mode": "delta",
+          "n_reached_t100": 50,
+          "n_runs": 50,
+          "observed_t100": {
+            "high": 55.7,
+            "low": 55.7,
+            "median": 55.7,
+            "n": 50
+          }
+        },
+        {
+          "median_in_band": false,
+          "message_mode": "cumulative",
+          "n_reached_t100": 50,
+          "n_runs": 50,
+          "observed_t100": {
+            "high": 55.7,
+            "low": 55.7,
+            "median": 55.7,
+            "n": 50
+          }
+        }
+      ],
+      "predicted_t100_range_s": [
+        45.0,
+        55.0
+      ]
+    },
+    "observed_clean_no_dropout": [
+      {
+        "message_mode": "delta",
+        "n_reached_t100": 50,
+        "n_runs": 50,
+        "observed_t100": {
+          "high": 37.8,
+          "low": 37.8,
+          "median": 37.8,
+          "n": 50
+        },
+        "predicted_t100_range_s": [
+          35.0,
+          42.0
+        ],
+        "reference_sweeping_s": 33.333333333333336,
+        "verdict": "inside"
+      },
+      {
+        "message_mode": "cumulative",
+        "n_reached_t100": 50,
+        "n_runs": 50,
+        "observed_t100": {
+          "high": 37.8,
+          "low": 37.8,
+          "median": 37.8,
+          "n": 50
+        },
+        "predicted_t100_range_s": [
+          35.0,
+          42.0
+        ],
+        "reference_sweeping_s": 33.333333333333336,
+        "verdict": "inside"
+      }
+    ],
+    "prediction_note": "Prediction-before-run check: EXP-031 prediction \"without dropout, loss changes nothing\" was already contradicted by the pilot on iid_30 under the default policy (failsafe landings); this is reported as a miss of the prediction, not reworded.",
+    "prediction_observations": [
+      {
+        "exploratory_calm_policy": {
+          "adapter": "point_mass",
+          "cells": [
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.3,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_minus_clean": null,
+              "p_t100_reached": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "preset": "iid_30",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "t100_median_minus_clean_s": null,
+              "t100_s": {
+                "high": 38.14,
+                "low": 38.05,
+                "median": 38.095,
+                "n": 50
+              }
+            },
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.3,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_minus_clean": null,
+              "p_t100_reached": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "preset": "iid_30",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "t100_median_minus_clean_s": null,
+              "t100_s": {
+                "high": 38.14,
+                "low": 38.05,
+                "median": 38.095,
+                "n": 50
+              }
+            },
+            {
+              "burst_mean_s": 0.5,
+              "loss_probability": 0.1,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_minus_clean": null,
+              "p_t100_reached": {
+                "count": 15,
+                "n": 50,
+                "rate": 0.3,
+                "wilson_high": 0.437503504644534,
+                "wilson_low": 0.19103553500880954
+              },
+              "preset": "burst_10_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 35,
+                "n": 50,
+                "rate": 0.7,
+                "wilson_high": 0.8089644649911906,
+                "wilson_low": 0.562496495355466
+              },
+              "t100_median_minus_clean_s": null,
+              "t100_s": {
+                "high": 39.51,
+                "low": 38.4,
+                "median": 38.9,
+                "n": 15
+              }
+            },
+            {
+              "burst_mean_s": 0.5,
+              "loss_probability": 0.1,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_minus_clean": null,
+              "p_t100_reached": {
+                "count": 15,
+                "n": 50,
+                "rate": 0.3,
+                "wilson_high": 0.437503504644534,
+                "wilson_low": 0.19103553500880954
+              },
+              "preset": "burst_10_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 35,
+                "n": 50,
+                "rate": 0.7,
+                "wilson_high": 0.8089644649911906,
+                "wilson_low": 0.562496495355466
+              },
+              "t100_median_minus_clean_s": null,
+              "t100_s": {
+                "high": 39.51,
+                "low": 38.4,
+                "median": 38.9,
+                "n": 15
+              }
+            }
+          ],
+          "dropout": "none",
+          "policy": {
+            "degraded_after_s": 0.25,
+            "land_after_s": 1.0,
+            "name": "calm"
+          },
+          "slice": "exploratory, added after the pilot, not pre-registered",
+          "what": "completion within the horizon and t100 per preset and message mode, no dropout"
+        },
+        "observed": {
+          "adapter": "point_mass",
+          "cells": [
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.0,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_minus_clean": 0.0,
+              "p_t100_reached": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "preset": "clean",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "t100_median_minus_clean_s": 0.0,
+              "t100_s": {
+                "high": 37.8,
+                "low": 37.8,
+                "median": 37.8,
+                "n": 50
+              }
+            },
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.0,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_minus_clean": 0.0,
+              "p_t100_reached": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "preset": "clean",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "t100_median_minus_clean_s": 0.0,
+              "t100_s": {
+                "high": 37.8,
+                "low": 37.8,
+                "median": 37.8,
+                "n": 50
+              }
+            },
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.1,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_minus_clean": 0.0,
+              "p_t100_reached": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "preset": "iid_10",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "t100_median_minus_clean_s": 0.05,
+              "t100_s": {
+                "high": 37.9,
+                "low": 37.85,
+                "median": 37.85,
+                "n": 50
+              }
+            },
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.1,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_minus_clean": 0.0,
+              "p_t100_reached": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "preset": "iid_10",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "t100_median_minus_clean_s": 0.05,
+              "t100_s": {
+                "high": 37.9,
+                "low": 37.85,
+                "median": 37.85,
+                "n": 50
+              }
+            },
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.3,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_minus_clean": -0.72,
+              "p_t100_reached": {
+                "count": 14,
+                "n": 50,
+                "rate": 0.28,
+                "wilson_high": 0.4166512369595657,
+                "wilson_low": 0.17474170665911232
+              },
+              "preset": "iid_30",
+              "runs_with_failsafe_landing": {
+                "count": 37,
+                "n": 50,
+                "rate": 0.74,
+                "wilson_high": 0.8412847250644762,
+                "wilson_low": 0.6044684273515117
+              },
+              "t100_median_minus_clean_s": 0.495,
+              "t100_s": {
+                "high": 38.53,
+                "low": 38.16,
+                "median": 38.295,
+                "n": 14
+              }
+            },
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.3,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_minus_clean": -0.72,
+              "p_t100_reached": {
+                "count": 14,
+                "n": 50,
+                "rate": 0.28,
+                "wilson_high": 0.4166512369595657,
+                "wilson_low": 0.17474170665911232
+              },
+              "preset": "iid_30",
+              "runs_with_failsafe_landing": {
+                "count": 37,
+                "n": 50,
+                "rate": 0.74,
+                "wilson_high": 0.8412847250644762,
+                "wilson_low": 0.6044684273515117
+              },
+              "t100_median_minus_clean_s": 0.495,
+              "t100_s": {
+                "high": 38.53,
+                "low": 38.16,
+                "median": 38.295,
+                "n": 14
+              }
+            },
+            {
+              "burst_mean_s": 0.5,
+              "loss_probability": 0.1,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_minus_clean": -1.0,
+              "p_t100_reached": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "preset": "burst_10_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "t100_median_minus_clean_s": null,
+              "t100_s": {
+                "high": null,
+                "low": null,
+                "median": null,
+                "n": 0
+              }
+            },
+            {
+              "burst_mean_s": 0.5,
+              "loss_probability": 0.1,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_minus_clean": -1.0,
+              "p_t100_reached": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "preset": "burst_10_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "t100_median_minus_clean_s": null,
+              "t100_s": {
+                "high": null,
+                "low": null,
+                "median": null,
+                "n": 0
+              }
+            },
+            {
+              "burst_mean_s": 0.5,
+              "loss_probability": 0.3,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_minus_clean": -1.0,
+              "p_t100_reached": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "preset": "burst_30_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "t100_median_minus_clean_s": null,
+              "t100_s": {
+                "high": null,
+                "low": null,
+                "median": null,
+                "n": 0
+              }
+            },
+            {
+              "burst_mean_s": 0.5,
+              "loss_probability": 0.3,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_minus_clean": -1.0,
+              "p_t100_reached": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "preset": "burst_30_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "t100_median_minus_clean_s": null,
+              "t100_s": {
+                "high": null,
+                "low": null,
+                "median": null,
+                "n": 0
+              }
+            }
+          ],
+          "dropout": "none",
+          "policy": {
+            "degraded_after_s": 0.15,
+            "land_after_s": 0.3,
+            "name": "default"
+          },
+          "slice": "main",
+          "what": "completion within the horizon and t100 per preset and message mode, no dropout"
+        },
+        "sentence": "without dropout, loss changes nothing (each drone sweeps its own strip)."
+      },
+      {
+        "exploratory_calm_policy": {
+          "adapter": "point_mass",
+          "cells": [
+            {
+              "belief_error_cells": {
+                "high": 55.0,
+                "low": 47.0,
+                "median": 50.5,
+                "n": 50
+              },
+              "burst_mean_s": null,
+              "duplicated_fraction": {
+                "high": 0.055,
+                "low": 0.05125,
+                "median": 0.05375,
+                "n": 50
+              },
+              "loss_probability": 0.3,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "preset": "iid_30",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              }
+            },
+            {
+              "belief_error_cells": {
+                "high": 2.0,
+                "low": 1.0,
+                "median": 2.0,
+                "n": 50
+              },
+              "burst_mean_s": null,
+              "duplicated_fraction": {
+                "high": 0.035,
+                "low": 0.0325,
+                "median": 0.03375,
+                "n": 50
+              },
+              "loss_probability": 0.3,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "preset": "iid_30",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              }
+            },
+            {
+              "belief_error_cells": {
+                "high": 22.0,
+                "low": 10.0,
+                "median": 16.0,
+                "n": 50
+              },
+              "burst_mean_s": 0.5,
+              "duplicated_fraction": {
+                "high": 0.00875,
+                "low": 0.00625,
+                "median": 0.00875,
+                "n": 50
+              },
+              "loss_probability": 0.1,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "preset": "burst_10_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 42,
+                "n": 50,
+                "rate": 0.84,
+                "wilson_high": 0.916625793219666,
+                "wilson_low": 0.7148578393696501
+              }
+            },
+            {
+              "belief_error_cells": {
+                "high": 0.0,
+                "low": 0.0,
+                "median": 0.0,
+                "n": 50
+              },
+              "burst_mean_s": 0.5,
+              "duplicated_fraction": {
+                "high": 0.00875,
+                "low": 0.00625,
+                "median": 0.00875,
+                "n": 50
+              },
+              "loss_probability": 0.1,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "preset": "burst_10_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 42,
+                "n": 50,
+                "rate": 0.84,
+                "wilson_high": 0.916625793219666,
+                "wilson_low": 0.7148578393696501
+              }
+            }
+          ],
+          "cumulative_minus_delta": [
+            {
+              "belief_error_cells_median": -48.5,
+              "duplicated_fraction_median": -0.02,
+              "preset": "iid_30"
+            },
+            {
+              "belief_error_cells_median": -16.0,
+              "duplicated_fraction_median": 0.0,
+              "preset": "burst_10_0.5s"
+            }
+          ],
+          "dropout": "one",
+          "policy": {
+            "degraded_after_s": 0.25,
+            "land_after_s": 1.0,
+            "name": "calm"
+          },
+          "slice": "exploratory, added after the pilot, not pre-registered",
+          "what": "duplicated fraction and belief error cells per preset and message mode, one dropout"
+        },
+        "observed": {
+          "adapter": "point_mass",
+          "cells": [
+            {
+              "belief_error_cells": {
+                "high": 0.0,
+                "low": 0.0,
+                "median": 0.0,
+                "n": 50
+              },
+              "burst_mean_s": null,
+              "duplicated_fraction": {
+                "high": 0.035,
+                "low": 0.035,
+                "median": 0.035,
+                "n": 50
+              },
+              "loss_probability": 0.0,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "preset": "clean",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              }
+            },
+            {
+              "belief_error_cells": {
+                "high": 0.0,
+                "low": 0.0,
+                "median": 0.0,
+                "n": 50
+              },
+              "burst_mean_s": null,
+              "duplicated_fraction": {
+                "high": 0.035,
+                "low": 0.035,
+                "median": 0.035,
+                "n": 50
+              },
+              "loss_probability": 0.0,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "preset": "clean",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              }
+            },
+            {
+              "belief_error_cells": {
+                "high": 17.0,
+                "low": 12.0,
+                "median": 14.0,
+                "n": 50
+              },
+              "burst_mean_s": null,
+              "duplicated_fraction": {
+                "high": 0.05875,
+                "low": 0.05125,
+                "median": 0.055,
+                "n": 50
+              },
+              "loss_probability": 0.1,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "preset": "iid_10",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              }
+            },
+            {
+              "belief_error_cells": {
+                "high": 0.0,
+                "low": 0.0,
+                "median": 0.0,
+                "n": 50
+              },
+              "burst_mean_s": null,
+              "duplicated_fraction": {
+                "high": 0.035,
+                "low": 0.035,
+                "median": 0.035,
+                "n": 50
+              },
+              "loss_probability": 0.1,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "preset": "iid_10",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              }
+            },
+            {
+              "belief_error_cells": {
+                "high": 53.0,
+                "low": 45.0,
+                "median": 49.0,
+                "n": 50
+              },
+              "burst_mean_s": null,
+              "duplicated_fraction": {
+                "high": 0.04125,
+                "low": 0.02125,
+                "median": 0.03125,
+                "n": 50
+              },
+              "loss_probability": 0.3,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "preset": "iid_30",
+              "runs_with_failsafe_landing": {
+                "count": 39,
+                "n": 50,
+                "rate": 0.78,
+                "wilson_high": 0.8724608402978559,
+                "wilson_low": 0.6475845041874634
+              }
+            },
+            {
+              "belief_error_cells": {
+                "high": 2.0,
+                "low": 0.0,
+                "median": 1.0,
+                "n": 50
+              },
+              "burst_mean_s": null,
+              "duplicated_fraction": {
+                "high": 0.01875,
+                "low": 0.00875,
+                "median": 0.00875,
+                "n": 50
+              },
+              "loss_probability": 0.3,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "preset": "iid_30",
+              "runs_with_failsafe_landing": {
+                "count": 39,
+                "n": 50,
+                "rate": 0.78,
+                "wilson_high": 0.8724608402978559,
+                "wilson_low": 0.6475845041874634
+              }
+            },
+            {
+              "belief_error_cells": {
+                "high": 8.0,
+                "low": 8.0,
+                "median": 8.0,
+                "n": 50
+              },
+              "burst_mean_s": 0.5,
+              "duplicated_fraction": {
+                "high": 0.005,
+                "low": 0.0,
+                "median": 0.0,
+                "n": 50
+              },
+              "loss_probability": 0.1,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "preset": "burst_10_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              }
+            },
+            {
+              "belief_error_cells": {
+                "high": 0.0,
+                "low": 0.0,
+                "median": 0.0,
+                "n": 50
+              },
+              "burst_mean_s": 0.5,
+              "duplicated_fraction": {
+                "high": 0.005,
+                "low": 0.0,
+                "median": 0.0,
+                "n": 50
+              },
+              "loss_probability": 0.1,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "preset": "burst_10_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              }
+            },
+            {
+              "belief_error_cells": {
+                "high": 24.0,
+                "low": 16.0,
+                "median": 16.0,
+                "n": 50
+              },
+              "burst_mean_s": 0.5,
+              "duplicated_fraction": {
+                "high": 0.0,
+                "low": 0.0,
+                "median": 0.0,
+                "n": 50
+              },
+              "loss_probability": 0.3,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "preset": "burst_30_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              }
+            },
+            {
+              "belief_error_cells": {
+                "high": 0.0,
+                "low": 0.0,
+                "median": 0.0,
+                "n": 50
+              },
+              "burst_mean_s": 0.5,
+              "duplicated_fraction": {
+                "high": 0.0,
+                "low": 0.0,
+                "median": 0.0,
+                "n": 50
+              },
+              "loss_probability": 0.3,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "preset": "burst_30_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              }
+            }
+          ],
+          "cumulative_minus_delta": [
+            {
+              "belief_error_cells_median": 0.0,
+              "duplicated_fraction_median": 0.0,
+              "preset": "clean"
+            },
+            {
+              "belief_error_cells_median": -14.0,
+              "duplicated_fraction_median": -0.02,
+              "preset": "iid_10"
+            },
+            {
+              "belief_error_cells_median": -48.0,
+              "duplicated_fraction_median": -0.0225,
+              "preset": "iid_30"
+            },
+            {
+              "belief_error_cells_median": -8.0,
+              "duplicated_fraction_median": 0.0,
+              "preset": "burst_10_0.5s"
+            },
+            {
+              "belief_error_cells_median": -16.0,
+              "duplicated_fraction_median": 0.0,
+              "preset": "burst_30_0.5s"
+            }
+          ],
+          "dropout": "one",
+          "policy": {
+            "degraded_after_s": 0.15,
+            "land_after_s": 0.3,
+            "name": "default"
+          },
+          "slice": "main",
+          "what": "duplicated fraction and belief error cells per preset and message mode, one dropout"
+        },
+        "sentence": "With a dropout and delta messages, loss makes survivors believe covered cells are uncovered, so duplication rises roughly with the loss rate (iid_30: about 30 % of the dead drone's reported cells unknown, duplicated); cumulative messages remove almost all of it (any single message carries the whole map)."
+      },
+      {
+        "exploratory_calm_policy": {
+          "adapter": "point_mass",
+          "burst_vs_iid": [],
+          "dropout": "one",
+          "policy": {
+            "degraded_after_s": 0.25,
+            "land_after_s": 1.0,
+            "name": "calm"
+          },
+          "slice": "exploratory, added after the pilot, not pre-registered",
+          "what": "burst presets against independent-loss presets of the same loss probability, one dropout"
+        },
+        "observed": {
+          "adapter": "point_mass",
+          "burst_vs_iid": [
+            {
+              "burst_mean_s": 0.5,
+              "burst_preset": "burst_10_0.5s",
+              "by_mode": [
+                {
+                  "burst": {
+                    "belief_error_cells": {
+                      "high": 8.0,
+                      "low": 8.0,
+                      "median": 8.0,
+                      "n": 50
+                    },
+                    "duplicated_fraction": {
+                      "high": 0.005,
+                      "low": 0.0,
+                      "median": 0.0,
+                      "n": 50
+                    },
+                    "n_runs": 50,
+                    "p_t100_reached": {
+                      "count": 0,
+                      "n": 50,
+                      "rate": 0.0,
+                      "wilson_high": 0.07134759913335872,
+                      "wilson_low": 6.938893903907228e-18
+                    },
+                    "runs_with_failsafe_landing": {
+                      "count": 50,
+                      "n": 50,
+                      "rate": 1.0,
+                      "wilson_high": 1.0,
+                      "wilson_low": 0.9286524008666414
+                    }
+                  },
+                  "burst_minus_iid": {
+                    "belief_error_cells_median": -6.0,
+                    "duplicated_fraction_median": -0.055,
+                    "p_t100_reached": -1.0
+                  },
+                  "iid": {
+                    "belief_error_cells": {
+                      "high": 17.0,
+                      "low": 12.0,
+                      "median": 14.0,
+                      "n": 50
+                    },
+                    "duplicated_fraction": {
+                      "high": 0.05875,
+                      "low": 0.05125,
+                      "median": 0.055,
+                      "n": 50
+                    },
+                    "n_runs": 50,
+                    "p_t100_reached": {
+                      "count": 50,
+                      "n": 50,
+                      "rate": 1.0,
+                      "wilson_high": 1.0,
+                      "wilson_low": 0.9286524008666414
+                    },
+                    "runs_with_failsafe_landing": {
+                      "count": 0,
+                      "n": 50,
+                      "rate": 0.0,
+                      "wilson_high": 0.07134759913335872,
+                      "wilson_low": 6.938893903907228e-18
+                    }
+                  },
+                  "message_mode": "delta"
+                },
+                {
+                  "burst": {
+                    "belief_error_cells": {
+                      "high": 0.0,
+                      "low": 0.0,
+                      "median": 0.0,
+                      "n": 50
+                    },
+                    "duplicated_fraction": {
+                      "high": 0.005,
+                      "low": 0.0,
+                      "median": 0.0,
+                      "n": 50
+                    },
+                    "n_runs": 50,
+                    "p_t100_reached": {
+                      "count": 0,
+                      "n": 50,
+                      "rate": 0.0,
+                      "wilson_high": 0.07134759913335872,
+                      "wilson_low": 6.938893903907228e-18
+                    },
+                    "runs_with_failsafe_landing": {
+                      "count": 50,
+                      "n": 50,
+                      "rate": 1.0,
+                      "wilson_high": 1.0,
+                      "wilson_low": 0.9286524008666414
+                    }
+                  },
+                  "burst_minus_iid": {
+                    "belief_error_cells_median": 0.0,
+                    "duplicated_fraction_median": -0.035,
+                    "p_t100_reached": -1.0
+                  },
+                  "iid": {
+                    "belief_error_cells": {
+                      "high": 0.0,
+                      "low": 0.0,
+                      "median": 0.0,
+                      "n": 50
+                    },
+                    "duplicated_fraction": {
+                      "high": 0.035,
+                      "low": 0.035,
+                      "median": 0.035,
+                      "n": 50
+                    },
+                    "n_runs": 50,
+                    "p_t100_reached": {
+                      "count": 50,
+                      "n": 50,
+                      "rate": 1.0,
+                      "wilson_high": 1.0,
+                      "wilson_low": 0.9286524008666414
+                    },
+                    "runs_with_failsafe_landing": {
+                      "count": 0,
+                      "n": 50,
+                      "rate": 0.0,
+                      "wilson_high": 0.07134759913335872,
+                      "wilson_low": 6.938893903907228e-18
+                    }
+                  },
+                  "message_mode": "cumulative"
+                }
+              ],
+              "iid_preset": "iid_10",
+              "loss_probability": 0.1
+            },
+            {
+              "burst_mean_s": 0.5,
+              "burst_preset": "burst_30_0.5s",
+              "by_mode": [
+                {
+                  "burst": {
+                    "belief_error_cells": {
+                      "high": 24.0,
+                      "low": 16.0,
+                      "median": 16.0,
+                      "n": 50
+                    },
+                    "duplicated_fraction": {
+                      "high": 0.0,
+                      "low": 0.0,
+                      "median": 0.0,
+                      "n": 50
+                    },
+                    "n_runs": 50,
+                    "p_t100_reached": {
+                      "count": 0,
+                      "n": 50,
+                      "rate": 0.0,
+                      "wilson_high": 0.07134759913335872,
+                      "wilson_low": 6.938893903907228e-18
+                    },
+                    "runs_with_failsafe_landing": {
+                      "count": 50,
+                      "n": 50,
+                      "rate": 1.0,
+                      "wilson_high": 1.0,
+                      "wilson_low": 0.9286524008666414
+                    }
+                  },
+                  "burst_minus_iid": {
+                    "belief_error_cells_median": -33.0,
+                    "duplicated_fraction_median": -0.03125,
+                    "p_t100_reached": -0.24
+                  },
+                  "iid": {
+                    "belief_error_cells": {
+                      "high": 53.0,
+                      "low": 45.0,
+                      "median": 49.0,
+                      "n": 50
+                    },
+                    "duplicated_fraction": {
+                      "high": 0.04125,
+                      "low": 0.02125,
+                      "median": 0.03125,
+                      "n": 50
+                    },
+                    "n_runs": 50,
+                    "p_t100_reached": {
+                      "count": 12,
+                      "n": 50,
+                      "rate": 0.24,
+                      "wilson_high": 0.3741268375794292,
+                      "wilson_low": 0.1429739139699173
+                    },
+                    "runs_with_failsafe_landing": {
+                      "count": 39,
+                      "n": 50,
+                      "rate": 0.78,
+                      "wilson_high": 0.8724608402978559,
+                      "wilson_low": 0.6475845041874634
+                    }
+                  },
+                  "message_mode": "delta"
+                },
+                {
+                  "burst": {
+                    "belief_error_cells": {
+                      "high": 0.0,
+                      "low": 0.0,
+                      "median": 0.0,
+                      "n": 50
+                    },
+                    "duplicated_fraction": {
+                      "high": 0.0,
+                      "low": 0.0,
+                      "median": 0.0,
+                      "n": 50
+                    },
+                    "n_runs": 50,
+                    "p_t100_reached": {
+                      "count": 0,
+                      "n": 50,
+                      "rate": 0.0,
+                      "wilson_high": 0.07134759913335872,
+                      "wilson_low": 6.938893903907228e-18
+                    },
+                    "runs_with_failsafe_landing": {
+                      "count": 50,
+                      "n": 50,
+                      "rate": 1.0,
+                      "wilson_high": 1.0,
+                      "wilson_low": 0.9286524008666414
+                    }
+                  },
+                  "burst_minus_iid": {
+                    "belief_error_cells_median": -1.0,
+                    "duplicated_fraction_median": -0.00875,
+                    "p_t100_reached": -0.24
+                  },
+                  "iid": {
+                    "belief_error_cells": {
+                      "high": 2.0,
+                      "low": 0.0,
+                      "median": 1.0,
+                      "n": 50
+                    },
+                    "duplicated_fraction": {
+                      "high": 0.01875,
+                      "low": 0.00875,
+                      "median": 0.00875,
+                      "n": 50
+                    },
+                    "n_runs": 50,
+                    "p_t100_reached": {
+                      "count": 12,
+                      "n": 50,
+                      "rate": 0.24,
+                      "wilson_high": 0.3741268375794292,
+                      "wilson_low": 0.1429739139699173
+                    },
+                    "runs_with_failsafe_landing": {
+                      "count": 39,
+                      "n": 50,
+                      "rate": 0.78,
+                      "wilson_high": 0.8724608402978559,
+                      "wilson_low": 0.6475845041874634
+                    }
+                  },
+                  "message_mode": "cumulative"
+                }
+              ],
+              "iid_preset": "iid_30",
+              "loss_probability": 0.3
+            }
+          ],
+          "dropout": "one",
+          "policy": {
+            "degraded_after_s": 0.15,
+            "land_after_s": 0.3,
+            "name": "default"
+          },
+          "slice": "main",
+          "what": "burst presets against independent-loss presets of the same loss probability, one dropout"
+        },
+        "sentence": "Bursts hurt delta most."
+      },
+      {
+        "exploratory_calm_policy": {
+          "adapter": "point_mass",
+          "band_s": [
+            45.0,
+            55.0
+          ],
+          "cells": [
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.3,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "preset": "iid_30",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "t100_median_in_band": false,
+              "t100_s": {
+                "high": 56.51,
+                "low": 56.32,
+                "median": 56.425,
+                "n": 50
+              }
+            },
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.3,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "preset": "iid_30",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "t100_median_in_band": false,
+              "t100_s": {
+                "high": 56.3,
+                "low": 56.15,
+                "median": 56.230000000000004,
+                "n": 50
+              }
+            },
+            {
+              "burst_mean_s": 0.5,
+              "loss_probability": 0.1,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 8,
+                "n": 50,
+                "rate": 0.16,
+                "wilson_high": 0.2851421606303499,
+                "wilson_low": 0.08337420678033404
+              },
+              "preset": "burst_10_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 42,
+                "n": 50,
+                "rate": 0.84,
+                "wilson_high": 0.916625793219666,
+                "wilson_low": 0.7148578393696501
+              },
+              "t100_median_in_band": false,
+              "t100_s": {
+                "high": 63.34,
+                "low": 55.86,
+                "median": 56.93,
+                "n": 8
+              }
+            },
+            {
+              "burst_mean_s": 0.5,
+              "loss_probability": 0.1,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 8,
+                "n": 50,
+                "rate": 0.16,
+                "wilson_high": 0.2851421606303499,
+                "wilson_low": 0.08337420678033404
+              },
+              "preset": "burst_10_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 42,
+                "n": 50,
+                "rate": 0.84,
+                "wilson_high": 0.916625793219666,
+                "wilson_low": 0.7148578393696501
+              },
+              "t100_median_in_band": false,
+              "t100_s": {
+                "high": 58.5,
+                "low": 55.7,
+                "median": 56.93,
+                "n": 8
+              }
+            }
+          ],
+          "dropout": "one",
+          "policy": {
+            "degraded_after_s": 0.25,
+            "land_after_s": 1.0,
+            "name": "calm"
+          },
+          "slice": "exploratory, added after the pilot, not pre-registered",
+          "what": "t100 with one dropout per preset and message mode (median over runs that reached t100)"
+        },
+        "observed": {
+          "adapter": "point_mass",
+          "band_s": [
+            45.0,
+            55.0
+          ],
+          "cells": [
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.0,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "preset": "clean",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "t100_median_in_band": false,
+              "t100_s": {
+                "high": 55.7,
+                "low": 55.7,
+                "median": 55.7,
+                "n": 50
+              }
+            },
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.0,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "preset": "clean",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "t100_median_in_band": false,
+              "t100_s": {
+                "high": 55.7,
+                "low": 55.7,
+                "median": 55.7,
+                "n": 50
+              }
+            },
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.1,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "preset": "iid_10",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "t100_median_in_band": false,
+              "t100_s": {
+                "high": 56.47,
+                "low": 55.96,
+                "median": 56.055,
+                "n": 50
+              }
+            },
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.1,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "preset": "iid_10",
+              "runs_with_failsafe_landing": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "t100_median_in_band": false,
+              "t100_s": {
+                "high": 55.85,
+                "low": 55.8,
+                "median": 55.8,
+                "n": 50
+              }
+            },
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.3,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 12,
+                "n": 50,
+                "rate": 0.24,
+                "wilson_high": 0.3741268375794292,
+                "wilson_low": 0.1429739139699173
+              },
+              "preset": "iid_30",
+              "runs_with_failsafe_landing": {
+                "count": 39,
+                "n": 50,
+                "rate": 0.78,
+                "wilson_high": 0.8724608402978559,
+                "wilson_low": 0.6475845041874634
+              },
+              "t100_median_in_band": false,
+              "t100_s": {
+                "high": 57.17,
+                "low": 56.41,
+                "median": 56.585,
+                "n": 12
+              }
+            },
+            {
+              "burst_mean_s": null,
+              "loss_probability": 0.3,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 12,
+                "n": 50,
+                "rate": 0.24,
+                "wilson_high": 0.3741268375794292,
+                "wilson_low": 0.1429739139699173
+              },
+              "preset": "iid_30",
+              "runs_with_failsafe_landing": {
+                "count": 39,
+                "n": 50,
+                "rate": 0.78,
+                "wilson_high": 0.8724608402978559,
+                "wilson_low": 0.6475845041874634
+              },
+              "t100_median_in_band": false,
+              "t100_s": {
+                "high": 56.58,
+                "low": 56.25,
+                "median": 56.41,
+                "n": 12
+              }
+            },
+            {
+              "burst_mean_s": 0.5,
+              "loss_probability": 0.1,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "preset": "burst_10_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "t100_median_in_band": null,
+              "t100_s": {
+                "high": null,
+                "low": null,
+                "median": null,
+                "n": 0
+              }
+            },
+            {
+              "burst_mean_s": 0.5,
+              "loss_probability": 0.1,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "preset": "burst_10_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "t100_median_in_band": null,
+              "t100_s": {
+                "high": null,
+                "low": null,
+                "median": null,
+                "n": 0
+              }
+            },
+            {
+              "burst_mean_s": 0.5,
+              "loss_probability": 0.3,
+              "message_mode": "delta",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "preset": "burst_30_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "t100_median_in_band": null,
+              "t100_s": {
+                "high": null,
+                "low": null,
+                "median": null,
+                "n": 0
+              }
+            },
+            {
+              "burst_mean_s": 0.5,
+              "loss_probability": 0.3,
+              "message_mode": "cumulative",
+              "n_runs": 50,
+              "p_t100_reached": {
+                "count": 0,
+                "n": 50,
+                "rate": 0.0,
+                "wilson_high": 0.07134759913335872,
+                "wilson_low": 6.938893903907228e-18
+              },
+              "preset": "burst_30_0.5s",
+              "runs_with_failsafe_landing": {
+                "count": 50,
+                "n": 50,
+                "rate": 1.0,
+                "wilson_high": 1.0,
+                "wilson_low": 0.9286524008666414
+              },
+              "t100_median_in_band": null,
+              "t100_s": {
+                "high": null,
+                "low": null,
+                "median": null,
+                "n": 0
+              }
+            }
+          ],
+          "dropout": "one",
+          "policy": {
+            "degraded_after_s": 0.15,
+            "land_after_s": 0.3,
+            "name": "default"
+          },
+          "slice": "main",
+          "what": "t100 with one dropout per preset and message mode (median over runs that reached t100)"
+        },
+        "sentence": "Completion time with dropout: the dead drone's remaining two thirds of a strip (about 177 m^2) shared by two survivors adds about 177/(2 x 4 x 2) = 11 s plus transit, so about 45 to 55 s."
+      }
+    ],
+    "prediction_source": "pre-registered before the runs (EXP-031 section of the private pre-registration)",
+    "text": "without dropout, loss changes nothing (each drone sweeps its own strip). With a dropout and delta messages, loss makes survivors believe covered cells are uncovered, so duplication rises roughly with the loss rate (iid_30: about 30 % of the dead drone's reported cells unknown, duplicated); cumulative messages remove almost all of it (any single message carries the whole map). Bursts hurt delta most. Completion time with dropout: the dead drone's remaining two thirds of a strip (about 177 m^2) shared by two survivors adds about 177/(2 x 4 x 2) = 11 s plus transit, so about 45 to 55 s."
+  },
+  "simulated": true
+}

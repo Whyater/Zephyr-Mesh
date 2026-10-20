@@ -1,0 +1,79 @@
+{
+  "argv": [
+    "--output",
+    "runs/e-exp035-logs"
+  ],
+  "code_sha256": {
+    "sim/adapters.py": "db376930087564cc8b78347439bf3416ab7eaa37e09243383fb1e7037d0ca673",
+    "sim/authority.py": "7f602adc5b52ffe7657fd726d6610aa9147521bdeda5caf0d5b86034069ce5e6",
+    "sim/failsafe.py": "c7b92c6507d439db03545cb73d120434470f3812b9836e3331127084fddf7914",
+    "sim/missions/api.py": "c0be9b60c811d7337c79923bc829d8077d6cf9c156e3903f6037ddebb99398b6",
+    "sim/missions/comms.py": "869ce1d3030b17f2ed02b5ad5f281c41e2fdfbf3d388ff84033d7f99e3b4d826",
+    "sim/missions/engine.py": "f3f2d1e838f8f8f0eb790ab4d709d5ae2515e0a596704ceb1974205c02eaa076",
+    "sim/missions/estimate_feed.py": "8221ef02006a568e80c68158e6913a6c41775ae0a96760b9c67c67664a47edde",
+    "sim/missions/formation.py": "043074244584467c668d72d1355dc0927652752a653a91ce074f156ef1ebec72",
+    "sim/missions/hover.py": "754ce549de268933055d6aecc44b6840ce0c19a8ef1363ed54961b68d5c3c575",
+    "sim/missions/log.py": "52a277a4ed24f0b9bc2aa1836db457da030dab87d39a8c80ba7b5340a8e4ac1a",
+    "sim/missions/mission_log_schema.json": "0afda721147d047a830c1482c64af57c9603f2d7c0d439b00ee6e92c72401811",
+    "sim/missions/monitor.py": "3b3193c76963c95ce8c8d80c081bac1ebaeb9e884f4d46dbe2c5d81f33139aa0",
+    "sim/missions/physics_adapter.py": "2f5708fa54439c20dfbec6c66b9086b48691cd55f3faa66a28c915651833072f",
+    "sim/missions/presets.py": "3886d2a564d0bbaffedbdd2a1ff0e4bfa66fa56b719a7433d55d6489f9a4b200",
+    "sim/missions/relay.py": "03fb85ff9e54fa0196bcfdda794a1e612c97103c198c97ac00df1d36116bcc2b",
+    "sim/missions/replay_reader.py": "0e00d2bbe363c88f8b652abe5eb0bb34e4855965f6280fdf52311030c116c6e3",
+    "sim/missions/stack.py": "8a18861467cf7654741fef789b6f9a1fe64ceefe5493443d491f3a37d53956d9",
+    "sim/missions/sweep.py": "452cf3a945bfc9f8568a25f9b7e0216165a5fea297833f1799a6c32c78af9128",
+    "sim/missions/tag.py": "34844435f9f1c8e9e6318675b31492e8804565cf8719f010993cd624b920fa57",
+    "tools/e_common.py": "32e8612803966465bf311a5a337b21752d805a40c470f929c8b976ead65f63c5",
+    "tools/e_exp035_logs.py": "e09f9067de23d746096ff4de2d672c033fc6f8f8e89af0dfc2a8e8a2f4a28172"
+  },
+  "config": {
+    "examples": [
+      "failsafe_blackout.json",
+      "formation_square.json",
+      "hover.json",
+      "monitor_crossing.json",
+      "relay_midpoint.json",
+      "sweep_dropout.json",
+      "tag_straight.json"
+    ],
+    "seed": 858271916
+  },
+  "config_sha256": "c2039d3780796f4a322ac182cac78b7ad774ceb5c263803b2fa23e0805da37b3",
+  "git_revision": "c527a1960452e83293f11cfcf9cb358dbf464add",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no ESP32 or drone hardware was used.",
+    "Radio parameters are literature-derived (sim/radio/params.py), with ranges; none are measured.",
+    "Simulated only: no drone or radio hardware was used.",
+    "Link loss patterns are synthetic (named presets in sim/missions/presets.py), never measured.",
+    "Vehicle parameters are literature-derived (point mass, or the crazyflie-class physics profile)."
+  ],
+  "n_processes": 1,
+  "numpy": "2.5.1",
+  "outputs": {
+    "integrity.csv": "a4431c73183dd1b50f89e7cadd2c3b178b50cfc3a91c948a188d4218e26ef501",
+    "logs/failsafe_blackout_physics.json": "b1fb9828046e9b6481cd3593bebdabcf790009cd17ca248e6f4ab270105fb26f",
+    "logs/failsafe_blackout_point_mass.json": "54877c4040627c342a8600388d5db34a272f14e76a2c5672d047851cfae380f8",
+    "logs/formation_square_physics_offboard.json": "389b855caac6401c488d4fefbbb2f0ecc5051171ee9dd934b2003a72f80405a6",
+    "logs/formation_square_point_mass_offboard.json": "6b7e589971b91650a7068f375df8678cbf03427d048b0d37b37bd1d1a0674ef3",
+    "logs/hover_physics.json": "e09c0942dc172d79b391402a7cb2ff06fd9e55be4dda09920cbc9e9e2eddc4e4",
+    "logs/hover_point_mass.json": "f4773c521638cdcb1df69b1326f6d674dfd2c590c66af17b1713f704f8706ccc",
+    "logs/monitor_crossing_physics.json": "181c7e1d11a1e3e957c4fd7c6bf302ab95ee042598a4538f8d54c723c21a969e",
+    "logs/monitor_crossing_point_mass.json": "933029d7dc8b9f95bc0bd5b4936c22b5181bd952bd69b17230d07870c7b90260",
+    "logs/relay_midpoint_physics.json": "2c6e7e70d27b0db981d7c296203ff3c9f53894025435e44a9309fd0c85aee44e",
+    "logs/relay_midpoint_point_mass.json": "f9466d832843e6cc9867a0055b3695e9ace99a7c9ef47b1fb2983440b68d636e",
+    "logs/sweep_dropout_physics.json": "16ae06d7ce8ba8f2eb012d7c636aa0bfd2fef35495d5d2332cbcd6e8921d9ea7",
+    "logs/sweep_dropout_point_mass.json": "0cfc5ad6782c78a3e455543ae13efd45a2983cc2dc26bf9c96a010bdca8adb66",
+    "logs/tag_straight_physics.json": "15c6d20118459d4515eb640670c3919228aea6544ebe7797b1962b55d2938b61",
+    "logs/tag_straight_point_mass.json": "71fd162d0d30939c46e4a1c1436304c13057fdd338175cbc3a204445dcdc8487",
+    "summary.json": "6a809be13828f8de33898fcccdeabfd1ce388e8aae29c97f9e09f114e18eb39a"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. python tools/e_exp035_logs.py --output runs/e-exp035-logs",
+  "runtime_s": 95.77011633300572,
+  "schema": "zephyr-exp035-1",
+  "seeds": [
+    858271916
+  ]
+}

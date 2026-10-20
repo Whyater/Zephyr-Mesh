@@ -1,0 +1,6189 @@
+{
+  "deviations": [
+    "Grid reduced before the full run for compute (prereg Addendum C): presets clean, iid_10, iid_30, burst_10_0.5s, burst_30_0.5s instead of all nine; policies T_w 0.15 s with T 0.2, 0.3, 0.5, 1.0, 2.0 s plus T_w 0.10 and 0.25 s at T 0.30 s (7 of 15 pairs, each with hold and slow); 20 seeds instead of 50.  Part A unnecessary-landing rates still cover every preset and pair."
+  ],
+  "experiment": "EXP-029 Part B",
+  "grid": {
+    "jobs_in_this_run": 12840,
+    "physics_jobs": 240,
+    "pilot_physics_jobs": 2,
+    "pilot_point_mass_jobs": 96,
+    "point_mass_jobs": 12600,
+    "pre_registered_point_mass_jobs": 121500
+  },
+  "hand_check": {
+    "burst_10_0.5s": {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "count": 13,
+      "degraded_action": "hold",
+      "expected_count": 14.157616939868324,
+      "expected_rate_per_hour": 416.58832239722386,
+      "exposure_h": 0.03398467066575333,
+      "grounded_before_blackout": 13,
+      "observed_rate_per_hour": 382.52540764210556,
+      "preset": "burst_10_0.5s",
+      "runs_in_cell": 180,
+      "seeds_counted": 20,
+      "seeds_with_inconsistent_history": 0,
+      "status": "computed",
+      "verdict": "agrees",
+      "z": -0.3076591207847052
+    },
+    "iid_30": {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "count": 2,
+      "degraded_action": "hold",
+      "expected_count": 2.4402929000282882,
+      "expected_rate_per_hour": 36.74159999999999,
+      "exposure_h": 0.06641770908257368,
+      "grounded_before_blackout": 2,
+      "observed_rate_per_hour": 30.11245084520311,
+      "preset": "iid_30",
+      "runs_in_cell": 180,
+      "seeds_counted": 20,
+      "seeds_with_inconsistent_history": 0,
+      "status": "computed",
+      "verdict": "too few expected events",
+      "z": -0.28185172950773746
+    }
+  },
+  "missing_metrics": [],
+  "mission_duration_s": 30.0,
+  "outage_draw": "np.random.default_rng(np.random.SeedSequence([seed, 29029])).uniform(8, 18)",
+  "outage_streams": null,
+  "part_a": {
+    "csv": "runs/e-exp029-part-a/part_a.csv",
+    "h_hz": 20.0,
+    "rows_used": 135,
+    "sha256": "70aa17feea8e609d07d80573ab2fc45c204038dcfa259a8b11141e93e2028ec6",
+    "weak_rule": "age"
+  },
+  "pilot": false,
+  "prediction": {
+    "comparison": [
+      {
+        "agrees": true,
+        "closed_form_T_s": 0.2,
+        "computed_T_s": 0.2,
+        "computed_rule_result": "T = 0.2 s",
+        "notes": [],
+        "predicted_T": "as the closed form gives (no value written in correction 1)",
+        "predicted_T_s": [
+          0.2
+        ],
+        "preset": "clean"
+      },
+      {
+        "agrees": false,
+        "closed_form_T_s": 0.2,
+        "computed_T_s": 0.2,
+        "computed_rule_result": "T = 0.2 s",
+        "notes": [
+          "predicted T is below T_w + 0.05 s = 0.2 s, which the constrained rule cannot return"
+        ],
+        "predicted_T": "0.15 s",
+        "predicted_T_s": [
+          0.15
+        ],
+        "preset": "iid_1"
+      },
+      {
+        "agrees": true,
+        "closed_form_T_s": 0.2,
+        "computed_T_s": 0.2,
+        "computed_rule_result": "T = 0.2 s",
+        "notes": [],
+        "predicted_T": "0.2 s",
+        "predicted_T_s": [
+          0.2
+        ],
+        "preset": "iid_5"
+      },
+      {
+        "agrees": true,
+        "closed_form_T_s": 0.3,
+        "computed_T_s": 0.3,
+        "computed_rule_result": "T = 0.3 s",
+        "notes": [],
+        "predicted_T": "0.3 s",
+        "predicted_T_s": [
+          0.3
+        ],
+        "preset": "iid_10"
+      },
+      {
+        "agrees": true,
+        "closed_form_T_s": 0.5,
+        "computed_T_s": 0.5,
+        "computed_rule_result": "T = 0.5 s",
+        "notes": [],
+        "predicted_T": "0.5 s",
+        "predicted_T_s": [
+          0.5
+        ],
+        "preset": "iid_30"
+      },
+      {
+        "agrees": true,
+        "closed_form_T_s": null,
+        "computed_T_s": null,
+        "computed_rule_result": "none up to 2 s",
+        "notes": [],
+        "predicted_T": "none up to 2 s",
+        "predicted_T_s": [],
+        "preset": "burst_1_0.5s"
+      },
+      {
+        "agrees": true,
+        "closed_form_T_s": 2.0,
+        "computed_T_s": 2.0,
+        "computed_rule_result": "T = 2 s",
+        "notes": [],
+        "predicted_T": "probably 1.0 to 2.0 s",
+        "predicted_T_s": [
+          1.0,
+          2.0
+        ],
+        "preset": "burst_10_0.2s"
+      },
+      {
+        "agrees": true,
+        "closed_form_T_s": null,
+        "computed_T_s": null,
+        "computed_rule_result": "none up to 2 s",
+        "notes": [],
+        "predicted_T": "none up to 2 s",
+        "predicted_T_s": [],
+        "preset": "burst_10_0.5s"
+      },
+      {
+        "agrees": true,
+        "closed_form_T_s": null,
+        "computed_T_s": null,
+        "computed_rule_result": "none up to 2 s",
+        "notes": [],
+        "predicted_T": "none up to 2 s",
+        "predicted_T_s": [],
+        "preset": "burst_30_0.5s"
+      }
+    ],
+    "correction_1_text": "EXP-029 prediction: by the pre-registered rule (smallest T with under 1 unnecessary landing per hour, at 20 Hz), the formula gives T = 0.15 s on iid_1 and 0.2 s on iid_5, not 0.3 s; iid_10 gives 0.3 s (0.065 per hour at 0.3 s). Corrected prediction: 0.15 s (iid_1), 0.2 s (iid_5), 0.3 s (iid_10), 0.5 s (iid_30), none up to 2 s on the 0.5 s burst presets and on burst_10_0.2s probably 1.0 to 2.0 s. The rule is also constrained to T >= T_w + 0.05 s. The late-reaction rate is reported beside it.",
+    "prediction_source": "pre-registered before the runs (EXP-029 section of the private pre-registration)",
+    "prediction_text": "at 20 Hz the 300 ms rule (m = 6) is calm on clean, iid_1, iid_5 (iid_5: 3600*20*0.95*0.05^6 = 0.001 per hour) and iid_10 (0.068 per hour), noisy on iid_30 (about 36 per hour) and useless on every 0.5 s burst preset (burst_10_0.5s about 400 per hour; mean bad sojourn 0.5 s is longer than 0.3 s so most bursts trip it). No T up to 2 s gets burst_10_0.5s under 1 per hour (bursts start about 720 times per hour: mean cycle 0.5 s bad + 4.5 s good; the bad sojourn is about exponential with mean 0.5 s, so P(sojourn > 2 s) = e^-4 = 0.018, about 13 per hour at T = 2 s; at T = 0.3 s, e^-0.6 = 0.55, about 400 per hour). Late reactions: separation violations during a blind hold will happen on the jinking and figure-eight targets regardless of T, because a held follower cannot get out of the way; their rate rises with T (longer blind time in the target's plane). Hold vs slow: slow keeps closing on a stale point, so it will raise violations near a moving target. Expected recommendation: T = 0.3 s on clean and iid presets up to 10 %, T = 0.5 s at iid_30, and \"no single timeout works\" for 0.5 s bursts, where the fix must be elsewhere (better link, or a reversible hold instead of a landing)."
+  },
+  "preset_scope_reading": "Part B does not restrict presets; the run uses five of nine for compute (see deviations).",
+  "presets": [
+    "clean",
+    "iid_10",
+    "iid_30",
+    "burst_10_0.5s",
+    "burst_30_0.5s"
+  ],
+  "projection": {
+    "full_grid_jobs": 12840,
+    "method": "per-run CPU seconds of this run (printed, kept out of the data files) times the full grid's point-mass and physics job counts, divided by 2 processes"
+  },
+  "recommendation": [
+    {
+      "T_w_s": 0.15,
+      "at_planned_0.30": {
+        "hold": {
+          "grounded_before_blackout": 0,
+          "late_airborne_at_blackout": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          },
+          "late_all_runs": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          }
+        },
+        "slow": {
+          "grounded_before_blackout": 0,
+          "late_airborne_at_blackout": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          },
+          "late_all_runs": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          }
+        }
+      },
+      "at_recommended_T": {
+        "hold": {
+          "grounded_before_blackout": 0,
+          "late_airborne_at_blackout": {
+            "count": 0,
+            "n": 180,
+            "rate": 0.0,
+            "wilson_high": 0.02089549792161305,
+            "wilson_low": 0.0
+          },
+          "late_all_runs": {
+            "count": 0,
+            "n": 180,
+            "rate": 0.0,
+            "wilson_high": 0.02089549792161305,
+            "wilson_low": 0.0
+          }
+        },
+        "slow": {
+          "grounded_before_blackout": 0,
+          "late_airborne_at_blackout": {
+            "count": 0,
+            "n": 180,
+            "rate": 0.0,
+            "wilson_high": 0.02089549792161305,
+            "wilson_low": 0.0
+          },
+          "late_all_runs": {
+            "count": 0,
+            "n": 180,
+            "rate": 0.0,
+            "wilson_high": 0.02089549792161305,
+            "wilson_low": 0.0
+          }
+        }
+      },
+      "part_a_landings_per_hour_at_T": 0.0,
+      "part_a_landings_per_hour_at_planned_0.30": 0.0,
+      "preset": "clean",
+      "rule_result": "T = 0.2 s",
+      "smallest_T_s_under_1_per_hour": 0.2
+    },
+    {
+      "T_w_s": 0.15,
+      "at_planned_0.30": "not run in Part B (Addendum C)",
+      "at_recommended_T": "not run in Part B (Addendum C)",
+      "part_a_landings_per_hour_at_T": 0.0,
+      "part_a_landings_per_hour_at_planned_0.30": 0.0,
+      "preset": "iid_1",
+      "rule_result": "T = 0.2 s",
+      "smallest_T_s_under_1_per_hour": 0.2
+    },
+    {
+      "T_w_s": 0.15,
+      "at_planned_0.30": "not run in Part B (Addendum C)",
+      "at_recommended_T": "not run in Part B (Addendum C)",
+      "part_a_landings_per_hour_at_T": 0.4,
+      "part_a_landings_per_hour_at_planned_0.30": 0.0,
+      "preset": "iid_5",
+      "rule_result": "T = 0.2 s",
+      "smallest_T_s_under_1_per_hour": 0.2
+    },
+    {
+      "T_w_s": 0.15,
+      "at_planned_0.30": {
+        "hold": {
+          "grounded_before_blackout": 0,
+          "late_airborne_at_blackout": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          },
+          "late_all_runs": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          }
+        },
+        "slow": {
+          "grounded_before_blackout": 0,
+          "late_airborne_at_blackout": {
+            "count": 0,
+            "n": 180,
+            "rate": 0.0,
+            "wilson_high": 0.02089549792161305,
+            "wilson_low": 0.0
+          },
+          "late_all_runs": {
+            "count": 0,
+            "n": 180,
+            "rate": 0.0,
+            "wilson_high": 0.02089549792161305,
+            "wilson_low": 0.0
+          }
+        }
+      },
+      "at_recommended_T": {
+        "hold": {
+          "grounded_before_blackout": 0,
+          "late_airborne_at_blackout": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          },
+          "late_all_runs": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          }
+        },
+        "slow": {
+          "grounded_before_blackout": 0,
+          "late_airborne_at_blackout": {
+            "count": 0,
+            "n": 180,
+            "rate": 0.0,
+            "wilson_high": 0.02089549792161305,
+            "wilson_low": 0.0
+          },
+          "late_all_runs": {
+            "count": 0,
+            "n": 180,
+            "rate": 0.0,
+            "wilson_high": 0.02089549792161305,
+            "wilson_low": 0.0
+          }
+        }
+      },
+      "part_a_landings_per_hour_at_T": 0.1,
+      "part_a_landings_per_hour_at_planned_0.30": 0.1,
+      "preset": "iid_10",
+      "rule_result": "T = 0.3 s",
+      "smallest_T_s_under_1_per_hour": 0.3
+    },
+    {
+      "T_w_s": 0.15,
+      "at_planned_0.30": {
+        "hold": {
+          "grounded_before_blackout": 18,
+          "late_airborne_at_blackout": {
+            "count": 3,
+            "n": 162,
+            "rate": 0.018518518518518517,
+            "wilson_high": 0.05302494281805918,
+            "wilson_low": 0.006317629845478453
+          },
+          "late_all_runs": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          }
+        },
+        "slow": {
+          "grounded_before_blackout": 18,
+          "late_airborne_at_blackout": {
+            "count": 3,
+            "n": 162,
+            "rate": 0.018518518518518517,
+            "wilson_high": 0.05302494281805918,
+            "wilson_low": 0.006317629845478453
+          },
+          "late_all_runs": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          }
+        }
+      },
+      "at_recommended_T": {
+        "hold": {
+          "grounded_before_blackout": 0,
+          "late_airborne_at_blackout": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          },
+          "late_all_runs": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          }
+        },
+        "slow": {
+          "grounded_before_blackout": 0,
+          "late_airborne_at_blackout": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          },
+          "late_all_runs": {
+            "count": 3,
+            "n": 180,
+            "rate": 0.016666666666666666,
+            "wilson_high": 0.04784822803707184,
+            "wilson_low": 0.005684086620487437
+          }
+        }
+      },
+      "part_a_landings_per_hour_at_T": 0.2,
+      "part_a_landings_per_hour_at_planned_0.30": 36.8,
+      "preset": "iid_30",
+      "rule_result": "T = 0.5 s",
+      "smallest_T_s_under_1_per_hour": 0.5
+    },
+    {
+      "T_w_s": 0.15,
+      "at_planned_0.30": "not run in Part B (Addendum C)",
+      "at_recommended_T": "not run in Part B (Addendum C)",
+      "part_a_landings_per_hour_at_T": null,
+      "part_a_landings_per_hour_at_planned_0.30": 44.4,
+      "preset": "burst_1_0.5s",
+      "rule_result": "none up to 2 s",
+      "smallest_T_s_under_1_per_hour": null
+    },
+    {
+      "T_w_s": 0.15,
+      "at_planned_0.30": "not run in Part B (Addendum C)",
+      "at_recommended_T": "not run in Part B (Addendum C)",
+      "part_a_landings_per_hour_at_T": 0.1,
+      "part_a_landings_per_hour_at_planned_0.30": 451.7,
+      "preset": "burst_10_0.2s",
+      "rule_result": "T = 2 s",
+      "smallest_T_s_under_1_per_hour": 2.0
+    },
+    {
+      "T_w_s": 0.15,
+      "at_planned_0.30": {
+        "hold": {
+          "grounded_before_blackout": 117,
+          "late_airborne_at_blackout": {
+            "count": 0,
+            "n": 63,
+            "rate": 0.0,
+            "wilson_high": 0.05747119958885172,
+            "wilson_low": 3.469446951953614e-18
+          },
+          "late_all_runs": {
+            "count": 0,
+            "n": 180,
+            "rate": 0.0,
+            "wilson_high": 0.02089549792161305,
+            "wilson_low": 0.0
+          }
+        },
+        "slow": {
+          "grounded_before_blackout": 117,
+          "late_airborne_at_blackout": {
+            "count": 0,
+            "n": 63,
+            "rate": 0.0,
+            "wilson_high": 0.05747119958885172,
+            "wilson_low": 3.469446951953614e-18
+          },
+          "late_all_runs": {
+            "count": 0,
+            "n": 180,
+            "rate": 0.0,
+            "wilson_high": 0.02089549792161305,
+            "wilson_low": 0.0
+          }
+        }
+      },
+      "at_recommended_T": "no T up to 2 s meets the rule",
+      "part_a_landings_per_hour_at_T": null,
+      "part_a_landings_per_hour_at_planned_0.30": 414.3,
+      "preset": "burst_10_0.5s",
+      "rule_result": "none up to 2 s",
+      "smallest_T_s_under_1_per_hour": null
+    },
+    {
+      "T_w_s": 0.15,
+      "at_planned_0.30": {
+        "hold": {
+          "grounded_before_blackout": 180,
+          "late_airborne_at_blackout": {
+            "count": 0,
+            "n": 0,
+            "rate": null,
+            "wilson_high": null,
+            "wilson_low": null
+          },
+          "late_all_runs": {
+            "count": 0,
+            "n": 180,
+            "rate": 0.0,
+            "wilson_high": 0.02089549792161305,
+            "wilson_low": 0.0
+          }
+        },
+        "slow": {
+          "grounded_before_blackout": 180,
+          "late_airborne_at_blackout": {
+            "count": 0,
+            "n": 0,
+            "rate": null,
+            "wilson_high": null,
+            "wilson_low": null
+          },
+          "late_all_runs": {
+            "count": 0,
+            "n": 180,
+            "rate": 0.0,
+            "wilson_high": 0.02089549792161305,
+            "wilson_low": 0.0
+          }
+        }
+      },
+      "at_recommended_T": "no T up to 2 s meets the rule",
+      "part_a_landings_per_hour_at_T": null,
+      "part_a_landings_per_hour_at_planned_0.30": 1246.8,
+      "preset": "burst_30_0.5s",
+      "rule_result": "none up to 2 s",
+      "smallest_T_s_under_1_per_hour": null
+    }
+  ],
+  "rules": {
+    "hand_check_verdict": "z = (observed - expected) / sqrt(expected); agrees if |z| <= 4 when at least 10 events are expected",
+    "late_airborne_at_blackout": "the same rate over runs whose follower had not landed before the blackout (a follower grounded by link loss cannot react late)",
+    "late_reaction": "separation violation (true distance < 0.5 m) during the blackout or within 3 s after it, or the follower still NOMINAL when its command age reaches 0.33 s during the blackout",
+    "mission_observed_landings": "count landings before the blackout; exposure per run = min(first landing, blackout start) when the follower landed before the blackout, else the blackout start; one run per seed and cell, the first in grid order (class turn, figure8, jink; blackout 0.5 s, 2.0 s, permanent), because the pre-blackout link history does not depend on the class or blackout length",
+    "outage_reaction": "outage_reaction_*: time from the newest command received before the blackout to the transition; outage_*_link_age_s: the drone's own command age at it",
+    "recommendation": "smallest T with under 1 unnecessary landing per hour in Part A at 20 Hz, age rule, T_w 0.15 s, T >= T_w + 0.05 s"
+  },
+  "status": "simulated",
+  "summaries": [
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "physics",
+      "blind_in_plane_s": {
+        "high": 2.0000000000000013,
+        "low": 2.0000000000000013,
+        "median": 2.0000000000000013,
+        "n": 120
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 120,
+      "landings": 120,
+      "late": {
+        "count": 4,
+        "n": 120,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.082580337559106,
+        "wilson_low": 0.0130375510983506
+      },
+      "late_airborne_at_blackout": {
+        "count": 4,
+        "n": 120,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.082580337559106,
+        "wilson_low": 0.0130375510983506
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 120,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 120,
+        "rate": 0.0,
+        "wilson_high": 0.031019166418703486,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 120
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999982894,
+        "n": 120
+      },
+      "outage_reaction_land_s": {
+        "high": 0.30799999999985417,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999982575,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 4,
+        "n": 120,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.082580337559106,
+        "wilson_low": 0.0130375510983506
+      },
+      "separation_violations": 4832
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "adapter": "physics",
+      "blind_in_plane_s": {
+        "high": 2.669999999999987,
+        "low": 2.0000000000000013,
+        "median": 2.2749999999999955,
+        "n": 120
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 120,
+      "landings": 120,
+      "late": {
+        "count": 6,
+        "n": 120,
+        "rate": 0.05,
+        "wilson_high": 0.10480288536236734,
+        "wilson_low": 0.023114364414465793
+      },
+      "late_airborne_at_blackout": {
+        "count": 6,
+        "n": 120,
+        "rate": 0.05,
+        "wilson_high": 0.10480288536236734,
+        "wilson_low": 0.023114364414465793
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 120,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 120,
+        "rate": 0.0,
+        "wilson_high": 0.031019166418703486,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 120
+      },
+      "outage_land_link_age_s": {
+        "high": 1.0079999999999991,
+        "low": 1.0079999999999991,
+        "median": 1.0079999999999991,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999982894,
+        "n": 120
+      },
+      "outage_reaction_land_s": {
+        "high": 1.0079999999998392,
+        "low": 1.0079999999998073,
+        "median": 1.007999999999826,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 6,
+        "n": 120,
+        "rate": 0.05,
+        "wilson_high": 0.10480288536236734,
+        "wilson_low": 0.023114364414465793
+      },
+      "separation_violations": 4970
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.1,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.6500000000000004,
+        "low": 0.6300000000000003,
+        "median": 0.6400000000000003,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.10799999999999876,
+        "low": 0.10799999999999876,
+        "median": 0.10799999999999876,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.10799999999985843,
+        "low": 0.10799999999980159,
+        "median": 0.10799999999983001,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.30799999999985417,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999982575,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 99
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.1,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.6600000000000004,
+        "low": 0.6400000000000003,
+        "median": 0.6500000000000004,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.10799999999999876,
+        "low": 0.10799999999999876,
+        "median": 0.10799999999999876,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.10799999999985843,
+        "low": 0.10799999999980159,
+        "median": 0.10799999999983001,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.30799999999985417,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999982575,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 21
+    },
+    {
+      "T_s": 0.2,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.5500000000000003,
+        "low": 0.5400000000000003,
+        "median": 0.5500000000000003,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.20800000000000018,
+        "low": 0.2079999999999984,
+        "median": 0.20800000000000018,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999982894,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.2079999999998563,
+        "low": 0.20799999999979946,
+        "median": 0.20799999999982788,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.2,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.5600000000000003,
+        "low": 0.5400000000000003,
+        "median": 0.5500000000000003,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.20800000000000018,
+        "low": 0.2079999999999984,
+        "median": 0.20800000000000018,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999982894,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.2079999999998563,
+        "low": 0.20799999999979946,
+        "median": 0.20799999999982788,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.6500000000000004,
+        "low": 0.6300000000000003,
+        "median": 0.6500000000000004,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999982894,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.30799999999985417,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999982575,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 90
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.6500000000000004,
+        "low": 0.6400000000000003,
+        "median": 0.6500000000000004,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999982894,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.30799999999985417,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999982575,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 18
+    },
+    {
+      "T_s": 0.5,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.8500000000000005,
+        "low": 0.8300000000000005,
+        "median": 0.8500000000000005,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.5079999999999991,
+        "low": 0.5079999999999991,
+        "median": 0.5079999999999991,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999982894,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.5079999999998499,
+        "low": 0.5079999999997931,
+        "median": 0.5079999999998215,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 168
+    },
+    {
+      "T_s": 0.5,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.8500000000000005,
+        "low": 0.8400000000000005,
+        "median": 0.8500000000000005,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.5079999999999991,
+        "low": 0.5079999999999991,
+        "median": 0.5079999999999991,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999982894,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.5079999999998499,
+        "low": 0.5079999999997931,
+        "median": 0.5079999999998215,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 129
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 1.350000000000001,
+        "low": 1.330000000000001,
+        "median": 1.350000000000001,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 120,
+      "late": {
+        "count": 6,
+        "n": 180,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.0708043404086727,
+        "wilson_low": 0.015364790984832809
+      },
+      "late_airborne_at_blackout": {
+        "count": 6,
+        "n": 180,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.0708043404086727,
+        "wilson_low": 0.015364790984832809
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 1.0079999999999991,
+        "low": 1.0079999999999991,
+        "median": 1.0079999999999991,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999982894,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 1.0079999999998392,
+        "low": 1.0079999999998073,
+        "median": 1.007999999999826,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 6,
+        "n": 180,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.0708043404086727,
+        "wilson_low": 0.015364790984832809
+      },
+      "separation_violations": 574
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 1.360000000000001,
+        "low": 1.340000000000001,
+        "median": 1.350000000000001,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 120,
+      "late": {
+        "count": 6,
+        "n": 180,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.0708043404086727,
+        "wilson_low": 0.015364790984832809
+      },
+      "late_airborne_at_blackout": {
+        "count": 6,
+        "n": 180,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.0708043404086727,
+        "wilson_low": 0.015364790984832809
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 1.0079999999999991,
+        "low": 1.0079999999999991,
+        "median": 1.0079999999999991,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999982894,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 1.0079999999998392,
+        "low": 1.0079999999998073,
+        "median": 1.007999999999826,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 6,
+        "n": 180,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.0708043404086727,
+        "wilson_low": 0.015364790984832809
+      },
+      "separation_violations": 530
+    },
+    {
+      "T_s": 2.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 2.0000000000000013,
+        "low": 2.0000000000000013,
+        "median": 2.0000000000000013,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 120,
+      "late": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "late_airborne_at_blackout": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 2.007999999999999,
+        "low": 2.007999999999999,
+        "median": 2.007999999999999,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999982894,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 2.0079999999999547,
+        "low": 2.007999999999793,
+        "median": 2.0079999999998233,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "separation_violations": 1038
+    },
+    {
+      "T_s": 2.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 2.0000000000000013,
+        "low": 2.0000000000000013,
+        "median": 2.0000000000000013,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 120,
+      "late": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "late_airborne_at_blackout": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 2.007999999999999,
+        "low": 2.007999999999999,
+        "median": 2.007999999999999,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999982894,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 2.0079999999999547,
+        "low": 2.007999999999793,
+        "median": 2.0079999999998233,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "separation_violations": 1004
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.25,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.6500000000000004,
+        "low": 0.6400000000000003,
+        "median": 0.6500000000000004,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 6,
+        "n": 180,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.0708043404086727,
+        "wilson_low": 0.015364790984832809
+      },
+      "late_airborne_at_blackout": {
+        "count": 6,
+        "n": 180,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.0708043404086727,
+        "wilson_low": 0.015364790984832809
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.2579999999999991,
+        "low": 0.2579999999999991,
+        "median": 0.2579999999999991,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.25799999999985523,
+        "low": 0.2579999999997984,
+        "median": 0.2579999999998268,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.30799999999985417,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999982575,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 6,
+        "n": 180,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.0708043404086727,
+        "wilson_low": 0.015364790984832809
+      },
+      "separation_violations": 171
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.25,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.6500000000000004,
+        "low": 0.6400000000000003,
+        "median": 0.6500000000000004,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.2579999999999991,
+        "low": 0.2579999999999991,
+        "median": 0.2579999999999991,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.25799999999985523,
+        "low": 0.2579999999997984,
+        "median": 0.2579999999998268,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.30799999999985417,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999982575,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "clean",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 15
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.1,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.6400000000000003,
+        "low": 0.6100000000000003,
+        "median": 0.6200000000000003,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 639,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.10799999999999876,
+        "low": 0.10799999999999876,
+        "median": 0.10799999999999876,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.10799999999983356,
+        "low": 0.10799999999980159,
+        "median": 0.10799999999981402,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3079999999998293,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999980976,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.1,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 204
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.1,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.6400000000000003,
+        "low": 0.6000000000000003,
+        "median": 0.6300000000000003,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 639,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.10799999999999876,
+        "low": 0.10799999999999876,
+        "median": 0.10799999999999876,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.10799999999983356,
+        "low": 0.10799999999980159,
+        "median": 0.10799999999981402,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3079999999998293,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999980976,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.1,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 81
+    },
+    {
+      "T_s": 0.2,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.5400000000000003,
+        "low": 0.5000000000000002,
+        "median": 0.5200000000000002,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 9,
+      "holds": 252,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 171,
+        "rate": 0.0,
+        "wilson_high": 0.021971097968438207,
+        "wilson_low": 0.0
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 1,
+        "exposure_h": 0.07030463248370666,
+        "rate_per_hour": 14.22381377545432,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 171
+      },
+      "outage_land_link_age_s": {
+        "high": 0.20800000000000018,
+        "low": 0.2079999999999984,
+        "median": 0.20800000000000018,
+        "n": 171
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.15799999999980052,
+        "median": 0.1579999999998254,
+        "n": 171
+      },
+      "outage_reaction_land_s": {
+        "high": 0.20799999999983143,
+        "low": 0.20799999999979946,
+        "median": 0.20799999999982433,
+        "n": 171
+      },
+      "part_a_unnecessary_landings_per_hour": 6.4,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 78
+    },
+    {
+      "T_s": 0.2,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.5400000000000003,
+        "low": 0.5000000000000002,
+        "median": 0.5200000000000002,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 9,
+      "holds": 252,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 171,
+        "rate": 0.0,
+        "wilson_high": 0.021971097968438207,
+        "wilson_low": 0.0
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 1,
+        "exposure_h": 0.07030463248370666,
+        "rate_per_hour": 14.22381377545432,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 171
+      },
+      "outage_land_link_age_s": {
+        "high": 0.20800000000000018,
+        "low": 0.2079999999999984,
+        "median": 0.20800000000000018,
+        "n": 171
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.15799999999980052,
+        "median": 0.1579999999998254,
+        "n": 171
+      },
+      "outage_reaction_land_s": {
+        "high": 0.20799999999983143,
+        "low": 0.20799999999979946,
+        "median": 0.20799999999982433,
+        "n": 171
+      },
+      "part_a_unnecessary_landings_per_hour": 6.4,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 78
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.6400000000000003,
+        "low": 0.6100000000000003,
+        "median": 0.6300000000000003,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 261,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999981296,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3079999999998293,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999980976,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.1,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 156
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.6400000000000003,
+        "low": 0.6000000000000003,
+        "median": 0.6350000000000003,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 261,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999981296,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3079999999998293,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999980976,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.1,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 78
+    },
+    {
+      "T_s": 0.5,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.8400000000000005,
+        "low": 0.8100000000000005,
+        "median": 0.8300000000000005,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 261,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.5079999999999991,
+        "low": 0.5079999999999991,
+        "median": 0.5079999999999991,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999981296,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.507999999999825,
+        "low": 0.5079999999997931,
+        "median": 0.5079999999998055,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 237
+    },
+    {
+      "T_s": 0.5,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.8400000000000005,
+        "low": 0.8000000000000005,
+        "median": 0.8350000000000005,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 261,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.5079999999999991,
+        "low": 0.5079999999999991,
+        "median": 0.5079999999999991,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999981296,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.507999999999825,
+        "low": 0.5079999999997931,
+        "median": 0.5079999999998055,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 198
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 1.340000000000001,
+        "low": 1.310000000000001,
+        "median": 1.330000000000001,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 282,
+      "landings": 120,
+      "late": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "late_airborne_at_blackout": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 1.0079999999999991,
+        "low": 1.0079999999999991,
+        "median": 1.0079999999999991,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999981296,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 1.0079999999998375,
+        "low": 1.0079999999997984,
+        "median": 1.0079999999998108,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "separation_violations": 704
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 1.340000000000001,
+        "low": 1.300000000000001,
+        "median": 1.330000000000001,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 282,
+      "landings": 120,
+      "late": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "late_airborne_at_blackout": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 1.0079999999999991,
+        "low": 1.0079999999999991,
+        "median": 1.0079999999999991,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999981296,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 1.0079999999998375,
+        "low": 1.0079999999997984,
+        "median": 1.0079999999998108,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "separation_violations": 655
+    },
+    {
+      "T_s": 2.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 2.0000000000000013,
+        "low": 2.0000000000000013,
+        "median": 2.0000000000000013,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 282,
+      "landings": 120,
+      "late": {
+        "count": 10,
+        "n": 180,
+        "rate": 0.05555555555555555,
+        "wilson_high": 0.09923161341745598,
+        "wilson_low": 0.030453273623977817
+      },
+      "late_airborne_at_blackout": {
+        "count": 10,
+        "n": 180,
+        "rate": 0.05555555555555555,
+        "wilson_high": 0.09923161341745598,
+        "wilson_low": 0.030453273623977817
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 2.007999999999999,
+        "low": 2.007999999999999,
+        "median": 2.007999999999999,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999981296,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 2.0079999999998286,
+        "low": 2.007999999999786,
+        "median": 2.0079999999998064,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 10,
+        "n": 180,
+        "rate": 0.05555555555555555,
+        "wilson_high": 0.09923161341745598,
+        "wilson_low": 0.030453273623977817
+      },
+      "separation_violations": 1150
+    },
+    {
+      "T_s": 2.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 2.0000000000000013,
+        "low": 2.0000000000000013,
+        "median": 2.0000000000000013,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 282,
+      "landings": 120,
+      "late": {
+        "count": 10,
+        "n": 180,
+        "rate": 0.05555555555555555,
+        "wilson_high": 0.09923161341745598,
+        "wilson_low": 0.030453273623977817
+      },
+      "late_airborne_at_blackout": {
+        "count": 10,
+        "n": 180,
+        "rate": 0.05555555555555555,
+        "wilson_high": 0.09923161341745598,
+        "wilson_low": 0.030453273623977817
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 2.007999999999999,
+        "low": 2.007999999999999,
+        "median": 2.007999999999999,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999981296,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 2.0079999999998286,
+        "low": 2.007999999999786,
+        "median": 2.0079999999998064,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 10,
+        "n": 180,
+        "rate": 0.05555555555555555,
+        "wilson_high": 0.09923161341745598,
+        "wilson_low": 0.030453273623977817
+      },
+      "separation_violations": 1117
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.25,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.6400000000000003,
+        "low": 0.6100000000000003,
+        "median": 0.6300000000000003,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.2579999999999991,
+        "low": 0.2579999999999991,
+        "median": 0.2579999999999991,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.25799999999983037,
+        "low": 0.2579999999997984,
+        "median": 0.2579999999998108,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3079999999998293,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999980976,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.1,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 135
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.25,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.6400000000000003,
+        "low": 0.6000000000000003,
+        "median": 0.6350000000000003,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.2579999999999991,
+        "low": 0.2579999999999991,
+        "median": 0.2579999999999991,
+        "n": 180
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.25799999999983037,
+        "low": 0.2579999999997984,
+        "median": 0.2579999999998108,
+        "n": 180
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3079999999998293,
+        "low": 0.3079999999997973,
+        "median": 0.30799999999980976,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.1,
+      "preset": "iid_10",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 78
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.1,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.5800000000000003,
+        "low": 0.5500000000000003,
+        "median": 0.5700000000000003,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 18,
+      "holds": 2853,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 162,
+        "rate": 0.018518518518518517,
+        "wilson_high": 0.05302494281805918,
+        "wilson_low": 0.006317629845478453
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 2,
+        "exposure_h": 0.06641770908257368,
+        "rate_per_hour": 30.11245084520311,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.10799999999999876,
+        "low": 0.10799999999999876,
+        "median": 0.10799999999999876,
+        "n": 153
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 162
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.10799999999982646,
+        "low": 0.10799999999980159,
+        "median": 0.10799999999980336,
+        "n": 153
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3079999999998222,
+        "low": 0.3079999999997849,
+        "median": 0.3079999999997982,
+        "n": 162
+      },
+      "part_a_unnecessary_landings_per_hour": 36.8,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 543
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.1,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.5900000000000003,
+        "low": 0.5000000000000002,
+        "median": 0.5600000000000003,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 18,
+      "holds": 2853,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 162,
+        "rate": 0.018518518518518517,
+        "wilson_high": 0.05302494281805918,
+        "wilson_low": 0.006317629845478453
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 2,
+        "exposure_h": 0.06641770908257368,
+        "rate_per_hour": 30.11245084520311,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.10799999999999876,
+        "low": 0.10799999999999876,
+        "median": 0.10799999999999876,
+        "n": 153
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 162
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.10799999999982646,
+        "low": 0.10799999999980159,
+        "median": 0.10799999999980336,
+        "n": 153
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3079999999998222,
+        "low": 0.3079999999997849,
+        "median": 0.3079999999997982,
+        "n": 162
+      },
+      "part_a_unnecessary_landings_per_hour": 36.8,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 462
+    },
+    {
+      "T_s": 0.2,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 135,
+      "holds": 468,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 45,
+        "rate": 0.0,
+        "wilson_high": 0.07865159873288836,
+        "wilson_low": 0.0
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 15,
+        "exposure_h": 0.036325453396343785,
+        "rate_per_hour": 412.933593321915,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 36
+      },
+      "outage_land_link_age_s": {
+        "high": 0.20800000000000018,
+        "low": 0.2079999999999984,
+        "median": 0.2079999999999984,
+        "n": 45
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998254,
+        "low": 0.1579999999998023,
+        "median": 0.15799999999981384,
+        "n": 36
+      },
+      "outage_reaction_land_s": {
+        "high": 0.20799999999982433,
+        "low": 0.20799999999978702,
+        "median": 0.20799999999980123,
+        "n": 45
+      },
+      "part_a_unnecessary_landings_per_hour": 415.4,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 237
+    },
+    {
+      "T_s": 0.2,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 135,
+      "holds": 468,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 45,
+        "rate": 0.06666666666666667,
+        "wilson_high": 0.17856601963591895,
+        "wilson_low": 0.022932032599250987
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 15,
+        "exposure_h": 0.036325453396343785,
+        "rate_per_hour": 412.933593321915,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 36
+      },
+      "outage_land_link_age_s": {
+        "high": 0.20800000000000018,
+        "low": 0.2079999999999984,
+        "median": 0.2079999999999984,
+        "n": 45
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998254,
+        "low": 0.1579999999998023,
+        "median": 0.15799999999981384,
+        "n": 36
+      },
+      "outage_reaction_land_s": {
+        "high": 0.20799999999982433,
+        "low": 0.20799999999978702,
+        "median": 0.20799999999980123,
+        "n": 45
+      },
+      "part_a_unnecessary_landings_per_hour": 415.4,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 321
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.5800000000000003,
+        "low": 0.5300000000000002,
+        "median": 0.5700000000000003,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 18,
+      "holds": 972,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 162,
+        "rate": 0.018518518518518517,
+        "wilson_high": 0.05302494281805918,
+        "wilson_low": 0.006317629845478453
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 2,
+        "exposure_h": 0.06641770908257368,
+        "rate_per_hour": 30.11245084520311,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 153
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 162
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998254,
+        "low": 0.15799999999980052,
+        "median": 0.1579999999998023,
+        "n": 153
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3079999999998222,
+        "low": 0.3079999999997849,
+        "median": 0.3079999999997982,
+        "n": 162
+      },
+      "part_a_unnecessary_landings_per_hour": 36.8,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 498
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.5900000000000003,
+        "low": 0.5000000000000002,
+        "median": 0.5600000000000003,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 18,
+      "holds": 972,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 162,
+        "rate": 0.018518518518518517,
+        "wilson_high": 0.05302494281805918,
+        "wilson_low": 0.006317629845478453
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 2,
+        "exposure_h": 0.06641770908257368,
+        "rate_per_hour": 30.11245084520311,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 153
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 162
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998254,
+        "low": 0.15799999999980052,
+        "median": 0.1579999999998023,
+        "n": 153
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3079999999998222,
+        "low": 0.3079999999997849,
+        "median": 0.3079999999997982,
+        "n": 162
+      },
+      "part_a_unnecessary_landings_per_hour": 36.8,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 456
+    },
+    {
+      "T_s": 0.5,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.7900000000000005,
+        "low": 0.7700000000000005,
+        "median": 0.7800000000000005,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 1044,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 171
+      },
+      "outage_land_link_age_s": {
+        "high": 0.5079999999999991,
+        "low": 0.5079999999999991,
+        "median": 0.5079999999999991,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.1579999999998023,
+        "median": 0.1579999999998254,
+        "n": 171
+      },
+      "outage_reaction_land_s": {
+        "high": 0.507999999999825,
+        "low": 0.5079999999997931,
+        "median": 0.5079999999998064,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.2,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 591
+    },
+    {
+      "T_s": 0.5,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.8200000000000005,
+        "low": 0.7500000000000004,
+        "median": 0.7850000000000005,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 1044,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 171
+      },
+      "outage_land_link_age_s": {
+        "high": 0.5079999999999991,
+        "low": 0.5079999999999991,
+        "median": 0.5079999999999991,
+        "n": 180
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.1579999999998023,
+        "median": 0.1579999999998254,
+        "n": 171
+      },
+      "outage_reaction_land_s": {
+        "high": 0.507999999999825,
+        "low": 0.5079999999997931,
+        "median": 0.5079999999998064,
+        "n": 180
+      },
+      "part_a_unnecessary_landings_per_hour": 0.2,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 444
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 1.290000000000001,
+        "low": 1.270000000000001,
+        "median": 1.280000000000001,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 1455,
+      "landings": 120,
+      "late": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "late_airborne_at_blackout": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 174
+      },
+      "outage_land_link_age_s": {
+        "high": 1.0079999999999991,
+        "low": 1.0079999999999991,
+        "median": 1.0079999999999991,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985914,
+        "low": 0.1579999999998023,
+        "median": 0.1579999999998254,
+        "n": 174
+      },
+      "outage_reaction_land_s": {
+        "high": 1.0079999999998375,
+        "low": 1.0079999999997984,
+        "median": 1.0079999999998108,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 8,
+        "n": 180,
+        "rate": 0.044444444444444446,
+        "wilson_high": 0.08523691576429276,
+        "wilson_low": 0.022690093453176886
+      },
+      "separation_violations": 1261
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 1.310000000000001,
+        "low": 1.260000000000001,
+        "median": 1.280000000000001,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 1455,
+      "landings": 120,
+      "late": {
+        "count": 7,
+        "n": 180,
+        "rate": 0.03888888888888889,
+        "wilson_high": 0.07808477811507364,
+        "wilson_low": 0.018963292190413962
+      },
+      "late_airborne_at_blackout": {
+        "count": 7,
+        "n": 180,
+        "rate": 0.03888888888888889,
+        "wilson_high": 0.07808477811507364,
+        "wilson_low": 0.018963292190413962
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 174
+      },
+      "outage_land_link_age_s": {
+        "high": 1.0079999999999991,
+        "low": 1.0079999999999991,
+        "median": 1.0079999999999991,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985914,
+        "low": 0.1579999999998023,
+        "median": 0.1579999999998254,
+        "n": 174
+      },
+      "outage_reaction_land_s": {
+        "high": 1.0079999999998375,
+        "low": 1.0079999999997984,
+        "median": 1.0079999999998108,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 7,
+        "n": 180,
+        "rate": 0.03888888888888889,
+        "wilson_high": 0.07808477811507364,
+        "wilson_low": 0.018963292190413962
+      },
+      "separation_violations": 994
+    },
+    {
+      "T_s": 2.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 2.0000000000000013,
+        "low": 2.0000000000000013,
+        "median": 2.0000000000000013,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 1455,
+      "landings": 120,
+      "late": {
+        "count": 10,
+        "n": 180,
+        "rate": 0.05555555555555555,
+        "wilson_high": 0.09923161341745598,
+        "wilson_low": 0.030453273623977817
+      },
+      "late_airborne_at_blackout": {
+        "count": 10,
+        "n": 180,
+        "rate": 0.05555555555555555,
+        "wilson_high": 0.09923161341745598,
+        "wilson_low": 0.030453273623977817
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 174
+      },
+      "outage_land_link_age_s": {
+        "high": 2.007999999999999,
+        "low": 2.007999999999999,
+        "median": 2.007999999999999,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985914,
+        "low": 0.1579999999998023,
+        "median": 0.1579999999998254,
+        "n": 174
+      },
+      "outage_reaction_land_s": {
+        "high": 2.0079999999998286,
+        "low": 2.007999999999786,
+        "median": 2.0079999999998064,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 10,
+        "n": 180,
+        "rate": 0.05555555555555555,
+        "wilson_high": 0.09923161341745598,
+        "wilson_low": 0.030453273623977817
+      },
+      "separation_violations": 1681
+    },
+    {
+      "T_s": 2.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 2.0000000000000013,
+        "low": 2.0000000000000013,
+        "median": 2.0000000000000013,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 1455,
+      "landings": 120,
+      "late": {
+        "count": 9,
+        "n": 180,
+        "rate": 0.05,
+        "wilson_high": 0.09228080964644456,
+        "wilson_low": 0.026525138483007187
+      },
+      "late_airborne_at_blackout": {
+        "count": 9,
+        "n": 180,
+        "rate": 0.05,
+        "wilson_high": 0.09228080964644456,
+        "wilson_low": 0.026525138483007187
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 174
+      },
+      "outage_land_link_age_s": {
+        "high": 2.007999999999999,
+        "low": 2.007999999999999,
+        "median": 2.007999999999999,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985914,
+        "low": 0.1579999999998023,
+        "median": 0.1579999999998254,
+        "n": 174
+      },
+      "outage_reaction_land_s": {
+        "high": 2.0079999999998286,
+        "low": 2.007999999999786,
+        "median": 2.0079999999998064,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 0.0,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 9,
+        "n": 180,
+        "rate": 0.05,
+        "wilson_high": 0.09228080964644456,
+        "wilson_low": 0.026525138483007187
+      },
+      "separation_violations": 1434
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.25,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.5800000000000003,
+        "low": 0.5100000000000002,
+        "median": 0.5700000000000003,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 18,
+      "holds": 216,
+      "landings": 180,
+      "late": {
+        "count": 6,
+        "n": 180,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.0708043404086727,
+        "wilson_low": 0.015364790984832809
+      },
+      "late_airborne_at_blackout": {
+        "count": 6,
+        "n": 162,
+        "rate": 0.037037037037037035,
+        "wilson_high": 0.07843871334226116,
+        "wilson_low": 0.01708299114190962
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 2,
+        "exposure_h": 0.06641770908257368,
+        "rate_per_hour": 30.11245084520311,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.2579999999999991,
+        "low": 0.2579999999999991,
+        "median": 0.2579999999999991,
+        "n": 162
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 162
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.25799999999982326,
+        "low": 0.25799999999978596,
+        "median": 0.2579999999997993,
+        "n": 162
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3079999999998222,
+        "low": 0.3079999999997849,
+        "median": 0.3079999999997982,
+        "n": 162
+      },
+      "part_a_unnecessary_landings_per_hour": 36.8,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 6,
+        "n": 180,
+        "rate": 0.03333333333333333,
+        "wilson_high": 0.0708043404086727,
+        "wilson_low": 0.015364790984832809
+      },
+      "separation_violations": 492
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.25,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.5900000000000003,
+        "low": 0.5000000000000002,
+        "median": 0.5550000000000003,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 18,
+      "holds": 216,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 162,
+        "rate": 0.018518518518518517,
+        "wilson_high": 0.05302494281805918,
+        "wilson_low": 0.006317629845478453
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 2,
+        "exposure_h": 0.06641770908257368,
+        "rate_per_hour": 30.11245084520311,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.2579999999999991,
+        "low": 0.2579999999999991,
+        "median": 0.2579999999999991,
+        "n": 162
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 162
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.25799999999982326,
+        "low": 0.25799999999978596,
+        "median": 0.2579999999997993,
+        "n": 162
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3079999999998222,
+        "low": 0.3079999999997849,
+        "median": 0.3079999999997982,
+        "n": 162
+      },
+      "part_a_unnecessary_landings_per_hour": 36.8,
+      "preset": "iid_30",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 339
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.1,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 117,
+      "holds": 261,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 63,
+        "rate": 0.0,
+        "wilson_high": 0.05747119958885172,
+        "wilson_low": 3.469446951953614e-18
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 13,
+        "exposure_h": 0.03398467066575333,
+        "rate_per_hour": 382.52540764210556,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.10799999999999876,
+        "low": 0.10799999999999876,
+        "median": 0.10799999999999876,
+        "n": 63
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 63
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.10800000000000054,
+        "low": 0.10799999999985843,
+        "median": 0.10799999999997567,
+        "n": 63
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3080000000000318,
+        "low": 0.30799999999985417,
+        "median": 0.30800000000000693,
+        "n": 63
+      },
+      "part_a_unnecessary_landings_per_hour": 414.3,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.1,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 117,
+      "holds": 261,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 63,
+        "rate": 0.0,
+        "wilson_high": 0.05747119958885172,
+        "wilson_low": 3.469446951953614e-18
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 13,
+        "exposure_h": 0.03398467066575333,
+        "rate_per_hour": 382.52540764210556,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.10799999999999876,
+        "low": 0.10799999999999876,
+        "median": 0.10799999999999876,
+        "n": 63
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 63
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.10800000000000054,
+        "low": 0.10799999999985843,
+        "median": 0.10799999999997567,
+        "n": 63
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3080000000000318,
+        "low": 0.30799999999985417,
+        "median": 0.30800000000000693,
+        "n": 63
+      },
+      "part_a_unnecessary_landings_per_hour": 414.3,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.2,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 153,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 27,
+        "rate": 0.0,
+        "wilson_high": 0.12455502974186705,
+        "wilson_low": 0.0
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 17,
+        "exposure_h": 0.023992781792265622,
+        "rate_per_hour": 708.5464348064952,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15800000000000125,
+        "low": 0.1579999999999977,
+        "median": 0.15799999999999947,
+        "n": 27
+      },
+      "outage_land_link_age_s": {
+        "high": 0.20800000000000196,
+        "low": 0.2079999999999984,
+        "median": 0.20800000000000018,
+        "n": 27
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15800000000000836,
+        "low": 0.15799999999980052,
+        "median": 0.1579999999999835,
+        "n": 27
+      },
+      "outage_reaction_land_s": {
+        "high": 0.20800000000001617,
+        "low": 0.20799999999979946,
+        "median": 0.2079999999999913,
+        "n": 27
+      },
+      "part_a_unnecessary_landings_per_hour": 506.6,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.2,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 153,
+      "holds": 180,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 27,
+        "rate": 0.0,
+        "wilson_high": 0.12455502974186705,
+        "wilson_low": 0.0
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 17,
+        "exposure_h": 0.023992781792265622,
+        "rate_per_hour": 708.5464348064952,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15800000000000125,
+        "low": 0.1579999999999977,
+        "median": 0.15799999999999947,
+        "n": 27
+      },
+      "outage_land_link_age_s": {
+        "high": 0.20800000000000196,
+        "low": 0.2079999999999984,
+        "median": 0.20800000000000018,
+        "n": 27
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15800000000000836,
+        "low": 0.15799999999980052,
+        "median": 0.1579999999999835,
+        "n": 27
+      },
+      "outage_reaction_land_s": {
+        "high": 0.20800000000001617,
+        "low": 0.20799999999979946,
+        "median": 0.2079999999999913,
+        "n": 27
+      },
+      "part_a_unnecessary_landings_per_hour": 506.6,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 117,
+      "holds": 234,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 63,
+        "rate": 0.0,
+        "wilson_high": 0.05747119958885172,
+        "wilson_low": 3.469446951953614e-18
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 13,
+        "exposure_h": 0.03398467066575333,
+        "rate_per_hour": 382.52540764210556,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 63
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 63
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15800000000000836,
+        "low": 0.15799999999985737,
+        "median": 0.1579999999999835,
+        "n": 63
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3080000000000318,
+        "low": 0.30799999999985417,
+        "median": 0.30800000000000693,
+        "n": 63
+      },
+      "part_a_unnecessary_landings_per_hour": 414.3,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 117,
+      "holds": 234,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 63,
+        "rate": 0.0,
+        "wilson_high": 0.05747119958885172,
+        "wilson_low": 3.469446951953614e-18
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 13,
+        "exposure_h": 0.03398467066575333,
+        "rate_per_hour": 382.52540764210556,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 63
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 63
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15800000000000836,
+        "low": 0.15799999999985737,
+        "median": 0.1579999999999835,
+        "n": 63
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3080000000000318,
+        "low": 0.30799999999985417,
+        "median": 0.30800000000000693,
+        "n": 63
+      },
+      "part_a_unnecessary_landings_per_hour": 414.3,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.5,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.5000000000000002,
+        "low": 0.0,
+        "median": 0.24500000000000013,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 90,
+      "holds": 306,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 90,
+        "rate": 0.0,
+        "wilson_high": 0.04093562556432678,
+        "wilson_low": 0.0
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 10,
+        "exposure_h": 0.04490874310620432,
+        "rate_per_hour": 222.67378929646466,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 81
+      },
+      "outage_land_link_age_s": {
+        "high": 0.5079999999999991,
+        "low": 0.5079999999999991,
+        "median": 0.5079999999999991,
+        "n": 90
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999999835,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999985737,
+        "n": 81
+      },
+      "outage_reaction_land_s": {
+        "high": 0.5080000000000382,
+        "low": 0.5079999999997931,
+        "median": 0.5079999999998215,
+        "n": 90
+      },
+      "part_a_unnecessary_landings_per_hour": 275.6,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.5,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.5000000000000002,
+        "low": 0.0,
+        "median": 0.24500000000000013,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 90,
+      "holds": 306,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 90,
+        "rate": 0.0,
+        "wilson_high": 0.04093562556432678,
+        "wilson_low": 0.0
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 10,
+        "exposure_h": 0.04490874310620432,
+        "rate_per_hour": 222.67378929646466,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 81
+      },
+      "outage_land_link_age_s": {
+        "high": 0.5079999999999991,
+        "low": 0.5079999999999991,
+        "median": 0.5079999999999991,
+        "n": 90
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999999835,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999985737,
+        "n": 81
+      },
+      "outage_reaction_land_s": {
+        "high": 0.5080000000000382,
+        "low": 0.5079999999997931,
+        "median": 0.5079999999998215,
+        "n": 90
+      },
+      "part_a_unnecessary_landings_per_hour": 275.6,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 1.350000000000001,
+        "low": 0.5000000000000002,
+        "median": 1.1600000000000008,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 36,
+      "holds": 543,
+      "landings": 156,
+      "late": {
+        "count": 5,
+        "n": 180,
+        "rate": 0.027777777777777776,
+        "wilson_high": 0.06336807044843389,
+        "wilson_low": 0.011922122033089549
+      },
+      "late_airborne_at_blackout": {
+        "count": 5,
+        "n": 144,
+        "rate": 0.034722222222222224,
+        "wilson_high": 0.07870291996567921,
+        "wilson_low": 0.014920742375757766
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 4,
+        "exposure_h": 0.06117266718209983,
+        "rate_per_hour": 65.38868066832418,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 138
+      },
+      "outage_land_link_age_s": {
+        "high": 1.0079999999999991,
+        "low": 1.0079999999999991,
+        "median": 1.0079999999999991,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.15799999999980052,
+        "median": 0.1579999999998254,
+        "n": 138
+      },
+      "outage_reaction_land_s": {
+        "high": 1.0080000000001164,
+        "low": 1.0079999999998144,
+        "median": 1.0079999999998384,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 105.3,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 5,
+        "n": 180,
+        "rate": 0.027777777777777776,
+        "wilson_high": 0.06336807044843389,
+        "wilson_low": 0.011922122033089549
+      },
+      "separation_violations": 569
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 1.340000000000001,
+        "low": 0.5000000000000002,
+        "median": 1.165000000000001,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 36,
+      "holds": 543,
+      "landings": 156,
+      "late": {
+        "count": 5,
+        "n": 180,
+        "rate": 0.027777777777777776,
+        "wilson_high": 0.06336807044843389,
+        "wilson_low": 0.011922122033089549
+      },
+      "late_airborne_at_blackout": {
+        "count": 5,
+        "n": 144,
+        "rate": 0.034722222222222224,
+        "wilson_high": 0.07870291996567921,
+        "wilson_low": 0.014920742375757766
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 4,
+        "exposure_h": 0.06117266718209983,
+        "rate_per_hour": 65.38868066832418,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 138
+      },
+      "outage_land_link_age_s": {
+        "high": 1.0079999999999991,
+        "low": 1.0079999999999991,
+        "median": 1.0079999999999991,
+        "n": 120
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998325,
+        "low": 0.15799999999980052,
+        "median": 0.1579999999998254,
+        "n": 138
+      },
+      "outage_reaction_land_s": {
+        "high": 1.0080000000001164,
+        "low": 1.0079999999998144,
+        "median": 1.0079999999998384,
+        "n": 120
+      },
+      "part_a_unnecessary_landings_per_hour": 105.3,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 5,
+        "n": 180,
+        "rate": 0.027777777777777776,
+        "wilson_high": 0.06336807044843389,
+        "wilson_low": 0.011922122033089549
+      },
+      "separation_violations": 598
+    },
+    {
+      "T_s": 2.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 2.0000000000000013,
+        "low": 2.0000000000000013,
+        "median": 2.0000000000000013,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 0,
+      "holds": 678,
+      "landings": 126,
+      "late": {
+        "count": 7,
+        "n": 180,
+        "rate": 0.03888888888888889,
+        "wilson_high": 0.07808477811507364,
+        "wilson_low": 0.018963292190413962
+      },
+      "late_airborne_at_blackout": {
+        "count": 7,
+        "n": 180,
+        "rate": 0.03888888888888889,
+        "wilson_high": 0.07808477811507364,
+        "wilson_low": 0.018963292190413962
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 165
+      },
+      "outage_land_link_age_s": {
+        "high": 2.007999999999999,
+        "low": 2.007999999999999,
+        "median": 2.007999999999999,
+        "n": 126
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.1579999999998325,
+        "n": 165
+      },
+      "outage_reaction_land_s": {
+        "high": 2.007999999999994,
+        "low": 2.007999999999793,
+        "median": 2.0079999999998286,
+        "n": 126
+      },
+      "part_a_unnecessary_landings_per_hour": 13.2,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 7,
+        "n": 180,
+        "rate": 0.03888888888888889,
+        "wilson_high": 0.07808477811507364,
+        "wilson_low": 0.018963292190413962
+      },
+      "separation_violations": 1317
+    },
+    {
+      "T_s": 2.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 2.0000000000000013,
+        "low": 2.0000000000000013,
+        "median": 2.0000000000000013,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 0,
+      "holds": 678,
+      "landings": 126,
+      "late": {
+        "count": 7,
+        "n": 180,
+        "rate": 0.03888888888888889,
+        "wilson_high": 0.07808477811507364,
+        "wilson_low": 0.018963292190413962
+      },
+      "late_airborne_at_blackout": {
+        "count": 7,
+        "n": 180,
+        "rate": 0.03888888888888889,
+        "wilson_high": 0.07808477811507364,
+        "wilson_low": 0.018963292190413962
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 0,
+        "exposure_h": 0.07147926878292363,
+        "rate_per_hour": 0.0,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 165
+      },
+      "outage_land_link_age_s": {
+        "high": 2.007999999999999,
+        "low": 2.007999999999999,
+        "median": 2.007999999999999,
+        "n": 126
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999985737,
+        "low": 0.15799999999980052,
+        "median": 0.1579999999998325,
+        "n": 165
+      },
+      "outage_reaction_land_s": {
+        "high": 2.007999999999994,
+        "low": 2.007999999999793,
+        "median": 2.0079999999998286,
+        "n": 126
+      },
+      "part_a_unnecessary_landings_per_hour": 13.2,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 7,
+        "n": 180,
+        "rate": 0.03888888888888889,
+        "wilson_high": 0.07808477811507364,
+        "wilson_low": 0.018963292190413962
+      },
+      "separation_violations": 1305
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.25,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 117,
+      "holds": 207,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 63,
+        "rate": 0.047619047619047616,
+        "wilson_high": 0.13090967837906073,
+        "wilson_low": 0.0163261688679956
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 13,
+        "exposure_h": 0.03398467066575333,
+        "rate_per_hour": 382.52540764210556,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.2579999999999991,
+        "low": 0.2579999999999991,
+        "median": 0.2579999999999991,
+        "n": 63
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 63
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.258000000000024,
+        "low": 0.25799999999985523,
+        "median": 0.2579999999999991,
+        "n": 63
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3080000000000318,
+        "low": 0.30799999999985417,
+        "median": 0.30800000000000693,
+        "n": 63
+      },
+      "part_a_unnecessary_landings_per_hour": 414.3,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 105
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.25,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 117,
+      "holds": 207,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 63,
+        "rate": 0.0,
+        "wilson_high": 0.05747119958885172,
+        "wilson_low": 3.469446951953614e-18
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 13,
+        "exposure_h": 0.03398467066575333,
+        "rate_per_hour": 382.52540764210556,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.2579999999999991,
+        "low": 0.2579999999999991,
+        "median": 0.2579999999999991,
+        "n": 63
+      },
+      "outage_land_link_age_s": {
+        "high": 0.30799999999999983,
+        "low": 0.30799999999999983,
+        "median": 0.30799999999999983,
+        "n": 63
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.258000000000024,
+        "low": 0.25799999999985523,
+        "median": 0.2579999999999991,
+        "n": 63
+      },
+      "outage_reaction_land_s": {
+        "high": 0.3080000000000318,
+        "low": 0.30799999999985417,
+        "median": 0.30800000000000693,
+        "n": 63
+      },
+      "part_a_unnecessary_landings_per_hour": 414.3,
+      "preset": "burst_10_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.1,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 180,
+      "holds": 279,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 0,
+        "rate": null,
+        "wilson_high": null,
+        "wilson_low": null
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 20,
+        "exposure_h": 0.009347222222222165,
+        "rate_per_hour": 2139.6731054977845,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_land_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_hold_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_land_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "part_a_unnecessary_landings_per_hour": 1246.8,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.1,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 180,
+      "holds": 279,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 0,
+        "rate": null,
+        "wilson_high": null,
+        "wilson_low": null
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 20,
+        "exposure_h": 0.009347222222222165,
+        "rate_per_hour": 2139.6731054977845,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_land_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_hold_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_land_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "part_a_unnecessary_landings_per_hour": 1246.8,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.2,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 180,
+      "holds": 198,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 0,
+        "rate": null,
+        "wilson_high": null,
+        "wilson_low": null
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 20,
+        "exposure_h": 0.007180555555555523,
+        "rate_per_hour": 2785.299806576415,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_land_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_hold_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_land_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "part_a_unnecessary_landings_per_hour": 1524.8,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.2,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 180,
+      "holds": 198,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 0,
+        "rate": null,
+        "wilson_high": null,
+        "wilson_low": null
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 20,
+        "exposure_h": 0.007180555555555523,
+        "rate_per_hour": 2785.299806576415,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_land_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_hold_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_land_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "part_a_unnecessary_landings_per_hour": 1524.8,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 180,
+      "holds": 252,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 0,
+        "rate": null,
+        "wilson_high": null,
+        "wilson_low": null
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 20,
+        "exposure_h": 0.009347222222222165,
+        "rate_per_hour": 2139.6731054977845,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_land_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_hold_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_land_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "part_a_unnecessary_landings_per_hour": 1246.8,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 180,
+      "holds": 252,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 0,
+        "rate": null,
+        "wilson_high": null,
+        "wilson_low": null
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 20,
+        "exposure_h": 0.009347222222222165,
+        "rate_per_hour": 2139.6731054977845,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_land_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_hold_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_land_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "part_a_unnecessary_landings_per_hour": 1246.8,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.5,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 180,
+      "holds": 324,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 0,
+        "rate": null,
+        "wilson_high": null,
+        "wilson_low": null
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 20,
+        "exposure_h": 0.016602777777777616,
+        "rate_per_hour": 1204.6177011878985,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_land_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_hold_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_land_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "part_a_unnecessary_landings_per_hour": 835.6,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 135
+    },
+    {
+      "T_s": 0.5,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 180,
+      "holds": 324,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 0,
+        "rate": null,
+        "wilson_high": null,
+        "wilson_low": null
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 20,
+        "exposure_h": 0.016602777777777616,
+        "rate_per_hour": 1204.6177011878985,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_land_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_hold_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_land_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "part_a_unnecessary_landings_per_hour": 835.6,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 123
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 144,
+      "holds": 660,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 36,
+        "rate": 0.08333333333333333,
+        "wilson_high": 0.2182669124927263,
+        "wilson_low": 0.02874861133599338
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 16,
+        "exposure_h": 0.03419021742528397,
+        "rate_per_hour": 467.9701155736979,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 36
+      },
+      "outage_land_link_age_s": {
+        "high": 1.0079999999999991,
+        "low": 1.0079999999999991,
+        "median": 1.0079999999999991,
+        "n": 36
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998254,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999981296,
+        "n": 36
+      },
+      "outage_reaction_land_s": {
+        "high": 2.707999999999764,
+        "low": 1.0079999999997984,
+        "median": 1.0329999999998032,
+        "n": 36
+      },
+      "part_a_unnecessary_landings_per_hour": 311.8,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 800
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 144,
+      "holds": 660,
+      "landings": 180,
+      "late": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "late_airborne_at_blackout": {
+        "count": 3,
+        "n": 36,
+        "rate": 0.08333333333333333,
+        "wilson_high": 0.2182669124927263,
+        "wilson_low": 0.02874861133599338
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 16,
+        "exposure_h": 0.03419021742528397,
+        "rate_per_hour": 467.9701155736979,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 36
+      },
+      "outage_land_link_age_s": {
+        "high": 1.0079999999999991,
+        "low": 1.0079999999999991,
+        "median": 1.0079999999999991,
+        "n": 36
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.1579999999998254,
+        "low": 0.15799999999980052,
+        "median": 0.15799999999981296,
+        "n": 36
+      },
+      "outage_reaction_land_s": {
+        "high": 2.707999999999764,
+        "low": 1.0079999999997984,
+        "median": 1.0329999999998032,
+        "n": 36
+      },
+      "part_a_unnecessary_landings_per_hour": 311.8,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 3,
+        "n": 180,
+        "rate": 0.016666666666666666,
+        "wilson_high": 0.04784822803707184,
+        "wilson_low": 0.005684086620487437
+      },
+      "separation_violations": 596
+    },
+    {
+      "T_s": 2.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 2.0000000000000013,
+        "low": 0.5000000000000002,
+        "median": 1.7150000000000012,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 36,
+      "holds": 1335,
+      "landings": 144,
+      "late": {
+        "count": 5,
+        "n": 180,
+        "rate": 0.027777777777777776,
+        "wilson_high": 0.06336807044843389,
+        "wilson_low": 0.011922122033089549
+      },
+      "late_airborne_at_blackout": {
+        "count": 5,
+        "n": 144,
+        "rate": 0.034722222222222224,
+        "wilson_high": 0.07870291996567921,
+        "wilson_low": 0.014920742375757766
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 4,
+        "exposure_h": 0.060902596174094104,
+        "rate_per_hour": 65.6786451034983,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 114
+      },
+      "outage_land_link_age_s": {
+        "high": 2.007999999999999,
+        "low": 2.007999999999999,
+        "median": 2.007999999999999,
+        "n": 108
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999986092,
+        "low": 0.15799999999980052,
+        "median": 0.1579999999998254,
+        "n": 114
+      },
+      "outage_reaction_land_s": {
+        "high": 2.0079999999998366,
+        "low": 2.007999999999786,
+        "median": 2.00799999999981,
+        "n": 108
+      },
+      "part_a_unnecessary_landings_per_hour": 40.4,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 5,
+        "n": 180,
+        "rate": 0.027777777777777776,
+        "wilson_high": 0.06336807044843389,
+        "wilson_low": 0.011922122033089549
+      },
+      "separation_violations": 2076
+    },
+    {
+      "T_s": 2.0,
+      "T_w_s": 0.15,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 2.0000000000000013,
+        "low": 0.5000000000000002,
+        "median": 1.7050000000000014,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 36,
+      "holds": 1335,
+      "landings": 144,
+      "late": {
+        "count": 5,
+        "n": 180,
+        "rate": 0.027777777777777776,
+        "wilson_high": 0.06336807044843389,
+        "wilson_low": 0.011922122033089549
+      },
+      "late_airborne_at_blackout": {
+        "count": 5,
+        "n": 144,
+        "rate": 0.034722222222222224,
+        "wilson_high": 0.07870291996567921,
+        "wilson_low": 0.014920742375757766
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 4,
+        "exposure_h": 0.060902596174094104,
+        "rate_per_hour": 65.6786451034983,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": 0.15799999999999947,
+        "low": 0.15799999999999947,
+        "median": 0.15799999999999947,
+        "n": 114
+      },
+      "outage_land_link_age_s": {
+        "high": 2.007999999999999,
+        "low": 2.007999999999999,
+        "median": 2.007999999999999,
+        "n": 108
+      },
+      "outage_reaction_hold_s": {
+        "high": 0.15799999999986092,
+        "low": 0.15799999999980052,
+        "median": 0.1579999999998254,
+        "n": 114
+      },
+      "outage_reaction_land_s": {
+        "high": 2.0079999999998366,
+        "low": 2.007999999999786,
+        "median": 2.00799999999981,
+        "n": 108
+      },
+      "part_a_unnecessary_landings_per_hour": 40.4,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 5,
+        "n": 180,
+        "rate": 0.027777777777777776,
+        "wilson_high": 0.06336807044843389,
+        "wilson_low": 0.011922122033089549
+      },
+      "separation_violations": 1828
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.25,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "hold",
+      "grounded_before_blackout": 180,
+      "holds": 207,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 0,
+        "rate": null,
+        "wilson_high": null,
+        "wilson_low": null
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 20,
+        "exposure_h": 0.009347222222222165,
+        "rate_per_hour": 2139.6731054977845,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_land_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_hold_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_land_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "part_a_unnecessary_landings_per_hour": 1246.8,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.25,
+      "adapter": "point_mass",
+      "blind_in_plane_s": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 180
+      },
+      "degraded_action": "slow",
+      "grounded_before_blackout": 180,
+      "holds": 207,
+      "landings": 180,
+      "late": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "late_airborne_at_blackout": {
+        "count": 0,
+        "n": 0,
+        "rate": null,
+        "wilson_high": null,
+        "wilson_low": null
+      },
+      "mission_observed_unnecessary_landings": {
+        "count": 20,
+        "exposure_h": 0.009347222222222165,
+        "rate_per_hour": 2139.6731054977845,
+        "seeds_counted": 20,
+        "seeds_with_inconsistent_history": 0
+      },
+      "n": 180,
+      "nominal_at_age_0_33": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "outage_hold_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_land_link_age_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_hold_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "outage_reaction_land_s": {
+        "high": null,
+        "low": null,
+        "median": null,
+        "n": 0
+      },
+      "part_a_unnecessary_landings_per_hour": 1246.8,
+      "preset": "burst_30_0.5s",
+      "separation_violation": {
+        "count": 0,
+        "n": 180,
+        "rate": 0.0,
+        "wilson_high": 0.02089549792161305,
+        "wilson_low": 0.0
+      },
+      "separation_violations": 0
+    }
+  ]
+}

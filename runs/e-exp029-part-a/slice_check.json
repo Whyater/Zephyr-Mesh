@@ -1,0 +1,160 @@
+{
+  "all_equal": true,
+  "checks": [
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "controller": {
+        "degraded_entries": 1392,
+        "degraded_steps": 9805,
+        "landings": 38
+      },
+      "equal": true,
+      "h_hz": 20.0,
+      "hours": 1.0,
+      "preset": "iid_30",
+      "vectorised": {
+        "degraded_entries": 1392,
+        "degraded_steps": 9805,
+        "landings": 38
+      },
+      "weak_rule": "age"
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "controller": {
+        "degraded_entries": 1392,
+        "degraded_steps": 10080,
+        "landings": 0
+      },
+      "equal": true,
+      "h_hz": 20.0,
+      "hours": 1.0,
+      "preset": "iid_30",
+      "vectorised": {
+        "degraded_entries": 1392,
+        "degraded_steps": 10080,
+        "landings": 0
+      },
+      "weak_rule": "age"
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "controller": {
+        "degraded_entries": 2992,
+        "degraded_steps": 207784,
+        "landings": 38
+      },
+      "equal": true,
+      "h_hz": 20.0,
+      "hours": 1.0,
+      "preset": "iid_30",
+      "vectorised": {
+        "degraded_entries": 2992,
+        "degraded_steps": 207784,
+        "landings": 38
+      },
+      "weak_rule": "age_or_loss"
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "controller": {
+        "degraded_entries": 2954,
+        "degraded_steps": 208059,
+        "landings": 0
+      },
+      "equal": true,
+      "h_hz": 20.0,
+      "hours": 1.0,
+      "preset": "iid_30",
+      "vectorised": {
+        "degraded_entries": 2954,
+        "degraded_steps": 208059,
+        "landings": 0
+      },
+      "weak_rule": "age_or_loss"
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "controller": {
+        "degraded_entries": 584,
+        "degraded_steps": 7870,
+        "landings": 429
+      },
+      "equal": true,
+      "h_hz": 20.0,
+      "hours": 1.0,
+      "preset": "burst_10_0.5s",
+      "vectorised": {
+        "degraded_entries": 584,
+        "degraded_steps": 7870,
+        "landings": 429
+      },
+      "weak_rule": "age"
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "controller": {
+        "degraded_entries": 584,
+        "degraded_steps": 24745,
+        "landings": 106
+      },
+      "equal": true,
+      "h_hz": 20.0,
+      "hours": 1.0,
+      "preset": "burst_10_0.5s",
+      "vectorised": {
+        "degraded_entries": 584,
+        "degraded_steps": 24745,
+        "landings": 106
+      },
+      "weak_rule": "age"
+    },
+    {
+      "T_s": 0.3,
+      "T_w_s": 0.15,
+      "controller": {
+        "degraded_entries": 965,
+        "degraded_steps": 37485,
+        "landings": 429
+      },
+      "equal": true,
+      "h_hz": 20.0,
+      "hours": 1.0,
+      "preset": "burst_10_0.5s",
+      "vectorised": {
+        "degraded_entries": 965,
+        "degraded_steps": 37485,
+        "landings": 429
+      },
+      "weak_rule": "age_or_loss"
+    },
+    {
+      "T_s": 1.0,
+      "T_w_s": 0.15,
+      "controller": {
+        "degraded_entries": 642,
+        "degraded_steps": 54360,
+        "landings": 106
+      },
+      "equal": true,
+      "h_hz": 20.0,
+      "hours": 1.0,
+      "preset": "burst_10_0.5s",
+      "vectorised": {
+        "degraded_entries": 642,
+        "degraded_steps": 54360,
+        "landings": 106
+      },
+      "weak_rule": "age_or_loss"
+    }
+  ],
+  "experiment": "EXP-029 Part A",
+  "status": "simulated",
+  "what": "first hour of each listed cell, counted by the vectorised arrays and by the real FailsafeController (SequenceLossWindow for age_or_loss), reset at the next arrival after a landing"
+}
