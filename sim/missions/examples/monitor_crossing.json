@@ -1,0 +1,9 @@
+{
+  "mission": "monitor",
+  "seed": 1,
+  "duration_s": 20.0,
+  "adapter": "point_mass",
+  "preset": "clean",
+  "measurement_delay_s": 0.2,
+  "params": {"path": "crossing"}
+}

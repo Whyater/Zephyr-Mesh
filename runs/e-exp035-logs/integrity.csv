@@ -1,0 +1,161 @@
+case,metric,exact,agrees,mission_value,reader_value,reason
+failsafe_blackout_point_mass,airborne_at_blackout,false,,true,null,not defined in the reader spec
+failsafe_blackout_point_mass,blind_in_plane_s,false,,1.34,1.0,only a 20 Hz outage-window estimate is available
+failsafe_blackout_point_mass,duration_s,true,true,20.0,20.0,mission_end event time
+failsafe_blackout_point_mass,end_reason,true,true,"""timeout""","""timeout""",single mission_end event
+failsafe_blackout_point_mass,first_landing_s,false,,10.97,null,not defined in the reader spec
+failsafe_blackout_point_mass,follower_follower_min_m,false,,null,null,positions are sampled at 20 Hz
+failsafe_blackout_point_mass,guard_activations,false,,0,null,guard activations are not recorded
+failsafe_blackout_point_mass,holds,true,true,1,1,failsafe transition events are logged
+failsafe_blackout_point_mass,landings,true,true,1,1,failsafe transition events are logged
+failsafe_blackout_point_mass,landings_before_outage,true,true,0,0,landing event times and outage starts are logged
+failsafe_blackout_point_mass,max_estimate_age_s,false,,2.09,2.05,estimate age is sampled at 20 Hz
+failsafe_blackout_point_mass,min_separation_m,false,,0.670345,0.6704449761084063,positions are sampled at 20 Hz
+failsafe_blackout_point_mass,nominal_at_age_0_33,false,,false,null,internal estimator state is not recorded
+failsafe_blackout_point_mass,outage_hold_link_age_s,false,,0.158,null,not defined in the reader spec
+failsafe_blackout_point_mass,outage_land_link_age_s,false,,1.008,null,not defined in the reader spec
+failsafe_blackout_point_mass,outage_reaction_hold_s,false,,0.158,null,reaction timing is not recorded
+failsafe_blackout_point_mass,outage_reaction_land_s,false,,1.008,null,reaction timing is not recorded
+failsafe_blackout_point_mass,separation_episodes,true,true,0,0,separation_violation events are logged
+failsafe_blackout_point_mass,separation_violations,false,,0,0,20 Hz frame count scaled to 100 Hz steps
+failsafe_blackout_point_mass,tagged,true,true,true,true,tag_complete events are logged
+failsafe_blackout_point_mass,time_degraded_s,false,,0.85,0.8500000000000001,degraded state is sampled at 20 Hz
+failsafe_blackout_point_mass,time_to_tag_s,true,true,1.99,1.99,first tag_complete event
+failsafe_blackout_point_mass,violation_during_or_after_outage,false,,false,null,violation timing semantics are not recorded
+failsafe_blackout_physics,airborne_at_blackout,false,,true,null,not defined in the reader spec
+failsafe_blackout_physics,blind_in_plane_s,false,,2.0,1.0,only a 20 Hz outage-window estimate is available
+failsafe_blackout_physics,duration_s,true,true,20.0,20.0,mission_end event time
+failsafe_blackout_physics,end_reason,true,true,"""timeout""","""timeout""",single mission_end event
+failsafe_blackout_physics,first_landing_s,false,,10.97,null,not defined in the reader spec
+failsafe_blackout_physics,follower_follower_min_m,false,,null,null,positions are sampled at 20 Hz
+failsafe_blackout_physics,guard_activations,false,,0,null,guard activations are not recorded
+failsafe_blackout_physics,holds,true,true,1,1,failsafe transition events are logged
+failsafe_blackout_physics,landings,true,true,1,1,failsafe transition events are logged
+failsafe_blackout_physics,landings_before_outage,true,true,0,0,landing event times and outage starts are logged
+failsafe_blackout_physics,max_estimate_age_s,false,,2.09,2.05,estimate age is sampled at 20 Hz
+failsafe_blackout_physics,min_separation_m,false,,0.706165,0.7062277365255475,positions are sampled at 20 Hz
+failsafe_blackout_physics,nominal_at_age_0_33,false,,false,null,internal estimator state is not recorded
+failsafe_blackout_physics,outage_hold_link_age_s,false,,0.158,null,not defined in the reader spec
+failsafe_blackout_physics,outage_land_link_age_s,false,,1.008,null,not defined in the reader spec
+failsafe_blackout_physics,outage_reaction_hold_s,false,,0.158,null,reaction timing is not recorded
+failsafe_blackout_physics,outage_reaction_land_s,false,,1.008,null,reaction timing is not recorded
+failsafe_blackout_physics,separation_episodes,true,true,0,0,separation_violation events are logged
+failsafe_blackout_physics,separation_violations,false,,0,0,20 Hz frame count scaled to 100 Hz steps
+failsafe_blackout_physics,tagged,true,true,true,true,tag_complete events are logged
+failsafe_blackout_physics,time_degraded_s,false,,0.85,0.8500000000000001,degraded state is sampled at 20 Hz
+failsafe_blackout_physics,time_to_tag_s,true,true,3.6,3.6,first tag_complete event
+failsafe_blackout_physics,violation_during_or_after_outage,false,,false,null,violation timing semantics are not recorded
+formation_square_point_mass_offboard,downwash_wind_max_mps,false,,0.0,null,wind state is not recorded
+formation_square_point_mass_offboard,duration_s,true,true,30.0,30.0,mission_end event time
+formation_square_point_mass_offboard,end_reason,true,true,"""timeout""","""timeout""",single mission_end event
+formation_square_point_mass_offboard,guard_activations,false,,63,null,guard activations are not recorded
+formation_square_point_mass_offboard,min_separation_m,false,,1.90285,1.902850132920614,100 Hz samples are subsampled to logged frames
+formation_square_point_mass_offboard,p95_error_m,false,,0.01819,0.018205847804370564,100 Hz samples are subsampled to logged frames
+formation_square_point_mass_offboard,per_axis_std_m,false,,0.006418,0.006422028351185552,100 Hz samples are subsampled to logged frames
+formation_square_point_mass_offboard,rms_error_m,false,,0.011246,0.01125372988975818,100 Hz samples are subsampled to logged frames
+formation_square_physics_offboard,downwash_wind_max_mps,false,,0.0,null,wind state is not recorded
+formation_square_physics_offboard,duration_s,true,true,30.0,30.0,mission_end event time
+formation_square_physics_offboard,end_reason,true,true,"""timeout""","""timeout""",single mission_end event
+formation_square_physics_offboard,guard_activations,false,,1327,null,guard activations are not recorded
+formation_square_physics_offboard,min_separation_m,false,,1.811553,1.8116118603743465,100 Hz samples are subsampled to logged frames
+formation_square_physics_offboard,p95_error_m,false,,0.122477,0.12227587752124248,100 Hz samples are subsampled to logged frames
+formation_square_physics_offboard,per_axis_std_m,false,,0.036672,0.03666477084208785,100 Hz samples are subsampled to logged frames
+formation_square_physics_offboard,rms_error_m,false,,0.075882,0.07587311188449058,100 Hz samples are subsampled to logged frames
+hover_point_mass,duration_s,true,true,10.0,10.0,mission_end event time
+hover_point_mass,end_reason,true,true,"""timeout""","""timeout""",single mission_end event
+hover_point_mass,final_error_m,true,true,0.0,0.0,last frame is the final step
+hover_point_mass,final_failsafe_state,true,true,"""nominal""","""nominal""",last frame is the final step
+hover_point_mass,max_link_age_s,false,,0.048,0.048,link age is sampled at 20 Hz
+hover_physics,duration_s,true,true,10.0,10.0,mission_end event time
+hover_physics,end_reason,true,true,"""timeout""","""timeout""",single mission_end event
+hover_physics,final_error_m,true,true,0.003299,0.003298204056755597,last frame is the final step
+hover_physics,final_failsafe_state,true,true,"""nominal""","""nominal""",last frame is the final step
+hover_physics,max_link_age_s,false,,0.048,0.048,link age is sampled at 20 Hz
+monitor_crossing_point_mass,alert_latency_s,true,true,0.233333,0.2333333333333334,truth entry is interpolated from target frames
+monitor_crossing_point_mass,alerts_raised,true,true,1,1,alert_raised events are logged
+monitor_crossing_point_mass,continuity,true,true,0.99005,0.9900497512437811,estimate age is available at 10 Hz checks
+monitor_crossing_point_mass,duration_s,true,true,20.0,20.0,mission_end event time
+monitor_crossing_point_mass,end_reason,true,true,"""timeout""","""timeout""",single mission_end event
+monitor_crossing_point_mass,false_alert,false,,false,false,alert truth is interpolated from target frames
+monitor_crossing_point_mass,max_estimate_age_s,false,,0.2,0.2,estimate age is sampled at 10 Hz checks
+monitor_crossing_point_mass,missed_alert,false,,false,false,zone dwell is reconstructed from target frames
+monitor_crossing_point_mass,observer_landings,true,true,0,0,failsafe transition events are logged
+monitor_crossing_point_mass,observer_max_displacement_m,false,,0.0,0.0,observer positions are sampled at 20 Hz
+monitor_crossing_point_mass,observer_max_horizontal_displacement_m,false,,0.0,0.0,observer positions are sampled at 20 Hz
+monitor_crossing_physics,alert_latency_s,true,true,0.233333,0.2333333333333334,truth entry is interpolated from target frames
+monitor_crossing_physics,alerts_raised,true,true,1,1,alert_raised events are logged
+monitor_crossing_physics,continuity,true,true,0.99005,0.9900497512437811,estimate age is available at 10 Hz checks
+monitor_crossing_physics,duration_s,true,true,20.0,20.0,mission_end event time
+monitor_crossing_physics,end_reason,true,true,"""timeout""","""timeout""",single mission_end event
+monitor_crossing_physics,false_alert,false,,false,false,alert truth is interpolated from target frames
+monitor_crossing_physics,max_estimate_age_s,false,,0.2,0.2,estimate age is sampled at 10 Hz checks
+monitor_crossing_physics,missed_alert,false,,false,false,zone dwell is reconstructed from target frames
+monitor_crossing_physics,observer_landings,true,true,0,0,failsafe transition events are logged
+monitor_crossing_physics,observer_max_displacement_m,false,,0.0,0.0,observer positions are sampled at 20 Hz
+monitor_crossing_physics,observer_max_horizontal_displacement_m,false,,0.0,0.0,observer positions are sampled at 20 Hz
+relay_midpoint_point_mass,delivery_ratio,false,,1.0,null,forwarded packet subset is absent for relay runs
+relay_midpoint_point_mass,duration_s,true,true,20.0,20.0,mission_end event time
+relay_midpoint_point_mass,end_reason,true,true,"""timeout""","""timeout""",single mission_end event
+relay_midpoint_point_mass,hop1_delivery,true,true,1.0,1.0,tel:far counters are complete
+relay_midpoint_point_mass,hop2_delivery,true,true,1.0,1.0,tel:relay counters are complete
+relay_midpoint_point_mass,link_budget_rx_dbm,false,,-95.542954,null,radio state is not recorded
+relay_midpoint_point_mass,median_latency_s,false,,0.002684,null,per-packet timing is not recorded
+relay_midpoint_point_mass,p95_latency_s,false,,0.004706,null,per-packet timing is not recorded
+relay_midpoint_point_mass,retries_mean,false,,null,null,retry data is not recorded
+relay_midpoint_physics,delivery_ratio,false,,1.0,null,forwarded packet subset is absent for relay runs
+relay_midpoint_physics,duration_s,true,true,20.0,20.0,mission_end event time
+relay_midpoint_physics,end_reason,true,true,"""timeout""","""timeout""",single mission_end event
+relay_midpoint_physics,hop1_delivery,true,true,1.0,1.0,tel:far counters are complete
+relay_midpoint_physics,hop2_delivery,true,true,1.0,1.0,tel:relay counters are complete
+relay_midpoint_physics,link_budget_rx_dbm,false,,-95.542954,null,radio state is not recorded
+relay_midpoint_physics,median_latency_s,false,,0.002684,null,per-packet timing is not recorded
+relay_midpoint_physics,p95_latency_s,false,,0.004706,null,per-packet timing is not recorded
+relay_midpoint_physics,retries_mean,false,,null,null,retry data is not recorded
+sweep_dropout_point_mass,belief_error_cells,true,true,0,0,replan details are logged
+sweep_dropout_point_mass,duplicated_fraction,false,,0.035,0.035,coverage is recomputed from sampled positions
+sweep_dropout_point_mass,duration_s,true,true,55.75,55.75,mission_end event time
+sweep_dropout_point_mass,end_reason,true,true,"""complete""","""complete""",single mission_end event
+sweep_dropout_point_mass,failsafe_landings,true,true,0,0,landing events are logged
+sweep_dropout_point_mass,false_loss_declarations,true,true,0,0,replan details are logged
+sweep_dropout_point_mass,missed_cells,false,,0,0,coverage is recomputed from sampled positions
+sweep_dropout_point_mass,replans,true,true,2,2,replan events are logged
+sweep_dropout_point_mass,t100_s,true,true,55.75,55.75,mission_end reason is logged
+sweep_dropout_point_mass,t95_s,false,,50.18,51.0,coverage updates give an upper bound only
+sweep_dropout_physics,belief_error_cells,true,true,0,0,replan details are logged
+sweep_dropout_physics,duplicated_fraction,false,,0.035,0.03375,coverage is recomputed from sampled positions
+sweep_dropout_physics,duration_s,true,true,64.5,64.5,mission_end event time
+sweep_dropout_physics,end_reason,true,true,"""complete""","""complete""",single mission_end event
+sweep_dropout_physics,failsafe_landings,true,true,0,0,landing events are logged
+sweep_dropout_physics,false_loss_declarations,true,true,0,0,replan details are logged
+sweep_dropout_physics,missed_cells,false,,0,0,coverage is recomputed from sampled positions
+sweep_dropout_physics,replans,true,true,2,2,replan events are logged
+sweep_dropout_physics,t100_s,true,true,64.5,64.5,mission_end reason is logged
+sweep_dropout_physics,t95_s,false,,59.34,60.0,coverage updates give an upper bound only
+tag_straight_point_mass,duration_s,true,true,5.28,5.28,mission_end event time
+tag_straight_point_mass,end_reason,true,true,"""tagged""","""tagged""",single mission_end event
+tag_straight_point_mass,follower_follower_min_m,false,,null,null,positions are sampled at 20 Hz
+tag_straight_point_mass,guard_activations,false,,0,null,guard activations are not recorded
+tag_straight_point_mass,holds,true,true,0,0,failsafe transition events are logged
+tag_straight_point_mass,landings,true,true,0,0,failsafe transition events are logged
+tag_straight_point_mass,landings_before_outage,true,true,0,0,landing event times and outage starts are logged
+tag_straight_point_mass,max_estimate_age_s,false,,0.19,0.15,estimate age is sampled at 20 Hz
+tag_straight_point_mass,min_separation_m,false,,0.721277,0.7212943691933272,positions are sampled at 20 Hz
+tag_straight_point_mass,separation_episodes,true,true,0,0,separation_violation events are logged
+tag_straight_point_mass,separation_violations,false,,0,0,20 Hz frame count scaled to 100 Hz steps
+tag_straight_point_mass,tagged,true,true,true,true,tag_complete events are logged
+tag_straight_point_mass,time_degraded_s,false,,0.0,0.0,degraded state is sampled at 20 Hz
+tag_straight_point_mass,time_to_tag_s,true,true,5.28,5.28,first tag_complete event
+tag_straight_physics,duration_s,true,true,30.0,30.0,mission_end event time
+tag_straight_physics,end_reason,true,true,"""timeout""","""timeout""",single mission_end event
+tag_straight_physics,follower_follower_min_m,false,,null,null,positions are sampled at 20 Hz
+tag_straight_physics,guard_activations,false,,0,null,guard activations are not recorded
+tag_straight_physics,holds,true,true,0,0,failsafe transition events are logged
+tag_straight_physics,landings,true,true,0,0,failsafe transition events are logged
+tag_straight_physics,landings_before_outage,true,true,0,0,landing event times and outage starts are logged
+tag_straight_physics,max_estimate_age_s,false,,0.19,0.15,estimate age is sampled at 20 Hz
+tag_straight_physics,min_separation_m,false,,0.731854,0.7319094622465266,positions are sampled at 20 Hz
+tag_straight_physics,separation_episodes,true,true,0,0,separation_violation events are logged
+tag_straight_physics,separation_violations,false,,0,0,20 Hz frame count scaled to 100 Hz steps
+tag_straight_physics,tagged,true,true,false,false,tag_complete events are logged
+tag_straight_physics,time_degraded_s,false,,0.0,0.0,degraded state is sampled at 20 Hz
+tag_straight_physics,time_to_tag_s,true,true,null,null,first tag_complete event

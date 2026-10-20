@@ -1,0 +1,8 @@
+{
+  "mission": "formation",
+  "seed": 1,
+  "duration_s": 30.0,
+  "adapter": "point_mass_offboard",
+  "preset": "clean",
+  "params": {"fix_noise_std_m": 0.02, "fix_latency_s": 0.05}
+}

@@ -1,0 +1,159 @@
+{
+  "argv": [
+    "--output",
+    "runs/e-exp029-part-b",
+    "--processes",
+    "6",
+    "--part-a",
+    "runs/e-exp029-part-a/part_a.csv"
+  ],
+  "code_sha256": {
+    "sim/adapters.py": "db376930087564cc8b78347439bf3416ab7eaa37e09243383fb1e7037d0ca673",
+    "sim/authority.py": "7f602adc5b52ffe7657fd726d6610aa9147521bdeda5caf0d5b86034069ce5e6",
+    "sim/failsafe.py": "c7b92c6507d439db03545cb73d120434470f3812b9836e3331127084fddf7914",
+    "sim/missions/api.py": "c0be9b60c811d7337c79923bc829d8077d6cf9c156e3903f6037ddebb99398b6",
+    "sim/missions/comms.py": "869ce1d3030b17f2ed02b5ad5f281c41e2fdfbf3d388ff84033d7f99e3b4d826",
+    "sim/missions/engine.py": "f3f2d1e838f8f8f0eb790ab4d709d5ae2515e0a596704ceb1974205c02eaa076",
+    "sim/missions/estimate_feed.py": "8221ef02006a568e80c68158e6913a6c41775ae0a96760b9c67c67664a47edde",
+    "sim/missions/physics_adapter.py": "2f5708fa54439c20dfbec6c66b9086b48691cd55f3faa66a28c915651833072f",
+    "sim/missions/presets.py": "3886d2a564d0bbaffedbdd2a1ff0e4bfa66fa56b719a7433d55d6489f9a4b200",
+    "sim/missions/stack.py": "8a18861467cf7654741fef789b6f9a1fe64ceefe5493443d491f3a37d53956d9",
+    "sim/missions/tag.py": "34844435f9f1c8e9e6318675b31492e8804565cf8719f010993cd624b920fa57",
+    "tests/reference_e/hand_checks.py": "f55efc1a10775debe26eb76f279660fed00c9f01b0c9aa5598aae9f3ef1fa626",
+    "tools/e_common.py": "32e8612803966465bf311a5a337b21752d805a40c470f929c8b976ead65f63c5",
+    "tools/e_exp029_part_a.py": "7c885e9f9e1819abc489a769329aa1167d3c148962d85af680551417e7113b17",
+    "tools/e_exp029_part_b.py": "3a1e3725a6743f8d3952d5e4b6c226900be899026b3010d671521f08936f1f25"
+  },
+  "config": {
+    "T_s": [
+      0.15,
+      0.2,
+      0.3,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "T_w_s": [
+      0.1,
+      0.15,
+      0.25
+    ],
+    "degraded_actions": [
+      "hold",
+      "slow"
+    ],
+    "duration_s": 30.0,
+    "outage_draw_component": 29029,
+    "outage_lengths_s": [
+      0.5,
+      2.0,
+      "permanent"
+    ],
+    "part_a_csv": "runs/e-exp029-part-a/part_a.csv",
+    "part_a_csv_sha256": "70aa17feea8e609d07d80573ab2fc45c204038dcfa259a8b11141e93e2028ec6",
+    "pilot": false,
+    "presets": [
+      "clean",
+      "iid_1",
+      "iid_5",
+      "iid_10",
+      "iid_30",
+      "burst_1_0.5s",
+      "burst_10_0.2s",
+      "burst_10_0.5s",
+      "burst_30_0.5s"
+    ],
+    "run_policy_pairs": [
+      [
+        0.15,
+        0.2
+      ],
+      [
+        0.15,
+        0.3
+      ],
+      [
+        0.15,
+        0.5
+      ],
+      [
+        0.15,
+        1.0
+      ],
+      [
+        0.15,
+        2.0
+      ],
+      [
+        0.1,
+        0.3
+      ],
+      [
+        0.25,
+        0.3
+      ]
+    ],
+    "run_presets": [
+      "clean",
+      "iid_10",
+      "iid_30",
+      "burst_10_0.5s",
+      "burst_30_0.5s"
+    ],
+    "seed_count": 20,
+    "target_classes": [
+      "turn",
+      "figure8",
+      "jink"
+    ],
+    "total_blackout_streams": null
+  },
+  "config_sha256": "69c35ae7c607233dda4c6a075db90e9a5564993d117273440577212c91eba7c7",
+  "git_revision": "8d56999e9c4a435b00ca2a301528b28c1f318ee8",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no ESP32 or drone hardware was used.",
+    "Radio parameters are literature-derived (sim/radio/params.py), with ranges; none are measured.",
+    "Simulated only: no drone or radio hardware was used.",
+    "Link loss patterns are synthetic (named presets in sim/missions/presets.py), never measured.",
+    "Vehicle parameters are literature-derived (point mass, or the crazyflie-class physics profile).",
+    "Part B uses the tag mission in hold mode with a 0.75 m follower standoff.",
+    "A total blackout is expressed with Scenario.outages streams=None, which applies to every mission stream.",
+    "Mission duration is 30 s, covering the latest possible blackout, three seconds, and landing time.",
+    "Part A unnecessary-landing rates are read from the Part A table (sha256 in config) and never regenerated here."
+  ],
+  "n_processes": 6,
+  "numpy": "2.5.1",
+  "outputs": {
+    "part_b.csv": "db534dced263734acda3dd76fd500018178347221f0ca6f8e7ca73fb44519443",
+    "summary.json": "d8c9df3f2b6870a48543d86a7099dbecb1424da69cdbc1e712b4eb4eacb65b6b",
+    "tradeoff.png": "2e731a9fe0d27a46f8e5f7449bf94b75ab516ad629917291da2e97a50a7ac239"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. python tools/e_exp029_part_b.py --output runs/e-exp029-part-b --processes 6 --part-a runs/e-exp029-part-a/part_a.csv",
+  "runtime_s": 2658.1560568749846,
+  "schema": "zephyr-run-e-manifest-1",
+  "seeds": [
+    323609879,
+    349673257,
+    559856038,
+    789195200,
+    1150457146,
+    1251247066,
+    1504059276,
+    1579650761,
+    1590919485,
+    1852780881,
+    1938950362,
+    1993717711,
+    2229674988,
+    2452380340,
+    2516205056,
+    2878399822,
+    2988412209,
+    3325987334,
+    3374317742,
+    3846226046
+  ]
+}

@@ -1,0 +1,547 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "zephyr-mission-log-1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "simulated",
+    "mission",
+    "scenario",
+    "scenario_sha256",
+    "code_revision",
+    "adapter",
+    "preset",
+    "seed",
+    "policy",
+    "limits",
+    "dt_s",
+    "log_every",
+    "agents",
+    "frames",
+    "events",
+    "link_stats",
+    "metrics"
+  ],
+  "properties": {
+    "schema": {
+      "const": "zephyr-mission-log-1"
+    },
+    "simulated": {
+      "const": true
+    },
+    "mission": {
+      "type": "string",
+      "enum": [
+        "tag",
+        "sweep",
+        "relay",
+        "monitor",
+        "formation",
+        "failsafe",
+        "hover"
+      ]
+    },
+    "scenario": {
+      "$ref": "#/$defs/scenario"
+    },
+    "scenario_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "code_revision": {
+      "type": "string"
+    },
+    "adapter": {
+      "$ref": "#/$defs/adapter"
+    },
+    "preset": {
+      "type": "string"
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "policy": {
+      "$ref": "#/$defs/policy"
+    },
+    "limits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dt_s": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "log_every": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "agents": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "frames": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "time_s",
+        "target_position_m",
+        "agents"
+      ],
+      "properties": {
+        "time_s": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "target_position_m": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/$defs/vec3_or_null"
+          }
+        },
+        "agents": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/agent_series"
+          },
+          "propertyNames": {
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "link_stats": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/link_stat"
+      },
+      "propertyNames": {
+        "minLength": 1
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "number",
+          "boolean",
+          "string",
+          "null"
+        ]
+      },
+      "propertyNames": {
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "agent_series": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position_m",
+        "velocity_mps",
+        "failsafe_state",
+        "authority",
+        "link_age_s",
+        "estimate_position_m",
+        "estimate_age_s"
+      ],
+      "properties": {
+        "position_m": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/vec3"
+          }
+        },
+        "velocity_mps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/vec3"
+          }
+        },
+        "failsafe_state": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "nominal",
+              "degraded",
+              "landing",
+              "landed",
+              "killed"
+            ]
+          }
+        },
+        "authority": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "link_age_s": {
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "estimate_position_m": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/$defs/vec3_or_null"
+          }
+        },
+        "estimate_age_s": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "time_s",
+        "kind",
+        "agent",
+        "detail"
+      ],
+      "properties": {
+        "time_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "failsafe_transition",
+            "authority_change",
+            "geofence_clip",
+            "geofence_breach",
+            "kill",
+            "landed",
+            "outage_start",
+            "outage_end",
+            "tag_zone_enter",
+            "tag_zone_exit",
+            "tag_complete",
+            "separation_violation",
+            "alert_raised",
+            "alert_cleared",
+            "coverage_update",
+            "replan",
+            "drone_dropout",
+            "mission_end"
+          ]
+        },
+        "agent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "detail": {
+          "$ref": "#/$defs/json_object"
+        }
+      }
+    },
+    "link_stat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sent",
+        "delivered",
+        "lost_loss",
+        "lost_outage"
+      ],
+      "properties": {
+        "sent": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "delivered": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lost_loss": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lost_outage": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "vec3": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "vec3_or_null": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/vec3"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "adapter": {
+      "type": "string",
+      "enum": [
+        "point_mass",
+        "physics",
+        "point_mass_offboard",
+        "physics_offboard"
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "degraded_action",
+        "degraded_after_s",
+        "land_after_s",
+        "loss_window_packets",
+        "low_battery_pct",
+        "slow_speed_mps",
+        "weak_loss_fraction",
+        "weak_rule"
+      ],
+      "properties": {
+        "degraded_action": {
+          "type": "string",
+          "enum": [
+            "hold",
+            "slow"
+          ]
+        },
+        "degraded_after_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "land_after_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "loss_window_packets": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "low_battery_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "slow_speed_mps": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "weak_loss_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "weak_rule": {
+          "type": "string",
+          "enum": [
+            "age",
+            "age_or_loss"
+          ]
+        }
+      }
+    },
+    "json_value": {
+      "type": [
+        "null",
+        "boolean",
+        "number",
+        "string",
+        "array",
+        "object"
+      ],
+      "items": {
+        "$ref": "#/$defs/json_value"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/json_value"
+      },
+      "propertyNames": {
+        "minLength": 1
+      }
+    },
+    "json_object": {
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/json_value"
+      }
+    },
+    "outage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_s"
+      ],
+      "properties": {
+        "start_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "end_s": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "streams": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter",
+        "command_delay_s",
+        "duration_s",
+        "measurement_delay_s",
+        "measurement_jitter_s",
+        "mission",
+        "outages",
+        "params",
+        "policy",
+        "preset",
+        "seed"
+      ],
+      "properties": {
+        "adapter": {
+          "$ref": "#/$defs/adapter"
+        },
+        "command_delay_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "duration_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "measurement_delay_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "measurement_jitter_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "mission": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/outage"
+          }
+        },
+        "params": {
+          "$ref": "#/$defs/json_object"
+        },
+        "policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "degraded_action": {
+              "$ref": "#/$defs/policy/properties/degraded_action"
+            },
+            "degraded_after_s": {
+              "$ref": "#/$defs/policy/properties/degraded_after_s"
+            },
+            "land_after_s": {
+              "$ref": "#/$defs/policy/properties/land_after_s"
+            },
+            "loss_window_packets": {
+              "$ref": "#/$defs/policy/properties/loss_window_packets"
+            },
+            "low_battery_pct": {
+              "$ref": "#/$defs/policy/properties/low_battery_pct"
+            },
+            "slow_speed_mps": {
+              "$ref": "#/$defs/policy/properties/slow_speed_mps"
+            },
+            "weak_loss_fraction": {
+              "$ref": "#/$defs/policy/properties/weak_loss_fraction"
+            },
+            "weak_rule": {
+              "$ref": "#/$defs/policy/properties/weak_rule"
+            }
+          }
+        },
+        "preset": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

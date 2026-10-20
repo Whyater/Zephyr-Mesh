@@ -1,0 +1,4403 @@
+{
+  "cells": [
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 50
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "crossing",
+      "preset": "clean"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 50
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.9900497512437811,
+          "low": 0.9900497512437811,
+          "median": 0.9900497512437811,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.20000000000000284,
+          "low": 0.20000000000000284,
+          "median": 0.20000000000000284,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "crossing",
+      "preset": "clean"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 50
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.03980099502487562,
+          "low": 0.03980099502487562,
+          "median": 0.03980099502487562,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.5000000000000036,
+          "low": 0.5000000000000036,
+          "median": 0.5000000000000036,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "crossing",
+      "preset": "clean"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 50
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.10000000000000142,
+          "low": 0.09999999999999964,
+          "median": 0.10000000000000009,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "crossing",
+      "preset": "iid_10"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 50
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.9900497512437811,
+          "low": 0.9900497512437811,
+          "median": 0.9900497512437811,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.3000000000000007,
+          "low": 0.3,
+          "median": 0.3000000000000007,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "crossing",
+      "preset": "iid_10"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 50
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.03980099502487562,
+          "low": 0.03980099502487562,
+          "median": 0.03980099502487562,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.6000000000000005,
+          "low": 0.5999999999999996,
+          "median": 0.6000000000000001,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "crossing",
+      "preset": "iid_10"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 49
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.20000000000000107,
+          "low": 0.19999999999999996,
+          "median": 0.20000000000000107,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 1,
+          "n": 50,
+          "rate": 0.02,
+          "wilson_high": 0.10495443589637815,
+          "wilson_low": 0.003539259271646236
+        },
+        "n_missed_alert_runs": 1,
+        "n_missed_alert_runs_with_observer_landing": 1,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 15,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 15,
+          "n": 50,
+          "rate": 0.3,
+          "wilson_high": 0.437503504644534,
+          "wilson_low": 0.19103553500880954
+        }
+      },
+      "path": "crossing",
+      "preset": "iid_30"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 49
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.9900497512437811,
+          "low": 0.9900497512437811,
+          "median": 0.9900497512437811,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.40000000000000213,
+          "low": 0.40000000000000036,
+          "median": 0.40000000000000036,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 1,
+          "n": 50,
+          "rate": 0.02,
+          "wilson_high": 0.10495443589637815,
+          "wilson_low": 0.003539259271646236
+        },
+        "n_missed_alert_runs": 1,
+        "n_missed_alert_runs_with_observer_landing": 1,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 15,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 15,
+          "n": 50,
+          "rate": 0.3,
+          "wilson_high": 0.437503504644534,
+          "wilson_low": 0.19103553500880954
+        }
+      },
+      "path": "crossing",
+      "preset": "iid_30"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 49
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.03482587064676617,
+          "low": 0.03482587064676617,
+          "median": 0.03482587064676617,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.7000000000000011,
+          "low": 0.7,
+          "median": 0.7000000000000011,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 1,
+          "n": 50,
+          "rate": 0.02,
+          "wilson_high": 0.10495443589637815,
+          "wilson_low": 0.003539259271646236
+        },
+        "n_missed_alert_runs": 1,
+        "n_missed_alert_runs_with_observer_landing": 1,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 15,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 15,
+          "n": 50,
+          "rate": 0.3,
+          "wilson_high": 0.437503504644534,
+          "wilson_low": 0.19103553500880954
+        }
+      },
+      "path": "crossing",
+      "preset": "iid_30"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 22
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.3582089552238806,
+          "low": 0.09950248756218906,
+          "median": 0.2512437810945274,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 17.9,
+          "low": 12.6,
+          "median": 14.9,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 28,
+          "n": 50,
+          "rate": 0.56,
+          "wilson_high": 0.6883780078874284,
+          "wilson_low": 0.4230602802165686
+        },
+        "n_missed_alert_runs": 28,
+        "n_missed_alert_runs_with_observer_landing": 28,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 46,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 46,
+          "n": 50,
+          "rate": 0.92,
+          "wilson_high": 0.968450485911407,
+          "wilson_low": 0.8116175308165717
+        }
+      },
+      "path": "crossing",
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 22
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.3482587064676617,
+          "low": 0.08955223880597014,
+          "median": 0.24129353233830847,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 17.9,
+          "low": 12.6,
+          "median": 14.9,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 28,
+          "n": 50,
+          "rate": 0.56,
+          "wilson_high": 0.6883780078874284,
+          "wilson_low": 0.4230602802165686
+        },
+        "n_missed_alert_runs": 28,
+        "n_missed_alert_runs_with_observer_landing": 28,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 46,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 46,
+          "n": 50,
+          "rate": 0.92,
+          "wilson_high": 0.968450485911407,
+          "wilson_low": 0.8116175308165717
+        }
+      },
+      "path": "crossing",
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 22
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.01990049751243781,
+          "low": 0.004975124378109453,
+          "median": 0.014925373134328358,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 17.9,
+          "low": 12.6,
+          "median": 14.9,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 28,
+          "n": 50,
+          "rate": 0.56,
+          "wilson_high": 0.6883780078874284,
+          "wilson_low": 0.4230602802165686
+        },
+        "n_missed_alert_runs": 28,
+        "n_missed_alert_runs_with_observer_landing": 28,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 46,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 46,
+          "n": 50,
+          "rate": 0.92,
+          "wilson_high": 0.968450485911407,
+          "wilson_low": 0.8116175308165717
+        }
+      },
+      "path": "crossing",
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.09950248756218906,
+          "low": 0.04975124378109453,
+          "median": 0.07213930348258707,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 19.1,
+          "low": 17.8,
+          "median": 18.7,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "n_missed_alert_runs": 50,
+        "n_missed_alert_runs_with_observer_landing": 50,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 50,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        }
+      },
+      "path": "crossing",
+      "preset": "burst_30_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.08955223880597014,
+          "low": 0.03980099502487562,
+          "median": 0.062189054726368154,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 19.1,
+          "low": 17.8,
+          "median": 18.7,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "n_missed_alert_runs": 50,
+        "n_missed_alert_runs_with_observer_landing": 50,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 50,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        }
+      },
+      "path": "crossing",
+      "preset": "burst_30_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.004975124378109453,
+          "low": 0.0,
+          "median": 0.004975124378109453,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 19.1,
+          "low": 17.8,
+          "median": 18.7,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "n_missed_alert_runs": 50,
+        "n_missed_alert_runs_with_observer_landing": 50,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 50,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        }
+      },
+      "path": "crossing",
+      "preset": "burst_30_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "skimming",
+      "preset": "clean"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.9900497512437811,
+          "low": 0.9900497512437811,
+          "median": 0.9900497512437811,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.20000000000000284,
+          "low": 0.20000000000000284,
+          "median": 0.20000000000000284,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "skimming",
+      "preset": "clean"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.03980099502487562,
+          "low": 0.03980099502487562,
+          "median": 0.03980099502487562,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.5000000000000036,
+          "low": 0.5000000000000036,
+          "median": 0.5000000000000036,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "skimming",
+      "preset": "clean"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.10000000000000142,
+          "low": 0.09999999999999964,
+          "median": 0.10000000000000009,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "skimming",
+      "preset": "iid_10"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.9900497512437811,
+          "low": 0.9900497512437811,
+          "median": 0.9900497512437811,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.3000000000000007,
+          "low": 0.3,
+          "median": 0.3000000000000007,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "skimming",
+      "preset": "iid_10"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.03980099502487562,
+          "low": 0.03980099502487562,
+          "median": 0.03980099502487562,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.6000000000000005,
+          "low": 0.5999999999999996,
+          "median": 0.6000000000000001,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "skimming",
+      "preset": "iid_10"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.20000000000000107,
+          "low": 0.19999999999999996,
+          "median": 0.20000000000000107,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 15,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 15,
+          "n": 50,
+          "rate": 0.3,
+          "wilson_high": 0.437503504644534,
+          "wilson_low": 0.19103553500880954
+        }
+      },
+      "path": "skimming",
+      "preset": "iid_30"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.9900497512437811,
+          "low": 0.9900497512437811,
+          "median": 0.9900497512437811,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.40000000000000213,
+          "low": 0.40000000000000036,
+          "median": 0.40000000000000036,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 15,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 15,
+          "n": 50,
+          "rate": 0.3,
+          "wilson_high": 0.437503504644534,
+          "wilson_low": 0.19103553500880954
+        }
+      },
+      "path": "skimming",
+      "preset": "iid_30"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.03482587064676617,
+          "low": 0.03482587064676617,
+          "median": 0.03482587064676617,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.7000000000000011,
+          "low": 0.7,
+          "median": 0.7000000000000011,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 15,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 15,
+          "n": 50,
+          "rate": 0.3,
+          "wilson_high": 0.437503504644534,
+          "wilson_low": 0.19103553500880954
+        }
+      },
+      "path": "skimming",
+      "preset": "iid_30"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.3582089552238806,
+          "low": 0.09950248756218906,
+          "median": 0.2512437810945274,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 17.9,
+          "low": 12.6,
+          "median": 14.9,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 46,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 46,
+          "n": 50,
+          "rate": 0.92,
+          "wilson_high": 0.968450485911407,
+          "wilson_low": 0.8116175308165717
+        }
+      },
+      "path": "skimming",
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.3482587064676617,
+          "low": 0.08955223880597014,
+          "median": 0.24129353233830847,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 17.9,
+          "low": 12.6,
+          "median": 14.9,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 46,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 46,
+          "n": 50,
+          "rate": 0.92,
+          "wilson_high": 0.968450485911407,
+          "wilson_low": 0.8116175308165717
+        }
+      },
+      "path": "skimming",
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.01990049751243781,
+          "low": 0.004975124378109453,
+          "median": 0.014925373134328358,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 17.9,
+          "low": 12.6,
+          "median": 14.9,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 46,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 46,
+          "n": 50,
+          "rate": 0.92,
+          "wilson_high": 0.968450485911407,
+          "wilson_low": 0.8116175308165717
+        }
+      },
+      "path": "skimming",
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.09950248756218906,
+          "low": 0.04975124378109453,
+          "median": 0.07213930348258707,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 19.1,
+          "low": 17.8,
+          "median": 18.7,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 50,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        }
+      },
+      "path": "skimming",
+      "preset": "burst_30_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.08955223880597014,
+          "low": 0.03980099502487562,
+          "median": 0.062189054726368154,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 19.1,
+          "low": 17.8,
+          "median": 18.7,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 50,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        }
+      },
+      "path": "skimming",
+      "preset": "burst_30_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.004975124378109453,
+          "low": 0.0,
+          "median": 0.004975124378109453,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 19.1,
+          "low": 17.8,
+          "median": 18.7,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 50,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        }
+      },
+      "path": "skimming",
+      "preset": "burst_30_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 50
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "loiter",
+      "preset": "clean"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 50
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.9900497512437811,
+          "low": 0.9900497512437811,
+          "median": 0.9900497512437811,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.20000000000000284,
+          "low": 0.20000000000000284,
+          "median": 0.20000000000000284,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "loiter",
+      "preset": "clean"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 50
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.03980099502487562,
+          "low": 0.03980099502487562,
+          "median": 0.03980099502487562,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.5000000000000036,
+          "low": 0.5000000000000036,
+          "median": 0.5000000000000036,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "loiter",
+      "preset": "clean"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 50
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.10000000000000142,
+          "low": 0.09999999999999964,
+          "median": 0.10000000000000009,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "loiter",
+      "preset": "iid_10"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 50
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.9900497512437811,
+          "low": 0.9900497512437811,
+          "median": 0.9900497512437811,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.3000000000000007,
+          "low": 0.3,
+          "median": 0.3000000000000007,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "loiter",
+      "preset": "iid_10"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 50
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.03980099502487562,
+          "low": 0.03980099502487562,
+          "median": 0.03980099502487562,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.6000000000000005,
+          "low": 0.5999999999999996,
+          "median": 0.6000000000000001,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        }
+      },
+      "path": "loiter",
+      "preset": "iid_10"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 49
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.20000000000000107,
+          "low": 0.19999999999999996,
+          "median": 0.20000000000000107,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 1,
+          "n": 50,
+          "rate": 0.02,
+          "wilson_high": 0.10495443589637815,
+          "wilson_low": 0.003539259271646236
+        },
+        "n_missed_alert_runs": 1,
+        "n_missed_alert_runs_with_observer_landing": 1,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 15,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 15,
+          "n": 50,
+          "rate": 0.3,
+          "wilson_high": 0.437503504644534,
+          "wilson_low": 0.19103553500880954
+        }
+      },
+      "path": "loiter",
+      "preset": "iid_30"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 49
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.9900497512437811,
+          "low": 0.9900497512437811,
+          "median": 0.9900497512437811,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.40000000000000213,
+          "low": 0.40000000000000036,
+          "median": 0.40000000000000036,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 1,
+          "n": 50,
+          "rate": 0.02,
+          "wilson_high": 0.10495443589637815,
+          "wilson_low": 0.003539259271646236
+        },
+        "n_missed_alert_runs": 1,
+        "n_missed_alert_runs_with_observer_landing": 1,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 15,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 15,
+          "n": 50,
+          "rate": 0.3,
+          "wilson_high": 0.437503504644534,
+          "wilson_low": 0.19103553500880954
+        }
+      },
+      "path": "loiter",
+      "preset": "iid_30"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 49
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.03482587064676617,
+          "low": 0.03482587064676617,
+          "median": 0.03482587064676617,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 0.7000000000000011,
+          "low": 0.7,
+          "median": 0.7000000000000011,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 1,
+          "n": 50,
+          "rate": 0.02,
+          "wilson_high": 0.10495443589637815,
+          "wilson_low": 0.003539259271646236
+        },
+        "n_missed_alert_runs": 1,
+        "n_missed_alert_runs_with_observer_landing": 1,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 15,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 15,
+          "n": 50,
+          "rate": 0.3,
+          "wilson_high": 0.437503504644534,
+          "wilson_low": 0.19103553500880954
+        }
+      },
+      "path": "loiter",
+      "preset": "iid_30"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 22
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.3582089552238806,
+          "low": 0.09950248756218906,
+          "median": 0.2512437810945274,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 17.9,
+          "low": 12.6,
+          "median": 14.9,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 28,
+          "n": 50,
+          "rate": 0.56,
+          "wilson_high": 0.6883780078874284,
+          "wilson_low": 0.4230602802165686
+        },
+        "n_missed_alert_runs": 28,
+        "n_missed_alert_runs_with_observer_landing": 28,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 46,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 46,
+          "n": 50,
+          "rate": 0.92,
+          "wilson_high": 0.968450485911407,
+          "wilson_low": 0.8116175308165717
+        }
+      },
+      "path": "loiter",
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 22
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.3482587064676617,
+          "low": 0.08955223880597014,
+          "median": 0.24129353233830847,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 17.9,
+          "low": 12.6,
+          "median": 14.9,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 28,
+          "n": 50,
+          "rate": 0.56,
+          "wilson_high": 0.6883780078874284,
+          "wilson_low": 0.4230602802165686
+        },
+        "n_missed_alert_runs": 28,
+        "n_missed_alert_runs_with_observer_landing": 28,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 46,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 46,
+          "n": 50,
+          "rate": 0.92,
+          "wilson_high": 0.968450485911407,
+          "wilson_low": 0.8116175308165717
+        }
+      },
+      "path": "loiter",
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.2333333333333334,
+          "median": 0.2333333333333334,
+          "n": 22
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.01990049751243781,
+          "low": 0.004975124378109453,
+          "median": 0.014925373134328358,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 17.9,
+          "low": 12.6,
+          "median": 14.9,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 28,
+          "n": 50,
+          "rate": 0.56,
+          "wilson_high": 0.6883780078874284,
+          "wilson_low": 0.4230602802165686
+        },
+        "n_missed_alert_runs": 28,
+        "n_missed_alert_runs_with_observer_landing": 28,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 46,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 46,
+          "n": 50,
+          "rate": 0.92,
+          "wilson_high": 0.968450485911407,
+          "wilson_low": 0.8116175308165717
+        }
+      },
+      "path": "loiter",
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.09950248756218906,
+          "low": 0.04975124378109453,
+          "median": 0.07213930348258707,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 19.1,
+          "low": 17.8,
+          "median": 18.7,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "n_missed_alert_runs": 50,
+        "n_missed_alert_runs_with_observer_landing": 50,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 50,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        }
+      },
+      "path": "loiter",
+      "preset": "burst_30_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.2,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.08955223880597014,
+          "low": 0.03980099502487562,
+          "median": 0.062189054726368154,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 19.1,
+          "low": 17.8,
+          "median": 18.7,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "n_missed_alert_runs": 50,
+        "n_missed_alert_runs_with_observer_landing": 50,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 50,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        }
+      },
+      "path": "loiter",
+      "preset": "burst_30_0.5s"
+    },
+    {
+      "adapter": "point_mass",
+      "delay_s": 0.5,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 50
+        },
+        "continuity": {
+          "high": 0.004975124378109453,
+          "low": 0.0,
+          "median": 0.004975124378109453,
+          "n": 50
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "max_estimate_age_s": {
+          "high": 19.1,
+          "low": 17.8,
+          "median": 18.7,
+          "n": 50
+        },
+        "missed_alert": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "n_missed_alert_runs": 50,
+        "n_missed_alert_runs_with_observer_landing": 50,
+        "n_runs": 50,
+        "n_runs_with_observer_landing": 50,
+        "observer_max_displacement_m": 12.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        }
+      },
+      "path": "loiter",
+      "preset": "burst_30_0.5s"
+    },
+    {
+      "adapter": "physics",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.13333333333333286,
+          "median": 0.2333333333333334,
+          "n": 20
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 20
+        },
+        "continuity": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 20
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "max_estimate_age_s": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 20
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 20,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        }
+      },
+      "path": "crossing",
+      "physics_matches_point_mass_on_alert_metrics": true,
+      "preset": "clean"
+    },
+    {
+      "adapter": "physics",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.13333333333333286,
+          "median": 0.2333333333333334,
+          "n": 8
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 20
+        },
+        "continuity": {
+          "high": 0.44776119402985076,
+          "low": 0.0945273631840796,
+          "median": 0.16666666666666666,
+          "n": 20
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "max_estimate_age_s": {
+          "high": 18.6,
+          "low": 11.5,
+          "median": 17.15,
+          "n": 20
+        },
+        "missed_alert": {
+          "count": 12,
+          "n": 20,
+          "rate": 0.6,
+          "wilson_high": 0.781193467627183,
+          "wilson_low": 0.3865815007622531
+        },
+        "n_missed_alert_runs": 12,
+        "n_missed_alert_runs_with_observer_landing": 12,
+        "n_runs": 20,
+        "n_runs_with_observer_landing": 18,
+        "observer_max_displacement_m": 5.7160000003355576,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 18,
+          "n": 20,
+          "rate": 0.9,
+          "wilson_high": 0.9721335187862319,
+          "wilson_low": 0.6989663547715128
+        }
+      },
+      "path": "crossing",
+      "physics_matches_point_mass_on_alert_metrics": true,
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "adapter": "physics",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 20
+        },
+        "continuity": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 20
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "max_estimate_age_s": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 20
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 20,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        }
+      },
+      "path": "skimming",
+      "physics_matches_point_mass_on_alert_metrics": true,
+      "preset": "clean"
+    },
+    {
+      "adapter": "physics",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": null,
+          "low": null,
+          "median": null,
+          "n": 0
+        },
+        "alerts_raised": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 20
+        },
+        "continuity": {
+          "high": 0.44776119402985076,
+          "low": 0.0945273631840796,
+          "median": 0.16666666666666666,
+          "n": 20
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "max_estimate_age_s": {
+          "high": 18.6,
+          "low": 11.5,
+          "median": 17.15,
+          "n": 20
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 20,
+        "n_runs_with_observer_landing": 18,
+        "observer_max_displacement_m": 5.7160000003355576,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 18,
+          "n": 20,
+          "rate": 0.9,
+          "wilson_high": 0.9721335187862319,
+          "wilson_low": 0.6989663547715128
+        }
+      },
+      "path": "skimming",
+      "physics_matches_point_mass_on_alert_metrics": true,
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "adapter": "physics",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.13333333333333286,
+          "median": 0.2333333333333334,
+          "n": 20
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 20
+        },
+        "continuity": {
+          "high": 1.0,
+          "low": 1.0,
+          "median": 1.0,
+          "n": 20
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "max_estimate_age_s": {
+          "high": 0.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 20
+        },
+        "missed_alert": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_runs": 20,
+        "n_runs_with_observer_landing": 0,
+        "observer_max_displacement_m": 0.0,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        }
+      },
+      "path": "loiter",
+      "physics_matches_point_mass_on_alert_metrics": true,
+      "preset": "clean"
+    },
+    {
+      "adapter": "physics",
+      "delay_s": 0.0,
+      "metrics": {
+        "alert_latency_s": {
+          "high": 0.33333333333333304,
+          "low": 0.13333333333333286,
+          "median": 0.2333333333333334,
+          "n": 8
+        },
+        "alerts_raised": {
+          "high": 1.0,
+          "low": 0.0,
+          "median": 0.0,
+          "n": 20
+        },
+        "continuity": {
+          "high": 0.44776119402985076,
+          "low": 0.0945273631840796,
+          "median": 0.16666666666666666,
+          "n": 20
+        },
+        "false_alert": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "max_estimate_age_s": {
+          "high": 18.6,
+          "low": 11.5,
+          "median": 17.15,
+          "n": 20
+        },
+        "missed_alert": {
+          "count": 12,
+          "n": 20,
+          "rate": 0.6,
+          "wilson_high": 0.781193467627183,
+          "wilson_low": 0.3865815007622531
+        },
+        "n_missed_alert_runs": 12,
+        "n_missed_alert_runs_with_observer_landing": 12,
+        "n_runs": 20,
+        "n_runs_with_observer_landing": 18,
+        "observer_max_displacement_m": 5.7160000003355576,
+        "observer_max_horizontal_displacement_m": {
+          "maximum": 0.0,
+          "under_limit": true
+        },
+        "runs_with_observer_landing": {
+          "count": 18,
+          "n": 20,
+          "rate": 0.9,
+          "wilson_high": 0.9721335187862319,
+          "wilson_low": 0.6989663547715128
+        }
+      },
+      "path": "loiter",
+      "physics_matches_point_mass_on_alert_metrics": true,
+      "preset": "burst_10_0.5s"
+    }
+  ],
+  "continuity_note": "Continuity counts checks with estimate age under 0.5 s. At 0.5 s measurement delay it is near zero by definition; this is a property of the pre-registered metric.",
+  "design_choices": [
+    "20 s mission duration: The unknown drone flies at 3 m/s across the 60 m venue, so 20 s covers the whole crossing and skimming pass (zone edge at x = 20 to 40 m, t = 6.7 to 13.3 s) and about 6.7 s of the loiter circle (it starts circling at 11.3 s).",
+    "The preregistration gives no duration, so 20 s is recorded as a runner design choice.",
+    "Mission change before any full run (prereg Addendum D): an estimate older than 1.0 s cannot raise or hold an alert."
+  ],
+  "deviations": [
+    "Observer post check uses horizontal displacement (< 0.5 m), not 3-D displacement, because a failsafe landing drops 12 m straight down; 3-D displacement and runs with an observer landing are reported per cell."
+  ],
+  "experiment": "EXP-033",
+  "hand_check": {
+    "delay_note": "Alert latency does not grow with measurement delay in this scenario. The ground station predicts its constant-velocity estimate forward to the current time at every check, and every path enters the zone along a straight line at constant speed, so the forward prediction removes the delay. A manoeuvring drone would not be treated this way: the forward prediction would be wrong by the manoeuvre made during the delay. The hand check adds the delay because it assumes no forward prediction.",
+    "expected_by_delay_s": [
+      {
+        "delay_s": 0.0,
+        "value_s": 0.25
+      },
+      {
+        "delay_s": 0.2,
+        "value_s": 0.45
+      },
+      {
+        "delay_s": 0.5,
+        "value_s": 0.75
+      }
+    ],
+    "formula": "(k - 0.5) * 0.1 + delay + estimator_lag (lag taken as 0)",
+    "k": 3,
+    "observed_clean_crossing": [
+      {
+        "agrees_with_hand_check": true,
+        "delay_s": 0.0,
+        "hand_check_s": 0.25,
+        "observed_median_interval_s": {
+          "high": 0.33333333333333304,
+          "low": 0.2333333333333334
+        },
+        "observed_median_s": 0.2333333333333334
+      },
+      {
+        "agrees_with_hand_check": false,
+        "delay_s": 0.2,
+        "hand_check_s": 0.45,
+        "observed_median_interval_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334
+        },
+        "observed_median_s": 0.2333333333333334
+      },
+      {
+        "agrees_with_hand_check": false,
+        "delay_s": 0.5,
+        "hand_check_s": 0.75,
+        "observed_median_interval_s": {
+          "high": 0.2333333333333334,
+          "low": 0.2333333333333334
+        },
+        "observed_median_s": 0.2333333333333334
+      }
+    ]
+  },
+  "limits": [
+    "Simulated only: no drone or radio hardware was used.",
+    "Link loss patterns are synthetic (named presets in sim/missions/presets.py), never measured.",
+    "Vehicle parameters are literature-derived (point mass, or the crazyflie-class physics profile).",
+    "Simulated only: no drone was flown and no radio was measured.",
+    "Link loss patterns are synthetic (independent or two-state bursts on a 10 ms grid) and blackouts are scripted.",
+    "Vehicle and radio parameters are literature-derived, not measured."
+  ],
+  "missed_alerts_and_observer_landings": {
+    "by_adapter_and_preset": [
+      {
+        "adapter": "point_mass",
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_missed_alert_runs_without_observer_landing": 0,
+        "n_runs": 300,
+        "n_runs_with_observer_landing": 0,
+        "preset": "clean"
+      },
+      {
+        "adapter": "point_mass",
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_missed_alert_runs_without_observer_landing": 0,
+        "n_runs": 300,
+        "n_runs_with_observer_landing": 0,
+        "preset": "iid_10"
+      },
+      {
+        "adapter": "point_mass",
+        "n_missed_alert_runs": 6,
+        "n_missed_alert_runs_with_observer_landing": 6,
+        "n_missed_alert_runs_without_observer_landing": 0,
+        "n_runs": 300,
+        "n_runs_with_observer_landing": 90,
+        "preset": "iid_30"
+      },
+      {
+        "adapter": "point_mass",
+        "n_missed_alert_runs": 168,
+        "n_missed_alert_runs_with_observer_landing": 168,
+        "n_missed_alert_runs_without_observer_landing": 0,
+        "n_runs": 300,
+        "n_runs_with_observer_landing": 276,
+        "preset": "burst_10_0.5s"
+      },
+      {
+        "adapter": "point_mass",
+        "n_missed_alert_runs": 300,
+        "n_missed_alert_runs_with_observer_landing": 300,
+        "n_missed_alert_runs_without_observer_landing": 0,
+        "n_runs": 300,
+        "n_runs_with_observer_landing": 300,
+        "preset": "burst_30_0.5s"
+      },
+      {
+        "adapter": "physics",
+        "n_missed_alert_runs": 0,
+        "n_missed_alert_runs_with_observer_landing": 0,
+        "n_missed_alert_runs_without_observer_landing": 0,
+        "n_runs": 40,
+        "n_runs_with_observer_landing": 0,
+        "preset": "clean"
+      },
+      {
+        "adapter": "physics",
+        "n_missed_alert_runs": 24,
+        "n_missed_alert_runs_with_observer_landing": 24,
+        "n_missed_alert_runs_without_observer_landing": 0,
+        "n_runs": 40,
+        "n_runs_with_observer_landing": 36,
+        "preset": "burst_10_0.5s"
+      }
+    ],
+    "note": "A lost-link failsafe landing is straight down, so the observer never leaves its post sideways. A landed observer stops sending fixes, so monitoring from that post stops; when both observers have landed the ground station has no fresh fixes and cannot raise an alert.",
+    "paths": [
+      "crossing",
+      "loiter"
+    ],
+    "pooled_over": [
+      "path (crossing and loiter)",
+      "measurement delay"
+    ],
+    "totals": {
+      "n_missed_alert_runs": 498,
+      "n_missed_alert_runs_with_observer_landing": 498,
+      "n_missed_alert_runs_without_observer_landing": 0,
+      "n_runs": 1580,
+      "n_runs_with_observer_landing": 702
+    }
+  },
+  "missing_metrics": [],
+  "physics_alert_equality": {
+    "cells": [
+      {
+        "delay_s": 0.0,
+        "matches": true,
+        "n_physics_rows": 20,
+        "n_rows_matching": 20,
+        "n_rows_without_point_mass_partner": 0,
+        "path": "crossing",
+        "preset": "clean"
+      },
+      {
+        "delay_s": 0.0,
+        "matches": true,
+        "n_physics_rows": 20,
+        "n_rows_matching": 20,
+        "n_rows_without_point_mass_partner": 0,
+        "path": "crossing",
+        "preset": "burst_10_0.5s"
+      },
+      {
+        "delay_s": 0.0,
+        "matches": true,
+        "n_physics_rows": 20,
+        "n_rows_matching": 20,
+        "n_rows_without_point_mass_partner": 0,
+        "path": "skimming",
+        "preset": "clean"
+      },
+      {
+        "delay_s": 0.0,
+        "matches": true,
+        "n_physics_rows": 20,
+        "n_rows_matching": 20,
+        "n_rows_without_point_mass_partner": 0,
+        "path": "skimming",
+        "preset": "burst_10_0.5s"
+      },
+      {
+        "delay_s": 0.0,
+        "matches": true,
+        "n_physics_rows": 20,
+        "n_rows_matching": 20,
+        "n_rows_without_point_mass_partner": 0,
+        "path": "loiter",
+        "preset": "clean"
+      },
+      {
+        "delay_s": 0.0,
+        "matches": true,
+        "n_physics_rows": 20,
+        "n_rows_matching": 20,
+        "n_rows_without_point_mass_partner": 0,
+        "path": "loiter",
+        "preset": "burst_10_0.5s"
+      }
+    ],
+    "compared_on": "same path, preset, measurement delay and seed",
+    "metrics_compared": [
+      "alert_latency_s",
+      "alerts_raised",
+      "false_alert",
+      "missed_alert"
+    ],
+    "physics_matches_point_mass": true
+  },
+  "pilot": false,
+  "prediction": "clean: latency about 0.25 to 0.4 s, no misses; skimming at 2 m outside with 0.5 m noise (fused about 0.35 m) gives a few percent false alerts at most (3 consecutive needed). Loss raises latency by about the mean gap; bursts raise it by about the burst length (0.5 s) and cut continuity; misses only on burst_30 at long delay.",
+  "prediction_observations": [
+    {
+      "adapter": "point_mass",
+      "observed": {
+        "clean_alert_latency_s": [
+          {
+            "delay_s": 0.0,
+            "high_s": 0.33333333333333304,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "crossing"
+          },
+          {
+            "delay_s": 0.2,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "crossing"
+          },
+          {
+            "delay_s": 0.5,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "crossing"
+          },
+          {
+            "delay_s": 0.0,
+            "high_s": 0.33333333333333304,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "loiter"
+          },
+          {
+            "delay_s": 0.2,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "loiter"
+          },
+          {
+            "delay_s": 0.5,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "loiter"
+          }
+        ],
+        "clean_missed_alerts": [
+          {
+            "delay_s": 0.0,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "crossing",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.2,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "crossing",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.5,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "crossing",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.0,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "loiter",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.2,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "loiter",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.5,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "loiter",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          }
+        ],
+        "skimming_false_alerts": [
+          {
+            "delay_s": 0.0,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "clean",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.2,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "clean",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.5,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "clean",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.0,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "iid_10",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.2,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "iid_10",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.5,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "iid_10",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.0,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "iid_30",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.2,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "iid_30",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.5,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "iid_30",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.0,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "burst_10_0.5s",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.2,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "burst_10_0.5s",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.5,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "burst_10_0.5s",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.0,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "burst_30_0.5s",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.2,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "burst_30_0.5s",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.5,
+            "false_alert_count": 0,
+            "n_runs": 50,
+            "preset": "burst_30_0.5s",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          }
+        ]
+      },
+      "sentence": "clean: latency about 0.25 to 0.4 s, no misses; skimming at 2 m outside with 0.5 m noise (fused about 0.35 m) gives a few percent false alerts at most (3 consecutive needed)."
+    },
+    {
+      "adapter": "point_mass",
+      "observed": {
+        "alert_latency_s_by_preset": [
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.0,
+            "high_s": 0.33333333333333304,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "crossing",
+            "preset": "clean"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.2,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "crossing",
+            "preset": "clean"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.5,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "crossing",
+            "preset": "clean"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.0,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "crossing",
+            "preset": "iid_10"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.2,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "crossing",
+            "preset": "iid_10"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.5,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "crossing",
+            "preset": "iid_10"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.0,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 49,
+            "path": "crossing",
+            "preset": "iid_30"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.2,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 49,
+            "path": "crossing",
+            "preset": "iid_30"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.5,
+            "high_s": 0.33333333333333304,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 49,
+            "path": "crossing",
+            "preset": "iid_30"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.0,
+            "high_s": 0.33333333333333304,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 22,
+            "path": "crossing",
+            "preset": "burst_10_0.5s"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.2,
+            "high_s": 0.33333333333333304,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 22,
+            "path": "crossing",
+            "preset": "burst_10_0.5s"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.5,
+            "high_s": 0.33333333333333304,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 22,
+            "path": "crossing",
+            "preset": "burst_10_0.5s"
+          },
+          {
+            "change_from_clean_median_s": null,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.0,
+            "high_s": null,
+            "low_s": null,
+            "median_s": null,
+            "n_runs": 50,
+            "n_runs_with_alert": 0,
+            "path": "crossing",
+            "preset": "burst_30_0.5s"
+          },
+          {
+            "change_from_clean_median_s": null,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.2,
+            "high_s": null,
+            "low_s": null,
+            "median_s": null,
+            "n_runs": 50,
+            "n_runs_with_alert": 0,
+            "path": "crossing",
+            "preset": "burst_30_0.5s"
+          },
+          {
+            "change_from_clean_median_s": null,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.5,
+            "high_s": null,
+            "low_s": null,
+            "median_s": null,
+            "n_runs": 50,
+            "n_runs_with_alert": 0,
+            "path": "crossing",
+            "preset": "burst_30_0.5s"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.0,
+            "high_s": 0.33333333333333304,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "loiter",
+            "preset": "clean"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.2,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "loiter",
+            "preset": "clean"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.5,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "loiter",
+            "preset": "clean"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.0,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "loiter",
+            "preset": "iid_10"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.2,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "loiter",
+            "preset": "iid_10"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.5,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 50,
+            "path": "loiter",
+            "preset": "iid_10"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.0,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 49,
+            "path": "loiter",
+            "preset": "iid_30"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.2,
+            "high_s": 0.2333333333333334,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 49,
+            "path": "loiter",
+            "preset": "iid_30"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.5,
+            "high_s": 0.33333333333333304,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 49,
+            "path": "loiter",
+            "preset": "iid_30"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.0,
+            "high_s": 0.33333333333333304,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 22,
+            "path": "loiter",
+            "preset": "burst_10_0.5s"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.2,
+            "high_s": 0.33333333333333304,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 22,
+            "path": "loiter",
+            "preset": "burst_10_0.5s"
+          },
+          {
+            "change_from_clean_median_s": 0.0,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.5,
+            "high_s": 0.33333333333333304,
+            "low_s": 0.2333333333333334,
+            "median_s": 0.2333333333333334,
+            "n_runs": 50,
+            "n_runs_with_alert": 22,
+            "path": "loiter",
+            "preset": "burst_10_0.5s"
+          },
+          {
+            "change_from_clean_median_s": null,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.0,
+            "high_s": null,
+            "low_s": null,
+            "median_s": null,
+            "n_runs": 50,
+            "n_runs_with_alert": 0,
+            "path": "loiter",
+            "preset": "burst_30_0.5s"
+          },
+          {
+            "change_from_clean_median_s": null,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.2,
+            "high_s": null,
+            "low_s": null,
+            "median_s": null,
+            "n_runs": 50,
+            "n_runs_with_alert": 0,
+            "path": "loiter",
+            "preset": "burst_30_0.5s"
+          },
+          {
+            "change_from_clean_median_s": null,
+            "clean_median_s": 0.2333333333333334,
+            "delay_s": 0.5,
+            "high_s": null,
+            "low_s": null,
+            "median_s": null,
+            "n_runs": 50,
+            "n_runs_with_alert": 0,
+            "path": "loiter",
+            "preset": "burst_30_0.5s"
+          }
+        ],
+        "continuity_at_delay_0_by_preset": [
+          {
+            "high": 1.0,
+            "low": 1.0,
+            "median": 1.0,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "clean"
+          },
+          {
+            "high": 1.0,
+            "low": 1.0,
+            "median": 1.0,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "iid_10"
+          },
+          {
+            "high": 1.0,
+            "low": 1.0,
+            "median": 1.0,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "iid_30"
+          },
+          {
+            "high": 0.3582089552238806,
+            "low": 0.09950248756218906,
+            "median": 0.2512437810945274,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "burst_10_0.5s"
+          },
+          {
+            "high": 0.09950248756218906,
+            "low": 0.04975124378109453,
+            "median": 0.07213930348258707,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "burst_30_0.5s"
+          },
+          {
+            "high": 1.0,
+            "low": 1.0,
+            "median": 1.0,
+            "n_runs": 50,
+            "path": "skimming",
+            "preset": "clean"
+          },
+          {
+            "high": 1.0,
+            "low": 1.0,
+            "median": 1.0,
+            "n_runs": 50,
+            "path": "skimming",
+            "preset": "iid_10"
+          },
+          {
+            "high": 1.0,
+            "low": 1.0,
+            "median": 1.0,
+            "n_runs": 50,
+            "path": "skimming",
+            "preset": "iid_30"
+          },
+          {
+            "high": 0.3582089552238806,
+            "low": 0.09950248756218906,
+            "median": 0.2512437810945274,
+            "n_runs": 50,
+            "path": "skimming",
+            "preset": "burst_10_0.5s"
+          },
+          {
+            "high": 0.09950248756218906,
+            "low": 0.04975124378109453,
+            "median": 0.07213930348258707,
+            "n_runs": 50,
+            "path": "skimming",
+            "preset": "burst_30_0.5s"
+          },
+          {
+            "high": 1.0,
+            "low": 1.0,
+            "median": 1.0,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "clean"
+          },
+          {
+            "high": 1.0,
+            "low": 1.0,
+            "median": 1.0,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "iid_10"
+          },
+          {
+            "high": 1.0,
+            "low": 1.0,
+            "median": 1.0,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "iid_30"
+          },
+          {
+            "high": 0.3582089552238806,
+            "low": 0.09950248756218906,
+            "median": 0.2512437810945274,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "burst_10_0.5s"
+          },
+          {
+            "high": 0.09950248756218906,
+            "low": 0.04975124378109453,
+            "median": 0.07213930348258707,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "burst_30_0.5s"
+          }
+        ],
+        "missed_alerts_by_preset_and_delay": [
+          {
+            "delay_s": 0.0,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "clean",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.2,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "clean",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.5,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "clean",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.0,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "iid_10",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.2,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "iid_10",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.5,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "iid_10",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.0,
+            "missed_alert_count": 1,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "iid_30",
+            "rate": 0.02,
+            "wilson_high": 0.10495443589637815
+          },
+          {
+            "delay_s": 0.2,
+            "missed_alert_count": 1,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "iid_30",
+            "rate": 0.02,
+            "wilson_high": 0.10495443589637815
+          },
+          {
+            "delay_s": 0.5,
+            "missed_alert_count": 1,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "iid_30",
+            "rate": 0.02,
+            "wilson_high": 0.10495443589637815
+          },
+          {
+            "delay_s": 0.0,
+            "missed_alert_count": 28,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "burst_10_0.5s",
+            "rate": 0.56,
+            "wilson_high": 0.6883780078874284
+          },
+          {
+            "delay_s": 0.2,
+            "missed_alert_count": 28,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "burst_10_0.5s",
+            "rate": 0.56,
+            "wilson_high": 0.6883780078874284
+          },
+          {
+            "delay_s": 0.5,
+            "missed_alert_count": 28,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "burst_10_0.5s",
+            "rate": 0.56,
+            "wilson_high": 0.6883780078874284
+          },
+          {
+            "delay_s": 0.0,
+            "missed_alert_count": 50,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "burst_30_0.5s",
+            "rate": 1.0,
+            "wilson_high": 1.0
+          },
+          {
+            "delay_s": 0.2,
+            "missed_alert_count": 50,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "burst_30_0.5s",
+            "rate": 1.0,
+            "wilson_high": 1.0
+          },
+          {
+            "delay_s": 0.5,
+            "missed_alert_count": 50,
+            "n_runs": 50,
+            "path": "crossing",
+            "preset": "burst_30_0.5s",
+            "rate": 1.0,
+            "wilson_high": 1.0
+          },
+          {
+            "delay_s": 0.0,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "clean",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.2,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "clean",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.5,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "clean",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.0,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "iid_10",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.2,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "iid_10",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.5,
+            "missed_alert_count": 0,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "iid_10",
+            "rate": 0.0,
+            "wilson_high": 0.07134759913335872
+          },
+          {
+            "delay_s": 0.0,
+            "missed_alert_count": 1,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "iid_30",
+            "rate": 0.02,
+            "wilson_high": 0.10495443589637815
+          },
+          {
+            "delay_s": 0.2,
+            "missed_alert_count": 1,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "iid_30",
+            "rate": 0.02,
+            "wilson_high": 0.10495443589637815
+          },
+          {
+            "delay_s": 0.5,
+            "missed_alert_count": 1,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "iid_30",
+            "rate": 0.02,
+            "wilson_high": 0.10495443589637815
+          },
+          {
+            "delay_s": 0.0,
+            "missed_alert_count": 28,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "burst_10_0.5s",
+            "rate": 0.56,
+            "wilson_high": 0.6883780078874284
+          },
+          {
+            "delay_s": 0.2,
+            "missed_alert_count": 28,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "burst_10_0.5s",
+            "rate": 0.56,
+            "wilson_high": 0.6883780078874284
+          },
+          {
+            "delay_s": 0.5,
+            "missed_alert_count": 28,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "burst_10_0.5s",
+            "rate": 0.56,
+            "wilson_high": 0.6883780078874284
+          },
+          {
+            "delay_s": 0.0,
+            "missed_alert_count": 50,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "burst_30_0.5s",
+            "rate": 1.0,
+            "wilson_high": 1.0
+          },
+          {
+            "delay_s": 0.2,
+            "missed_alert_count": 50,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "burst_30_0.5s",
+            "rate": 1.0,
+            "wilson_high": 1.0
+          },
+          {
+            "delay_s": 0.5,
+            "missed_alert_count": 50,
+            "n_runs": 50,
+            "path": "loiter",
+            "preset": "burst_30_0.5s",
+            "rate": 1.0,
+            "wilson_high": 1.0
+          }
+        ],
+        "not_in_rows": "The rows do not carry the mean gap between delivered fixes or the burst lengths seen, so latency per preset is listed next to the clean latency instead of being compared with a gap length."
+      },
+      "sentence": "Loss raises latency by about the mean gap; bursts raise it by about the burst length (0.5 s) and cut continuity; misses only on burst_30 at long delay."
+    }
+  ],
+  "prediction_source": "pre-registered before the runs (EXP-033 section of the private pre-registration)",
+  "safety_check": {
+    "flag": null,
+    "limit_m": 0.5,
+    "maximum_observer_horizontal_displacement_m": 0.0,
+    "note": "A lost-link failsafe landing is straight down; it shows in observer_max_displacement_m and runs_with_observer_landing, and a landing observer stops sending fixes.",
+    "passed": true,
+    "quantity": "maximum horizontal distance of any observer from its post, over every run",
+    "runs_with_observer_landing": 1053
+  },
+  "simulated": true
+}

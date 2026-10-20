@@ -1,0 +1,4198 @@
+{
+  "cells": [
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.007796041152086777,
+        "low": 0.007605246549039142,
+        "median": 0.007708312005049237,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.002745392178560518,
+        "low": 0.0026874920256315317,
+        "median": 0.0027163320512068314,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.004810232616297954,
+        "low": 0.004694168458956371,
+        "median": 0.00476470542728377,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.01,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.00884172856860138,
+        "low": 0.008640450534763667,
+        "median": 0.008796303004968833,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.0030578708370041035,
+        "low": 0.003006607756603677,
+        "median": 0.003031842388666074,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.005357684447021763,
+        "low": 0.005262255948706584,
+        "median": 0.005315645547434652,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.01,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.05,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.008619592395943582,
+        "low": 0.008382070889882994,
+        "median": 0.008512464390693924,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.0030361854415760794,
+        "low": 0.0029753148987180828,
+        "median": 0.003009833524720951,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.005311480644803325,
+        "low": 0.005185701355459623,
+        "median": 0.005252899823332859,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.01,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.05,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.009674115761906478,
+        "low": 0.009408986303590834,
+        "median": 0.009571571625033769,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.0033521318700096884,
+        "low": 0.0032917929139588934,
+        "median": 0.003328760733732332,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.005862748840972631,
+        "low": 0.005775253482531118,
+        "median": 0.005809999012459101,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.01,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.009632551583338644,
+        "low": 0.009475674259398438,
+        "median": 0.009550124249607984,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.003409238320430986,
+        "low": 0.003347855590656952,
+        "median": 0.0033757319603524003,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.005956233931204499,
+        "low": 0.0058335323967632245,
+        "median": 0.005894570694944538,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.01,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.010840694634713842,
+        "low": 0.01059897892872942,
+        "median": 0.010714515936087066,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.003762981725755916,
+        "low": 0.003704458283467582,
+        "median": 0.0037295487241901393,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.006580719003242449,
+        "low": 0.00647627776191893,
+        "median": 0.006515267476749344,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.01,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.2,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8786026126355198,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.0126505290903457,
+        "low": 0.012371423390742264,
+        "median": 0.012468249029443655,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.004502563697134352,
+        "low": 0.004406347402833973,
+        "median": 0.004438711082323044,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.007843482979363076,
+        "low": 0.007677317655251621,
+        "median": 0.007749102642580684,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.01,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.2,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8786026126355198,
+        "low": 1.8027142913507106,
+        "median": 1.833154903988911,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.014204938623920435,
+        "low": 0.013824217541281759,
+        "median": 0.014065362154334463,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.00498033400317884,
+        "low": 0.004868833590732288,
+        "median": 0.004926488189755241,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.008694070390677044,
+        "low": 0.00846718665027882,
+        "median": 0.00859392752157366,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.01,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.01632738712396846,
+        "low": 0.016026499042923165,
+        "median": 0.016212215862007752,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.0057917619604668825,
+        "low": 0.005671382031920559,
+        "median": 0.005710230804068276,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.010151175282333048,
+        "low": 0.009902741784318556,
+        "median": 0.01000188522182835,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.02,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.018751246083832177,
+        "low": 0.018186075463854735,
+        "median": 0.018582181166238432,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.006486674874322397,
+        "low": 0.0063660524203237034,
+        "median": 0.006420631498685162,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.011356059986674275,
+        "low": 0.011146172717247212,
+        "median": 0.011240975129270268,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.02,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.05,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.0181047116225304,
+        "low": 0.017802570682536916,
+        "median": 0.017958881009366448,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.00642284929017405,
+        "low": 0.006283742561335883,
+        "median": 0.006359498603279373,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.011229071058174495,
+        "low": 0.01099243903076557,
+        "median": 0.011123355801920996,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.02,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.05,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.02057446527901849,
+        "low": 0.0200741719013787,
+        "median": 0.020357760265349516,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.007138336050055566,
+        "low": 0.00698615921733873,
+        "median": 0.007078171627545853,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.012474053777913293,
+        "low": 0.012215327579051093,
+        "median": 0.012375019582846189,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.02,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.020451966313525045,
+        "low": 0.020080485781338222,
+        "median": 0.020261801512762023,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.0072506976222085845,
+        "low": 0.0071128524767667825,
+        "median": 0.00718116342220252,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.012651618219638658,
+        "low": 0.012431436587491587,
+        "median": 0.012537584261288337,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.02,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.023142926361590748,
+        "low": 0.022629409557161587,
+        "median": 0.022802126081437828,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.008054689131121654,
+        "low": 0.007858401392375008,
+        "median": 0.007967779215852084,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.014076277232071487,
+        "low": 0.01374989809643937,
+        "median": 0.013934658428841305,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.02,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.2,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8589343301974703,
+        "low": 1.8027142913507106,
+        "median": 1.833154903988911,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.02741430377299523,
+        "low": 0.02671221716327724,
+        "median": 0.027255655181843606,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.009766436704001947,
+        "low": 0.009585234910239437,
+        "median": 0.009658316535360683,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.017038678919021555,
+        "low": 0.016686786232376155,
+        "median": 0.016833328748682142,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.02,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.2,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8589343301974703,
+        "low": 1.8027142913507106,
+        "median": 1.8326952867541086,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.031079825481475674,
+        "low": 0.030132440596163126,
+        "median": 0.03049424679707351,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.010890567547453116,
+        "low": 0.010607223125669793,
+        "median": 0.010814389990947162,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.0189765458233192,
+        "low": 0.018493247409777598,
+        "median": 0.018872438742132652,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.02,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8348781002929642,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.041742667607351874,
+        "low": 0.04079307451131167,
+        "median": 0.041229910918031284,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.014763340211207664,
+        "low": 0.01447906670209795,
+        "median": 0.014651570219786225,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.025836117511383115,
+        "low": 0.025326822259275513,
+        "median": 0.025671841689462904,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.05,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8850644139418629,
+        "low": 1.8027142913507106,
+        "median": 1.8348781002929642,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.048648942339788205,
+        "low": 0.047759319900230225,
+        "median": 0.04820618879946141,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.016863030346098932,
+        "low": 0.01641187353462508,
+        "median": 0.016661480178515615,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.029563393695444605,
+        "low": 0.028872174571606072,
+        "median": 0.029176228074085986,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.05,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.05,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.046867766318601595,
+        "low": 0.045596137580283094,
+        "median": 0.04591545991516978,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.016546432390202415,
+        "low": 0.01626431915186383,
+        "median": 0.01639797023630666,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.028906994278293425,
+        "low": 0.02841955019189075,
+        "median": 0.028712793849548543,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.05,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.05,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8871586099366922,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.05413065865120113,
+        "low": 0.05308508323160833,
+        "median": 0.05361993040271368,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.01879474094018817,
+        "low": 0.01834722216444597,
+        "median": 0.018601073292504013,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.03291990860408268,
+        "low": 0.03216728926509382,
+        "median": 0.0324806051909681,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.05,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8862119935786767,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.05341330756412961,
+        "low": 0.05201629316577442,
+        "median": 0.0525248723968683,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.018891280048733753,
+        "low": 0.018617371683262617,
+        "median": 0.018710239769783202,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.03304262271732355,
+        "low": 0.032508889819526945,
+        "median": 0.032691597916052056,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.05,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8804467746404594,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.06227511608313745,
+        "low": 0.059861610098556894,
+        "median": 0.061013132807045664,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.0215122361402363,
+        "low": 0.020924989838841477,
+        "median": 0.02123445498225148,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.03756011766067207,
+        "low": 0.03668685697347253,
+        "median": 0.0370641225512604,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.05,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.2,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.840024339024596,
+        "low": 1.783644506982064,
+        "median": 1.8173160532958548,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.07723785711582429,
+        "low": 0.0747004728101087,
+        "median": 0.07591621069367337,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.027314605746952325,
+        "low": 0.026336866227829162,
+        "median": 0.026989363788016776,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.04774718275732865,
+        "low": 0.046151347078695795,
+        "median": 0.04726901101013392,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.05,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.2,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8343002469686758,
+        "low": 1.783644506982064,
+        "median": 1.8163221289864289,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.08929918813934697,
+        "low": 0.08529310030280525,
+        "median": 0.08690659556219264,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.031263871473536105,
+        "low": 0.03012608201847442,
+        "median": 0.030523678158219967,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.05469103995031861,
+        "low": 0.05282554968054764,
+        "median": 0.05337324834196376,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.05,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8551721225566165,
+        "low": 1.8021058027300658,
+        "median": 1.8311853775971643,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.08336870136988922,
+        "low": 0.08119797129558053,
+        "median": 0.08228020356250869,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.029257282684270858,
+        "low": 0.028886592821805387,
+        "median": 0.029070714323154938,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.051318861284325244,
+        "low": 0.050686193002025745,
+        "median": 0.05095246089683836,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.1,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.836537175583205,
+        "low": 1.7913215010725552,
+        "median": 1.8126556642646068,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.09681535485106488,
+        "low": 0.09375406746442096,
+        "median": 0.0952063059941981,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.03336092377643827,
+        "low": 0.03275765473878322,
+        "median": 0.03294229805430309,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.05848474005872042,
+        "low": 0.05748182894473722,
+        "median": 0.05795540007885222,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.1,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.05,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8381735471316825,
+        "low": 1.8027142913507106,
+        "median": 1.8214825759307602,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.09370471355669144,
+        "low": 0.09059550601811647,
+        "median": 0.09247027532510443,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.03301187026681925,
+        "low": 0.03245001675173848,
+        "median": 0.0326875708573541,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.05790401326053967,
+        "low": 0.0568217727081892,
+        "median": 0.05727708463157695,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.1,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.05,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8183107850706148,
+        "low": 1.778883302906221,
+        "median": 1.8059488954678393,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.10801667070575806,
+        "low": 0.10447188864852648,
+        "median": 0.10654287661798004,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.03742784603762109,
+        "low": 0.036781182753189395,
+        "median": 0.037158959717748644,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.06563705382419464,
+        "low": 0.06447250127087945,
+        "median": 0.06513095349192374,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.1,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8248605364699264,
+        "low": 1.7824387792242662,
+        "median": 1.809859645439017,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.1081284083463439,
+        "low": 0.10545549148382556,
+        "median": 0.10669804571867553,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.03813027074810355,
+        "low": 0.03739619656317045,
+        "median": 0.03791442535651047,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.066709936231696,
+        "low": 0.06538031432359011,
+        "median": 0.06639803378917164,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.1,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8032015594723247,
+        "low": 1.7666934875259073,
+        "median": 1.7840630117328824,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.12431598044125097,
+        "low": 0.12085052792480347,
+        "median": 0.12300031254038979,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.04346729895716809,
+        "low": 0.04235899700143576,
+        "median": 0.04302951966709509,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.07594221379976564,
+        "low": 0.07413547892732392,
+        "median": 0.07539416771822766,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.1,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.2,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6505658840276674,
+      "minimum_pairwise_separation_m": {
+        "high": 1.7436992645401068,
+        "low": 1.709422094636823,
+        "median": 1.7314832883306028,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.17182395231364406,
+        "low": 0.16350323397091937,
+        "median": 0.1674066641986581,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.05980811139364509,
+        "low": 0.05792993364846844,
+        "median": 0.05904941954690239,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.10505955736663969,
+        "low": 0.102284572148474,
+        "median": 0.1034176804204415,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.1,
+      "slice": "main"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.2,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.5931907698109837,
+      "minimum_pairwise_separation_m": {
+        "high": 1.7081446306402914,
+        "low": 1.6783333241220184,
+        "median": 1.6911379087958758,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.2013811689340148,
+        "low": 0.19388111027123694,
+        "median": 0.19757005737918376,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.06983716541524364,
+        "low": 0.0673880468047827,
+        "median": 0.06830868147259458,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.12314175088247535,
+        "low": 0.11816987820476729,
+        "median": 0.12041477231054026,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.1,
+      "slice": "main"
+    },
+    {
+      "adapter": "physics_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.6634827703960393,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8126375973440811,
+        "low": 1.7853997956910017,
+        "median": 1.803315416797418,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.12875488118356657,
+        "low": 0.12083012791537381,
+        "median": 0.12472499172153423,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.036744591268878427,
+        "low": 0.034722165935397356,
+        "median": 0.0358961408037513,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.07645687327131515,
+        "low": 0.07274946271658864,
+        "median": 0.0746455881335267,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.02,
+      "slice": "physics"
+    },
+    {
+      "adapter": "physics_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.603945730534127,
+      "minimum_pairwise_separation_m": {
+        "high": 1.7397194843628432,
+        "low": 1.7054404148051603,
+        "median": 1.726075130380257,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.19963233748170647,
+        "low": 0.1830193787721351,
+        "median": 0.19011595309054025,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.06033943926016035,
+        "low": 0.05743317056417072,
+        "median": 0.05849082042572831,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.11590469929006013,
+        "low": 0.10950257591546629,
+        "median": 0.11098246117313298,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.02,
+      "slice": "physics"
+    },
+    {
+      "adapter": "physics_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.5999192812638294,
+      "minimum_pairwise_separation_m": {
+        "high": 1.7919058387931257,
+        "low": 1.7722272038276359,
+        "median": 1.7827000368692243,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.14689472208105875,
+        "low": 0.13814508522008298,
+        "median": 0.14080039764744812,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.04396256476181174,
+        "low": 0.04097967668948372,
+        "median": 0.041920229345970936,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.08768575673163768,
+        "low": 0.08257526377540822,
+        "median": 0.08403312448464201,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.02,
+      "slice": "physics"
+    },
+    {
+      "adapter": "physics_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 0,
+          "n": 50,
+          "rate": 0.0,
+          "wilson_high": 0.07134759913335872,
+          "wilson_low": 6.938893903907228e-18
+        },
+        "total": 0
+      },
+      "min_separation_min_m": 1.5146013290106206,
+      "minimum_pairwise_separation_m": {
+        "high": 1.6992375866861498,
+        "low": 1.6634714903885115,
+        "median": 1.6883144756000688,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.2250017813515062,
+        "low": 0.21111668852885793,
+        "median": 0.21772250781738017,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.07090833448944693,
+        "low": 0.06745493249484924,
+        "median": 0.06861284454857997,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.1324917350952019,
+        "low": 0.12580793651328603,
+        "median": 0.12769983419970815,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.02,
+      "slice": "physics"
+    },
+    {
+      "adapter": "physics_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 4,
+          "n": 50,
+          "rate": 0.08,
+          "wilson_high": 0.18838246918342838,
+          "wilson_low": 0.03154951408859298
+        },
+        "total": 80
+      },
+      "min_separation_min_m": 0.6359198613867083,
+      "minimum_pairwise_separation_m": {
+        "high": 1.1981688661497074,
+        "low": 1.093636693427569,
+        "median": 1.1428002262955737,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.6424929761592295,
+        "low": 0.6058737928589323,
+        "median": 0.621472888630506,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.17523728163405303,
+        "low": 0.16685929405629873,
+        "median": 0.1704793499493256,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.39570482067906293,
+        "low": 0.37710845849522295,
+        "median": 0.3889950229579687,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.05,
+      "slice": "physics"
+    },
+    {
+      "adapter": "physics_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 6,
+          "n": 50,
+          "rate": 0.12,
+          "wilson_high": 0.23804817383202992,
+          "wilson_low": 0.05617600150932274
+        },
+        "total": 240
+      },
+      "min_separation_min_m": 0.48334133424204806,
+      "minimum_pairwise_separation_m": {
+        "high": 1.1322105729909246,
+        "low": 1.0033821866172583,
+        "median": 1.0691761293566802,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.753262486288058,
+        "low": 0.7180031074416309,
+        "median": 0.7354340153355609,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.21684549918415133,
+        "low": 0.20543458292529634,
+        "median": 0.20931907971371058,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.45249283788978506,
+        "low": 0.4346482804344057,
+        "median": 0.44247704759892525,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.05,
+      "slice": "physics"
+    },
+    {
+      "adapter": "physics_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 11,
+          "n": 50,
+          "rate": 0.22,
+          "wilson_high": 0.3524154958125367,
+          "wilson_low": 0.1275391597021442
+        },
+        "total": 199
+      },
+      "min_separation_min_m": 0.3157768268545441,
+      "minimum_pairwise_separation_m": {
+        "high": 1.081409780599965,
+        "low": 0.9767890267777473,
+        "median": 1.020732263008647,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.7131625333454709,
+        "low": 0.6841677427698671,
+        "median": 0.6946059986305524,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.20295703196984025,
+        "low": 0.19449819183365016,
+        "median": 0.19774446338810991,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.4365809221924501,
+        "low": 0.4212798160642354,
+        "median": 0.42840042735818584,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.05,
+      "slice": "physics"
+    },
+    {
+      "adapter": "physics_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 22,
+          "n": 50,
+          "rate": 0.44,
+          "wilson_high": 0.5769397197834315,
+          "wilson_low": 0.3116219921125717
+        },
+        "total": 773
+      },
+      "min_separation_min_m": 0.3937217681520854,
+      "minimum_pairwise_separation_m": {
+        "high": 0.9938270017535007,
+        "low": 0.8364080069876397,
+        "median": 0.8868521454492708,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.8319856382191475,
+        "low": 0.8001751542493767,
+        "median": 0.8237668196630701,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.2510594074526207,
+        "low": 0.237419339393528,
+        "median": 0.2428778835433108,
+        "n": 50
+      },
+      "preset": "iid_10",
+      "rms_error_m": {
+        "high": 0.5040023275629791,
+        "low": 0.47807360163867013,
+        "median": 0.4906896317383438,
+        "n": 50
+      },
+      "separation_rule": "local",
+      "sigma_m": 0.05,
+      "slice": "physics"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 38,
+          "n": 50,
+          "rate": 0.76,
+          "wilson_high": 0.8570260860300828,
+          "wilson_low": 0.6258731624205708
+        },
+        "total": 756
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.007796041152086777,
+        "low": 0.007605246549039142,
+        "median": 0.007708312005049237,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.002745392178564935,
+        "low": 0.002687492025627004,
+        "median": 0.0027163320512082556,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.004810232616297954,
+        "low": 0.004694168458948012,
+        "median": 0.00476470542728377,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.01,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.05,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 38,
+          "n": 50,
+          "rate": 0.76,
+          "wilson_high": 0.8570260860300828,
+          "wilson_low": 0.6258731624205708
+        },
+        "total": 499
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.008619592395943582,
+        "low": 0.008382070889882994,
+        "median": 0.008512464390693924,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.00303618544157608,
+        "low": 0.0029753148987180828,
+        "median": 0.003009833524720948,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.005311480644803325,
+        "low": 0.005185701355459623,
+        "median": 0.005252899823332859,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.01,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 32,
+          "n": 50,
+          "rate": 0.64,
+          "wilson_high": 0.7586125034815325,
+          "wilson_low": 0.501410168761127
+        },
+        "total": 294
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.009632551583338644,
+        "low": 0.009475674259398438,
+        "median": 0.009550124249607984,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.0034092383204309853,
+        "low": 0.003347855590656952,
+        "median": 0.0033757319603524003,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.005956233931204499,
+        "low": 0.005833532396763231,
+        "median": 0.005894570694944538,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.01,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.2,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 16,
+          "n": 50,
+          "rate": 0.32,
+          "wilson_high": 0.45810297308144077,
+          "wilson_low": 0.20758216260656845
+        },
+        "total": 149
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8804467746404594,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.0126505290903457,
+        "low": 0.012371423390742264,
+        "median": 0.012468249029443655,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.004502563697134352,
+        "low": 0.004406347402833973,
+        "median": 0.004438711082323044,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.007843482979363076,
+        "low": 0.007677317655251621,
+        "median": 0.007749102642580684,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.01,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 44,
+          "n": 50,
+          "rate": 0.88,
+          "wilson_high": 0.9438239984906773,
+          "wilson_low": 0.7619518261679701
+        },
+        "total": 855
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.01632738712396846,
+        "low": 0.016026499042923165,
+        "median": 0.016212215862007752,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.0057917619604668825,
+        "low": 0.005671382031919944,
+        "median": 0.0057102308040683425,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.010151175282332657,
+        "low": 0.00990274178431865,
+        "median": 0.010001938067861078,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.02,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.05,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 42,
+          "n": 50,
+          "rate": 0.84,
+          "wilson_high": 0.916625793219666,
+          "wilson_low": 0.7148578393696501
+        },
+        "total": 588
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.0181047116225304,
+        "low": 0.017802570682536916,
+        "median": 0.017958881009366448,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.00642284929017405,
+        "low": 0.006283742561335886,
+        "median": 0.0063594986032793725,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.011229071058174495,
+        "low": 0.010992439030765577,
+        "median": 0.011123355801920993,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.02,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 38,
+          "n": 50,
+          "rate": 0.76,
+          "wilson_high": 0.8570260860300828,
+          "wilson_low": 0.6258731624205708
+        },
+        "total": 394
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.020451966313525045,
+        "low": 0.020080485781338222,
+        "median": 0.020261801512762023,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.0072506976222085845,
+        "low": 0.0071128524767663315,
+        "median": 0.007181163422203016,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.012651618219639138,
+        "low": 0.012431436587491587,
+        "median": 0.012537584261288337,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.02,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.2,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 43,
+          "n": 50,
+          "rate": 0.86,
+          "wilson_high": 0.9304916657298371,
+          "wilson_low": 0.7381380628941446
+        },
+        "total": 562
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8636893135244001,
+        "low": 1.8027142913507106,
+        "median": 1.833154903988911,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.02741430377299523,
+        "low": 0.02671221716327724,
+        "median": 0.027253925895659822,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.009766433432278121,
+        "low": 0.009585231868014637,
+        "median": 0.009658585497765652,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.017038683698939707,
+        "low": 0.016686786232376155,
+        "median": 0.016833767617345397,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.02,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "total": 59370
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8348781002929642,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.04205796632141412,
+        "low": 0.04112020651096363,
+        "median": 0.041527910459836136,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.014832757147991205,
+        "low": 0.014544448552368658,
+        "median": 0.014726918124121514,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.026006902667060277,
+        "low": 0.02548723369864636,
+        "median": 0.025873229502266615,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.05,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.05,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "total": 58429
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8946809644230038,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.04708571489026271,
+        "low": 0.045872007491407664,
+        "median": 0.04638446694124686,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.01662180846918654,
+        "low": 0.01634245840978216,
+        "median": 0.01647458223671416,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.029050719496305093,
+        "low": 0.02859742195320701,
+        "median": 0.02888254009290355,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.05,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "total": 58063
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8879559757184283,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.05354351662447241,
+        "low": 0.05225404843965729,
+        "median": 0.05275802060556607,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.018997384190095414,
+        "low": 0.01852904622405718,
+        "median": 0.018793094462032763,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.03325923017818604,
+        "low": 0.0324818259558718,
+        "median": 0.032839510120441784,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.05,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.2,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "total": 77630
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.857030815717142,
+        "low": 1.788148114018735,
+        "median": 1.8227864609812947,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.07757991605027616,
+        "low": 0.07459446507589114,
+        "median": 0.07641567310400262,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.027398600151048735,
+        "low": 0.026311424656638462,
+        "median": 0.02695230961300299,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.0479251731537732,
+        "low": 0.04611545281610596,
+        "median": 0.04715274899387023,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.05,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.0,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "total": 257088
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.874863977130751,
+        "low": 1.8027142913507106,
+        "median": 1.8347449002245826,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.09141310222594856,
+        "low": 0.08945733649416562,
+        "median": 0.09058847429737409,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.030699437126999223,
+        "low": 0.02991102965416029,
+        "median": 0.030356011203330056,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.055881370216812436,
+        "low": 0.05478090559667614,
+        "median": 0.055320563349244775,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.1,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.05,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "total": 256370
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.863831101125315,
+        "low": 1.8027142913507106,
+        "median": 1.8349471793475334,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.10252410292452743,
+        "low": 0.09901706506508684,
+        "median": 0.10157173786199433,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.03454900057792302,
+        "low": 0.03362026570904697,
+        "median": 0.034076725025480724,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.06242926930328086,
+        "low": 0.06096970093768833,
+        "median": 0.06187182458017736,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.1,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.1,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "total": 255445
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.857030815717142,
+        "low": 1.8027142913507106,
+        "median": 1.833154903988911,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.11788342184048077,
+        "low": 0.1137663333008712,
+        "median": 0.11589423097483342,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.040111116709192915,
+        "low": 0.038980256796711854,
+        "median": 0.03949557683105382,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.07168641836749762,
+        "low": 0.06993132465127382,
+        "median": 0.07085182901831419,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.1,
+      "slice": "coop_comparison"
+    },
+    {
+      "adapter": "point_mass_offboard",
+      "downwash_wind_max_mps": {
+        "high": 0.0,
+        "low": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "fix_latency_s": 0.2,
+      "guard_activations": {
+        "runs_with_any": {
+          "count": 50,
+          "n": 50,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9286524008666414
+        },
+        "total": 272347
+      },
+      "min_separation_min_m": 1.6634831109855335,
+      "minimum_pairwise_separation_m": {
+        "high": 1.8126004943396128,
+        "low": 1.7714547894782002,
+        "median": 1.799828055268346,
+        "n": 50
+      },
+      "n": 50,
+      "p95_error_m": {
+        "high": 0.20376357255844957,
+        "low": 0.1919663998970156,
+        "median": 0.19505488323264908,
+        "n": 50
+      },
+      "per_axis_std_m": {
+        "high": 0.06846468788608435,
+        "low": 0.06528811262372304,
+        "median": 0.06722982052106138,
+        "n": 50
+      },
+      "preset": "clean",
+      "rms_error_m": {
+        "high": 0.12385867210791501,
+        "low": 0.11651071350432042,
+        "median": 0.12074919860610972,
+        "n": 50
+      },
+      "separation_rule": "coop",
+      "sigma_m": 0.1,
+      "slice": "coop_comparison"
+    }
+  ],
+  "deviations": [
+    "The pre-registered grid (main and physics slices) runs the registered pairwise 0.8 m guard (separation_rule local), as pre-registered (decision D-126).",
+    "The coop_comparison slice (point mass, clean preset, Run D's cooperative reciprocal velocity rule, separation_rule coop, decision D-123) was added after the pre-registration, for comparison only; it is not part of the pre-registered grid.",
+    "guard_activations counts pair-steps inside 0.8 m in the local slices; in the coop_comparison slice it counts drone control steps where the coop rule changed the velocity."
+  ],
+  "experiment": "EXP-034",
+  "grid_counts": {
+    "coop_comparison": 800,
+    "main": 1600,
+    "physics": 400
+  },
+  "hand_check": {
+    "coop_rule_comparison_note": "Same hand formula applied to the coop_comparison slice (separation_rule coop), added after the pre-registration for comparison only.",
+    "fix_period_s": 0.03333333333333333,
+    "hand_formula": "per-axis std = sigma * sqrt(a / (2 - a)), a = 1 - exp(-(1/30)/0.25)",
+    "response_time_s": 0.25,
+    "zero_latency_clean": [
+      {
+        "adapter": "point_mass_offboard",
+        "observed_per_axis_std_m": {
+          "high": 0.002745392178560518,
+          "low": 0.0026874920256315317,
+          "median": 0.0027163320512068314,
+          "n": 50
+        },
+        "observed_rms_error_m": {
+          "high": 0.004810232616297954,
+          "low": 0.004694168458956371,
+          "median": 0.00476470542728377,
+          "n": 50
+        },
+        "observed_to_reference": 1.052809642803082,
+        "observed_to_reference_rms": 1.0662091975587213,
+        "reference_per_axis_std_m": 0.002580079000772313,
+        "reference_rms_error_m": 0.004468827916879187,
+        "separation_rule": "local",
+        "sigma_m": 0.01,
+        "slice": "main",
+        "within_10_percent": true
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "observed_per_axis_std_m": {
+          "high": 0.0057917619604668825,
+          "low": 0.005671382031920559,
+          "median": 0.005710230804068276,
+          "n": 50
+        },
+        "observed_rms_error_m": {
+          "high": 0.010151175282333048,
+          "low": 0.009902741784318556,
+          "median": 0.01000188522182835,
+          "n": 50
+        },
+        "observed_to_reference": 1.1065999921628353,
+        "observed_to_reference_rms": 1.1190725407047204,
+        "reference_per_axis_std_m": 0.005160158001544626,
+        "reference_rms_error_m": 0.008937655833758374,
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "main",
+        "within_10_percent": false
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "observed_per_axis_std_m": {
+          "high": 0.014763340211207664,
+          "low": 0.01447906670209795,
+          "median": 0.014651570219786225,
+          "n": 50
+        },
+        "observed_rms_error_m": {
+          "high": 0.025836117511383115,
+          "low": 0.025326822259275513,
+          "median": 0.025671841689462904,
+          "n": 50
+        },
+        "observed_to_reference": 1.1357458601384274,
+        "observed_to_reference_rms": 1.1489295254578018,
+        "reference_per_axis_std_m": 0.012900395003861566,
+        "reference_rms_error_m": 0.022344139584395933,
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "main",
+        "within_10_percent": false
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "observed_per_axis_std_m": {
+          "high": 0.029257282684270858,
+          "low": 0.028886592821805387,
+          "median": 0.029070714323154938,
+          "n": 50
+        },
+        "observed_rms_error_m": {
+          "high": 0.051318861284325244,
+          "low": 0.050686193002025745,
+          "median": 0.05095246089683836,
+          "n": 50
+        },
+        "observed_to_reference": 1.126737371780205,
+        "observed_to_reference_rms": 1.1401750491305804,
+        "reference_per_axis_std_m": 0.02580079000772313,
+        "reference_rms_error_m": 0.04468827916879187,
+        "separation_rule": "local",
+        "sigma_m": 0.1,
+        "slice": "main",
+        "within_10_percent": false
+      },
+      {
+        "adapter": "physics_offboard",
+        "observed_per_axis_std_m": {
+          "high": 0.036744591268878427,
+          "low": 0.034722165935397356,
+          "median": 0.0358961408037513,
+          "n": 50
+        },
+        "observed_rms_error_m": {
+          "high": 0.07645687327131515,
+          "low": 0.07274946271658864,
+          "median": 0.0746455881335267,
+          "n": 50
+        },
+        "observed_to_reference": 6.9564034266017165,
+        "observed_to_reference_rms": 8.351808295367924,
+        "reference_per_axis_std_m": 0.005160158001544626,
+        "reference_rms_error_m": 0.008937655833758374,
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "physics",
+        "within_10_percent": false
+      },
+      {
+        "adapter": "physics_offboard",
+        "observed_per_axis_std_m": {
+          "high": 0.17523728163405303,
+          "low": 0.16685929405629873,
+          "median": 0.1704793499493256,
+          "n": 50
+        },
+        "observed_rms_error_m": {
+          "high": 0.39570482067906293,
+          "low": 0.37710845849522295,
+          "median": 0.3889950229579687,
+          "n": 50
+        },
+        "observed_to_reference": 13.21504883364384,
+        "observed_to_reference_rms": 17.40926391408797,
+        "reference_per_axis_std_m": 0.012900395003861566,
+        "reference_rms_error_m": 0.022344139584395933,
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "physics",
+        "within_10_percent": false
+      }
+    ],
+    "zero_latency_clean_coop_rule_comparison": [
+      {
+        "adapter": "point_mass_offboard",
+        "observed_per_axis_std_m": {
+          "high": 0.002745392178564935,
+          "low": 0.002687492025627004,
+          "median": 0.0027163320512082556,
+          "n": 50
+        },
+        "observed_rms_error_m": {
+          "high": 0.004810232616297954,
+          "low": 0.004694168458948012,
+          "median": 0.00476470542728377,
+          "n": 50
+        },
+        "observed_to_reference": 1.052809642803634,
+        "observed_to_reference_rms": 1.0662091975587213,
+        "reference_per_axis_std_m": 0.002580079000772313,
+        "reference_rms_error_m": 0.004468827916879187,
+        "separation_rule": "coop",
+        "sigma_m": 0.01,
+        "slice": "coop_comparison",
+        "within_10_percent": true
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "observed_per_axis_std_m": {
+          "high": 0.0057917619604668825,
+          "low": 0.005671382031919944,
+          "median": 0.0057102308040683425,
+          "n": 50
+        },
+        "observed_rms_error_m": {
+          "high": 0.010151175282332657,
+          "low": 0.00990274178431865,
+          "median": 0.010001938067861078,
+          "n": 50
+        },
+        "observed_to_reference": 1.1065999921628484,
+        "observed_to_reference_rms": 1.119078453444449,
+        "reference_per_axis_std_m": 0.005160158001544626,
+        "reference_rms_error_m": 0.008937655833758374,
+        "separation_rule": "coop",
+        "sigma_m": 0.02,
+        "slice": "coop_comparison",
+        "within_10_percent": false
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "observed_per_axis_std_m": {
+          "high": 0.014832757147991205,
+          "low": 0.014544448552368658,
+          "median": 0.014726918124121514,
+          "n": 50
+        },
+        "observed_rms_error_m": {
+          "high": 0.026006902667060277,
+          "low": 0.02548723369864636,
+          "median": 0.025873229502266615,
+          "n": 50
+        },
+        "observed_to_reference": 1.141586604108882,
+        "observed_to_reference_rms": 1.1579425291603185,
+        "reference_per_axis_std_m": 0.012900395003861566,
+        "reference_rms_error_m": 0.022344139584395933,
+        "separation_rule": "coop",
+        "sigma_m": 0.05,
+        "slice": "coop_comparison",
+        "within_10_percent": false
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "observed_per_axis_std_m": {
+          "high": 0.030699437126999223,
+          "low": 0.02991102965416029,
+          "median": 0.030356011203330056,
+          "n": 50
+        },
+        "observed_rms_error_m": {
+          "high": 0.055881370216812436,
+          "low": 0.05478090559667614,
+          "median": 0.055320563349244775,
+          "n": 50
+        },
+        "observed_to_reference": 1.1765535549199608,
+        "observed_to_reference_rms": 1.2379210920226702,
+        "reference_per_axis_std_m": 0.02580079000772313,
+        "reference_rms_error_m": 0.04468827916879187,
+        "separation_rule": "coop",
+        "sigma_m": 0.1,
+        "slice": "coop_comparison",
+        "within_10_percent": false
+      }
+    ]
+  },
+  "limits": [
+    "Simulated only: no drone or radio hardware was used.",
+    "Link loss patterns are synthetic (named presets in sim/missions/presets.py), never measured.",
+    "Vehicle parameters are literature-derived (point mass, or the crazyflie-class physics profile).",
+    "Camera fixes, link loss, and vehicle dynamics are synthetic.",
+    "separation_rule coop (default): each drone's goal passes through Run D's reciprocal velocity rule (sim.coop.avoidance.safe_velocity) using the delivered camera fixes dead-reckoned with telemetry velocity, radius 0.35 m plus Run D's buffer for the fix latency (runs/d4-separation/buffer.json).  Run D tested it only on kinematic point masses with independent loss; telemetry velocity is the simulated vehicle's own, without estimation noise.  guard_activations counts drone control steps where the rule changed the preferred velocity.",
+    "separation_rule local: pairwise 0.8 m goal guard moving a goal 0.4 m away, a stand-in until Run D, kept for comparison; guard_activations counts pair-steps inside 0.8 m.",
+    "The downwash value uses the narrow equivalent-disk interaction model and default hover inputs.",
+    "In EXP-034 the pre-registered grid uses separation_rule local (the registered 0.8 m guard) and the coop_comparison slice uses separation_rule coop; the mission's own default does not apply here."
+  ],
+  "missing_metrics": [],
+  "notes": [
+    "min_separation_m is taken over the whole run, including the start from randomly offset positions.",
+    "The offboard physics adapter differences the last two position fixes for velocity, a contract design choice. Velocity noise per axis is about sqrt(2) x 30 x sigma at 30 Hz (difference of two fixes 1/30 s apart)."
+  ],
+  "pilot": false,
+  "prediction": "point mass at zero latency matches the hand formula within 10 %; latency up to 0.2 s raises the error by under 30 % (the first-order loop with delay stays stable below about (pi/2) tau = 0.39 s, but the margin shrinks); physics adapter errors larger than the point mass at the same sigma (PD loop with lower damping passes more noise) and grows faster with latency (Run A: position feedback edge 0.33 s). Separation never near 0.5 m (slots 2 m apart, errors of centimetres).",
+  "prediction_observations": {
+    "observed_cells": [
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.004810232616297954,
+          "low": 0.004694168458956371,
+          "median": 0.00476470542728377,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.01,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.005357684447021763,
+          "low": 0.005262255948706584,
+          "median": 0.005315645547434652,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.01,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.05,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.005311480644803325,
+          "low": 0.005185701355459623,
+          "median": 0.005252899823332859,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.01,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.05,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.005862748840972631,
+          "low": 0.005775253482531118,
+          "median": 0.005809999012459101,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.01,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.005956233931204499,
+          "low": 0.0058335323967632245,
+          "median": 0.005894570694944538,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.01,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.006580719003242449,
+          "low": 0.00647627776191893,
+          "median": 0.006515267476749344,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.01,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.2,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8786026126355198,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.007843482979363076,
+          "low": 0.007677317655251621,
+          "median": 0.007749102642580684,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.01,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.2,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8786026126355198,
+          "low": 1.8027142913507106,
+          "median": 1.833154903988911,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.008694070390677044,
+          "low": 0.00846718665027882,
+          "median": 0.00859392752157366,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.01,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.010151175282333048,
+          "low": 0.009902741784318556,
+          "median": 0.01000188522182835,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.011356059986674275,
+          "low": 0.011146172717247212,
+          "median": 0.011240975129270268,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.05,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.011229071058174495,
+          "low": 0.01099243903076557,
+          "median": 0.011123355801920996,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.05,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.012474053777913293,
+          "low": 0.012215327579051093,
+          "median": 0.012375019582846189,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.012651618219638658,
+          "low": 0.012431436587491587,
+          "median": 0.012537584261288337,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.014076277232071487,
+          "low": 0.01374989809643937,
+          "median": 0.013934658428841305,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.2,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8589343301974703,
+          "low": 1.8027142913507106,
+          "median": 1.833154903988911,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.017038678919021555,
+          "low": 0.016686786232376155,
+          "median": 0.016833328748682142,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.2,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8589343301974703,
+          "low": 1.8027142913507106,
+          "median": 1.8326952867541086,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.0189765458233192,
+          "low": 0.018493247409777598,
+          "median": 0.018872438742132652,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8348781002929642,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.025836117511383115,
+          "low": 0.025326822259275513,
+          "median": 0.025671841689462904,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8850644139418629,
+          "low": 1.8027142913507106,
+          "median": 1.8348781002929642,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.029563393695444605,
+          "low": 0.028872174571606072,
+          "median": 0.029176228074085986,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.05,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.028906994278293425,
+          "low": 0.02841955019189075,
+          "median": 0.028712793849548543,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.05,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8871586099366922,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.03291990860408268,
+          "low": 0.03216728926509382,
+          "median": 0.0324806051909681,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8862119935786767,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.03304262271732355,
+          "low": 0.032508889819526945,
+          "median": 0.032691597916052056,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8804467746404594,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.03756011766067207,
+          "low": 0.03668685697347253,
+          "median": 0.0370641225512604,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.2,
+        "minimum_pairwise_separation_m": {
+          "high": 1.840024339024596,
+          "low": 1.783644506982064,
+          "median": 1.8173160532958548,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.04774718275732865,
+          "low": 0.046151347078695795,
+          "median": 0.04726901101013392,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.2,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8343002469686758,
+          "low": 1.783644506982064,
+          "median": 1.8163221289864289,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.05469103995031861,
+          "low": 0.05282554968054764,
+          "median": 0.05337324834196376,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8551721225566165,
+          "low": 1.8021058027300658,
+          "median": 1.8311853775971643,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.051318861284325244,
+          "low": 0.050686193002025745,
+          "median": 0.05095246089683836,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.1,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.836537175583205,
+          "low": 1.7913215010725552,
+          "median": 1.8126556642646068,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.05848474005872042,
+          "low": 0.05748182894473722,
+          "median": 0.05795540007885222,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.1,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.05,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8381735471316825,
+          "low": 1.8027142913507106,
+          "median": 1.8214825759307602,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.05790401326053967,
+          "low": 0.0568217727081892,
+          "median": 0.05727708463157695,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.1,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.05,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8183107850706148,
+          "low": 1.778883302906221,
+          "median": 1.8059488954678393,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.06563705382419464,
+          "low": 0.06447250127087945,
+          "median": 0.06513095349192374,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.1,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8248605364699264,
+          "low": 1.7824387792242662,
+          "median": 1.809859645439017,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.066709936231696,
+          "low": 0.06538031432359011,
+          "median": 0.06639803378917164,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.1,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8032015594723247,
+          "low": 1.7666934875259073,
+          "median": 1.7840630117328824,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.07594221379976564,
+          "low": 0.07413547892732392,
+          "median": 0.07539416771822766,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.1,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.2,
+        "minimum_pairwise_separation_m": {
+          "high": 1.7436992645401068,
+          "low": 1.709422094636823,
+          "median": 1.7314832883306028,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.10505955736663969,
+          "low": 0.102284572148474,
+          "median": 0.1034176804204415,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.1,
+        "slice": "main"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.2,
+        "minimum_pairwise_separation_m": {
+          "high": 1.7081446306402914,
+          "low": 1.6783333241220184,
+          "median": 1.6911379087958758,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.12314175088247535,
+          "low": 0.11816987820476729,
+          "median": 0.12041477231054026,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.1,
+        "slice": "main"
+      },
+      {
+        "adapter": "physics_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8126375973440811,
+          "low": 1.7853997956910017,
+          "median": 1.803315416797418,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.07645687327131515,
+          "low": 0.07274946271658864,
+          "median": 0.0746455881335267,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "physics"
+      },
+      {
+        "adapter": "physics_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.7397194843628432,
+          "low": 1.7054404148051603,
+          "median": 1.726075130380257,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.11590469929006013,
+          "low": 0.10950257591546629,
+          "median": 0.11098246117313298,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "physics"
+      },
+      {
+        "adapter": "physics_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.7919058387931257,
+          "low": 1.7722272038276359,
+          "median": 1.7827000368692243,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.08768575673163768,
+          "low": 0.08257526377540822,
+          "median": 0.08403312448464201,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "physics"
+      },
+      {
+        "adapter": "physics_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.6992375866861498,
+          "low": 1.6634714903885115,
+          "median": 1.6883144756000688,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.1324917350952019,
+          "low": 0.12580793651328603,
+          "median": 0.12769983419970815,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.02,
+        "slice": "physics"
+      },
+      {
+        "adapter": "physics_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.1981688661497074,
+          "low": 1.093636693427569,
+          "median": 1.1428002262955737,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.39570482067906293,
+          "low": 0.37710845849522295,
+          "median": 0.3889950229579687,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "physics"
+      },
+      {
+        "adapter": "physics_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.1322105729909246,
+          "low": 1.0033821866172583,
+          "median": 1.0691761293566802,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.45249283788978506,
+          "low": 0.4346482804344057,
+          "median": 0.44247704759892525,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "physics"
+      },
+      {
+        "adapter": "physics_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.081409780599965,
+          "low": 0.9767890267777473,
+          "median": 1.020732263008647,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.4365809221924501,
+          "low": 0.4212798160642354,
+          "median": 0.42840042735818584,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "physics"
+      },
+      {
+        "adapter": "physics_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 0.9938270017535007,
+          "low": 0.8364080069876397,
+          "median": 0.8868521454492708,
+          "n": 50
+        },
+        "preset": "iid_10",
+        "rms_error_m": {
+          "high": 0.5040023275629791,
+          "low": 0.47807360163867013,
+          "median": 0.4906896317383438,
+          "n": 50
+        },
+        "separation_rule": "local",
+        "sigma_m": 0.05,
+        "slice": "physics"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.004810232616297954,
+          "low": 0.004694168458948012,
+          "median": 0.00476470542728377,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.01,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.05,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.005311480644803325,
+          "low": 0.005185701355459623,
+          "median": 0.005252899823332859,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.01,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.005956233931204499,
+          "low": 0.005833532396763231,
+          "median": 0.005894570694944538,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.01,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.2,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8804467746404594,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.007843482979363076,
+          "low": 0.007677317655251621,
+          "median": 0.007749102642580684,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.01,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.010151175282332657,
+          "low": 0.00990274178431865,
+          "median": 0.010001938067861078,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.02,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.05,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.011229071058174495,
+          "low": 0.010992439030765577,
+          "median": 0.011123355801920993,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.02,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.012651618219639138,
+          "low": 0.012431436587491587,
+          "median": 0.012537584261288337,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.02,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.2,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8636893135244001,
+          "low": 1.8027142913507106,
+          "median": 1.833154903988911,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.017038683698939707,
+          "low": 0.016686786232376155,
+          "median": 0.016833767617345397,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.02,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8348781002929642,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.026006902667060277,
+          "low": 0.02548723369864636,
+          "median": 0.025873229502266615,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.05,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.05,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8946809644230038,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.029050719496305093,
+          "low": 0.02859742195320701,
+          "median": 0.02888254009290355,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.05,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8879559757184283,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.03325923017818604,
+          "low": 0.0324818259558718,
+          "median": 0.032839510120441784,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.05,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.2,
+        "minimum_pairwise_separation_m": {
+          "high": 1.857030815717142,
+          "low": 1.788148114018735,
+          "median": 1.8227864609812947,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.0479251731537732,
+          "low": 0.04611545281610596,
+          "median": 0.04715274899387023,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.05,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.0,
+        "minimum_pairwise_separation_m": {
+          "high": 1.874863977130751,
+          "low": 1.8027142913507106,
+          "median": 1.8347449002245826,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.055881370216812436,
+          "low": 0.05478090559667614,
+          "median": 0.055320563349244775,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.1,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.05,
+        "minimum_pairwise_separation_m": {
+          "high": 1.863831101125315,
+          "low": 1.8027142913507106,
+          "median": 1.8349471793475334,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.06242926930328086,
+          "low": 0.06096970093768833,
+          "median": 0.06187182458017736,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.1,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.1,
+        "minimum_pairwise_separation_m": {
+          "high": 1.857030815717142,
+          "low": 1.8027142913507106,
+          "median": 1.833154903988911,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.07168641836749762,
+          "low": 0.06993132465127382,
+          "median": 0.07085182901831419,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.1,
+        "slice": "coop_comparison"
+      },
+      {
+        "adapter": "point_mass_offboard",
+        "fix_latency_s": 0.2,
+        "minimum_pairwise_separation_m": {
+          "high": 1.8126004943396128,
+          "low": 1.7714547894782002,
+          "median": 1.799828055268346,
+          "n": 50
+        },
+        "preset": "clean",
+        "rms_error_m": {
+          "high": 0.12385867210791501,
+          "low": 0.11651071350432042,
+          "median": 0.12074919860610972,
+          "n": 50
+        },
+        "separation_rule": "coop",
+        "sigma_m": 0.1,
+        "slice": "coop_comparison"
+      }
+    ]
+  },
+  "prediction_source": "pre-registered before the runs (EXP-034 section of the private pre-registration)",
+  "simulated": true
+}

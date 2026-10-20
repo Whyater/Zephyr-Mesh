@@ -1,0 +1,152 @@
+{
+  "argv": [
+    "--output",
+    "runs/e-exp029-part-a",
+    "--processes",
+    "2"
+  ],
+  "code_sha256": {
+    "sim/failsafe.py": "c7b92c6507d439db03545cb73d120434470f3812b9836e3331127084fddf7914",
+    "sim/missions/comms.py": "869ce1d3030b17f2ed02b5ad5f281c41e2fdfbf3d388ff84033d7f99e3b4d826",
+    "sim/missions/presets.py": "3886d2a564d0bbaffedbdd2a1ff0e4bfa66fa56b719a7433d55d6489f9a4b200",
+    "sim/missions/stack.py": "8a18861467cf7654741fef789b6f9a1fe64ceefe5493443d491f3a37d53956d9",
+    "sim/s6_recovery.py": "bc0c8b1363d85d4c9f6f6f73900b29f6e9553f01471c7e46a053eaf3cd1ab63d",
+    "tests/reference_e/hand_checks.py": "f55efc1a10775debe26eb76f279660fed00c9f01b0c9aa5598aae9f3ef1fa626",
+    "tools/e_exp029_part_a.py": "7c885e9f9e1819abc489a769329aa1167d3c148962d85af680551417e7113b17"
+  },
+  "config": {
+    "T_s": [
+      0.15,
+      0.2,
+      0.3,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "T_w_s": [
+      0.1,
+      0.15,
+      0.25
+    ],
+    "base_seed": 20261029,
+    "cell_seeds": {
+      "burst_10_0.2s@20": 1483901529,
+      "burst_10_0.2s@50": 4172043523,
+      "burst_10_0.5s@20": 2739850476,
+      "burst_10_0.5s@50": 2005947572,
+      "burst_1_0.5s@20": 2742656244,
+      "burst_1_0.5s@50": 3126339935,
+      "burst_30_0.5s@20": 2662533557,
+      "burst_30_0.5s@50": 121483133,
+      "clean@20": 97850408,
+      "clean@50": 235438443,
+      "iid_10@20": 3807876681,
+      "iid_10@50": 4170085964,
+      "iid_1@20": 505670471,
+      "iid_1@50": 648341456,
+      "iid_30@20": 3642905084,
+      "iid_30@50": 3929875225,
+      "iid_5@20": 3135722843,
+      "iid_5@50": 2214308210
+    },
+    "command_delay_s": 0.002,
+    "dt_s": 0.01,
+    "hours_per_cell": 10.0,
+    "loss_window_packets": 20,
+    "min_T_above_T_w_s": 0.05,
+    "pilot": false,
+    "presets": [
+      "clean",
+      "clean",
+      "iid_1",
+      "iid_1",
+      "iid_5",
+      "iid_5",
+      "iid_10",
+      "iid_10",
+      "iid_30",
+      "iid_30",
+      "burst_1_0.5s",
+      "burst_1_0.5s",
+      "burst_10_0.2s",
+      "burst_10_0.2s",
+      "burst_10_0.5s",
+      "burst_10_0.5s",
+      "burst_30_0.5s",
+      "burst_30_0.5s"
+    ],
+    "rates_hz": [
+      20.0,
+      50.0
+    ],
+    "slice": {
+      "T_s": [
+        0.3,
+        1.0
+      ],
+      "T_w_s": 0.15,
+      "cells": [
+        [
+          "iid_30",
+          20.0
+        ],
+        [
+          "burst_10_0.5s",
+          20.0
+        ]
+      ],
+      "hours": 1.0
+    },
+    "stream_id": "cmd:d1",
+    "weak_loss_fraction": 0.3,
+    "weak_rules": [
+      "age",
+      "age_or_loss"
+    ]
+  },
+  "config_sha256": "b3eacff24ca776a94238f9d0b7e81c386eb74ed8ce7285817470165d760a6bac",
+  "git_revision": "c527a1960452e83293f11cfcf9cb358dbf464add",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no ESP32 or drone hardware was used.",
+    "Radio parameters are literature-derived (sim/radio/params.py), with ranges; none are measured.",
+    "Loss patterns are synthetic (sim/missions/presets.py), not measured on any link.",
+    "Drone-side rule only: the failsafe sees command arrivals; no vehicle, telemetry or ground-station logic is simulated in Part A.",
+    "Renewal assumption: after an unnecessary landing the drone is reset at the next command arrival, so each gap between arrivals can land at most once.",
+    "One loss stream per cell (10 simulated hours), so cells share no draws and the rate intervals are Poisson intervals on a single long run.",
+    "The loss fraction follows the mission stack: each full command period since the newest arrival counts as one missing packet, so a packet still in flight never counts as lost."
+  ],
+  "n_processes": 2,
+  "numpy": "2.5.1",
+  "outputs": {
+    "part_a.csv": "70aa17feea8e609d07d80573ab2fc45c204038dcfa259a8b11141e93e2028ec6",
+    "part_a_landings.png": "1e7e5bd23fa1b4458e8bc8dfa426fa5582b4d461468539a8b7461dba1272c7cb",
+    "slice_check.json": "aac54422a37b77b028b00decedfba2b59cb10ef0496e2f5fbca3cb7d67431c95",
+    "summary.json": "08f654e2e50ae17b4ca081abd3949fa10fc6b8afb12a441bf1973d2a00c976f8"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/e_exp029_part_a.py --output {out}",
+  "runtime_s": 50.35981791699305,
+  "schema": "zephyr-run-e-manifest-1",
+  "seeds": [
+    97850408,
+    235438443,
+    505670471,
+    648341456,
+    3135722843,
+    2214308210,
+    3807876681,
+    4170085964,
+    3642905084,
+    3929875225,
+    2742656244,
+    3126339935,
+    1483901529,
+    4172043523,
+    2739850476,
+    2005947572,
+    2662533557,
+    121483133
+  ]
+}
