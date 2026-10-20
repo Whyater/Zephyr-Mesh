@@ -1,0 +1,7 @@
+{
+  "disagreement_after_50": 3.4641016151377544,
+  "eps": 0.5,
+  "graph": "ring(4)",
+  "initial_disagreement": 3.4641016151377544,
+  "rho": 0.9999999999999998
+}

@@ -1,0 +1,6134 @@
+{
+  "argv": [
+    "--output",
+    "runs/d4-separation",
+    "--processes",
+    "4",
+    "--checkpoint",
+    "/Users/akashi0281/.zm-worktrees/run-d-briefs/checkpoints/separation"
+  ],
+  "code_sha256": {
+    "sim/__init__.py": "b5c4e06e700bf9268baefbdd45fd6ee3a779b89d785cc304f23b8971cb584793",
+    "sim/adapters.py": "3df245cc7a11a10b646708ddc784b33bdbcb186d4e3b71f0fdbbfdfd3c8c4862",
+    "sim/authority.py": "7f602adc5b52ffe7657fd726d6610aa9147521bdeda5caf0d5b86034069ce5e6",
+    "sim/coop/__init__.py": "8ee474a6e91b0d38c51d44c5d7117c0b66b3953e6e45a04fc93a316e004ae26a",
+    "sim/coop/avoidance.py": "c4c6bd1da13e74e370223bcb2a33673fef5c71bacff50360d32ffdfefa30d8a6",
+    "sim/coop/separation.py": "436b2345a382022e388676a185b18b14366a00e1ce54d323b03fff9092996ff8",
+    "sim/estimation/__init__.py": "6e8981cdfdcf234fd4f2cf9879a38c11567411a04b32721411831f6ccb9d25c2",
+    "sim/estimation/sweep.py": "1b0489c2435cc17fe78240a892b67cd4dd940de0b7d2bb31efabd9eaf38f0f7b",
+    "sim/failsafe.py": "bd986171a8226ce800c492e7c0f673dea3fef4e24b462d59b30fa189489ffbe1",
+    "sim/hardware.py": "15b3dc15d80b2cd8965548e7bb9d0aae05fd595424c1b1ef76a7ab616fcf78ed",
+    "sim/link.py": "ea167aba91b618029c575e8348e2305d1c357cae818a77e20c85d79708a87ced",
+    "sim/s6_recovery.py": "bc0c8b1363d85d4c9f6f6f73900b29f6e9553f01471c7e46a053eaf3cd1ab63d",
+    "sim/sensor.py": "ca028be92da927d9d7e8e8b3b2b0e9d0b8dd18543b87c22b0bbb6ced73dc4a95",
+    "sim/tracker.py": "741e17c76d23f009629bbf990156b99ebf93f7465169bb150f17fe4cee09e12f",
+    "tools/__init__.py": "951ea81ff0224e39e6f39ddd01b6bf632c1a0dc1480f1e19ed83dfd9b06a4ed4",
+    "tools/c_common.py": "ab3697780e05514a0270bc09edc461b75d4cdf0a113d5d56a64bb84c0a7887d6",
+    "tools/d_common.py": "676e5ce72b37f60c2c9faa9fbee28aa55ca47657cde517602b706fe7b6a82a0e",
+    "tools/d_make_separation_figure.py": "505ac8db9704f9ebe49718ab328d4d2639db8e698d5bb949492cb335f8834854",
+    "tools/d_run_separation.py": "420a2a79c0e9af13db847cdc4dd24a094d1969851d6f2139bf1ef7ee1cdf258c",
+    "tools/horizon_mpl.py": "016a70cedc02c7acb02d4e11ebb96885bff8ab29a91911aef63548ce5fff4eaa"
+  },
+  "config": {
+    "avoidance_parameter": "avoidance_radius_m",
+    "control_dt_s": 0.05,
+    "criterion": "Wilson 95% upper bound of violations over 75 seeds <= 0.05",
+    "ellipsoid_radii_m": [
+      0.12,
+      0.12,
+      0.3
+    ],
+    "ellipsoid_solver": "exact_segment_minimum",
+    "grid": [
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "ring_swap",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "head_on",
+        "lateral_offset_m": 0.1,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 0.5
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 1.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.0,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.05,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.1,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.2,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.3,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.1,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.0,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": false,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      },
+      {
+        "dead_reckoning": true,
+        "delay_s": 0.5,
+        "kind": "crossing",
+        "lateral_offset_m": 0.0,
+        "loss_probability": 0.3,
+        "noise_std_m": 0.05,
+        "speed_mps": 2.0
+      }
+    ],
+    "max_accel_mps2": 4.0,
+    "max_radius_m": 1.5,
+    "max_speed_mps": 2.0,
+    "min_separation_m": 0.35,
+    "n_seeds": 75,
+    "near_miss_threshold_m": 0.5,
+    "pilot": false,
+    "radius_step_m": 0.05,
+    "share_rate_hz": 10.0,
+    "time_horizon_s": 2.0
+  },
+  "config_sha256": "4093a5e3be90906137ed7d0df2047bea7c6d1ebf9fc6673cc529252e28622dda",
+  "git_revision": "7078c41beebb9681168f97dba74de0130dda4cd7",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no drone, camera or radio hardware was used, and nothing here is measured.",
+    "Kinematic point-mass agents move with a 4 m/s^2 acceleration cap and a 2 m/s speed cap.",
+    "Neighbor information uses an abstract directed link at 10 Hz with fixed delay and independent loss.",
+    "Position and filtered velocity noise are simulated Gaussian draws; nothing is measured.",
+    "The 0.35 m minimum and 5% Wilson rule are simulation settings, not safety standards.",
+    "Ellipsoid limits are per-vehicle radii (0.12, 0.12, 0.30) m and combined radii (0.24, 0.24, 0.60) m.",
+    "Entry first_violation_seed_index is at the lowest radius with a violation, normally 0.35 m."
+  ],
+  "n_processes": 4,
+  "numpy": "2.5.1",
+  "outputs": {
+    "buffer.json": "f543009d5fb5ed02cdf255ea40e426b5b74047eaf77635631c9c79190216a169",
+    "encounters.csv": "1530cf178361721bfa1ce221b9d77c063dad13af2f7191e8f78a40d21540c8f3",
+    "separation_baseline.png": "ef449357d95b50a0bc3c3de04db9b15215cbff18e29747a7e8a234bfaed0f528",
+    "separation_buffer.png": "de7d980f31dfb8790703d4c16bd94f7e2ba10771ef24d15dde2c161854a60933",
+    "summary.json": "f7866704a33e5ab5935cca97352061c91aedca520e52ad64bda66cc63166a325"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. {python} tools/d_run_separation.py --output {out}",
+  "runtime_s": 2154.3596352500026,
+  "schema": "zephyr-d-separation-manifest-1",
+  "seeds": [
+    722745223,
+    221982690,
+    4114856515,
+    44625373,
+    2008033283,
+    840085,
+    212128244,
+    2801663080,
+    1696755121,
+    399290773,
+    724620496,
+    3429668889,
+    1185336725,
+    2065583239,
+    2214696753,
+    96963154,
+    244564608,
+    1018368234,
+    3134430867,
+    1784047523,
+    390054924,
+    1583361401,
+    851347246,
+    1510292240,
+    3527444051,
+    2475166801,
+    4235317329,
+    589943260,
+    3229606604,
+    787012337,
+    65451926,
+    757807934,
+    4101631978,
+    85603779,
+    3932498661,
+    3056734279,
+    3159643879,
+    3144221936,
+    463156555,
+    782020361,
+    660759793,
+    1363199257,
+    1987716890,
+    2824659753,
+    2823200373,
+    4193410155,
+    1437180185,
+    1165407203,
+    3405508072,
+    947585570,
+    2087649711,
+    70081240,
+    850194591,
+    3839395265,
+    3030029194,
+    1794746604,
+    3328718203,
+    1655615351,
+    1294375046,
+    1470665821,
+    21523707,
+    3873042624,
+    4107753767,
+    1149547409,
+    3698584288,
+    1879969495,
+    3205072137,
+    3634819027,
+    3609395856,
+    2639510730,
+    687122596,
+    3418220840,
+    3512954864,
+    2218362464,
+    2385450191
+  ]
+}

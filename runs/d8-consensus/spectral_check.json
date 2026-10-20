@@ -1,0 +1,105 @@
+[
+  {
+    "d_max": 2.0,
+    "eigenvalues": [
+      -7.322869896784356e-16,
+      0.9999999999999998,
+      1.0,
+      2.9999999999999996,
+      3.0000000000000004,
+      3.999999999999999
+    ],
+    "eps": 0.3333333333333333,
+    "graph": "ring",
+    "lambda2": 0.9999999999999998,
+    "lambdaN": 3.999999999999999,
+    "measured_rate": 0.6666666652847727,
+    "measurement_start": 20,
+    "measurement_stop": 60,
+    "predicted_rho": 0.6666666666666667,
+    "random_seed": null,
+    "rate_check": "ok",
+    "relative_error": 2.0728410654591296e-09
+  },
+  {
+    "d_max": 2.0,
+    "eigenvalues": [
+      9.143828695472718e-17,
+      0.3819660112501052,
+      1.3819660112501049,
+      2.6180339887498945,
+      3.6180339887498953
+    ],
+    "eps": 0.3333333333333333,
+    "graph": "line",
+    "lambda2": 0.3819660112501052,
+    "lambdaN": 3.6180339887498953,
+    "measured_rate": 0.872677996228579,
+    "measurement_start": 20,
+    "measurement_stop": 60,
+    "predicted_rho": 0.8726779962499649,
+    "random_seed": null,
+    "rate_check": "ok",
+    "relative_error": 2.4506052803377146e-11
+  },
+  {
+    "d_max": 4.0,
+    "eigenvalues": [
+      0.0,
+      1.0,
+      1.0,
+      1.0,
+      5.0
+    ],
+    "eps": 0.2,
+    "graph": "star",
+    "lambda2": 1.0,
+    "lambdaN": 5.0,
+    "measured_rate": 0.7999999999999751,
+    "measurement_start": 20,
+    "measurement_stop": 60,
+    "predicted_rho": 0.8,
+    "random_seed": null,
+    "rate_check": "ok",
+    "relative_error": 3.122502256758253e-14
+  },
+  {
+    "d_max": 3.0,
+    "eigenvalues": [
+      1.1923723214485674e-16,
+      3.9999999999999964,
+      4.0,
+      4.0
+    ],
+    "eps": 0.25,
+    "graph": "complete",
+    "lambda2": 3.9999999999999964,
+    "lambdaN": 4.0,
+    "measured_steps_to_agreement": 1,
+    "predicted_rho": 8.881784197001252e-16,
+    "random_seed": null,
+    "rate_check": "not applicable (rho = 0)"
+  },
+  {
+    "d_max": 5.0,
+    "eigenvalues": [
+      -1.0217346309778488e-15,
+      0.9999999999999989,
+      1.0000000000000004,
+      3.9999999999999996,
+      4.0,
+      6.0
+    ],
+    "eps": 0.16666666666666666,
+    "graph": "random_geometric",
+    "lambda2": 0.9999999999999989,
+    "lambdaN": 6.0,
+    "measured_rate": 0.83333333333335,
+    "measurement_start": 20,
+    "measurement_stop": 60,
+    "predicted_rho": 0.8333333333333335,
+    "random_seed": 371720506,
+    "rate_check": "ok",
+    "relative_error": 1.9850787680297794e-14
+  }
+]

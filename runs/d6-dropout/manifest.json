@@ -1,0 +1,359 @@
+{
+  "argv": [
+    "--output",
+    "runs/d6-dropout",
+    "--processes",
+    "4"
+  ],
+  "code_sha256": {
+    "sim/__init__.py": "b5c4e06e700bf9268baefbdd45fd6ee3a779b89d785cc304f23b8971cb584793",
+    "sim/adapters.py": "3df245cc7a11a10b646708ddc784b33bdbcb186d4e3b71f0fdbbfdfd3c8c4862",
+    "sim/authority.py": "7f602adc5b52ffe7657fd726d6610aa9147521bdeda5caf0d5b86034069ce5e6",
+    "sim/coop/__init__.py": "8ee474a6e91b0d38c51d44c5d7117c0b66b3953e6e45a04fc93a316e004ae26a",
+    "sim/coop/allocation.py": "85b4da18042e7dc372ac6c0839565cc8eb488189eecc7cf46699fda83ff8c41e",
+    "sim/coop/avoidance.py": "c4c6bd1da13e74e370223bcb2a33673fef5c71bacff50360d32ffdfefa30d8a6",
+    "sim/coop/fusion.py": "5ab2dbe682dc798465d8d2f6c3e9e3577a947e6d549ba66ebdb27562e33fa11f",
+    "sim/coop/simulator.py": "62390ce90313dd58f4b9699ea6617f3cca5e49805688aa3d0260504c16290bd8",
+    "sim/estimation/__init__.py": "6e8981cdfdcf234fd4f2cf9879a38c11567411a04b32721411831f6ccb9d25c2",
+    "sim/estimation/base.py": "e247f7aace69ce7e63c8a12a2d8813f624fb0493b0d585df6e4d3e64eec32e37",
+    "sim/estimation/cv.py": "e7850c104aa5542000c2ddc017a5c0ebeccbaf04a82ccbbee12717fdd9a1cae0",
+    "sim/estimation/factory.py": "bcff372083358102a58d3f0250922512dc26359e863cc9ab9351c4cfc6d097e1",
+    "sim/estimation/kinematics.py": "8b4215ac94ef2a815eb47ebedc4cc0845368b7498941fd6504847b0b8b13ca5e",
+    "sim/estimation/sweep.py": "1b0489c2435cc17fe78240a892b67cd4dd940de0b7d2bb31efabd9eaf38f0f7b",
+    "sim/estimation/targets.py": "2e14fcc23d99627dff7de7ff6e2a354b694c2eb1c971c712fb252026f06ad9b7",
+    "sim/failsafe.py": "bd986171a8226ce800c492e7c0f673dea3fef4e24b462d59b30fa189489ffbe1",
+    "sim/hardware.py": "15b3dc15d80b2cd8965548e7bb9d0aae05fd595424c1b1ef76a7ab616fcf78ed",
+    "sim/interaction.py": "7e6cdf7e6e8d5704ccbe0bfb278cc9a98a28d4f47cfd5d505f067153176522f5",
+    "sim/link.py": "ea167aba91b618029c575e8348e2305d1c357cae818a77e20c85d79708a87ced",
+    "sim/physics/__init__.py": "cb9c7ae38d4d1c73a1d2a5495da7613042815d80023f88fb035da2c3a35d85e3",
+    "sim/physics/disturbance_api.py": "426ce4ac61e237ca4c262cc801327c5cc529c07be3b7e73d05f902cddf355a38",
+    "sim/s6_recovery.py": "bc0c8b1363d85d4c9f6f6f73900b29f6e9553f01471c7e46a053eaf3cd1ab63d",
+    "sim/scenarios.py": "b4cc2d9107fb234af316401b1932f70883f7eb04879791c28923858dfe1cc01f",
+    "sim/sensor.py": "ca028be92da927d9d7e8e8b3b2b0e9d0b8dd18543b87c22b0bbb6ced73dc4a95",
+    "sim/swarm.py": "9e80600f8a4e62f1c7afe64685befc556b1f211b8451e3b4e0928b2ac5efba14",
+    "sim/tracker.py": "741e17c76d23f009629bbf990156b99ebf93f7465169bb150f17fe4cee09e12f",
+    "tools/__init__.py": "951ea81ff0224e39e6f39ddd01b6bf632c1a0dc1480f1e19ed83dfd9b06a4ed4",
+    "tools/c_common.py": "ab3697780e05514a0270bc09edc461b75d4cdf0a113d5d56a64bb84c0a7887d6",
+    "tools/d_common.py": "676e5ce72b37f60c2c9faa9fbee28aa55ca47657cde517602b706fe7b6a82a0e",
+    "tools/d_make_dropout_figure.py": "c1e56271d2e3e03fe4a92382fca530d3e00a3c97d05fe331a12df61c8a4a4187",
+    "tools/d_run_dropout.py": "b8a7ce4091c725f1375e0c3f01d580303bff7fd24c97a5fdd1b712bb295e682d",
+    "tools/horizon_mpl.py": "016a70cedc02c7acb02d4e11ebb96885bff8ab29a91911aef63548ce5fff4eaa"
+  },
+  "config": {
+    "ci_mode": "fast",
+    "control_dt_s": 0.02,
+    "decision": "onboard",
+    "drop_time_s": 10.0,
+    "duration_s": 25.0,
+    "error_windows_s": [
+      [
+        5.0,
+        10.0
+      ],
+      [
+        10.0,
+        15.0
+      ]
+    ],
+    "estimator": "cv",
+    "failure_rule": "A seed fails when p95 > 0.25 m or max > 0.50 m over t >= 2 s; a cell fails when at least 50% of seeds fail.",
+    "fusion": "ci",
+    "grid": [
+      [
+        3,
+        1,
+        "silent",
+        0.0
+      ],
+      [
+        3,
+        1,
+        "silent",
+        0.1
+      ],
+      [
+        3,
+        1,
+        "silent",
+        0.3
+      ],
+      [
+        3,
+        1,
+        "landed",
+        0.0
+      ],
+      [
+        3,
+        1,
+        "landed",
+        0.1
+      ],
+      [
+        3,
+        1,
+        "landed",
+        0.3
+      ],
+      [
+        4,
+        1,
+        "silent",
+        0.0
+      ],
+      [
+        4,
+        1,
+        "silent",
+        0.1
+      ],
+      [
+        4,
+        1,
+        "silent",
+        0.3
+      ],
+      [
+        4,
+        1,
+        "landed",
+        0.0
+      ],
+      [
+        4,
+        1,
+        "landed",
+        0.1
+      ],
+      [
+        4,
+        1,
+        "landed",
+        0.3
+      ],
+      [
+        4,
+        2,
+        "silent",
+        0.0
+      ],
+      [
+        4,
+        2,
+        "silent",
+        0.1
+      ],
+      [
+        4,
+        2,
+        "silent",
+        0.3
+      ],
+      [
+        4,
+        2,
+        "landed",
+        0.0
+      ],
+      [
+        4,
+        2,
+        "landed",
+        0.1
+      ],
+      [
+        4,
+        2,
+        "landed",
+        0.3
+      ],
+      [
+        6,
+        1,
+        "silent",
+        0.0
+      ],
+      [
+        6,
+        1,
+        "silent",
+        0.1
+      ],
+      [
+        6,
+        1,
+        "silent",
+        0.3
+      ],
+      [
+        6,
+        1,
+        "landed",
+        0.0
+      ],
+      [
+        6,
+        1,
+        "landed",
+        0.1
+      ],
+      [
+        6,
+        1,
+        "landed",
+        0.3
+      ],
+      [
+        6,
+        2,
+        "silent",
+        0.0
+      ],
+      [
+        6,
+        2,
+        "silent",
+        0.1
+      ],
+      [
+        6,
+        2,
+        "silent",
+        0.3
+      ],
+      [
+        6,
+        2,
+        "landed",
+        0.0
+      ],
+      [
+        6,
+        2,
+        "landed",
+        0.1
+      ],
+      [
+        6,
+        2,
+        "landed",
+        0.3
+      ]
+    ],
+    "hand_detection_brief_formula": "T + period*p/(1-p) for silent rows; None for landed rows",
+    "hand_detection_registered_formula": "T + 0.05",
+    "heartbeat_rate_hz": 10.0,
+    "heartbeat_timeouts_s_by_loss": {
+      "0.0": 0.5,
+      "0.1": 0.5,
+      "0.3": 1.0
+    },
+    "link": {
+      "delay_s": 0.05,
+      "loss_model": "independent",
+      "loss_probabilities": [
+        0.0,
+        0.1,
+        0.3
+      ],
+      "mode": "abstract",
+      "share_rate_hz": 10.0
+    },
+    "log_every": 1,
+    "noise_std_m": 0.05,
+    "plan_disagreement_note": "plan_disagreement_steps cannot see plans built for different slot counts.",
+    "recoverage_definition": "First logged t >= drop from which, for a full 1 s inside the logged data, every survivor (the dropped drones excluded) has len(believed_alive) == N-k and is within 0.3 m of the slot believed_assignment gives it, on the ring of radius 1.5 m at altitude 1.5 m around the true target position (world phase 0).",
+    "recovery_hold_s": 1.0,
+    "role_change_definition": "Per survivor, changes of (len(believed_alive), slot_index) during [10, 15) s.",
+    "seed_count": 50,
+    "sensor_rate_hz": 10.0,
+    "separation_violation_radius_m": 0.35,
+    "slot_altitude_m": 1.5,
+    "standoff_radius_m": 1.5,
+    "survivor_gap_deg_definition": "Largest angular gap between survivors around the target, maximum over t >= 5 s; it includes the geometry before the drop and is not a recovery measure.",
+    "switch_penalty_m": 0.3,
+    "target": "ct",
+    "target_params": {
+      "radius_m": 3.0,
+      "speed_mps": 0.8
+    },
+    "thresholds_sha256": "8d0f7af78fc41495c14d4990c6502beb5662ec198223bb96d4184a7f968f4a5f"
+  },
+  "config_sha256": "a218772460d671791c6929ac3b4aa3ad719064ccfb882d8f1faf2cd3bf5fed06",
+  "git_revision": "380b51530d996d7027d4e17d21890d7805ac6240",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no drone, camera or radio hardware was used, and nothing here is measured.",
+    "Agents are kinematic point masses with speed and acceleration caps, not flight dynamics.",
+    "Sensors are simulated Gaussian noise on the true target position; no camera or vision code is involved.",
+    "Neighbor links are abstract simulated links.",
+    "The drop time is fixed at 10 s.",
+    "A landed leaving message is sent once and never retried.",
+    "The heartbeat schedule has the same phase relative to the 10 s drop on every seed, so detection time has almost no seed-to-seed spread. This is a simulator limit, not measured behaviour."
+  ],
+  "n_processes": 4,
+  "numpy": "2.5.1",
+  "outputs": {
+    "dropout_timeline.png": "2cf27c95da14a094310ade4914d18800a29fde91f397e822c8cbde73f8083f5b",
+    "dropout_times.png": "c9ef03abe1b0602c4d75dbaec70fb3e79e28ccedfd29975e896df15197a9c83a",
+    "per_seed.csv": "86713addc16f63e3e926657f27a6963f05ea0d42d625f4df034886049abacb1e",
+    "summary.json": "e8be7e5fe82d4e8acfdc97e369c322253689b8288eddda3a259cc2689376ebdf"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. python tools/d_run_dropout.py",
+  "runtime_s": 2847.2720168330125,
+  "schema": "zephyr-d-dropout-manifest-1",
+  "seeds": [
+    1717906311,
+    2790759669,
+    85170381,
+    1453702994,
+    338863520,
+    142473775,
+    250281860,
+    322765482,
+    3701460509,
+    3253977009,
+    2455517602,
+    2860206412,
+    29915642,
+    671363062,
+    1742069339,
+    856624600,
+    3646402165,
+    3579689151,
+    1705734069,
+    967715033,
+    3828506336,
+    2675054304,
+    4062107568,
+    1740019361,
+    376990138,
+    180536128,
+    341881950,
+    2868662347,
+    2077648548,
+    1422943202,
+    3430431158,
+    3598637097,
+    3122319992,
+    1601930329,
+    2800350391,
+    2759602059,
+    427889043,
+    2272171964,
+    2629956911,
+    2707616501,
+    2292689317,
+    3401221240,
+    2457661954,
+    898035889,
+    522420625,
+    2689971751,
+    3630750310,
+    3782263207,
+    3484500499,
+    2129137802
+  ]
+}

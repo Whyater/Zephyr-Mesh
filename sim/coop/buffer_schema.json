@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zephyr-mesh.invalid/schemas/buffer_schema.json",
+  "title": "Simulated separation buffer results",
+  "description": "Self explanatory simulated separation buffer output. Every numeric result is from the point mass encounter simulation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "simulated", "min_separation_m", "share_rate_hz", "control_dt_s", "max_accel_mps2", "time_horizon_s", "criterion", "avoidance", "entries", "envelope", "note", "limits"],
+  "properties": {
+    "schema": {"description": "Schema identifier.", "type": "string", "const": "zephyr-d4-buffer-1", "unit": "identifier"},
+    "simulated": {"description": "True because all values are simulated.", "type": "boolean", "const": true, "unit": "boolean"},
+    "min_separation_m": {"description": "Required true center distance.", "type": "number", "const": 0.35, "unit": "m"},
+    "share_rate_hz": {"description": "Neighbor message rate.", "type": "number", "const": 10, "unit": "Hz"},
+    "control_dt_s": {"description": "Control step.", "type": "number", "const": 0.05, "unit": "s"},
+    "max_accel_mps2": {"description": "Acceleration cap.", "type": "number", "const": 4.0, "unit": "m/s^2"},
+    "time_horizon_s": {"description": "Avoidance look ahead horizon.", "type": "number", "const": 2.0, "unit": "s"},
+    "criterion": {"description": "Registered Wilson acceptance rule.", "type": "string", "unit": "text"},
+    "avoidance": {
+      "description": "Avoidance parameter names and fixed margin.", "type": "object", "additionalProperties": false,
+      "required": ["parameter", "safety_margin_m"],
+      "properties": {
+        "parameter": {"description": "Swept setting.", "type": "string", "const": "avoidance_radius_m", "unit": "identifier"},
+        "safety_margin_m": {"description": "Additional avoidance margin.", "type": "number", "const": 0.0, "unit": "m"}
+      }
+    },
+    "entries": {
+      "description": "One row for each tested condition.", "type": "array", "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["kind", "speed_mps", "delay_s", "loss_probability", "noise_std_m", "dead_reckoning", "lateral_offset_m", "closing_speed_mps", "required_buffer_m", "failing_radius_m", "censored", "max_radius_searched_m", "first_violation_seed_index", "baseline_violation_count", "baseline_violation_rate", "baseline_violation_wilson_low", "baseline_violation_wilson_upper", "baseline_near_miss_count", "baseline_near_miss_rate", "baseline_near_miss_wilson_low", "baseline_near_miss_wilson_upper", "baseline_ellipsoid_violation_count", "baseline_ellipsoid_violation_rate", "baseline_ellipsoid_wilson_low", "baseline_ellipsoid_wilson_upper", "baseline_seeds_run", "tested_radii", "hand_buffer_m", "n_seeds"],
+        "properties": {
+          "kind": {"description": "Encounter kind.", "enum": ["head_on", "crossing", "ring_swap"], "unit": "category"},
+          "speed_mps": {"description": "Command speed.", "type": "number", "unit": "m/s"},
+          "delay_s": {"description": "Fixed one way delay.", "type": "number", "unit": "s"},
+          "loss_probability": {"description": "Independent packet loss probability.", "type": "number", "unit": "probability"},
+          "noise_std_m": {"description": "Per axis position and filtered velocity noise standard deviation.", "type": "number", "unit": "m"},
+          "dead_reckoning": {"description": "Whether received velocity is used to extrapolate a neighbor.", "type": "boolean", "unit": "boolean"},
+          "lateral_offset_m": {"description": "Head-on lateral offset. Other encounter kinds use zero.", "type": "number", "unit": "m"},
+          "closing_speed_mps": {"description": "Hand model closing speed.", "type": "number", "unit": "m/s"},
+          "required_buffer_m": {"description": "First passing radius minus 0.35 m, or null when censored.", "type": ["number", "null"], "unit": "m"},
+          "failing_radius_m": {"description": "Tested radius immediately below the first pass, or null.", "type": ["number", "null"], "unit": "m"},
+          "censored": {"description": "True when no tested radius through 1.50 m passed.", "type": "boolean", "unit": "boolean"},
+          "max_radius_searched_m": {"description": "Largest tested radius.", "type": "number", "unit": "m"},
+          "first_violation_seed_index": {"description": "Zero based index of the first violating seed in the fixed seed order, or null.", "type": ["integer", "null"], "minimum": 0, "unit": "index"},
+          "baseline_violation_count": {"description": "Violations at radius 0.35 m.", "type": "integer", "minimum": 0, "unit": "count"},
+          "baseline_violation_rate": {"description": "Baseline violation rate.", "type": "number", "unit": "probability"},
+          "baseline_violation_wilson_low": {"description": "Baseline Wilson lower bound.", "type": "number", "unit": "probability"},
+          "baseline_violation_wilson_upper": {"description": "Baseline Wilson upper bound.", "type": "number", "unit": "probability"},
+          "baseline_near_miss_count": {"description": "Baseline near misses, true minimum below 0.50 m.", "type": "integer", "minimum": 0, "unit": "count"},
+          "baseline_near_miss_rate": {"description": "Baseline near miss rate.", "type": "number", "unit": "probability"},
+          "baseline_near_miss_wilson_low": {"description": "Baseline near miss Wilson lower bound.", "type": "number", "unit": "probability"},
+          "baseline_near_miss_wilson_upper": {"description": "Baseline near miss Wilson upper bound.", "type": "number", "unit": "probability"},
+          "baseline_ellipsoid_violation_count": {"description": "Baseline violations of the combined ellipsoid check.", "type": "integer", "minimum": 0, "unit": "count"},
+          "baseline_ellipsoid_violation_rate": {"description": "Baseline ellipsoid violation rate.", "type": "number", "unit": "probability"},
+          "baseline_ellipsoid_wilson_low": {"description": "Baseline ellipsoid Wilson lower bound.", "type": "number", "unit": "probability"},
+          "baseline_ellipsoid_wilson_upper": {"description": "Baseline ellipsoid Wilson upper bound.", "type": "number", "unit": "probability"},
+          "baseline_seeds_run": {"description": "All baseline seeds run.", "type": "integer", "minimum": 1, "unit": "count"},
+          "tested_radii": {"description": "Search records in ascending radius order.", "type": "array", "unit": "records", "items": {"type": "object", "additionalProperties": false, "required": ["avoidance_radius_m", "seeds_run", "violations", "violation_rate", "wilson_low", "wilson_upper", "first_violation_seed_index", "near_miss_count", "near_miss_rate", "near_miss_wilson_low", "near_miss_wilson_upper", "ellipsoid_violation_count", "ellipsoid_violation_rate", "ellipsoid_wilson_low", "ellipsoid_wilson_upper", "min_center_distance_m", "median_min_center_distance_m", "max_center_distance_m", "mean_message_age_s", "pass"], "properties": {"avoidance_radius_m": {"description": "Tested avoidance radius.", "type": "number", "unit": "m"}, "seeds_run": {"description": "Seeds evaluated before pass or first violation.", "type": "integer", "unit": "count"}, "violations": {"description": "Violations among seeds_run.", "type": "integer", "unit": "count"}, "violation_rate": {"description": "Violation rate among seeds_run.", "type": "number", "unit": "probability"}, "wilson_low": {"description": "Wilson lower bound.", "type": "number", "unit": "probability"}, "wilson_upper": {"description": "Wilson upper bound.", "type": "number", "unit": "probability"}, "first_violation_seed_index": {"description": "Zero based first violating seed index or null.", "type": ["integer", "null"], "unit": "index"}, "near_miss_count": {"description": "Near misses at this radius.", "type": "integer", "unit": "count"}, "near_miss_rate": {"description": "Near miss rate.", "type": "number", "unit": "probability"}, "near_miss_wilson_low": {"description": "Near miss Wilson lower bound.", "type": "number", "unit": "probability"}, "near_miss_wilson_upper": {"description": "Near miss Wilson upper bound.", "type": "number", "unit": "probability"}, "ellipsoid_violation_count": {"description": "Ellipsoid violations at this radius.", "type": "integer", "unit": "count"}, "ellipsoid_violation_rate": {"description": "Ellipsoid violation rate.", "type": "number", "unit": "probability"}, "ellipsoid_wilson_low": {"description": "Ellipsoid Wilson lower bound.", "type": "number", "unit": "probability"}, "ellipsoid_wilson_upper": {"description": "Ellipsoid Wilson upper bound.", "type": "number", "unit": "probability"}, "min_center_distance_m": {"description": "Minimum center distance among evaluated seeds.", "type": "number", "unit": "m"}, "median_min_center_distance_m": {"description": "Median per-seed minimum center distance.", "type": "number", "unit": "m"}, "max_center_distance_m": {"description": "Maximum per-seed minimum center distance.", "type": "number", "unit": "m"}, "mean_message_age_s": {"description": "Mean observed message age.", "type": "number", "unit": "s"}, "pass": {"description": "Whether this radius passed the Wilson rule after all seeds.", "type": "boolean", "unit": "boolean"}}}},
+          "hand_buffer_m": {"description": "Hand model buffer, retained as a prediction.", "type": "number", "unit": "m"},
+          "n_seeds": {"description": "Seed count used for this run.", "type": "integer", "minimum": 1, "unit": "count"}
+        }
+      }
+    },
+    "envelope": {
+      "description": "Worst required buffer over the included encounter kinds, loss and noise at each speed, delay and dead reckoning setting.", "type": "array", "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["delay_s", "speed_mps", "dead_reckoning", "required_buffer_m", "censored", "max_radius_searched_m", "kinds_included"],
+        "properties": {
+          "delay_s": {"description": "One way delay.", "type": "number", "unit": "s"},
+          "speed_mps": {"description": "Command speed.", "type": "number", "unit": "m/s"},
+          "dead_reckoning": {"description": "Dead reckoning setting.", "type": "boolean", "unit": "boolean"},
+          "required_buffer_m": {"description": "Worst required buffer, or null when any included condition is censored.", "type": ["number", "null"], "unit": "m"},
+          "censored": {"description": "True when any included condition is censored.", "type": "boolean", "unit": "boolean"},
+          "max_radius_searched_m": {"description": "Largest radius searched for this envelope.", "type": "number", "unit": "m"},
+          "kinds_included": {"description": "Encounter kinds included in this envelope row.", "type": "array", "items": {"description": "An included encounter kind.", "type": "string", "unit": "category"}, "unit": "categories"}
+        }
+      }
+    },
+    "note": {"description": "Consumer note about simulated provenance.", "type": "string", "unit": "text"},
+    "limits": {"description": "Experiment limits.", "type": "array", "items": {"description": "One experiment limit.", "type": "string", "unit": "text"}, "unit": "text"}
+  }
+}
