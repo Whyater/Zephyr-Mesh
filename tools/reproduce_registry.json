@@ -299,5 +299,16 @@
    "per_seed.csv": "86713addc16f63e3e926657f27a6963f05ea0d42d625f4df034886049abacb1e",
    "summary.json": "e8be7e5fe82d4e8acfdc97e369c322253689b8288eddda3a259cc2689376ebdf"
   }
+ },
+ {
+  "run_dir": "runs/d2-fusion",
+  "command": "PYTHONPATH=. {python} tools/d_run_fusion.py --output {out}",
+  "outputs": {
+   "fusion_consistency.png": "ef0ae175430a0a5955f7a937988a814a0b6ea91238222342518f427f1909d223",
+   "fusion_error.png": "be9e2bc98de9ee7e036c9b8a55cb943c1ef4af6d1d56a43e1892253cbb9d3262",
+   "math_checks.json": "fd3efa0da1b803a40dd1288037ec6dcd25668b19ca5a23a60eada539f8e99d92",
+   "per_seed.csv": "308880232e8263c5f7dda20e6881e0735f26f84f2efd3e2364c06963db4fdbb3",
+   "summary.json": "cebde0794255fc2d5cf9a49ae7068e40edcdb63919c12a483333fd83ccb4badf"
+  }
  }
 ]
