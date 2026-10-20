@@ -8,6 +8,7 @@ import numpy as np
 from sim.adapters import Geofence
 from sim.interaction import downwash_wind_at
 from sim.missions.engine import Mission, agent_frame, register_mission
+from sim.missions.tag import COOP_NEIGHBOR_TIMEOUT_S, coop_avoidance_config, coop_goal, telemetry_estimate
 from sim.sensor import SensorConfig, SensorModel
 
 
@@ -18,6 +19,7 @@ SLOTS = {
     "f4": np.array((7.0, 6.0, 1.5), dtype=float),
 }
 DRONE_IDS = tuple(SLOTS)
+SPEED_LIMIT_MPS = 1.5
 
 
 @register_mission
@@ -28,13 +30,21 @@ class FormationMission(Mission):
     rng_names = ("start", "fix_f1", "fix_f2", "fix_f3", "fix_f4")
     limits = (
         "Camera fixes, link loss, and vehicle dynamics are synthetic.",
-        "The pairwise goal guard is a stand-in until Run D separation logic is available.",
+        "separation_rule coop (default): each drone's goal passes through Run D's reciprocal velocity rule "
+        "(sim.coop.avoidance.safe_velocity) using the delivered camera fixes dead-reckoned with telemetry velocity, "
+        "radius 0.35 m plus Run D's buffer for the fix latency (runs/d4-separation/buffer.json).  Run D tested it "
+        "only on kinematic point masses with independent loss; telemetry velocity is the simulated vehicle's own, "
+        "without estimation noise.  guard_activations counts drone control steps where the rule changed the "
+        "preferred velocity.",
+        "separation_rule local: pairwise 0.8 m goal guard moving a goal 0.4 m away, a stand-in until Run D, kept for "
+        "comparison; guard_activations counts pair-steps inside 0.8 m.",
         "The downwash value uses the narrow equivalent-disk interaction model and default hover inputs.",
     )
     defaults = {
         "fix_rate_hz": 30.0,
         "fix_noise_std_m": 0.02,
         "fix_latency_s": 0.0,
+        "separation_rule": "coop",
     }
 
     def validate_params(self, params: dict) -> dict:
@@ -51,6 +61,8 @@ class FormationMission(Mission):
         result["fix_rate_hz"] = rate
         result["fix_noise_std_m"] = noise
         result["fix_latency_s"] = latency
+        if result["separation_rule"] not in {"coop", "local"}:
+            raise ValueError("separation_rule must be coop or local")
         return result
 
     @staticmethod
@@ -85,7 +97,44 @@ class FormationMission(Mission):
                 self._latest_fixes[agent] = measurement.copy()
                 self._latest_fix_times[agent] = capture_time
 
-    def _goals(self) -> dict[str, np.ndarray]:
+    def _goals(self, ctx, t: float) -> dict[str, np.ndarray]:
+        if ctx.params["separation_rule"] == "coop":
+            return self._coop_goals(ctx, t)
+        return self._local_goals()
+
+    def _coop_goals(self, ctx, t: float) -> dict[str, np.ndarray]:
+        """Pass every slot goal through Run D's rule, from one snapshot of fixes.
+
+        The ground station knows each drone's newest delivered fix (with its
+        capture time) and its delivered telemetry velocity.  Positions are the
+        fixes dead-reckoned to now.  The offboard drone steers from its newest
+        fix, so that fix is the reference the safe velocity is measured from.
+        """
+        estimates = {}
+        for agent in DRONE_IDS:
+            fix = self._latest_fixes[agent]
+            if fix is None:
+                estimates[agent] = None
+                continue
+            state, telemetry_age = ctx.drones[agent].telemetry_view(t)
+            fresh = state is not None and math.isfinite(telemetry_age) and telemetry_age <= COOP_NEIGHBOR_TIMEOUT_S
+            velocity = state.velocity_mps if fresh else np.zeros(3)
+            estimates[agent] = telemetry_estimate(fix, velocity, max(0.0, t - self._latest_fix_times[agent]))
+        goals = {}
+        for agent in DRONE_IDS:
+            own = estimates[agent]
+            if own is None:
+                goals[agent] = SLOTS[agent].copy()
+                continue
+            neighbors = [estimates[other] for other in DRONE_IDS if other != agent and estimates[other] is not None]
+            goal, changed = coop_goal(SLOTS[agent], self._latest_fixes[agent], own, neighbors, self._coop_config)
+            if changed:
+                self._guard_activations += 1
+            goals[agent] = goal
+        return goals
+
+    def _local_goals(self) -> dict[str, np.ndarray]:
+        """The 0.8 m stand-in guard from before Run D, kept for comparison."""
         goals = {agent: SLOTS[agent].copy() for agent in DRONE_IDS}
         for left_index, left in enumerate(DRONE_IDS):
             if self._latest_fixes[left] is None:
@@ -128,6 +177,9 @@ class FormationMission(Mission):
         self._latest_fixes = {agent: None for agent in DRONE_IDS}
         self._latest_fix_times = {agent: None for agent in DRONE_IDS}
         self._guard_activations = 0
+        # Neighbour positions come from fixes that are fix_latency_s old (plus
+        # up to one 30 Hz period), so that sets which of Run D's buffers applies.
+        self._coop_config = coop_avoidance_config(ctx.params["fix_latency_s"], SPEED_LIMIT_MPS)
 
         geofence = Geofence((0.0, 0.0, 0.0), (16.0, 10.0, 4.0), margin_m=0.5)
         start_rng = ctx.rng("start")
@@ -137,7 +189,7 @@ class FormationMission(Mission):
                 agent,
                 initial_position_m=initial,
                 geofence=geofence,
-                max_speed_mps=1.5,
+                max_speed_mps=SPEED_LIMIT_MPS,
             )
 
         downwash_values = []
@@ -169,7 +221,7 @@ class FormationMission(Mission):
         self._sample_fixes(ctx, t)
         self._consume_fixes(ctx, t)
 
-        goals = self._goals()
+        goals = self._goals(ctx, t)
         states = {}
         for agent in DRONE_IDS:
             ctx.drones[agent].set_goal(goals[agent])

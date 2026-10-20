@@ -215,3 +215,29 @@ def test_hold_mode_reports_landing_before_the_blackout():
     clean = run_mission(_scenario(duration_s=20.0, outages=outage, params={"target_class": "turn", "mode": "hold"}))
     assert clean.metrics["airborne_at_blackout"] is True
     assert 0.15 - 1e-9 <= clean.metrics["outage_hold_link_age_s"] <= clean.metrics["outage_reaction_hold_s"] + 1e-9
+
+
+@pytest.mark.parametrize("rule", ["coop", "local"])
+def test_hand_check_one_follower_holds_in_both_separation_rules(rule):
+    # Run D's rule only acts between followers, so the pre-registered single
+    # follower hand check (zone entry 3.0 to 3.6 s) holds in either mode.
+    result = run_mission(_scenario(params={"target_class": "straight", "arm": "recovery",
+                                           "separation_rule": rule}), log=True)
+    entry = _first_zone_entry_s(result.log)
+    assert 3.0 <= entry <= 3.6
+    assert result.metrics["time_to_tag_s"] == pytest.approx(entry + 2.0, abs=0.02)
+
+
+def test_local_separation_rule_reproduces_pre_run_d_metrics():
+    # Recorded from the code before the coop rule was added (same seed and
+    # scenario, no separation_rule param then).  The frames and events also
+    # matched; only the limits text and the scenario params differ.
+    before = {
+        'duration_s': 4.44, 'end_reason': 'tagged', 'follower_follower_min_m': 0.02265921357330811,
+        'guard_activations': 827, 'holds': 0, 'landings': 0, 'landings_before_outage': 0,
+        'max_estimate_age_s': 0.09000000000000008, 'min_separation_m': 0.5400341187758178,
+        'separation_episodes': 0, 'separation_violations': 0, 'tagged': True, 'time_degraded_s': 0.0,
+        'time_to_tag_s': 4.44,
+    }
+    result = run_mission(_scenario(params={"target_class": "jink", "n_followers": 3, "separation_rule": "local"}))
+    assert result.metrics == before

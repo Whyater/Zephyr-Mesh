@@ -30,7 +30,8 @@ from tools.c_common import default_processes
 SERIES_TOKENS = ("accent", "ok", "keepOut", "target", "textSecondary", "lineStrong")
 
 EXP_BASE_SEED = 20261029  # EXP-029; EXP-029 + k adds k
-MAX_PROCESSES = 2
+# Raised from 2 to 6 on 2026-10-20 once Run D had finished and the machine was free.
+MAX_PROCESSES = 6
 MISSION_LIMITS = (
     "Simulated only: no drone or radio hardware was used.",
     "Link loss patterns are synthetic (named presets in sim/missions/presets.py), never measured.",
@@ -63,7 +64,7 @@ def seeds_for(exp_number: int, n: int) -> list[int]:
 
 
 def processes(requested: int | None = None) -> int:
-    """Worker count: the request, capped at MAX_PROCESSES; default min(2, cores // 3)."""
+    """Worker count: the request, capped at MAX_PROCESSES; default min(MAX_PROCESSES, cores // 3)."""
     if requested is None:
         return max(1, min(MAX_PROCESSES, default_processes()))
     if int(requested) < 1:

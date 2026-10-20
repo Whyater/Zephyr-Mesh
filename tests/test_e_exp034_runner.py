@@ -10,7 +10,9 @@ from tests.reference_e.hand_checks import first_order_loop_jitter_std
 
 def test_full_grid_count_and_named_cells() -> None:
     jobs = build_jobs()
-    assert len(jobs) == 2000  # 1600 point-mass jobs plus 400 physics jobs, all cells at 50 seeds
+    # 1600 point-mass + 400 physics jobs on the coop rule, plus 800 local-guard comparison jobs, all at 50 seeds
+    assert len(jobs) == 2800
+    assert {j["labels"]["separation_rule"] for j in jobs if j["labels"]["slice"] == "local_guard_comparison"} == {"local"}
     scenarios = {(j["labels"]["adapter"], j["labels"]["sigma_m"], j["labels"]["fix_latency_s"], j["labels"]["preset"])
                  for j in jobs}
     assert ("point_mass_offboard", 0.01, 0.0, "clean") in scenarios
@@ -25,12 +27,12 @@ def test_hand_check_reference() -> None:
 def test_tiny_run_is_reproducible(tmp_path, monkeypatch) -> None:
     tiny = [
         {"labels": {"slice": "tiny", "sigma_m": 0.02, "fix_latency_s": 0.0,
-                     "preset": "clean", "adapter": "point_mass_offboard", "seed_index": 0},
+                     "preset": "clean", "adapter": "point_mass_offboard", "separation_rule": "coop", "seed_index": 0},
          "scenario": {"mission": "formation", "seed": 1, "duration_s": 6.0,
                        "adapter": "point_mass_offboard", "preset": "clean",
                        "params": {"fix_rate_hz": 30.0, "fix_noise_std_m": 0.02, "fix_latency_s": 0.0}}},
         {"labels": {"slice": "tiny", "sigma_m": 0.10, "fix_latency_s": 0.2,
-                     "preset": "clean", "adapter": "point_mass_offboard", "seed_index": 1},
+                     "preset": "clean", "adapter": "point_mass_offboard", "separation_rule": "coop", "seed_index": 1},
          "scenario": {"mission": "formation", "seed": 2, "duration_s": 6.0,
                        "adapter": "point_mass_offboard", "preset": "clean",
                        "params": {"fix_rate_hz": 30.0, "fix_noise_std_m": 0.10, "fix_latency_s": 0.2}}},

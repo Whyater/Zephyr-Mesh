@@ -56,7 +56,7 @@ PREDICTION_TEXT = (
 
 
 def _scenario(seed: int, *, sigma: float, latency: float, preset: str, adapter: str,
-              duration_s: float = 30.0) -> dict:
+              duration_s: float = 30.0, separation_rule: str = "coop") -> dict:
     return {
         "mission": "formation",
         "seed": int(seed),
@@ -64,7 +64,7 @@ def _scenario(seed: int, *, sigma: float, latency: float, preset: str, adapter: 
         "adapter": adapter,
         "preset": preset,
         "params": {"fix_rate_hz": 30.0, "fix_noise_std_m": float(sigma),
-                   "fix_latency_s": float(latency)},
+                   "fix_latency_s": float(latency), "separation_rule": separation_rule},
     }
 
 
@@ -72,7 +72,10 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
     """Build jobs in stable grid order.
 
     Full grid arithmetic: point mass 4 sigma x 4 latency x 2 presets x 50
-    seeds = 1600, physics 2 sigma x 2 latency x 2 presets x 50 = 400.
+    seeds = 1600, physics 2 sigma x 2 latency x 2 presets x 50 = 400, both on
+    Run D's separation rule ("coop", decision D-123 within D-120), plus a
+    comparison slice on the earlier local 0.8 m stand-in guard: point mass,
+    4 sigma x 4 latency, clean, 50 seeds = 800.
     """
     jobs: list[dict] = []
     if pilot:
@@ -80,12 +83,14 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
             for latency in (0.0, 0.2):
                 for seed_index, seed in enumerate(SEEDS[:3]):
                     labels = {"slice": "pilot", "sigma_m": sigma, "fix_latency_s": latency,
-                              "preset": "clean", "adapter": "point_mass_offboard", "seed_index": seed_index}
+                              "preset": "clean", "adapter": "point_mass_offboard", "separation_rule": "coop",
+                              "seed_index": seed_index}
                     jobs.append(make_job(labels, _scenario(seed, sigma=sigma, latency=latency,
                                                            preset="clean", adapter="point_mass_offboard", duration_s=10.0)))
         for seed_index, seed in enumerate(SEEDS[:2]):
             labels = {"slice": "pilot_physics", "sigma_m": 0.05, "fix_latency_s": 0.1,
-                      "preset": "clean", "adapter": "physics_offboard", "seed_index": seed_index}
+                      "preset": "clean", "adapter": "physics_offboard", "separation_rule": "coop",
+                      "seed_index": seed_index}
             jobs.append(make_job(labels, _scenario(seed, sigma=0.05, latency=0.1,
                                                    preset="clean", adapter="physics_offboard", duration_s=10.0)))
         return jobs
@@ -100,9 +105,17 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
                     for seed_index, seed in enumerate(SEEDS):
                         labels = {"slice": "main" if adapter == "point_mass_offboard" else "physics",
                                   "sigma_m": sigma, "fix_latency_s": latency, "preset": preset,
-                                  "adapter": adapter, "seed_index": seed_index}
+                                  "adapter": adapter, "separation_rule": "coop", "seed_index": seed_index}
                         jobs.append(make_job(labels, _scenario(seed, sigma=sigma, latency=latency,
                                                                preset=preset, adapter=adapter)))
+    for sigma in SIGMAS:
+        for latency in LATENCIES:
+            for seed_index, seed in enumerate(SEEDS):
+                labels = {"slice": "local_guard_comparison", "sigma_m": sigma, "fix_latency_s": latency,
+                          "preset": "clean", "adapter": "point_mass_offboard", "separation_rule": "local",
+                          "seed_index": seed_index}
+                jobs.append(make_job(labels, _scenario(seed, sigma=sigma, latency=latency, preset="clean",
+                                                       adapter="point_mass_offboard", separation_rule="local")))
     return jobs
 
 
@@ -121,7 +134,7 @@ def _cell_summary(rows: list[dict]) -> dict:
 
 
 def summarize(rows: list[dict], *, pilot: bool) -> dict:
-    keys = ("slice", "sigma_m", "fix_latency_s", "preset", "adapter")
+    keys = ("slice", "sigma_m", "fix_latency_s", "preset", "adapter", "separation_rule")
     cells = []
     for coords, grouped in group_rows(rows, keys).items():
         item = {key: value for key, value in zip(keys, coords)}
@@ -226,7 +239,8 @@ def main(argv: list[str] | None = None) -> None:
     jobs = build_jobs(pilot=args.pilot)
     rows = run_jobs(jobs, n_processes=processes(args.processes))
     csv_name = "formation.csv"
-    write_rows(output / csv_name, rows, first_columns=("slice", "sigma_m", "fix_latency_s", "preset", "adapter", "seed_index", "seed"))
+    write_rows(output / csv_name, rows, first_columns=("slice", "sigma_m", "fix_latency_s", "preset", "adapter",
+                                                   "separation_rule", "seed_index", "seed"))
     write_json(output / "summary.json", summarize(rows, pilot=args.pilot))
     figures = _figures(output, rows)
     outputs = [csv_name, "summary.json", *figures]

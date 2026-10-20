@@ -2,7 +2,9 @@
 
 The follower remains separated from the moving target and scores a tag by
 holding inside a distance zone.  Link loss, delays, and vehicle motion are all
-simulated.  The slot and separation rules below are stand-ins until Run D.
+simulated.  With two or three followers, the followers keep apart from each
+other with Run D's reciprocal velocity rule (``separation_rule`` "coop", the
+default) or with the older local goal guard ("local", kept for comparison).
 """
 from __future__ import annotations
 
@@ -12,6 +14,7 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 
 from sim.adapters import Geofence
+from sim.coop.avoidance import AvoidanceConfig, extrapolate, safe_velocity
 from sim.missions.engine import (
     Mission,
     agent_frame,
@@ -20,6 +23,107 @@ from sim.missions.engine import (
     target_path,
 )
 from sim.missions.estimate_feed import EstimateFeed
+
+
+# Run D's separation rule, as used by the tag and formation missions ------------
+#
+# Floor: Run D's EXP-025 minimum centre distance, runs/d4-separation/buffer.json
+# line 70725 ("min_separation_m": 0.35), which is also AvoidanceConfig's default
+# radius_m (sim/coop/avoidance.py line 33).
+COOP_FLOOR_M = 0.35
+# Run D's required buffer with dead reckoning on, keyed by (speed m/s, delay s):
+# the "envelope" rows of runs/d4-separation/buffer.json, lines 70497 to 70713
+# (worst case over head-on and crossing encounters, independent loss up to 30 %
+# and 0.05 m noise, 10 Hz sharing).  tests/test_e_coop_separation.py checks this
+# copy against the file.
+COOP_BUFFER_M = {
+    (0.5, 0.0): 0.05, (0.5, 0.05): 0.1, (0.5, 0.1): 0.1, (0.5, 0.2): 0.15, (0.5, 0.3): 0.15, (0.5, 0.5): 0.2,
+    (1.0, 0.0): 0.2, (1.0, 0.05): 0.1, (1.0, 0.1): 0.15, (1.0, 0.2): 0.3, (1.0, 0.3): 0.15, (1.0, 0.5): 0.75,
+    (2.0, 0.0): 0.1, (2.0, 0.05): 0.15, (2.0, 0.1): 0.15, (2.0, 0.2): 0.15, (2.0, 0.3): 0.3, (2.0, 0.5): 0.75,
+}
+# Run D's encounter settings (sim/coop/separation.py, the AvoidanceConfig built
+# in run_encounter): 2 s time horizon, no extra safety margin, and the
+# defaults for responsibility (0.5) and the right-hand tie break.
+COOP_TIME_HORIZON_S = 2.0
+# Run D's simulator drops a neighbour whose newest message is older than its
+# heartbeat timeout (sim/coop/simulator.py, CoopSwarmConfig.heartbeat_timeout_s).
+COOP_NEIGHBOR_TIMEOUT_S = 0.5
+# The safe velocity is sent as a position goal one response time ahead.  The
+# point-mass adapters steer at (goal - position) / 0.25 s (engine.make_adapter),
+# so a goal 0.25 s ahead asks for the safe velocity itself.  A lost command
+# then leaves the drone heading for a point at most 1.5 m/s x 0.25 s = 0.375 m
+# away, where it stops, instead of flying on.
+GOAL_LOOKAHEAD_S = 0.25
+
+
+def coop_buffer_m(link_delay_s: float, speed_limit_mps: float) -> float:
+    """Run D's buffer for neighbour data of this delay and drones this fast.
+
+    Run D's buffer is not smooth in delay or speed (a threshold effect at its
+    0.05 m grid), so this takes the worst row at or below the first grid speed
+    and grid delay that cover the inputs.  Inputs past Run D's grid (2 m/s,
+    0.5 s) use every row, which is an extrapolation.
+    """
+    speeds = sorted({speed for speed, _ in COOP_BUFFER_M})
+    delays = sorted({delay for _, delay in COOP_BUFFER_M})
+    speed_cover = next((value for value in speeds if value >= speed_limit_mps - 1e-12), speeds[-1])
+    delay_cover = next((value for value in delays if value >= link_delay_s - 1e-12), delays[-1])
+    return max(
+        buffer for (speed, delay), buffer in COOP_BUFFER_M.items()
+        if speed <= speed_cover and delay <= delay_cover
+    )
+
+
+def coop_avoidance_config(link_delay_s: float, speed_limit_mps: float) -> AvoidanceConfig:
+    """Run D's avoidance settings with the radius widened by its buffer.
+
+    The speed ball is the drone's own speed limit instead of Run D's 2 m/s, so
+    the adapter never has to shorten a safe velocity (which could leave the
+    permitted half-spaces).
+    """
+    return AvoidanceConfig(
+        radius_m=COOP_FLOOR_M + coop_buffer_m(link_delay_s, speed_limit_mps),
+        time_horizon_s=COOP_TIME_HORIZON_S,
+        max_speed_mps=float(speed_limit_mps),
+        safety_margin_m=0.0,
+    )
+
+
+def telemetry_estimate(position, velocity, age_s):
+    """Dead-reckon delivered telemetry to now, as Run D does with neighbour data.
+
+    Returns ``(position, velocity)`` or None when there is no data or it is
+    older than Run D's heartbeat timeout.
+    """
+    if position is None or not math.isfinite(age_s) or age_s > COOP_NEIGHBOR_TIMEOUT_S:
+        return None
+    velocity = np.asarray(velocity, dtype=float)
+    return extrapolate(position, velocity, max(0.0, float(age_s))), velocity
+
+
+def coop_goal(goal, reference, own, neighbors, config: AvoidanceConfig):
+    """Pass one drone's goal through Run D's safe_velocity.
+
+    ``reference`` is the ground station's view of the point the drone's own
+    position loop steers from, ``own`` its ``(position, velocity)`` estimate
+    and ``neighbors`` the other drones' estimates.  The preferred velocity is
+    what the adapter would do with ``goal``, capped at the speed limit.  When
+    the rule leaves it unchanged the original goal is sent; otherwise the goal
+    becomes ``reference + safe velocity x GOAL_LOOKAHEAD_S``.  Returns
+    ``(goal, changed)``.
+    """
+    goal = np.asarray(goal, dtype=float)
+    reference = np.asarray(reference, dtype=float)
+    preferred = (goal - reference) / GOAL_LOOKAHEAD_S
+    speed = float(np.linalg.norm(preferred))
+    if speed > config.max_speed_mps:
+        preferred = preferred * (config.max_speed_mps / speed)
+    if not neighbors:
+        return goal, False
+    safe, _ = safe_velocity(own[0], own[1], preferred, neighbors, config)
+    if float(np.linalg.norm(safe - preferred)) <= 1e-9:
+        return goal, False
+    return reference + safe * GOAL_LOOKAHEAD_S, True
 
 
 class _SoftMirroredTarget:
@@ -106,8 +210,17 @@ class TagMission(Mission):
     rng_names = ("sensor", "target")
     limits = (
         "Simulated only: target paths, radio delays, and link losses are synthetic.",
-        "Stopping-buffer separation guard: stand-in until Run D.",
-        "Pairwise follower guard and slot assignment: stand-in until Run D.",
+        "Separation from the target uses the pre-registered stopping-buffer guard on the estimate "
+        "(assumes 4 m/s^2 braking); the target takes no part in avoidance, so Run D's rule does not apply to it.",
+        "Slot assignment (linear_sum_assignment with a 1 s dwell) is a Run E rule; Run D's allocation is not used.",
+        "separation_rule coop (default, 2 or 3 followers): followers avoid each other with Run D's reciprocal "
+        "velocity rule (sim.coop.avoidance.safe_velocity) on delivered, dead-reckoned telemetry, radius 0.35 m plus "
+        "Run D's buffer from runs/d4-separation/buffer.json.  Run D tested it only on kinematic point masses with "
+        "independent loss, so bursty presets and the physics adapter are outside that evidence; telemetry velocity is "
+        "the simulated vehicle's own, without estimation noise.  guard_activations counts follower control steps "
+        "where the rule changed the preferred velocity.",
+        "separation_rule local: pairwise 0.6 m follower-follower goal guard, a stand-in until Run D, kept for "
+        "comparison; guard_activations counts pair-steps inside 0.6 m.",
         "The jink path is softly mirrored inside [1,15] x [1,9], a Run E change.",
     )
     defaults = {
@@ -126,6 +239,7 @@ class TagMission(Mission):
         "dwell_s": 1.0,
         "mode": "tag",
         "separation_guard": True,
+        "separation_rule": "coop",
     }
 
     def validate_params(self, params: dict) -> dict:
@@ -142,6 +256,8 @@ class TagMission(Mission):
             raise ValueError("mode must be tag or hold")
         if not isinstance(result["separation_guard"], bool):
             raise ValueError("separation_guard must be bool")
+        if result["separation_rule"] not in {"coop", "local"}:
+            raise ValueError("separation_rule must be coop or local")
         for name in (
             "initial_gap_m", "zone_radius_m", "min_separation_m", "hold_s",
             "follower_speed_mps", "target_speed_mps", "standoff_m", "lead_s",
@@ -220,11 +336,14 @@ class TagMission(Mission):
             "slot_assignment": {},
             "last_assignment": -math.inf,
             "last_heading": initial_heading,
+            # Telemetry travels on the tel links, which carry the scenario's
+            # command delay, so that sets which of Run D's buffers applies.
+            "coop_config": coop_avoidance_config(ctx.scenario.command_delay_s, p["follower_speed_mps"]),
         })
         self._heading = initial_heading
 
     def _slots(self, estimate, velocity, n, standoff):
-        """Return slot geometry using a stand-in until Run D."""
+        """Return the pre-registered slot geometry around the estimate."""
         heading = _unit_xy(velocity, fallback=tuple(self._heading[:2]))
         self._heading = heading
         # Prereg EXP-030: "slots at 0.75 m behind, behind-left, behind-right
@@ -243,13 +362,15 @@ class TagMission(Mission):
         return slots
 
     def _command_goals(self, ctx, t, estimate, velocity, estimate_age):
-        """Build telemetry-only goals with guards that stand in until Run D."""
+        """Build goals from delivered telemetry and estimates only (never truth)."""
         p = ctx.params
         ids = ctx.state["ids"]
         telemetry = {}
+        views = {}
         for agent in ids:
-            state, _ = ctx.drones[agent].telemetry_view(t)
+            state, age = ctx.drones[agent].telemetry_view(t)
             telemetry[agent] = None if state is None else np.asarray(state.position_m, dtype=float)
+            views[agent] = (telemetry[agent], None if state is None else state.velocity_mps, age)
         if len(ids) > 1 and (t - ctx.state["last_assignment"] >= p["dwell_s"] or not ctx.state["slot_assignment"]):
             slots = self._slots(estimate, velocity, len(ids), p["standoff_m"])
             costs = np.zeros((len(ids), len(slots)), dtype=float)
@@ -283,7 +404,10 @@ class TagMission(Mission):
                 if distance - buffer < p["min_separation_m"]:
                     goal = np.asarray(estimate, dtype=float) - p["standoff_m"] * direction
             goals[agent] = goal
-        if p["follower_guard_m"] > 0.0:
+        if p["separation_rule"] == "coop":
+            if len(ids) > 1:
+                goals = self._coop_goals(ctx, goals, views)
+        elif p["follower_guard_m"] > 0.0:
             for left_index, left in enumerate(ids):
                 if telemetry[left] is None:
                     continue
@@ -297,6 +421,33 @@ class TagMission(Mission):
                         goals[right] = goals[right] + direction * (p["follower_guard_m"] - distance)
                         ctx.state["guard_activations"] += 1
         return goals
+
+    def _coop_goals(self, ctx, goals, views):
+        """Run D's follower-to-follower rule on the goals built above.
+
+        Every follower is solved from the same telemetry snapshot, so each pair
+        shares the avoidance as Run D's reciprocal rule assumes.  A follower
+        with no fresh telemetry of its own keeps its goal (there is nothing to
+        steer from).  guard_activations counts follower steps where the rule
+        changed the preferred velocity.
+        """
+        ids = ctx.state["ids"]
+        config = ctx.state["coop_config"]
+        estimates = {agent: telemetry_estimate(*views[agent]) for agent in ids}
+        result = {}
+        for agent in ids:
+            own = estimates[agent]
+            if own is None:
+                result[agent] = goals[agent]
+                continue
+            neighbors = [estimates[other] for other in ids if other != agent and estimates[other] is not None]
+            # The point-mass follower steers from its own position, so the
+            # dead-reckoned telemetry is also the steering reference.
+            goal, changed = coop_goal(goals[agent], own[0], own, neighbors, config)
+            if changed:
+                ctx.state["guard_activations"] += 1
+            result[agent] = goal
+        return result
 
     def tick(self, ctx, i, t):
         p = ctx.params

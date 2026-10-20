@@ -13,8 +13,11 @@ from tests.reference_e.hand_checks import tail_follow_time_s
 
 def test_grid_builder_counts_and_named_cells():
     jobs = build_jobs()
-    # Main 4*5*5*4*50 + calm 4*2*5*50 + followers 4*2*3*2*50 + physics 4*2*2*20.
-    assert len(jobs) == 20000 + 2000 + 2400 + 320
+    # Main 4*5*5*4*50 + calm 4*2*5*50 + followers 4*2*3*2*2 rules*50 + physics 4*2*2*20.
+    assert len(jobs) == 20000 + 2000 + 4800 + 320
+    followers = [j for j in jobs if j["labels"]["slice"] == "followers"]
+    assert {j["labels"]["separation_rule"] for j in followers} == {"coop", "local"}
+    assert all(j["scenario"]["params"]["separation_rule"] == j["labels"]["separation_rule"] for j in followers)
     assert jobs[0]["labels"]["target_class"] == "straight"
     assert jobs[0]["labels"]["preset"] == "clean"
     assert any(j["labels"]["slice"] == "calm" and j["labels"]["policy_name"] == "calm" for j in jobs)
@@ -46,7 +49,7 @@ def test_pilot_outputs_are_deterministic(pilot_dirs):
     assert left["prediction_source"] == PREDICTION_SOURCE
     assert left["prediction_correction_2"] == PREDICTION_CORRECTION_2
     assert "prediction:" not in PREDICTION_TEXT[:40]
-    assert left["grid_counts"] == {"main": 20000, "calm": 2000, "followers": 2400, "physics": 320}
+    assert left["grid_counts"] == {"main": 20000, "calm": 2000, "followers": 4800, "physics": 320}
     assert left["missing_metrics"]
 
 

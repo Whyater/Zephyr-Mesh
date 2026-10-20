@@ -67,13 +67,22 @@ PREDICTION_CORRECTION_2 = ('2. EXP-030 prediction for bursty presets: rounds end
 
 
 def _scenario(seed: int, *, target_class: str, delay: float, preset: str, arm: str,
-              n_followers: int = 1, adapter: str = "point_mass", policy: dict | None = None) -> dict:
+              n_followers: int = 1, adapter: str = "point_mass", policy: dict | None = None,
+              separation_rule: str = "coop") -> dict:
     return {
         "mission": "tag", "seed": int(seed), "duration_s": 30.0,
         "adapter": adapter, "preset": preset, "policy": dict(policy or {}),
         "measurement_delay_s": float(delay),
-        "params": {"target_class": target_class, "arm": arm, "n_followers": int(n_followers), "mode": "tag"},
+        "params": {"target_class": target_class, "arm": arm, "n_followers": int(n_followers), "mode": "tag",
+                   "separation_rule": separation_rule},
     }
+
+
+# Follower-to-follower separation (decision D-123, within D-120): with Run D
+# merged, the 2 and 3 follower slice runs Run D's rule ("coop") and, for
+# comparison, the earlier local stand-in ("local").  With one follower the rule
+# has no effect, so those rows are labelled "one follower".
+ONE_FOLLOWER_RULE = "one follower"
 
 
 def build_jobs(*, pilot: bool = False) -> list[dict]:
@@ -85,13 +94,15 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
                 for preset in ("clean", "burst_10_0.5s"):
                     for seed_index, seed in enumerate(SEEDS[:3]):
                         labels = {"slice": "pilot", "target_class": target_class, "measurement_delay_s": delay,
-                                  "preset": preset, "arm": "recovery", "n_followers": 1, "adapter": "point_mass",
+                                  "preset": preset, "arm": "recovery", "n_followers": 1,
+                                  "separation_rule": ONE_FOLLOWER_RULE, "adapter": "point_mass",
                                   "seed_index": seed_index, "policy_name": "default"}
                         jobs.append(make_job(labels, _scenario(seed, target_class=target_class, delay=delay,
                                                                preset=preset, arm="recovery")))
         for seed_index, seed in enumerate(SEEDS[:2]):
             labels = {"slice": "pilot_physics", "target_class": "straight", "measurement_delay_s": 0.0,
-                      "preset": "clean", "arm": "recovery", "n_followers": 1, "adapter": "physics",
+                      "preset": "clean", "arm": "recovery", "n_followers": 1,
+                      "separation_rule": ONE_FOLLOWER_RULE, "adapter": "physics",
                       "seed_index": seed_index, "policy_name": "default"}
             jobs.append(make_job(labels, _scenario(seed, target_class="straight", delay=0.0, preset="clean",
                                                    arm="recovery", adapter="physics")))
@@ -103,7 +114,8 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
                 for arm in ARMS:
                     for seed_index, seed in enumerate(SEEDS):
                         labels = {"slice": "main", "target_class": target_class, "measurement_delay_s": delay,
-                                  "preset": preset, "arm": arm, "n_followers": 1, "adapter": "point_mass",
+                                  "preset": preset, "arm": arm, "n_followers": 1,
+                                  "separation_rule": ONE_FOLLOWER_RULE, "adapter": "point_mass",
                                   "seed_index": seed_index, "policy_name": "default"}
                         jobs.append(make_job(labels, _scenario(seed, target_class=target_class, delay=delay,
                                                                preset=preset, arm=arm)))
@@ -112,7 +124,8 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
             for preset in PRESETS:
                 for seed_index, seed in enumerate(SEEDS):
                     labels = {"slice": "calm", "target_class": target_class, "measurement_delay_s": delay,
-                              "preset": preset, "arm": "recovery", "n_followers": 1, "adapter": "point_mass",
+                              "preset": preset, "arm": "recovery", "n_followers": 1,
+                              "separation_rule": ONE_FOLLOWER_RULE, "adapter": "point_mass",
                               "seed_index": seed_index, "policy_name": "calm"}
                     jobs.append(make_job(labels, _scenario(seed, target_class=target_class, delay=delay,
                                                            preset=preset, arm="recovery",
@@ -121,19 +134,22 @@ def build_jobs(*, pilot: bool = False) -> list[dict]:
         for delay in (0.0, 0.3):
             for preset in ("clean", "iid_30", "burst_10_0.5s"):
                 for n_followers in (2, 3):
-                    for seed_index, seed in enumerate(SEEDS):
-                        labels = {"slice": "followers", "target_class": target_class, "measurement_delay_s": delay,
-                                  "preset": preset, "arm": "recovery", "n_followers": n_followers,
-                                  "adapter": "point_mass", "seed_index": seed_index, "policy_name": "default",
-                                  "separation_rule": "local stand-in separation rule, until Run D"}
-                        jobs.append(make_job(labels, _scenario(seed, target_class=target_class, delay=delay,
-                                                               preset=preset, arm="recovery", n_followers=n_followers)))
+                    for rule in ("coop", "local"):
+                        for seed_index, seed in enumerate(SEEDS):
+                            labels = {"slice": "followers", "target_class": target_class,
+                                      "measurement_delay_s": delay, "preset": preset, "arm": "recovery",
+                                      "n_followers": n_followers, "separation_rule": rule,
+                                      "adapter": "point_mass", "seed_index": seed_index, "policy_name": "default"}
+                            jobs.append(make_job(labels, _scenario(seed, target_class=target_class, delay=delay,
+                                                                   preset=preset, arm="recovery",
+                                                                   n_followers=n_followers, separation_rule=rule)))
     for target_class in CLASSES:
         for delay in (0.0, 0.3):
             for preset in ("clean", "burst_10_0.5s"):
                 for seed_index, seed in enumerate(SEEDS[:20]):
                     labels = {"slice": "physics", "target_class": target_class, "measurement_delay_s": delay,
-                              "preset": preset, "arm": "recovery", "n_followers": 1, "adapter": "physics",
+                              "preset": preset, "arm": "recovery", "n_followers": 1,
+                              "separation_rule": ONE_FOLLOWER_RULE, "adapter": "physics",
                               "seed_index": seed_index, "policy_name": "default"}
                     jobs.append(make_job(labels, _scenario(seed, target_class=target_class, delay=delay,
                                                            preset=preset, arm="recovery", adapter="physics")))
@@ -190,13 +206,12 @@ def _cell_summary(rows: list[dict]) -> dict:
 
 
 def summarize(rows: list[dict], *, pilot: bool) -> dict:
-    keys = ("slice", "target_class", "measurement_delay_s", "preset", "arm", "n_followers", "adapter", "policy_name")
+    keys = ("slice", "target_class", "measurement_delay_s", "preset", "arm", "n_followers", "separation_rule",
+            "adapter", "policy_name")
     cells = []
     for coords, grouped in group_rows(rows, keys).items():
         entry = {key: value for key, value in zip(keys, coords)}
         entry.update(_cell_summary(grouped))
-        if any("separation_rule" in row for row in grouped):
-            entry["separation_rule"] = "local stand-in separation rule, until Run D"
         cells.append(entry)
     hand_rows = [r for r in rows if r["slice"] in {"main", "pilot"} and r["target_class"] == "straight" and
                  r["measurement_delay_s"] == 0.0 and r["preset"] == "clean" and r["arm"] == "recovery"]
@@ -312,7 +327,8 @@ def main(argv: list[str] | None = None) -> None:
     jobs = build_jobs(pilot=args.pilot)
     rows = run_jobs(jobs, n_processes=processes(args.processes))
     csv_name = "tag.csv"
-    write_rows(output / csv_name, rows, first_columns=("slice", "target_class", "measurement_delay_s", "preset", "arm", "n_followers", "adapter", "seed_index", "policy_name", "seed"))
+    write_rows(output / csv_name, rows, first_columns=("slice", "target_class", "measurement_delay_s", "preset", "arm", "n_followers",
+                                                   "separation_rule", "adapter", "seed_index", "policy_name", "seed"))
     summary = summarize(rows, pilot=args.pilot)
     write_json(output / "summary.json", summary)
     figures = _figures(output, rows, pilot=args.pilot)
