@@ -167,7 +167,7 @@ def test_buffer_figure_changes_when_buffer_data_change(tmp_path):
     assert data["envelope"]
     data["envelope"][0]["required_buffer_m"] = 0.99
     data["envelope"][0]["censored"] = False
-    buffer_path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    buffer_path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     make_figures(second)
     assert (first / "separation_buffer.png").read_bytes() != (second / "separation_buffer.png").read_bytes()
 
