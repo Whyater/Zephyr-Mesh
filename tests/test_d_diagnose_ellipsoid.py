@@ -117,3 +117,21 @@ def test_sample_is_reproducible_and_covers_each_group():
     assert all(item["buffer_ellipsoid_count"] > 0 for item in first if item["group"] == "fails_ellipsoid")
     assert all(item["noise_std_m"] == 0.0 for item in first if item["group"] == "noise_free")
     assert sum(item["kind"] == "ring_swap" for item in first if item["group"] == "fails_ellipsoid") <= 1
+
+
+def test_saved_as_run_matches_buffer_json_in_every_sampled_condition():
+    # The saved rerun must reproduce buffer.json's centre and ellipsoid counts
+    # at the passing radius for all 16 sampled conditions, not just one.
+    entries = json.loads(BUFFER.read_text(encoding="utf-8"))["entries"]
+    saved = json.loads((ROOT / "runs" / "d4-ellipsoid-diagnosis" / "as_run.json").read_text(encoding="utf-8"))
+    assert len(saved["results"]) == 16
+    keys = ("kind", "speed_mps", "delay_s", "loss_probability", "noise_std_m", "dead_reckoning", "lateral_offset_m")
+    for result in saved["results"]:
+        condition = result["condition"]
+        entry = next(e for e in entries if all(e[k] == condition[k] for k in keys))
+        row = next(r for r in entry["tested_radii"]
+                   if abs(r["avoidance_radius_m"] - condition["radius_m"]) < 1e-9)
+        summary = result["variants"]["as_run"]["summary"]
+        assert summary["seeds"] == row["seeds_run"] == 75
+        assert summary["ellipsoid_violations"] == row["ellipsoid_violation_count"]
+        assert summary["center_violations"] == row["violations"] == 0
