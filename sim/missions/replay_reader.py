@@ -91,8 +91,9 @@ def _tag(log: dict) -> dict[str, dict]:
             continue
         positions = [agents[a].get("position_m", [])[i] for a in followers
                      if i < len(agents[a].get("position_m", []))]
-        distances.extend(_distance(position, target) for position in positions)
-        if any(distance < float(params.get("min_separation_m", 0.5)) for distance in distances[-len(positions):]):
+        if positions:
+            distances.extend(_distance(position, target) for position in positions)
+        if positions and any(distance < float(params.get("min_separation_m", 0.5)) for distance in distances[-len(positions):]):
             violations += 1
         for left in range(len(positions)):
             for right in range(left + 1, len(positions)):
@@ -111,7 +112,7 @@ def _tag(log: dict) -> dict[str, dict]:
         end = min((float(item.get("end_s")) for item in outages if item.get("end_s") is not None), default=float(times[-1]) if times else 0.0)
         inside = 0
         for i, t in enumerate(times):
-            if starts[0] <= t <= end and i < len(targets) and targets[i] is not None:
+            if min(starts) <= t <= end and i < len(targets) and targets[i] is not None:
                 for agent in followers:
                     pos = agents[agent].get("position_m", [])[i]
                     if abs(pos[2] - targets[i][2]) <= 0.3 and agents[agent].get("failsafe_state", [None])[i] != "landing":
@@ -151,7 +152,7 @@ def _sweep(log: dict) -> dict[str, dict]:
     fraction = _coverage(log, dropout_time)
     return {
         "replans": _result(len(events), "events", True, "replan events are logged"),
-        "belief_error_cells": _result(sum(float(e.get("detail", {}).get("belief_error_cells", 0)) for e in events), "events", True, "replan details are logged"),
+        "belief_error_cells": _result(int(sum(e.get("detail", {}).get("belief_error_cells", 0) for e in events)), "events", True, "replan details are logged"),
         "false_loss_declarations": _result(sum(bool(e.get("detail", {}).get("false_declaration")) for e in events), "events", True, "replan details are logged"),
         "failsafe_landings": _result(len(landings), "events", True, "landing events are logged"),
         "t100_s": _result(duration if (end and end.get("detail", {}).get("reason") == "complete") else None, "events", True, "mission_end reason is logged"),
@@ -199,7 +200,8 @@ def _relay(log: dict) -> dict[str, dict]:
     return {
         "hop1_delivery": _result(hop1, "link_stats", True,
                                  "tel:far counters are complete" if has_relay else "no relay: single hop"),
-        "hop2_delivery": _result(hop2, "link_stats", True, "tel:relay counters are complete"),
+        "hop2_delivery": _result(hop2, "link_stats", True,
+                                  "tel:relay counters are complete" if has_relay else "no relay: second hop is absent"),
         "delivery_ratio": _result(end_to_end, "link_stats", not has_relay, "forwarded packet subset is absent for relay runs" if has_relay else "tel:far counters are complete"),
         "median_latency_s": _result(None, "link_stats", False, "per-packet timing is not recorded"),
         "p95_latency_s": _result(None, "link_stats", False, "per-packet timing is not recorded"),
@@ -244,13 +246,21 @@ def _monitor(log: dict) -> dict[str, dict]:
             displacements.append(float(np.linalg.norm(vector)))
             horizontal.append(float(np.linalg.norm(vector[:2])))
     transition = _event(log, "failsafe_transition")
-    terminated_state = "ki" + "lled"
+    terminated_state = "killed"
     landed_agents = {e.get("agent") for e in transition if e.get("detail", {}).get("state") in {"landing", terminated_state}}
+    interpolated_alert_positions = [
+        _interpolate_position(times, targets, float(alert.get("time_s", 0.0)))
+        for alert in alerts
+    ]
+    outside_alert = any(
+        position is not None and _horizontal_distance_to_zone(position) > 1.0
+        for position in interpolated_alert_positions
+    )
     return {
         "alerts_raised": _result(len(alerts), "events", True, "alert_raised events are logged"),
         "alert_latency_s": _result(latency, "frames_20hz", path in {"crossing", "loiter"} and entry is not None, "truth entry is interpolated from target frames"),
-        "false_alert": _result((path == "skimming" and bool(alerts)), "frames_20hz", False, "alert truth is sampled at 20 Hz"),
-        "missed_alert": _result(_missed_alert(times, in_zone, alerts), "frames_20hz", False, "zone dwell is reconstructed from target frames"),
+        "false_alert": _result((path == "skimming" and bool(alerts)) or outside_alert, "frames_20hz", False, "alert truth is interpolated from target frames"),
+        "missed_alert": _result(_missed_alert(times, in_zone, alerts, targets), "frames_20hz", False, "zone dwell is reconstructed from target frames"),
         "continuity": _result(sum(check_values) / len(check_values) if check_values else None, "frames_20hz", bool(check_values), "estimate age is available at 10 Hz checks"),
         "max_estimate_age_s": _result(max(age_values) if age_values else None, "frames_20hz", False, "estimate age is sampled at 10 Hz checks"),
         "observer_max_displacement_m": _result(max(displacements) if displacements else None, "frames_20hz", False, "observer positions are sampled at 20 Hz"),
@@ -267,31 +277,73 @@ def _inside_zone(point: Any) -> bool:
     return point is not None and 20 <= float(point[0]) <= 40 and 12 <= float(point[1]) <= 28
 
 
+def _interpolate_position(times: list[float], targets: list, time: float) -> np.ndarray | None:
+    """Interpolate truth at an event time from its bracketing target frames."""
+    limit = min(len(times), len(targets))
+    for i in range(limit - 1):
+        t0, t1 = float(times[i]), float(times[i + 1])
+        p0, p1 = targets[i], targets[i + 1]
+        if p0 is None or p1 is None or not (t0 <= time <= t1):
+            continue
+        if abs(t1 - t0) <= 1e-12:
+            return np.asarray(p1, dtype=float)
+        fraction = (time - t0) / (t1 - t0)
+        return np.asarray(p0, dtype=float) + fraction * (np.asarray(p1, dtype=float) - np.asarray(p0, dtype=float))
+    return None
+
+
+def _horizontal_distance_to_zone(point: Any) -> float:
+    x, y = float(point[0]), float(point[1])
+    dx = max(20.0 - x, 0.0, x - 40.0)
+    dy = max(12.0 - y, 0.0, y - 28.0)
+    return float(math.hypot(dx, dy))
+
+
 def _interpolate_entry(t0: float, t1: float, p0: Any, p1: Any) -> float:
     p0, p1 = np.asarray(p0, dtype=float), np.asarray(p1, dtype=float)
-    candidates = []
-    for coordinate, boundary in ((0, 20.0), (1, 12.0)):
-        delta = p1[coordinate] - p0[coordinate]
-        if abs(delta) > 1e-12:
-            fraction = (boundary - p0[coordinate]) / delta
-            if 0 <= fraction <= 1:
-                candidates.append(fraction)
-    return float(t0 + (t1 - t0) * (min(candidates) if candidates else 0.0))
+    entry_fraction = 0.0
+    exit_fraction = 1.0
+    for coordinate, low, high in ((0, 20.0, 40.0), (1, 12.0, 28.0)):
+        start = float(p0[coordinate])
+        delta = float(p1[coordinate] - p0[coordinate])
+        if abs(delta) <= 1e-12:
+            if start < low or start > high:
+                return float(t0)
+            continue
+        near = (low - start) / delta
+        far = (high - start) / delta
+        if near > far:
+            near, far = far, near
+        entry_fraction = max(entry_fraction, near)
+        exit_fraction = min(exit_fraction, far)
+    if entry_fraction > exit_fraction or exit_fraction < 0.0 or entry_fraction > 1.0:
+        return float(t0)
+    entry_fraction = min(max(entry_fraction, 0.0), 1.0)
+    return float(t0 + (t1 - t0) * entry_fraction)
 
 
-def _missed_alert(times: list, in_zone: list[bool], alerts: list[dict]) -> bool:
-    run = 0
-    entry = None
-    for i, value in enumerate(in_zone):
-        if value:
-            run += 1
-            if entry is None:
-                entry = float(times[i])
+def _missed_alert(times: list, in_zone: list[bool], alerts: list[dict], targets: list | None = None) -> bool:
+    index = 0
+    while index < len(in_zone):
+        if not in_zone[index]:
+            index += 1
+            continue
+        start = index
+        while index + 1 < len(in_zone) and in_zone[index + 1]:
+            index += 1
+        if targets is not None and start > 0 and start < len(targets) and index < len(targets):
+            if targets[start - 1] is not None and targets[start] is not None:
+                entry = _interpolate_entry(times[start - 1], times[start], targets[start - 1], targets[start])
+            else:
+                entry = float(times[start])
         else:
-            run = 0
-            entry = None
-        if run >= 2 and entry is not None and not any(abs(float(e.get("time_s", 0)) - entry) <= 5.0 for e in alerts):
+            entry = float(times[start])
+        dwell_s = float(times[index]) - entry
+        if dwell_s >= 2.0 and not any(
+            entry <= float(event.get("time_s", 0.0)) <= entry + 5.0 for event in alerts
+        ):
             return True
+        index += 1
     return False
 
 
