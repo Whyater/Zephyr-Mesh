@@ -146,7 +146,8 @@ SLICE_SCOPES = {
     "sweep": {"main": SCOPE_GOAL, "physics": SCOPE_PHYSICS, SWEEP_EXPLORATORY_SLICE: SCOPE_EXPLORATORY},
     "relay": {"main": SCOPE_GOAL, "physics": SCOPE_PHYSICS},
     "monitor": {"main": SCOPE_GOAL, "physics": SCOPE_PHYSICS},
-    "formation": {"main": SCOPE_GOAL, "physics": SCOPE_PHYSICS, "pilot": SCOPE_PILOT,
+    "formation": {"main": SCOPE_GOAL, "physics": SCOPE_PHYSICS,
+                  "local_guard_comparison": SCOPE_EXTRA, "pilot": SCOPE_PILOT,
                   "pilot_physics": SCOPE_PILOT},
 }
 ADAPTER_LABELS = {
@@ -155,9 +156,8 @@ ADAPTER_LABELS = {
     "point_mass_offboard": "point mass, position loop closed on camera-like fixes",
     "physics_offboard": "physics (crazyflie-class, literature-derived), position loop closed on camera-like fixes",
 }
-FOLLOWERS_NOTE = ("Two and three followers keep apart with Run D's reciprocal velocity rule (separation_rule "
-                  "coop) unless the entry is labelled local, the earlier 0.6 m follower-follower stand-in kept "
-                  "for comparison.")
+FOLLOWERS_NOTE = ("Two and three followers keep apart with Run D's reciprocal velocity rule (separation_rule coop). "
+                  "Rows with separation_rule local are labelled as the comparison rule.")
 EXPLORATORY_NOTE = ("Calm policy (degraded after 0.25 s, land after 1.0 s) added after the pilots (Addendum B); "
                     "exploratory, not pre-registered.")
 RELAY_PHYSICS_NOTE = ("Physics rows equal point-mass rows by construction: path loss uses the fixed commanded "
@@ -171,8 +171,8 @@ LIMITS = (
     "and a modelled floor).",
     "Every entry names its adapter: the full grids run on the point-mass adapter; physics entries are the "
     "pre-registered physics subsets (fewer seeds and cells) and are labelled as such.",
-    "Multi-follower tag and formation entries use Run D's reciprocal velocity rule by default; entries labelled "
-    "local use the earlier stand-in guard and exist only for comparison.",
+    "Multi-follower tag and formation entries use Run D's reciprocal velocity rule by default; rows with "
+    "separation_rule local are labelled as the comparison rule and exist only for comparison.",
     "The EXP-031 calm-policy slice is exploratory (Addendum B, added after the pilots, not pre-registered) and is "
     "labelled in every entry; pre-registered grids are listed first.",
     "Goal thresholds are Run E reporting choices fixed before any full-grid run (Addendum A), not product rules.",
@@ -414,13 +414,16 @@ def tag_conditions(rows: list[dict]) -> list[dict]:
 
 
 def tag_entries(rows: list[dict]) -> list[dict]:
+    rows = [dict(row, separation_rule=row.get("separation_rule", "coop")) for row in rows]
     def describe(labels: dict) -> dict:
         notes = [FOLLOWERS_NOTE] if int(labels["n_followers"]) > 1 else []
+        if labels.get("separation_rule") == "local":
+            notes.append("local separation rule, comparison rule")
         return {"target_class": labels["target_class"], "preset": labels["preset"], "arm": labels["arm"],
                 "n_followers": int(labels["n_followers"]), "policy": labels["policy_name"] or "default",
                 "notes": notes}
 
-    keys = ("slice", "target_class", "preset", "arm", "n_followers", "adapter", "policy_name")
+    keys = ("slice", "target_class", "preset", "arm", "n_followers", "adapter", "policy_name", "separation_rule")
     return axis_entries(rows, mission="tag", group_keys=keys, axis="measurement_delay_s", unit="s",
                         conditions_for=tag_conditions, describe=describe)
 
@@ -511,10 +514,13 @@ def formation_conditions(rows: list[dict]) -> list[dict]:
 
 
 def formation_entries(rows: list[dict]) -> list[dict]:
-    return axis_entries(rows, mission="formation", group_keys=("slice", "sigma_m", "preset", "adapter"),
-                        axis="fix_latency_s", unit="s", conditions_for=formation_conditions,
-                        describe=lambda labels: {"sigma_m": labels["sigma_m"], "preset": labels["preset"],
-                                                 "notes": []})
+    rows = [dict(row, separation_rule=row.get("separation_rule", "coop")) for row in rows]
+    def describe(labels: dict) -> dict:
+        notes = ["local separation rule, comparison rule"] if labels.get("separation_rule") == "local" else []
+        return {"sigma_m": labels["sigma_m"], "preset": labels["preset"], "notes": notes}
+
+    return axis_entries(rows, mission="formation", group_keys=("slice", "sigma_m", "preset", "adapter", "separation_rule"),
+                        axis="fix_latency_s", unit="s", conditions_for=formation_conditions, describe=describe)
 
 
 # ---- failsafe (EXP-029) ----------------------------------------------------------------
