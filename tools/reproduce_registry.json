@@ -321,5 +321,18 @@
    "separation_buffer.png": "de7d980f31dfb8790703d4c16bd94f7e2ba10771ef24d15dde2c161854a60933",
    "summary.json": "f7866704a33e5ab5935cca97352061c91aedca520e52ad64bda66cc63166a325"
   }
+ },
+ {
+  "run_dir": "runs/d3-tolerance",
+  "command": "PYTHONPATH=. {python} tools/d_run_tolerance.py --output {out} --processes 4",
+  "outputs": {
+   "best_n.json": "fc594e6e8e2795260a56c2ede867016b868191d4bfb3c4a1c81a0a0b296ce817",
+   "boundaries.json": "af4c46138fe6fd082e6adee04cbb9f1a93f55135b87cf2b539918a5030d49c34",
+   "cells.csv": "ea6dade12a81b934717363e1961cdc020ecd171151373acfaace594acd09ad2e",
+   "channel_use.json": "87c1bf03357eb8a44cb6207beb5c5c96143b7f533718a7f2c1a6f4ea069b5c0b",
+   "gaps.json": "097393a04cef193946ca4717ee057b43c20d53403b975a0f128aa114747b96b9",
+   "per_seed.csv.gz": "3e1acdceef300173534b4ccf98e96804aa3bcf1de84b3d825b55efc87afe24e3",
+   "tolerance_vs_n.png": "d3505ad3a9bef47945011a6ed38b1dff5f4d4ee87156c47b86a9d5da74da5b34"
+  }
  }
 ]
