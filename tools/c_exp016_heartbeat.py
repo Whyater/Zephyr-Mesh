@@ -16,6 +16,7 @@ from pathlib import Path
 import numpy as np
 import jsonschema
 
+from sim.estimation.sweep import run_jobs
 from sim.radio.channel import GilbertElliott, packet_error_rate, mean_rssi_dbm
 from sim.radio.heartbeat import (detection_delay_bounds, detection_delay_samples,
                                   false_alarm_rate_ge_per_hour, false_alarm_rate_iid_per_hour,
@@ -56,6 +57,16 @@ def _conditions(pilot: bool) -> list[dict]:
     out += [{"kind": "bursty", "p": p, "duration_s": d,
              "label": f"bursty_p_{p:g}_duration_{d:g}s"} for p in ps for d in ds]
     return out
+
+
+# CSV column order (run_jobs returns rows with sorted keys, so the order is fixed here).
+FALSE_ALARM_COLUMNS = ("h_hz", "timeout_s", "loss_condition", "kind", "p", "duration_s", "expected_count",
+                       "simulated_count", "expected_rate_per_hour", "simulated_rate_per_hour", "z")
+DELAY_COLUMNS = ("h_hz", "timeout_s", "loss_condition", "mean_s", "p95_s", "max_s",
+                 "bound_low_s", "bound_high_s", "bound_mean_s")
+INTERFERENCE_COLUMNS = ("margin_db", "distance_m", "mean_duration_s", "noise_rise_db", "mean_trigger_s",
+                        "p95_trigger_s", "fraction_detected", "false_triggers_per_hour", "missed_episodes",
+                        "n_episodes", "mean_clear_after_episode_s")
 
 
 def _rng(*key: int) -> np.random.Generator:
@@ -218,7 +229,61 @@ def _write_figures(out: Path, rows: list[dict], rule_rows: list[dict]) -> None:
     fig.tight_layout(); fig.savefig(out / "exp016_rule_300ms.png", dpi=150, metadata={"Software": None}); plt.close(fig)
 
 
-def run(output: Path, argv: list[str], pilot: bool = False, processes: int | None = None) -> dict:
+def _false_alarm_job(job: dict) -> dict:
+    """One (loss condition, heartbeat rate) cell: false-alarm and detection-delay rows for every timeout."""
+    ci, cond, hi, h, pilot = int(job["ci"]), job["cond"], int(job["hi"]), job["h"], bool(job["pilot"])
+    false_rows, delay_rows = [], []
+    n = int(round(HOURS * 3600 * h * (0.2 / 10 if pilot else 1.0)))
+    seq = _loss_sequence(cond, n, _rng(1, ci, hi), h)
+    for ti, T in enumerate(job["timeouts"]):
+        sim = simulate_heartbeats(seq, h, T)
+        exp_rate = expected_rate(cond, h, T); exp_count = exp_rate * (n / h / 3600)
+        sim_count = sim.n_episodes; z = (sim_count - exp_count) / math.sqrt(max(exp_count, 1.0))
+        false_rows.append({"h_hz": h, "timeout_s": T, "loss_condition": cond["label"], "kind": cond["kind"],
+            "p": cond["p"], "duration_s": cond.get("duration_s"), "expected_count": exp_count,
+            "simulated_count": sim_count, "expected_rate_per_hour": exp_rate,
+            "simulated_rate_per_hour": sim_count / (n / h / 3600), "z": z})
+        nd = 500 if pilot else 10000
+        rng = _rng(2, ci, hi, ti)
+        pre = None if cond["kind"] == "independent" and cond["p"] == 0 else (cond["p"] if cond["kind"] == "independent" else GilbertElliott.from_loss_and_burst(cond["p"], max(cond["duration_s"] * h, 1.0)))
+        d = detection_delay_samples(h, T, nd, rng, pre_loss=pre)
+        delay_rows.append({"h_hz": h, "timeout_s": T, "loss_condition": cond["label"], "mean_s": float(np.mean(d)),
+            "p95_s": float(np.percentile(d, 95)), "max_s": float(np.max(d)),
+            "bound_low_s": detection_delay_bounds(h, T)[0], "bound_high_s": detection_delay_bounds(h, T)[1],
+            "bound_mean_s": detection_delay_bounds(h, T)[2]})
+    return {"false_rows": _plain(false_rows), "delay_rows": _plain(delay_rows)}
+
+
+def _plain(value):
+    """numpy scalars to Python numbers, so run_jobs can pass results between processes as JSON."""
+    if isinstance(value, dict):
+        return {k: _plain(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_plain(v) for v in value]
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
+
+
+def _interference_job(job: dict) -> dict:
+    """One C6 interference cell: margin, mean episode duration and noise rise."""
+    margin, dur, rise, pilot = job["margin"], job["dur"], job["rise"], bool(job["pilot"])
+    frame_b = frame_bytes(32, default_phy()); cfg = channel_preset("indoor_gym")
+    dist = _margin_distance(cfg, margin, frame_b)
+    ic = InterferenceConfig(6, dur, rise)
+    # Same episode timeline for both margins (common random numbers).
+    run_seed = int(np.random.SeedSequence([BASE_SEED, 3, dur, rise]).generate_state(1)[0])
+    run_i = simulate_link_with_interference(cfg, dist, 10, 3600 * (0.2 if pilot else 10), frame_b, ic, seed=run_seed)
+    ev = evaluate_detector(run_i["times"], run_i["received"], run_i["snr_db"], run_i["episodes"], DegradedLinkDetector(20, .3, 6, 3), grace_s=2.0)
+    delays = ev["trigger_delays_s"]
+    return _plain({"margin_db": margin, "distance_m": dist, "mean_duration_s": dur, "noise_rise_db": rise,
+        "mean_trigger_s": float(np.mean(delays)) if delays else None, "p95_trigger_s": float(np.percentile(delays, 95)) if delays else None,
+        "fraction_detected": len(delays) / max(len(run_i["episodes"]), 1), "false_triggers_per_hour": ev["false_triggers_per_hour"],
+        "missed_episodes": ev["missed"], "n_episodes": len(run_i["episodes"]),
+        "mean_clear_after_episode_s": (float(np.mean(cl)) if (cl := _clear_delays(run_i["episodes"], ev["transitions"])) else None)})
+
+
+def run(output: Path, argv: list[str], pilot: bool = False, processes: int | None = None, workers: int = 1) -> dict:
     start = time.perf_counter(); output = prepare_output(output)
     rates = (10,) if pilot else RATES; timeouts = (0.3, 1.0) if pilot else TIMEOUTS
     conditions = _conditions(pilot)
@@ -230,27 +295,12 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
             delay_rows.append({"h_hz": h, "timeout_s": T, "loss_condition": "no_prior_loss", "mean_s": float(np.mean(d)),
                                "p95_s": float(np.percentile(d, 95)), "max_s": float(np.max(d)),
                                "bound_low_s": lo_b, "bound_high_s": hi_b, "bound_mean_s": mean_b})
-    for ci, cond in enumerate(conditions):
-        for hi, h in enumerate(rates):
-            n = int(round(HOURS * 3600 * h * (0.2 / 10 if pilot else 1.0)))
-            seq = _loss_sequence(cond, n, _rng(1, ci, hi), h)
-            for ti, T in enumerate(timeouts):
-                sim = simulate_heartbeats(seq, h, T)
-                exp_rate = expected_rate(cond, h, T); exp_count = exp_rate * (n / h / 3600)
-                sim_count = sim.n_episodes; z = (sim_count - exp_count) / math.sqrt(max(exp_count, 1.0))
-                false_rows.append({"h_hz": h, "timeout_s": T, "loss_condition": cond["label"], "kind": cond["kind"],
-                    "p": cond["p"], "duration_s": cond.get("duration_s"), "expected_count": exp_count,
-                    "simulated_count": sim_count, "expected_rate_per_hour": exp_rate,
-                    "simulated_rate_per_hour": sim_count / (n / h / 3600), "z": z})
-                if True:
-                    nd = 500 if pilot else 10000
-                    rng = _rng(2, ci, hi, ti)
-                    pre = None if cond["kind"] == "independent" and cond["p"] == 0 else (cond["p"] if cond["kind"] == "independent" else GilbertElliott.from_loss_and_burst(cond["p"], max(cond["duration_s"] * h, 1.0)))
-                    d = detection_delay_samples(h, T, nd, rng, pre_loss=pre)
-                    delay_rows.append({"h_hz": h, "timeout_s": T, "loss_condition": cond["label"], "mean_s": float(np.mean(d)),
-                    "p95_s": float(np.percentile(d, 95)), "max_s": float(np.max(d)),
-                        "bound_low_s": detection_delay_bounds(h, T)[0], "bound_high_s": detection_delay_bounds(h, T)[1],
-                        "bound_mean_s": detection_delay_bounds(h, T)[2]})
+    # Each (condition, rate) cell draws from its own seeded streams, so cells are
+    # independent and can run in any process; run_jobs returns them in job order.
+    cell_jobs = [{"ci": ci, "cond": cond, "hi": hi, "h": h, "timeouts": list(timeouts), "pilot": pilot}
+                 for ci, cond in enumerate(conditions) for hi, h in enumerate(rates)]
+    for cell in run_jobs(cell_jobs, "tools.c_exp016_heartbeat:_false_alarm_job", processes=workers, progress=False):
+        false_rows += cell["false_rows"]; delay_rows += cell["delay_rows"]
     thresholds = select_thresholds(false_rows)
     # Add delays to threshold records where available.
     for t in thresholds:
@@ -262,28 +312,16 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
     int_rows = []; margins = (20, 30); durations = (1, 5, 30); rises = (10, 20, 30)
     if pilot: durations, rises, margins = (1,), (10,), (20,)
     frame_b = frame_bytes(32, default_phy()); cfg = channel_preset("indoor_gym")
-    for margin in margins:
-        dist = _margin_distance(cfg, margin, frame_b)
-        for dur in durations:
-            for rise in rises:
-                ic = InterferenceConfig(6, dur, rise)
-                # Same episode timeline for both margins (common random numbers).
-                run_seed = int(np.random.SeedSequence([BASE_SEED, 3, dur, rise]).generate_state(1)[0])
-                run_i = simulate_link_with_interference(cfg, dist, 10, 3600 * (0.2 if pilot else 10), frame_b, ic, seed=run_seed)
-                ev = evaluate_detector(run_i["times"], run_i["received"], run_i["snr_db"], run_i["episodes"], DegradedLinkDetector(20, .3, 6, 3), grace_s=2.0)
-                delays = ev["trigger_delays_s"]
-                int_rows.append({"margin_db": margin, "distance_m": dist, "mean_duration_s": dur, "noise_rise_db": rise,
-                    "mean_trigger_s": float(np.mean(delays)) if delays else None, "p95_trigger_s": float(np.percentile(delays, 95)) if delays else None,
-                    "fraction_detected": len(delays) / max(len(run_i["episodes"]), 1), "false_triggers_per_hour": ev["false_triggers_per_hour"],
-                    "missed_episodes": ev["missed"], "n_episodes": len(run_i["episodes"]),
-                    "mean_clear_after_episode_s": (float(np.mean(cl)) if (cl := _clear_delays(run_i["episodes"], ev["transitions"])) else None)})
+    int_jobs = [{"margin": margin, "dur": dur, "rise": rise, "pilot": pilot}
+                for margin in margins for dur in durations for rise in rises]
+    int_rows = run_jobs(int_jobs, "tools.c_exp016_heartbeat:_interference_job", processes=workers, progress=False)
     rule_rows = [r for r in false_rows if r["timeout_s"] == 0.3 and r["h_hz"] in (10, 20)]
     with open(output / "false_alarms.csv", "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(false_rows[0])); w.writeheader(); w.writerows(false_rows)
+        w = csv.DictWriter(f, fieldnames=FALSE_ALARM_COLUMNS); w.writeheader(); w.writerows(false_rows)
     with open(output / "detection_delay.csv", "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(delay_rows[0])); w.writeheader(); w.writerows(delay_rows)
+        w = csv.DictWriter(f, fieldnames=DELAY_COLUMNS); w.writeheader(); w.writerows(delay_rows)
     with open(output / "interference.csv", "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(int_rows[0])); w.writeheader(); w.writerows(int_rows)
+        w = csv.DictWriter(f, fieldnames=INTERFERENCE_COLUMNS); w.writeheader(); w.writerows(int_rows)
     threshold_doc = {"status": "simulated", "parameters_basis": "literature-derived",
                      "generating_command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output {out}",
                      "records": thresholds}
@@ -310,11 +348,11 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
         "The 1 per 100 hours threshold uses the closed form only: 10 simulated hours cannot resolve it.",
         "When burst duration x heartbeat rate < 1 (e.g. 0.05 s or 0.2 s at 5 Hz) a burst is a single packet, so those cases coincide."],
         runtime_s=time.perf_counter() - start,
-        n_processes=processes or default_processes(), hashed_sources=["sim/radio/heartbeat.py", "sim/radio/interference.py", "sim/radio/channel.py", "tools/c_exp016_heartbeat.py"])
+        n_processes=workers, hashed_sources=["sim/radio/heartbeat.py", "sim/radio/interference.py", "sim/radio/channel.py", "tools/c_exp016_heartbeat.py"])
 
 
 def main(argv=None):
-    argv = argv_or_default(argv); p = argparse.ArgumentParser(description=__doc__.splitlines()[0]); p.add_argument("--output", type=Path, required=True); p.add_argument("--pilot", action="store_true"); p.add_argument("--processes", type=int, default=default_processes()); a = p.parse_args(argv); run(a.output, argv, a.pilot, a.processes); return 0
+    argv = argv_or_default(argv); p = argparse.ArgumentParser(description=__doc__.splitlines()[0]); p.add_argument("--output", type=Path, required=True); p.add_argument("--pilot", action="store_true"); p.add_argument("--processes", type=int, default=default_processes(), help="kept for old commands; ignored"); p.add_argument("--workers", type=int, default=1, help="worker processes for the independent cells (default 1 = serial); outputs are byte-identical for any value"); a = p.parse_args(argv); run(a.output, argv, a.pilot, a.processes, a.workers); return 0
 
 
 if __name__ == "__main__": raise SystemExit(main())
