@@ -175,13 +175,16 @@ def _summarize(rows: list[dict]) -> list[dict]:
 
 def _exact_subset(fast_rows: list[dict], exact_rows: list[dict]) -> list[dict]:
     """Compare fast and exact simulated CI on the registered turn subset."""
-    keys = sorted({(r["n_observers"], r["loss_probability"]) for r in exact_rows})
+    keys = sorted({(r["target"], r["noise_std_m"], r["n_observers"], r["loss_probability"])
+                   for r in exact_rows})
     output = []
-    for n_observers, loss in keys:
-        fast = [r for r in fast_rows if r["arm"] == "peer_ci" and
-                r["n_observers"] == n_observers and r["loss_probability"] == loss]
-        exact = [r for r in exact_rows if r["arm"] == "peer_ci" and
-                 r["n_observers"] == n_observers and r["loss_probability"] == loss]
+    for target, noise, n_observers, loss in keys:
+        def same_cell(r: dict) -> bool:
+            return (r["arm"] == "peer_ci" and r["target"] == target and
+                    r["noise_std_m"] == noise and r["n_observers"] == n_observers and
+                    r["loss_probability"] == loss)
+        fast = [r for r in fast_rows if same_cell(r)]
+        exact = [r for r in exact_rows if same_cell(r)]
         fast_by_seed = {r["seed"]: r for r in fast}
         exact_by_seed = {r["seed"]: r for r in exact}
         common = sorted(set(fast_by_seed) & set(exact_by_seed))
@@ -196,6 +199,7 @@ def _exact_subset(fast_rows: list[dict], exact_rows: list[dict]) -> list[dict]:
                 nees_relative.append(abs(exact_row["mean_nees"] - fast_row["mean_nees"]) /
                                      max(abs(fast_row["mean_nees"]), 1e-15))
         output.append({
+            "target": target, "noise_std_m": noise,
             "n_observers": n_observers, "loss_probability": loss, "n_seeds": len(common),
             "fast": {"p95_error_m": _interval([fast_by_seed[s]["p95_error_m"] for s in common]),
                      "mean_nees": _interval([fast_by_seed[s]["mean_nees"] for s in common])},

@@ -42,18 +42,25 @@ def _line_values(selected, key, scale=1.0):
 def _mark_failures(axis, failures, colour):
     """Draw alert X markers along the top edge, labelled with the fail rate.
 
-    failures maps N to a list of (arm, fail rate); several arms failing at the
-    same N are stacked downwards from the top edge.
+    failures maps N to a list of (arm, fail rate). Each label is centred under
+    its marker on two lines (arm, then rate) so neighbouring Ns never collide;
+    several arms failing at the same N are stacked downwards from the top edge.
     """
     transform = axis.get_xaxis_transform()
     for x, items in failures.items():
         for slot, (arm, rate) in enumerate(items):
-            y = 0.95 - 0.07 * slot
+            y = 0.95 - 0.13 * slot
             axis.scatter([x], [y], color=colour, marker="X", s=40, zorder=5,
                          transform=transform, clip_on=False)
-            axis.annotate(f"{arm} {100.0 * rate:.0f}%", (x, y), xycoords=transform,
-                          xytext=(7, 0), textcoords="offset points", ha="left",
-                          va="center", fontsize=6.5, color=colour)
+            axis.annotate(f"{arm}\n{100.0 * rate:.0f}%", (x, y), xycoords=transform,
+                          xytext=(0, -6), textcoords="offset points", ha="center",
+                          va="top", fontsize=6.5, color=colour, linespacing=1.1)
+
+
+def _pad_x(axis, xticks):
+    """Leave room beside the first and last N so centred labels stay inside."""
+    pad = 0.06 * (max(xticks) - min(xticks))
+    axis.set_xlim(min(xticks) - pad, max(xticks) + pad)
 
 
 def _failed_cells(selected, key):
@@ -123,6 +130,7 @@ def make_figures(directory: Path):
         axis.set_title(target)
         axis.set_xlabel("Observers N")
         axis.set_xticks(xticks)
+        _pad_x(axis, xticks)
         axis.grid(alpha=0.2)
     axes[0][0].set_ylabel("Median p95 error (cm)")
     _legend(figure, axes[0][0], [failure_handle])
@@ -148,6 +156,7 @@ def make_figures(directory: Path):
         axis.set_title(f"Loss probability {loss:g}")
         axis.set_xlabel("Observers N")
         axis.set_xticks(xticks)
+        _pad_x(axis, xticks)
         axis.grid(alpha=0.2)
     axes[0].set_ylabel("Median mean NEES (unitless, log scale)")
     _legend(figure, axes[0], [failure_handle])
