@@ -1,0 +1,110 @@
+{
+  "argv": [
+    "--output",
+    "runs/missions-atlas"
+  ],
+  "code_sha256": {
+    "sim/missions/missions_atlas_schema.json": "be2d8d8980467efef9b29c4e1acc53daffc012931f86a3471d268543d25c20d2",
+    "sim/missions/presets.py": "3886d2a564d0bbaffedbdd2a1ff0e4bfa66fa56b719a7433d55d6489f9a4b200",
+    "sim/s6_recovery.py": "bc0c8b1363d85d4c9f6f6f73900b29f6e9553f01471c7e46a053eaf3cd1ab63d",
+    "tools/e_common.py": "32e8612803966465bf311a5a337b21752d805a40c470f929c8b976ead65f63c5",
+    "tools/e_missions_atlas.py": "264918b4de78cdb3a92b08df3c911103e8861bfd91723df5e2091b49708b824c"
+  },
+  "config": {
+    "inputs": {
+      "exp029_part_a": {
+        "files_sha256": {
+          "manifest.json": "8e4cd37f1f3be3511d890ba0b46122dd5aa2dd1a0b4bd8445ec673bc00e40d93",
+          "part_a.csv": "70aa17feea8e609d07d80573ab2fc45c204038dcfa259a8b11141e93e2028ec6",
+          "summary.json": "08f654e2e50ae17b4ca081abd3949fa10fc6b8afb12a441bf1973d2a00c976f8"
+        },
+        "folder": "runs/e-exp029-part-a",
+        "status": "result"
+      },
+      "exp029_part_b": {
+        "files_sha256": {
+          "manifest.json": "3d32486723592d8a342abb7496cee4b424909191b8d2546d3984b6baee03f8a9",
+          "part_b.csv": "db534dced263734acda3dd76fd500018178347221f0ca6f8e7ca73fb44519443",
+          "summary.json": "d8c9df3f2b6870a48543d86a7099dbecb1424da69cdbc1e712b4eb4eacb65b6b"
+        },
+        "folder": "runs/e-exp029-part-b",
+        "status": "result"
+      },
+      "exp030": {
+        "files_sha256": {
+          "manifest.json": "ec44aa422f813e536ce4e5c39faa38aff39e29061259adbbf43a8be39b24300e",
+          "summary.json": "471b143e789773cbf6bba022cf3e61e3e0750fd73f6570edfe8ba52e64cbaaec",
+          "tag.csv": "07a522bdad264d3639e105384552201c4f9f703c7c3d5d38165e70797db7a0e2"
+        },
+        "folder": "runs/e-exp030-tag",
+        "status": "result"
+      },
+      "exp031": {
+        "files_sha256": {
+          "manifest.json": "41d18280e0e9c15e73653e5daa588639ceb381bbc701b4a823c48677dea9d36b",
+          "summary.json": "82cb1cd0760cd5e331277970394e6ddf4219ad087b2687c48ac1eb13856ab55f",
+          "sweep.csv": "19e468092824c0e46bf68385c95f9a3152bd851bb6bc9e1d1e29d12484f40cfd"
+        },
+        "folder": "runs/e-exp031-sweep",
+        "status": "result"
+      },
+      "exp032": {
+        "files_sha256": {
+          "manifest.json": "17a70c949a454edd140af01668ae238cba7f4f5ad97c86f759a402a6bb2f292a",
+          "relay.csv": "f896ba5a236034ec27b361c222e8406a1397f1ee6f4c78c10299b37ac1ca3813",
+          "summary.json": "647de9a2cfd42026152b09759007d58d1d270cb1729c090c0d4ff383870d5865"
+        },
+        "folder": "runs/e-exp032-relay",
+        "status": "result"
+      },
+      "exp033": {
+        "files_sha256": {
+          "exp033.csv": "2e13cbbdffca8917c5840193c3c1077926f4daf8f19b41a99d381df61c752e52",
+          "manifest.json": "94b6b4f9645f3caa0cbb7ef38485b052518775cf3064ef07053bb791b11a6577",
+          "summary.json": "11c302d55d0e06242475dfc3171799162f122a431fc8b1d0bd6e37af356b5bf4"
+        },
+        "folder": "runs/e-exp033-monitor",
+        "status": "result"
+      },
+      "exp034": {
+        "files_sha256": {
+          "formation.csv": "2382d0daac7d929c762ac9dd288f47e32932e79bc60d212a8070c52961e69882",
+          "manifest.json": "f57e036036cccb46658d2654cffbf4dac17ed6a95f03fc2268995f88c3382407",
+          "summary.json": "a35ed8aa862beea2cdae70c64ecd82916688bd56b82dc6e5f14a4912982d0da8"
+        },
+        "folder": "runs/e-exp034-formation",
+        "status": "result"
+      }
+    },
+    "pilot_preview": false
+  },
+  "config_sha256": "18bc7d8514efada07f926f2799872497ed21abf881a19b7d928d12a0360f873b",
+  "git_revision": "1e9c13d1858a9d500eb24e8c02bb1372cfa8e5f1",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no ESP32 or drone hardware was used.",
+    "Radio parameters are literature-derived (sim/radio/params.py), with ranges; none are measured.",
+    "Simulated only: no drone, camera or radio hardware was used.",
+    "Link loss patterns are synthetic presets (sim/missions/presets.py), never measured; presets are listed by their long-run loss fraction and mean burst length and are never interpolated.",
+    "Vehicle parameters are literature-derived (point mass, or the crazyflie-class physics profile with drag off and a modelled floor).",
+    "Every entry names its adapter: the full grids run on the point-mass adapter; physics entries are the pre-registered physics subsets (fewer seeds and cells) and are labelled as such.",
+    "Multi-follower tag entries use Run D's reciprocal velocity rule (decision D-123); rows with separation_rule local are labelled as the comparison rule and exist only for comparison.",
+    "Formation entries use the registered pairwise 0.8 m guard (separation_rule local, decision D-126); the coop_comparison slice runs Run D's rule, was added after the pre-registration and exists only for comparison.",
+    "The EXP-031 calm-policy slice is exploratory (Addendum B, added after the pilots, not pre-registered) and is labelled in every entry; pre-registered grids are listed first.",
+    "Goal thresholds are Run E reporting choices fixed before any full-grid run (Addendum A), not product rules.",
+    "EXP-029 Part B ran a reduced grid (Addendum C): five presets, seven (T_w, T) pairs, 20 seeds; Part A rates cover every preset.",
+    "EXP-033 counts an estimate older than 1.0 s as outside the alert zone (Addendum D).",
+    "EXP-034 minimum separation is taken over the whole run, including the start from offset positions."
+  ],
+  "n_processes": 1,
+  "numpy": "2.5.1",
+  "outputs": {
+    "missions_atlas.json": "99ae40ea4145fe1023d3eeb43da8f4325073c90e3964a81ffebaed3f795a2a1d"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. python tools/e_missions_atlas.py --output runs/missions-atlas",
+  "runtime_s": 1.3459826670004986,
+  "schema": "zephyr-missions-atlas-manifest-1",
+  "seeds": []
+}

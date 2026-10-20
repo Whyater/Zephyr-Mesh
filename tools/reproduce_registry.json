@@ -334,5 +334,74 @@
    "per_seed.csv.gz": "3e1acdceef300173534b4ccf98e96804aa3bcf1de84b3d825b55efc87afe24e3",
    "tolerance_vs_n.png": "d3505ad3a9bef47945011a6ed38b1dff5f4d4ee87156c47b86a9d5da74da5b34"
   }
+ },
+ {
+  "run_dir": "runs/e-exp029-part-a",
+  "command": "PYTHONPATH=. {python} tools/e_exp029_part_a.py --output {out}",
+  "outputs": {
+   "part_a.csv": "70aa17feea8e609d07d80573ab2fc45c204038dcfa259a8b11141e93e2028ec6",
+   "part_a_landings.png": "1e7e5bd23fa1b4458e8bc8dfa426fa5582b4d461468539a8b7461dba1272c7cb",
+   "slice_check.json": "aac54422a37b77b028b00decedfba2b59cb10ef0496e2f5fbca3cb7d67431c95",
+   "summary.json": "08f654e2e50ae17b4ca081abd3949fa10fc6b8afb12a441bf1973d2a00c976f8"
+  }
+ },
+ {
+  "run_dir": "runs/e-exp029-part-b",
+  "command": "PYTHONPATH=. {python} tools/e_exp029_part_b.py --output {out} --processes 6 --part-a runs/e-exp029-part-a/part_a.csv",
+  "outputs": {
+   "part_b.csv": "db534dced263734acda3dd76fd500018178347221f0ca6f8e7ca73fb44519443",
+   "summary.json": "d8c9df3f2b6870a48543d86a7099dbecb1424da69cdbc1e712b4eb4eacb65b6b",
+   "tradeoff.png": "2e731a9fe0d27a46f8e5f7449bf94b75ab516ad629917291da2e97a50a7ac239"
+  }
+ },
+ {
+  "run_dir": "runs/e-exp030-tag",
+  "command": "PYTHONPATH=. {python} tools/e_exp030_tag.py --output {out} --processes 6",
+  "outputs": {
+   "summary.json": "471b143e789773cbf6bba022cf3e61e3e0750fd73f6570edfe8ba52e64cbaaec",
+   "tag.csv": "07a522bdad264d3639e105384552201c4f9f703c7c3d5d38165e70797db7a0e2",
+   "tag_success_default_calm.png": "3217606b3e963041cbe239e7b20852bec727a16f5a8522b771b5da8e381ede88",
+   "tag_success_delay.png": "7adb2552a250334e1ace12f68bff2041ef6cb1ad05418972fe27d476ad5cb0ae"
+  }
+ },
+ {
+  "run_dir": "runs/e-exp031-sweep",
+  "command": "PYTHONPATH=. {python} tools/e_exp031_sweep.py --output {out} --processes 6",
+  "outputs": {
+   "summary.json": "82cb1cd0760cd5e331277970394e6ddf4219ad087b2687c48ac1eb13856ab55f",
+   "sweep.csv": "19e468092824c0e46bf68385c95f9a3152bd851bb6bc9e1d1e29d12484f40cfd",
+   "sweep_belief_error_simulated.png": "70c76807c10bc8e2b1b696a81ac900bc3a287df73ebe949d2cc8fad173888e98",
+   "sweep_completion_simulated.png": "aaa0a5f43cd5358560fa7df87bc1df48f9b45faa152f837e87178bf0873ead16"
+  }
+ },
+ {
+  "run_dir": "runs/e-exp032-relay",
+  "command": "PYTHONPATH=. {python} tools/e_exp032_relay.py --output {out} --processes 6",
+  "outputs": {
+   "delivery_vs_distance.png": "65dbe0a5a4db5fb945d2e1f223fd1ed513a9537fb7117769bc3c587dd82686a0",
+   "latency_vs_distance.png": "cac33d018a1c22b180134e148dd9781b84aa32141f6daba5f7f5e57f1af182bc",
+   "relay.csv": "f896ba5a236034ec27b361c222e8406a1397f1ee6f4c78c10299b37ac1ca3813",
+   "summary.json": "647de9a2cfd42026152b09759007d58d1d270cb1729c090c0d4ff383870d5865"
+  }
+ },
+ {
+  "run_dir": "runs/e-exp033-monitor",
+  "command": "PYTHONPATH=. {python} tools/e_exp033_monitor.py --output {out} --processes 2",
+  "outputs": {
+   "alert_latency_crossing.png": "e582e65088084c9b775b4697d08e3b978fb37776e45f1ffb5b54e14e669d0497",
+   "alert_latency_loiter.png": "aeab2aee844214c9ba95ddfe2205cb609121e6b6e5d038c7dde5cc2b7d918e9e",
+   "continuity_simulated.png": "bf01f831386c91bc7639a736ee5a99f31f7f312e3afe8c798f1383d53a4892b8",
+   "exp033.csv": "2e13cbbdffca8917c5840193c3c1077926f4daf8f19b41a99d381df61c752e52",
+   "summary.json": "11c302d55d0e06242475dfc3171799162f122a431fc8b1d0bd6e37af356b5bf4"
+  }
+ },
+ {
+  "run_dir": "runs/e-exp034-formation",
+  "command": "PYTHONPATH=. {python} tools/e_exp034_formation.py --output {out} --processes 6",
+  "outputs": {
+   "formation.csv": "2382d0daac7d929c762ac9dd288f47e32932e79bc60d212a8070c52961e69882",
+   "formation_rms_latency.png": "8731d6d522a34bd22b59dea11d7114394ce0c13dfbabcd29f328ca26cfadaec0",
+   "summary.json": "a35ed8aa862beea2cdae70c64ecd82916688bd56b82dc6e5f14a4912982d0da8"
+  }
  }
 ]
