@@ -310,5 +310,16 @@
    "per_seed.csv": "308880232e8263c5f7dda20e6881e0735f26f84f2efd3e2364c06963db4fdbb3",
    "summary.json": "cebde0794255fc2d5cf9a49ae7068e40edcdb63919c12a483333fd83ccb4badf"
   }
+ },
+ {
+  "run_dir": "runs/d4-separation",
+  "command": "PYTHONPATH=. {python} tools/d_run_separation.py --output {out}",
+  "outputs": {
+   "buffer.json": "f543009d5fb5ed02cdf255ea40e426b5b74047eaf77635631c9c79190216a169",
+   "encounters.csv": "1530cf178361721bfa1ce221b9d77c063dad13af2f7191e8f78a40d21540c8f3",
+   "separation_baseline.png": "ef449357d95b50a0bc3c3de04db9b15215cbff18e29747a7e8a234bfaed0f528",
+   "separation_buffer.png": "de7d980f31dfb8790703d4c16bd94f7e2ba10771ef24d15dde2c161854a60933",
+   "summary.json": "f7866704a33e5ab5935cca97352061c91aedca520e52ad64bda66cc63166a325"
+  }
  }
 ]
