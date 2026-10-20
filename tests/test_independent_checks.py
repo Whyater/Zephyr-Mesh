@@ -15,6 +15,7 @@ from sim.drone import SixDOFInterceptor
 from sim.environment import GRAVITY
 from sim.estimation.base import EstimatorSettings
 from sim.estimation.ca import CAEstimator
+from sim.estimation.kinematics import ca_matrices
 from sim.sensor import SensorConfig, SensorModel
 from sim.tracker import ConstantVelocityTracker
 
@@ -40,6 +41,9 @@ def test_cv_tracker_nees_matches_state_dimension_on_matched_truth():
     or gain were wrong, the filter's covariance would not match the real
     spread of its errors and the average NEES would leave the 99 percent band
     around 6 (3 positions + 3 velocities).
+    Known approximation: piecewise-constant noise makes the true position
+    variance per step smaller than the continuous model by q dt h^2 / 12,
+    about 0.06 percent here, far inside the band.
     """
     rng = np.random.default_rng(20261020)
     runs, steps, dt, substeps = 200, 40, 0.1, 20
@@ -67,7 +71,10 @@ def test_cv_tracker_nees_matches_state_dimension_on_matched_truth():
         nees_time_avg[r] = np.mean(values[-10:])
     lo, hi = _chi2_mean_band(6, runs)
     assert lo < nees_final.mean() < hi, nees_final.mean()
-    # Averaging over time only shrinks the spread, so the same band is conservative.
+    # Each run's 10-step average still has mean 6. Its variance is at most the
+    # single-step variance 2*6 even though the steps are correlated, because
+    # Var(mean of X_i) = average of Cov(X_i, X_j) <= max Var(X_i) (Cauchy-Schwarz).
+    # Runs are independent, so the same band is a conservative bound here.
     assert lo < nees_time_avg.mean() < hi, nees_time_avg.mean()
 
 
@@ -155,6 +162,8 @@ def test_sensor_burst_dropout_matches_markov_chain_closed_form():
         elif current:
             runs.append(current)
             current = 0
+    if current:
+        runs.append(current)
     assert dropped.mean() == pytest.approx(s / (s + e - s * e), abs=0.012)
     assert np.mean(runs) == pytest.approx((1.0 / e) / (1.0 - s), abs=0.25)
 
@@ -220,3 +229,44 @@ def test_sensor_noise_std_dropout_rate_and_bias_random_walk_growth():
     var = np.var(np.array(final_bias), axis=0, ddof=1)
     # Sample variance of 400 normal values has relative std sqrt(2/399), about 7 percent.
     assert np.allclose(var, k * w**2, rtol=4 * np.sqrt(2 / (seeds - 1)))
+
+
+@pytest.mark.parametrize("model", ["cv", "ca"])
+def test_process_noise_matrices_match_monte_carlo_integrated_white_noise(model):
+    """Independent fact: Q is by definition the covariance of the state change
+    caused by continuous white noise over one step. Here that covariance is
+    measured directly: 40,000 one-axis propagations from a zero state, each
+    integrated in 50 substeps of piecewise-constant white noise of intensity
+    q (variance q/h per substep). The result is compared with the Q the code
+    builds (sim.tracker for constant velocity, sim.estimation.kinematics for
+    constant acceleration). dt = 1 s keeps the cross terms large, so a wrong
+    coefficient such as dt^4/8 becoming 3 dt^4/8 fails clearly.
+    Tolerance: entries are sample covariances of 40,000 draws (relative std
+    about 0.7 to 1 percent), so 5 percent of the diagonal scale is about 5 sigma.
+    """
+    rng = np.random.default_rng(99 if model == "cv" else 98)
+    n, dt, q, substeps = 40_000, 1.0, 0.7, 50
+    h = dt / substeps
+    pos = np.zeros(n)
+    vel = np.zeros(n)
+    acc = np.zeros(n)
+    for _ in range(substeps):
+        u = rng.normal(0.0, np.sqrt(q / h), n)
+        if model == "cv":
+            pos += vel * h + 0.5 * u * h * h
+            vel += u * h
+        else:
+            pos += vel * h + 0.5 * acc * h**2 + u * h**3 / 6.0
+            vel += acc * h + 0.5 * u * h**2
+            acc += u * h
+    if model == "cv":
+        empirical = np.cov(np.vstack([pos, vel]))
+        trk = ConstantVelocityTracker(acceleration_spectral_density=q)
+        _, Q = trk._transition(dt)
+        code_block = Q[np.ix_([0, 3], [0, 3])]
+    else:
+        empirical = np.cov(np.vstack([pos, vel, acc]))
+        _, Q = ca_matrices(dt, q)
+        code_block = Q[np.ix_([0, 3, 6], [0, 3, 6])]
+    scale = np.sqrt(np.outer(np.diag(empirical), np.diag(empirical)))
+    assert np.all(np.abs(code_block - empirical) <= 0.05 * scale), (code_block, empirical)
