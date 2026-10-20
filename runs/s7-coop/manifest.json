@@ -1,0 +1,147 @@
+{
+ "code_sha256": "c8e1f5966a43d6cf4383d9667ccc59ee6013c9cc7a3e37d31c7ca8884ae082dd",
+ "config": {
+  "avoidance": {
+   "ellipsoid_radii": null,
+   "emergency_distance_m": null,
+   "max_speed_mps": 2.0,
+   "radius_m": 0.35,
+   "responsibility": 0.5,
+   "safety_margin_m": 0.0,
+   "sidestep_right": true,
+   "time_horizon_s": 2.0
+  },
+  "ci_mode": "fast",
+  "control_dt_s": 0.05,
+  "dead_reckon_neighbors": true,
+  "decision": "onboard",
+  "dropouts": [
+   [
+    "drone-001",
+    10.0,
+    "silent"
+   ]
+  ],
+  "duration_s": 20.0,
+  "estimator": "cv",
+  "fusion": "ci",
+  "gs_outage": [],
+  "heartbeat_timeout_s": 0.5,
+  "initial_radius_m": 4.0,
+  "keep_out_radius_m": 0.75,
+  "link": {
+   "delay_s": 0.05,
+   "loss_model": "independent",
+   "loss_probability": 0.1,
+   "share_rate_hz": 10.0
+  },
+  "log_every": 2,
+  "max_accel_mps2": 4.0,
+  "max_speed_mps": 2.0,
+  "metric_windows": [
+   [
+    0.0,
+    5.0
+   ],
+   [
+    5.0,
+    10.0
+   ],
+   [
+    10.0,
+    20.0
+   ]
+  ],
+  "n_agents": 4,
+  "noise_std_m": 0.05,
+  "observation_phases_s": [
+   0.0,
+   0.018315743,
+   0.067149815,
+   0.018292576
+  ],
+  "position_gain": 1.8,
+  "seed": 23,
+  "sensor_rate_hz": 10.0,
+  "slot_altitude_m": 1.5,
+  "standoff_radius_m": 1.5,
+  "switch_penalty_m": 0.3,
+  "target": "ct",
+  "target_altitude_m": 1.5,
+  "target_params": [
+   [
+    "radius",
+    3.0
+   ],
+   [
+    "speed",
+    0.8
+   ]
+  ],
+  "use_avoidance": true,
+  "velocity_gain": 1.1
+ },
+ "generation_command": "PYTHONPATH=. {python} tools/d_generate_s7_coop.py --output {out} --agents 4 --seed 23 --duration 20",
+ "limits": "Simulated only: kinematic point-mass agents, abstract links, literature-derived thresholds, and no hardware.",
+ "outputs": {
+  "replay_v1.json": "f377109b261fb66d0c3d399af7a8fe81e44c0160d1e2c0e36f450f4fd5e9a133",
+  "run.json": "c606beb3ed3e7ca2338d4f4136419b97b1c036e79426dfc409daa1b064980136"
+ },
+ "schema": "zephyr-s7-coop-manifest-1",
+ "seeds": {
+  "links": {
+   "base": [
+    23,
+    1000
+   ],
+   "route_order": "sorted directed node pairs"
+  },
+  "observation_phases": [
+   [
+    23,
+    3001
+   ],
+   [
+    23,
+    3002
+   ],
+   [
+    23,
+    3003
+   ]
+  ],
+  "run": 23,
+  "sensors": [
+   [
+    23,
+    100
+   ],
+   [
+    23,
+    101
+   ],
+   [
+    23,
+    102
+   ],
+   [
+    23,
+    103
+   ]
+  ],
+  "target_derivation": {
+   "sequence": [
+    23,
+    1
+   ],
+   "state_index": 0,
+   "value": 3240556758
+  }
+ },
+ "volatile": {
+  "git_revision": "4cf74b5e29afce6c7f50b10c6e1eccfebf91397f",
+  "git_tree_state": "?? runs/s7-coop/",
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "runtime_s": 2.40693825
+ }
+}

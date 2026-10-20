@@ -1,0 +1,2171 @@
+{
+  "cells": [
+    {
+      "agent_track_error_max_m": {
+        "hi": 0.13478080667456405,
+        "lo": 0.11888050102996205,
+        "median": 0.12820877279238574,
+        "n": 50
+      },
+      "agent_track_error_p95_m": {
+        "hi": 0.09115155360508653,
+        "lo": 0.08803214482978469,
+        "median": 0.08949515286548673,
+        "n": 50
+      },
+      "bytes_per_second": {
+        "hi": 50478.0,
+        "lo": 50478.0,
+        "median": 50478.0,
+        "n": 50
+      },
+      "cell_failed": false,
+      "command_bytes_per_second": {
+        "hi": 960.0,
+        "lo": 960.0,
+        "median": 960.0,
+        "n": 50
+      },
+      "command_timeout_agent_steps_pooled_wilson": {
+        "count": 0,
+        "hi": 1.918773782112599e-05,
+        "lo": 1.6940658945086007e-21,
+        "n": 200200,
+        "rate": 0.0
+      },
+      "command_timeout_fraction": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "coverage_largest_gap_median_deg": {
+        "hi": 99.86151707036791,
+        "lo": 99.55113969656145,
+        "median": 99.79690744113822,
+        "n": 50
+      },
+      "decision_estimate_error_max_m": {
+        "hi": 0.10086007942694235,
+        "lo": 0.09288841304439814,
+        "median": 0.09595517836597772,
+        "n": 50
+      },
+      "decision_estimate_error_p95_m": {
+        "hi": 0.06803156833128554,
+        "lo": 0.06563837632218851,
+        "median": 0.06704608296458658,
+        "n": 50
+      },
+      "decision_failed_fraction": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "failure_rule_registered": true,
+      "gs_group_estimate_p95_m": {
+        "hi": 0.11457267878934879,
+        "lo": 0.11076928107544319,
+        "median": 0.11218418037414334,
+        "n": 50
+      },
+      "leaving_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "loss": 0.0,
+      "messages_per_second": {
+        "hi": 281.05,
+        "lo": 281.05,
+        "median": 281.05,
+        "n": 50
+      },
+      "min_true_separation_m": {
+        "hi": 1.3447433017929014,
+        "lo": 1.2853186333320794,
+        "median": 1.3218597066421947,
+        "n": 50
+      },
+      "mode": "ground",
+      "n_seeds": 50,
+      "outage": "none",
+      "plan_disagreement_fraction": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "plan_disagreement_steps_pooled_wilson": {
+        "count": 0,
+        "hi": 7.674653350741309e-05,
+        "lo": 6.776263578034403e-21,
+        "n": 50050,
+        "rate": 0.0
+      },
+      "raw_bytes_per_second": {
+        "hi": 2242.8,
+        "lo": 2242.8,
+        "median": 2242.8,
+        "n": 50
+      },
+      "seeds_with_violation_wilson": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "standoff_error_10_15_m": {
+        "hi": 0.19156708900506744,
+        "lo": 0.18763863502878075,
+        "median": 0.18995159240855408,
+        "n": 50
+      },
+      "standoff_error_15_20_m": {
+        "hi": 0.19224125523227248,
+        "lo": 0.18757264327063372,
+        "median": 0.1885017804781543,
+        "n": 50
+      },
+      "standoff_error_m": {
+        "hi": 0.1980739377670011,
+        "lo": 0.19480502782879033,
+        "median": 0.19660813140303604,
+        "n": 50
+      },
+      "standoff_error_p95_10_15_m": {
+        "hi": 0.21192332476587689,
+        "lo": 0.2052974104312957,
+        "median": 0.20754535239392707,
+        "n": 50
+      },
+      "state_bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "track_bytes_per_second": {
+        "hi": 8683.2,
+        "lo": 8683.2,
+        "median": 8683.2,
+        "n": 50
+      },
+      "violation_count": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      }
+    },
+    {
+      "agent_track_error_max_m": {
+        "hi": 0.1817092068016106,
+        "lo": 0.14759348692769056,
+        "median": 0.16979072855738395,
+        "n": 50
+      },
+      "agent_track_error_p95_m": {
+        "hi": 0.09382961002390301,
+        "lo": 0.08831481933147134,
+        "median": 0.090752967647338,
+        "n": 50
+      },
+      "bytes_per_second": {
+        "hi": 50252.4,
+        "lo": 50252.4,
+        "median": 50252.4,
+        "n": 50
+      },
+      "cell_failed": null,
+      "command_bytes_per_second": {
+        "hi": 734.4,
+        "lo": 734.4,
+        "median": 734.4,
+        "n": 50
+      },
+      "command_timeout_agent_steps_pooled_wilson": {
+        "count": 48000,
+        "hi": 0.24163538690211753,
+        "lo": 0.23789507944294228,
+        "n": 200200,
+        "rate": 0.23976023976023977
+      },
+      "command_timeout_fraction": {
+        "hi": 0.23976023976023977,
+        "lo": 0.23976023976023977,
+        "median": 0.23976023976023977,
+        "n": 50
+      },
+      "coverage_largest_gap_median_deg": {
+        "hi": 148.63691435263146,
+        "lo": 144.03514993666997,
+        "median": 145.12816414320372,
+        "n": 50
+      },
+      "decision_estimate_error_max_m": {
+        "hi": 3.1745760309564566,
+        "lo": 2.8532755375084564,
+        "median": 2.9349349946741086,
+        "n": 50
+      },
+      "decision_estimate_error_p95_m": {
+        "hi": 2.270743961866263,
+        "lo": 1.9977549080560457,
+        "median": 2.092317289048831,
+        "n": 50
+      },
+      "decision_failed_fraction": {
+        "count": 50,
+        "hi": 1.0,
+        "lo": 0.9286524008666414,
+        "n": 50,
+        "rate": 1.0
+      },
+      "failure_rule_registered": false,
+      "gs_group_estimate_p95_m": {
+        "hi": 0.12486528573776844,
+        "lo": 0.11794522947161692,
+        "median": 0.11975270591767923,
+        "n": 50
+      },
+      "leaving_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "loss": 0.0,
+      "messages_per_second": {
+        "hi": 271.65,
+        "lo": 271.65,
+        "median": 271.65,
+        "n": 50
+      },
+      "min_true_separation_m": {
+        "hi": 1.3447433017929014,
+        "lo": 1.2853186333320794,
+        "median": 1.3218597066421947,
+        "n": 50
+      },
+      "mode": "ground",
+      "n_seeds": 50,
+      "note": "During the outage the ground estimate coasts with no measurements, so its error exceeds the thresholds. It drives no commands then.",
+      "outage": "10_15",
+      "plan_disagreement_fraction": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "plan_disagreement_steps_pooled_wilson": {
+        "count": 0,
+        "hi": 7.674653350741309e-05,
+        "lo": 6.776263578034403e-21,
+        "n": 50050,
+        "rate": 0.0
+      },
+      "raw_bytes_per_second": {
+        "hi": 2242.8,
+        "lo": 2242.8,
+        "median": 2242.8,
+        "n": 50
+      },
+      "seeds_with_violation_wilson": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "standoff_error_10_15_m": {
+        "hi": 1.2376917758755743,
+        "lo": 1.1876715906188884,
+        "median": 1.2144909144609422,
+        "n": 50
+      },
+      "standoff_error_15_20_m": {
+        "hi": 0.719001794246803,
+        "lo": 0.6759572645843621,
+        "median": 0.6985278215375705,
+        "n": 50
+      },
+      "standoff_error_m": {
+        "hi": 0.5276520135332019,
+        "lo": 0.5157947082501271,
+        "median": 0.5200077521396589,
+        "n": 50
+      },
+      "standoff_error_p95_10_15_m": {
+        "hi": 3.350155247101382,
+        "lo": 3.326796968471025,
+        "median": 3.3377225443137952,
+        "n": 50
+      },
+      "state_bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "track_bytes_per_second": {
+        "hi": 8683.2,
+        "lo": 8683.2,
+        "median": 8683.2,
+        "n": 50
+      },
+      "violation_count": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      }
+    },
+    {
+      "agent_track_error_max_m": {
+        "hi": 0.14611460463724654,
+        "lo": 0.13319992107912185,
+        "median": 0.14102493760391285,
+        "n": 50
+      },
+      "agent_track_error_p95_m": {
+        "hi": 0.09820728378928265,
+        "lo": 0.09369472486397153,
+        "median": 0.09613731765948934,
+        "n": 50
+      },
+      "bytes_per_second": {
+        "hi": 50478.0,
+        "lo": 50476.8,
+        "median": 50478.0,
+        "n": 50
+      },
+      "cell_failed": false,
+      "command_bytes_per_second": {
+        "hi": 960.0,
+        "lo": 958.8,
+        "median": 960.0,
+        "n": 50
+      },
+      "command_timeout_agent_steps_pooled_wilson": {
+        "count": 0,
+        "hi": 1.918773782112599e-05,
+        "lo": 1.6940658945086007e-21,
+        "n": 200200,
+        "rate": 0.0
+      },
+      "command_timeout_fraction": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "coverage_largest_gap_median_deg": {
+        "hi": 100.37500099393,
+        "lo": 99.84620651573206,
+        "median": 100.15428303572651,
+        "n": 50
+      },
+      "decision_estimate_error_max_m": {
+        "hi": 0.10402872686548056,
+        "lo": 0.09826739702523132,
+        "median": 0.10098629120212221,
+        "n": 50
+      },
+      "decision_estimate_error_p95_m": {
+        "hi": 0.07129429612052088,
+        "lo": 0.06894910527948744,
+        "median": 0.06995719392404734,
+        "n": 50
+      },
+      "decision_failed_fraction": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "failure_rule_registered": true,
+      "gs_group_estimate_p95_m": {
+        "hi": 0.11537691907525598,
+        "lo": 0.10915442969888675,
+        "median": 0.11279921964343934,
+        "n": 50
+      },
+      "leaving_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "loss": 0.1,
+      "messages_per_second": {
+        "hi": 281.05,
+        "lo": 281.0,
+        "median": 281.05,
+        "n": 50
+      },
+      "min_true_separation_m": {
+        "hi": 1.3024813592220792,
+        "lo": 1.2479469615481307,
+        "median": 1.271235523026256,
+        "n": 50
+      },
+      "mode": "ground",
+      "n_seeds": 50,
+      "outage": "none",
+      "plan_disagreement_fraction": {
+        "hi": 0.004995004995004995,
+        "lo": 0.0,
+        "median": 0.004995004995004995,
+        "n": 50
+      },
+      "plan_disagreement_steps_pooled_wilson": {
+        "count": 180,
+        "hi": 0.004160305246067537,
+        "lo": 0.003108696457228833,
+        "n": 50050,
+        "rate": 0.0035964035964035964
+      },
+      "raw_bytes_per_second": {
+        "hi": 2242.8,
+        "lo": 2242.8,
+        "median": 2242.8,
+        "n": 50
+      },
+      "seeds_with_violation_wilson": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "standoff_error_10_15_m": {
+        "hi": 0.1974477909915629,
+        "lo": 0.1934862119488259,
+        "median": 0.19575243102475423,
+        "n": 50
+      },
+      "standoff_error_15_20_m": {
+        "hi": 0.19811104241006305,
+        "lo": 0.19281773117009174,
+        "median": 0.19530773158707945,
+        "n": 50
+      },
+      "standoff_error_m": {
+        "hi": 0.20500689996277904,
+        "lo": 0.20125620915470704,
+        "median": 0.20308292055762917,
+        "n": 50
+      },
+      "standoff_error_p95_10_15_m": {
+        "hi": 0.22235380730251225,
+        "lo": 0.21369274767334184,
+        "median": 0.21903734969953537,
+        "n": 50
+      },
+      "state_bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "track_bytes_per_second": {
+        "hi": 8683.2,
+        "lo": 8683.2,
+        "median": 8683.2,
+        "n": 50
+      },
+      "violation_count": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      }
+    },
+    {
+      "agent_track_error_max_m": {
+        "hi": 0.18790641134578062,
+        "lo": 0.15033225975145495,
+        "median": 0.1691769562319807,
+        "n": 50
+      },
+      "agent_track_error_p95_m": {
+        "hi": 0.09840576569846714,
+        "lo": 0.09452628908257993,
+        "median": 0.09674453367082465,
+        "n": 50
+      },
+      "bytes_per_second": {
+        "hi": 50252.4,
+        "lo": 50251.2,
+        "median": 50251.2,
+        "n": 50
+      },
+      "cell_failed": null,
+      "command_bytes_per_second": {
+        "hi": 734.4,
+        "lo": 733.2,
+        "median": 733.2,
+        "n": 50
+      },
+      "command_timeout_agent_steps_pooled_wilson": {
+        "count": 48250,
+        "hi": 0.24288743740792448,
+        "lo": 0.23914048351321468,
+        "n": 200200,
+        "rate": 0.241008991008991
+      },
+      "command_timeout_fraction": {
+        "hi": 0.241008991008991,
+        "lo": 0.23976023976023977,
+        "median": 0.241008991008991,
+        "n": 50
+      },
+      "coverage_largest_gap_median_deg": {
+        "hi": 149.62469487153567,
+        "lo": 144.04479436473957,
+        "median": 147.62039126934212,
+        "n": 50
+      },
+      "decision_estimate_error_max_m": {
+        "hi": 3.169267378499535,
+        "lo": 2.809464633426476,
+        "median": 3.0507292449775054,
+        "n": 50
+      },
+      "decision_estimate_error_p95_m": {
+        "hi": 2.266300038311831,
+        "lo": 1.9706283172650692,
+        "median": 2.1920356659781355,
+        "n": 50
+      },
+      "decision_failed_fraction": {
+        "count": 50,
+        "hi": 1.0,
+        "lo": 0.9286524008666414,
+        "n": 50,
+        "rate": 1.0
+      },
+      "failure_rule_registered": false,
+      "gs_group_estimate_p95_m": {
+        "hi": 0.1223274001128401,
+        "lo": 0.11437286539321306,
+        "median": 0.1190487159740111,
+        "n": 50
+      },
+      "leaving_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "loss": 0.1,
+      "messages_per_second": {
+        "hi": 271.65,
+        "lo": 271.6,
+        "median": 271.6,
+        "n": 50
+      },
+      "min_true_separation_m": {
+        "hi": 1.3024813592220792,
+        "lo": 1.2479469615481307,
+        "median": 1.271235523026256,
+        "n": 50
+      },
+      "mode": "ground",
+      "n_seeds": 50,
+      "note": "During the outage the ground estimate coasts with no measurements, so its error exceeds the thresholds. It drives no commands then.",
+      "outage": "10_15",
+      "plan_disagreement_fraction": {
+        "hi": 0.004995004995004995,
+        "lo": 0.0,
+        "median": 0.004995004995004995,
+        "n": 50
+      },
+      "plan_disagreement_steps_pooled_wilson": {
+        "count": 230,
+        "hi": 0.005227147526729288,
+        "lo": 0.004039702834841792,
+        "n": 50050,
+        "rate": 0.004595404595404595
+      },
+      "raw_bytes_per_second": {
+        "hi": 2242.8,
+        "lo": 2242.8,
+        "median": 2242.8,
+        "n": 50
+      },
+      "seeds_with_violation_wilson": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "standoff_error_10_15_m": {
+        "hi": 1.2352972788201537,
+        "lo": 1.1817774155592728,
+        "median": 1.2188792731144473,
+        "n": 50
+      },
+      "standoff_error_15_20_m": {
+        "hi": 0.7536176328511945,
+        "lo": 0.7000565652736804,
+        "median": 0.721832443940152,
+        "n": 50
+      },
+      "standoff_error_m": {
+        "hi": 0.5336817727600418,
+        "lo": 0.520981185971179,
+        "median": 0.528974679710199,
+        "n": 50
+      },
+      "standoff_error_p95_10_15_m": {
+        "hi": 3.36294915060403,
+        "lo": 3.3410859400575483,
+        "median": 3.351292546838108,
+        "n": 50
+      },
+      "state_bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "track_bytes_per_second": {
+        "hi": 8683.2,
+        "lo": 8683.2,
+        "median": 8683.2,
+        "n": 50
+      },
+      "violation_count": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      }
+    },
+    {
+      "agent_track_error_max_m": {
+        "hi": 0.18312929444216125,
+        "lo": 0.17353498338184564,
+        "median": 0.1789651190901154,
+        "n": 50
+      },
+      "agent_track_error_p95_m": {
+        "hi": 0.11834059214629516,
+        "lo": 0.11401584798634314,
+        "median": 0.11625673309721885,
+        "n": 50
+      },
+      "bytes_per_second": {
+        "hi": 50474.4,
+        "lo": 50473.2,
+        "median": 50473.2,
+        "n": 50
+      },
+      "cell_failed": false,
+      "command_bytes_per_second": {
+        "hi": 956.4,
+        "lo": 955.2,
+        "median": 955.2,
+        "n": 50
+      },
+      "command_timeout_agent_steps_pooled_wilson": {
+        "count": 580,
+        "hi": 0.0031422654182672862,
+        "lo": 0.0026710169360579733,
+        "n": 200200,
+        "rate": 0.002897102897102897
+      },
+      "command_timeout_fraction": {
+        "hi": 0.0037462537462537465,
+        "lo": 0.0012487512487512488,
+        "median": 0.0024975024975024975,
+        "n": 50
+      },
+      "coverage_largest_gap_median_deg": {
+        "hi": 101.98150022447774,
+        "lo": 100.90561034614852,
+        "median": 101.30401283415596,
+        "n": 50
+      },
+      "decision_estimate_error_max_m": {
+        "hi": 0.11464884770679003,
+        "lo": 0.10725940557421697,
+        "median": 0.11052426823536439,
+        "n": 50
+      },
+      "decision_estimate_error_p95_m": {
+        "hi": 0.0786744329515853,
+        "lo": 0.0764044594114171,
+        "median": 0.07782015726652142,
+        "n": 50
+      },
+      "decision_failed_fraction": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "failure_rule_registered": true,
+      "gs_group_estimate_p95_m": {
+        "hi": 0.11985839579211993,
+        "lo": 0.11613681382301065,
+        "median": 0.11754672427286378,
+        "n": 50
+      },
+      "leaving_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "loss": 0.3,
+      "messages_per_second": {
+        "hi": 280.9,
+        "lo": 280.85,
+        "median": 280.85,
+        "n": 50
+      },
+      "min_true_separation_m": {
+        "hi": 1.3225606352030987,
+        "lo": 1.2609468813978484,
+        "median": 1.280208721171146,
+        "n": 50
+      },
+      "mode": "ground",
+      "n_seeds": 50,
+      "outage": "none",
+      "plan_disagreement_fraction": {
+        "hi": 0.014985014985014986,
+        "lo": 0.00999000999000999,
+        "median": 0.014985014985014986,
+        "n": 50
+      },
+      "plan_disagreement_steps_pooled_wilson": {
+        "count": 818,
+        "hi": 0.017492169293277522,
+        "lo": 0.015269381289604152,
+        "n": 50050,
+        "rate": 0.016343656343656345
+      },
+      "raw_bytes_per_second": {
+        "hi": 2242.8,
+        "lo": 2242.8,
+        "median": 2242.8,
+        "n": 50
+      },
+      "seeds_with_violation_wilson": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "standoff_error_10_15_m": {
+        "hi": 0.2199470467601562,
+        "lo": 0.21411915501211276,
+        "median": 0.21679913237634824,
+        "n": 50
+      },
+      "standoff_error_15_20_m": {
+        "hi": 0.21943707688087327,
+        "lo": 0.21254103073985792,
+        "median": 0.21534816454737699,
+        "n": 50
+      },
+      "standoff_error_m": {
+        "hi": 0.22873209070384237,
+        "lo": 0.22508868307528374,
+        "median": 0.22690368108143055,
+        "n": 50
+      },
+      "standoff_error_p95_10_15_m": {
+        "hi": 0.3012385543233464,
+        "lo": 0.2549967423360235,
+        "median": 0.26668878642830907,
+        "n": 50
+      },
+      "state_bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "track_bytes_per_second": {
+        "hi": 8683.2,
+        "lo": 8683.2,
+        "median": 8683.2,
+        "n": 50
+      },
+      "violation_count": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      }
+    },
+    {
+      "agent_track_error_max_m": {
+        "hi": 0.208049273700663,
+        "lo": 0.18339381590548703,
+        "median": 0.18768729134366097,
+        "n": 50
+      },
+      "agent_track_error_p95_m": {
+        "hi": 0.11775836758743735,
+        "lo": 0.11277357215269213,
+        "median": 0.11526112397389843,
+        "n": 50
+      },
+      "bytes_per_second": {
+        "hi": 50246.4,
+        "lo": 50244.0,
+        "median": 50245.2,
+        "n": 50
+      },
+      "cell_failed": null,
+      "command_bytes_per_second": {
+        "hi": 728.4,
+        "lo": 726.0,
+        "median": 727.2,
+        "n": 50
+      },
+      "command_timeout_agent_steps_pooled_wilson": {
+        "count": 49505,
+        "hi": 0.24917240344538022,
+        "lo": 0.2453927394476773,
+        "n": 200200,
+        "rate": 0.24727772227772227
+      },
+      "command_timeout_fraction": {
+        "hi": 0.2485014985014985,
+        "lo": 0.24475524475524477,
+        "median": 0.246003996003996,
+        "n": 50
+      },
+      "coverage_largest_gap_median_deg": {
+        "hi": 153.99883097852984,
+        "lo": 147.045981626917,
+        "median": 150.00321907911524,
+        "n": 50
+      },
+      "decision_estimate_error_max_m": {
+        "hi": 3.200438346752312,
+        "lo": 2.8780018109562553,
+        "median": 3.043552223882721,
+        "n": 50
+      },
+      "decision_estimate_error_p95_m": {
+        "hi": 2.3182506729301067,
+        "lo": 2.0351219003466916,
+        "median": 2.198345154275658,
+        "n": 50
+      },
+      "decision_failed_fraction": {
+        "count": 50,
+        "hi": 1.0,
+        "lo": 0.9286524008666414,
+        "n": 50,
+        "rate": 1.0
+      },
+      "failure_rule_registered": false,
+      "gs_group_estimate_p95_m": {
+        "hi": 0.128206467443131,
+        "lo": 0.12098609114754083,
+        "median": 0.12350020408668977,
+        "n": 50
+      },
+      "leaving_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "loss": 0.3,
+      "messages_per_second": {
+        "hi": 271.4,
+        "lo": 271.3,
+        "median": 271.35,
+        "n": 50
+      },
+      "min_true_separation_m": {
+        "hi": 1.3225606352030987,
+        "lo": 1.2442953617671677,
+        "median": 1.280208721171146,
+        "n": 50
+      },
+      "mode": "ground",
+      "n_seeds": 50,
+      "note": "During the outage the ground estimate coasts with no measurements, so its error exceeds the thresholds. It drives no commands then.",
+      "outage": "10_15",
+      "plan_disagreement_fraction": {
+        "hi": 0.03496503496503497,
+        "lo": 0.01998001998001998,
+        "median": 0.024975024975024976,
+        "n": 50
+      },
+      "plan_disagreement_steps_pooled_wilson": {
+        "count": 1388,
+        "hi": 0.02920748623132736,
+        "lo": 0.026329539055886014,
+        "n": 50050,
+        "rate": 0.027732267732267734
+      },
+      "raw_bytes_per_second": {
+        "hi": 2242.8,
+        "lo": 2242.8,
+        "median": 2242.8,
+        "n": 50
+      },
+      "seeds_with_violation_wilson": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "standoff_error_10_15_m": {
+        "hi": 1.3328593278513927,
+        "lo": 1.2219001553522397,
+        "median": 1.2762762858164032,
+        "n": 50
+      },
+      "standoff_error_15_20_m": {
+        "hi": 0.911876629166531,
+        "lo": 0.8021662218316026,
+        "median": 0.8526509304633518,
+        "n": 50
+      },
+      "standoff_error_m": {
+        "hi": 0.5840117877900821,
+        "lo": 0.5570617652145293,
+        "median": 0.5740135320497959,
+        "n": 50
+      },
+      "standoff_error_p95_10_15_m": {
+        "hi": 3.4077866435986857,
+        "lo": 3.3753734081372073,
+        "median": 3.3894026518086893,
+        "n": 50
+      },
+      "state_bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "track_bytes_per_second": {
+        "hi": 8683.2,
+        "lo": 8683.2,
+        "median": 8683.2,
+        "n": 50
+      },
+      "violation_count": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      }
+    },
+    {
+      "agent_track_error_max_m": {
+        "hi": 0.09540917230476277,
+        "lo": 0.09052040152407978,
+        "median": 0.09314235759125648,
+        "n": 50
+      },
+      "agent_track_error_p95_m": {
+        "hi": 0.06817004695013545,
+        "lo": 0.06542924066032844,
+        "median": 0.06666660869902745,
+        "n": 50
+      },
+      "bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "cell_failed": false,
+      "command_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "command_timeout_agent_steps_pooled_wilson": {
+        "count": 0,
+        "hi": 1.918773782112599e-05,
+        "lo": 1.6940658945086007e-21,
+        "n": 200200,
+        "rate": 0.0
+      },
+      "command_timeout_fraction": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "coverage_largest_gap_median_deg": {
+        "hi": 99.69710723471162,
+        "lo": 99.14039409706433,
+        "median": 99.39046314624441,
+        "n": 50
+      },
+      "decision_estimate_error_max_m": {
+        "hi": 0.07760684604730525,
+        "lo": 0.07120637987708195,
+        "median": 0.07243561758267268,
+        "n": 50
+      },
+      "decision_estimate_error_p95_m": {
+        "hi": 0.058712418351073395,
+        "lo": 0.055717390018698534,
+        "median": 0.057266808493044184,
+        "n": 50
+      },
+      "decision_failed_fraction": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "failure_rule_registered": true,
+      "gs_group_estimate_p95_m": {
+        "hi": 0.06566883829234152,
+        "lo": 0.06108221471426812,
+        "median": 0.062022455313060165,
+        "n": 50
+      },
+      "leaving_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "loss": 0.0,
+      "messages_per_second": {
+        "hi": 160.8,
+        "lo": 160.8,
+        "median": 160.8,
+        "n": 50
+      },
+      "min_true_separation_m": {
+        "hi": 1.2689231924163469,
+        "lo": 1.2081424063523885,
+        "median": 1.2488160090225406,
+        "n": 50
+      },
+      "mode": "onboard",
+      "n_seeds": 50,
+      "outage": "none",
+      "plan_disagreement_fraction": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "plan_disagreement_steps_pooled_wilson": {
+        "count": 0,
+        "hi": 7.674653350741309e-05,
+        "lo": 6.776263578034403e-21,
+        "n": 50050,
+        "rate": 0.0
+      },
+      "raw_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "seeds_with_violation_wilson": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "standoff_error_10_15_m": {
+        "hi": 0.18821850217440533,
+        "lo": 0.18510370864983938,
+        "median": 0.1860763560443472,
+        "n": 50
+      },
+      "standoff_error_15_20_m": {
+        "hi": 0.18709307004280648,
+        "lo": 0.18278066353655165,
+        "median": 0.18536754406286343,
+        "n": 50
+      },
+      "standoff_error_m": {
+        "hi": 0.19477856431205093,
+        "lo": 0.19174374194036134,
+        "median": 0.19347691869481842,
+        "n": 50
+      },
+      "standoff_error_p95_10_15_m": {
+        "hi": 0.21461830686163036,
+        "lo": 0.20926115165033027,
+        "median": 0.212069828695541,
+        "n": 50
+      },
+      "state_bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "track_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "violation_count": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      }
+    },
+    {
+      "agent_track_error_max_m": {
+        "hi": 0.09540917230476277,
+        "lo": 0.09052040152407978,
+        "median": 0.09314235759125648,
+        "n": 50
+      },
+      "agent_track_error_p95_m": {
+        "hi": 0.06817004695013545,
+        "lo": 0.06542924066032844,
+        "median": 0.06666660869902745,
+        "n": 50
+      },
+      "bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "cell_failed": null,
+      "command_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "command_timeout_agent_steps_pooled_wilson": {
+        "count": 0,
+        "hi": 1.918773782112599e-05,
+        "lo": 1.6940658945086007e-21,
+        "n": 200200,
+        "rate": 0.0
+      },
+      "command_timeout_fraction": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "coverage_largest_gap_median_deg": {
+        "hi": 99.69710723471162,
+        "lo": 99.14039409706433,
+        "median": 99.39046314624441,
+        "n": 50
+      },
+      "decision_estimate_error_max_m": {
+        "hi": 0.07760684604730525,
+        "lo": 0.07120637987708195,
+        "median": 0.07243561758267268,
+        "n": 50
+      },
+      "decision_estimate_error_p95_m": {
+        "hi": 0.058712418351073395,
+        "lo": 0.055717390018698534,
+        "median": 0.057266808493044184,
+        "n": 50
+      },
+      "decision_failed_fraction": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "failure_rule_registered": false,
+      "gs_group_estimate_p95_m": {
+        "hi": 0.06749285068358599,
+        "lo": 0.06340896259107381,
+        "median": 0.06470089602530088,
+        "n": 50
+      },
+      "leaving_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "loss": 0.0,
+      "messages_per_second": {
+        "hi": 160.8,
+        "lo": 160.8,
+        "median": 160.8,
+        "n": 50
+      },
+      "min_true_separation_m": {
+        "hi": 1.2689231924163469,
+        "lo": 1.2081424063523885,
+        "median": 1.2488160090225406,
+        "n": 50
+      },
+      "mode": "onboard",
+      "n_seeds": 50,
+      "note": "Onboard decisions use each drone's own shared estimate, so the ground link outage does not change them.",
+      "outage": "10_15",
+      "plan_disagreement_fraction": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "plan_disagreement_steps_pooled_wilson": {
+        "count": 0,
+        "hi": 7.674653350741309e-05,
+        "lo": 6.776263578034403e-21,
+        "n": 50050,
+        "rate": 0.0
+      },
+      "raw_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "seeds_with_violation_wilson": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "standoff_error_10_15_m": {
+        "hi": 0.18821850217440533,
+        "lo": 0.18510370864983938,
+        "median": 0.1860763560443472,
+        "n": 50
+      },
+      "standoff_error_15_20_m": {
+        "hi": 0.18709307004280648,
+        "lo": 0.18278066353655165,
+        "median": 0.18536754406286343,
+        "n": 50
+      },
+      "standoff_error_m": {
+        "hi": 0.19477856431205093,
+        "lo": 0.19174374194036134,
+        "median": 0.19347691869481842,
+        "n": 50
+      },
+      "standoff_error_p95_10_15_m": {
+        "hi": 0.21461830686163036,
+        "lo": 0.20926115165033027,
+        "median": 0.212069828695541,
+        "n": 50
+      },
+      "state_bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "track_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "violation_count": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      }
+    },
+    {
+      "agent_track_error_max_m": {
+        "hi": 0.09686476807973433,
+        "lo": 0.09286789038058027,
+        "median": 0.09481873023999016,
+        "n": 50
+      },
+      "agent_track_error_p95_m": {
+        "hi": 0.0696745590568481,
+        "lo": 0.06665939225386106,
+        "median": 0.06778449701667169,
+        "n": 50
+      },
+      "bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "cell_failed": false,
+      "command_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "command_timeout_agent_steps_pooled_wilson": {
+        "count": 0,
+        "hi": 1.918773782112599e-05,
+        "lo": 1.6940658945086007e-21,
+        "n": 200200,
+        "rate": 0.0
+      },
+      "command_timeout_fraction": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "coverage_largest_gap_median_deg": {
+        "hi": 99.67846592417138,
+        "lo": 99.15311462042854,
+        "median": 99.37846885594297,
+        "n": 50
+      },
+      "decision_estimate_error_max_m": {
+        "hi": 0.0770820388035468,
+        "lo": 0.07182634917786114,
+        "median": 0.07295281535252623,
+        "n": 50
+      },
+      "decision_estimate_error_p95_m": {
+        "hi": 0.059008849151013405,
+        "lo": 0.056347292361798335,
+        "median": 0.057845639817111535,
+        "n": 50
+      },
+      "decision_failed_fraction": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "failure_rule_registered": true,
+      "gs_group_estimate_p95_m": {
+        "hi": 0.06645866641125628,
+        "lo": 0.06186724362168012,
+        "median": 0.06411374309392229,
+        "n": 50
+      },
+      "leaving_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "loss": 0.1,
+      "messages_per_second": {
+        "hi": 160.8,
+        "lo": 160.8,
+        "median": 160.8,
+        "n": 50
+      },
+      "min_true_separation_m": {
+        "hi": 1.2765352253569695,
+        "lo": 1.224404169960912,
+        "median": 1.2433651428047865,
+        "n": 50
+      },
+      "mode": "onboard",
+      "n_seeds": 50,
+      "outage": "none",
+      "plan_disagreement_fraction": {
+        "hi": 0.004995004995004995,
+        "lo": 0.0,
+        "median": 0.004995004995004995,
+        "n": 50
+      },
+      "plan_disagreement_steps_pooled_wilson": {
+        "count": 200,
+        "hi": 0.004588058874982388,
+        "lo": 0.0034800822916238663,
+        "n": 50050,
+        "rate": 0.003996003996003996
+      },
+      "raw_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "seeds_with_violation_wilson": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "standoff_error_10_15_m": {
+        "hi": 0.18812812861157996,
+        "lo": 0.18489804418143677,
+        "median": 0.18644940761724732,
+        "n": 50
+      },
+      "standoff_error_15_20_m": {
+        "hi": 0.18686843316086937,
+        "lo": 0.18290164110291507,
+        "median": 0.18533346861622563,
+        "n": 50
+      },
+      "standoff_error_m": {
+        "hi": 0.1950671925225398,
+        "lo": 0.19220375011698473,
+        "median": 0.193672693258511,
+        "n": 50
+      },
+      "standoff_error_p95_10_15_m": {
+        "hi": 0.21571563432021437,
+        "lo": 0.2104258131867874,
+        "median": 0.21243433268413867,
+        "n": 50
+      },
+      "state_bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "track_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "violation_count": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      }
+    },
+    {
+      "agent_track_error_max_m": {
+        "hi": 0.09686476807973433,
+        "lo": 0.09286789038058027,
+        "median": 0.09481873023999016,
+        "n": 50
+      },
+      "agent_track_error_p95_m": {
+        "hi": 0.0696745590568481,
+        "lo": 0.06665939225386106,
+        "median": 0.06778449701667169,
+        "n": 50
+      },
+      "bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "cell_failed": null,
+      "command_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "command_timeout_agent_steps_pooled_wilson": {
+        "count": 0,
+        "hi": 1.918773782112599e-05,
+        "lo": 1.6940658945086007e-21,
+        "n": 200200,
+        "rate": 0.0
+      },
+      "command_timeout_fraction": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "coverage_largest_gap_median_deg": {
+        "hi": 99.67846592417138,
+        "lo": 99.15311462042854,
+        "median": 99.37846885594297,
+        "n": 50
+      },
+      "decision_estimate_error_max_m": {
+        "hi": 0.0770820388035468,
+        "lo": 0.07182634917786114,
+        "median": 0.07295281535252623,
+        "n": 50
+      },
+      "decision_estimate_error_p95_m": {
+        "hi": 0.059008849151013405,
+        "lo": 0.056347292361798335,
+        "median": 0.057845639817111535,
+        "n": 50
+      },
+      "decision_failed_fraction": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "failure_rule_registered": false,
+      "gs_group_estimate_p95_m": {
+        "hi": 0.06789076262980909,
+        "lo": 0.06475210436241967,
+        "median": 0.06587026408162502,
+        "n": 50
+      },
+      "leaving_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "loss": 0.1,
+      "messages_per_second": {
+        "hi": 160.8,
+        "lo": 160.8,
+        "median": 160.8,
+        "n": 50
+      },
+      "min_true_separation_m": {
+        "hi": 1.2765352253569695,
+        "lo": 1.224404169960912,
+        "median": 1.2433651428047865,
+        "n": 50
+      },
+      "mode": "onboard",
+      "n_seeds": 50,
+      "note": "Onboard decisions use each drone's own shared estimate, so the ground link outage does not change them.",
+      "outage": "10_15",
+      "plan_disagreement_fraction": {
+        "hi": 0.004995004995004995,
+        "lo": 0.0,
+        "median": 0.004995004995004995,
+        "n": 50
+      },
+      "plan_disagreement_steps_pooled_wilson": {
+        "count": 200,
+        "hi": 0.004588058874982388,
+        "lo": 0.0034800822916238663,
+        "n": 50050,
+        "rate": 0.003996003996003996
+      },
+      "raw_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "seeds_with_violation_wilson": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "standoff_error_10_15_m": {
+        "hi": 0.18812812861157996,
+        "lo": 0.18489804418143677,
+        "median": 0.18644940761724732,
+        "n": 50
+      },
+      "standoff_error_15_20_m": {
+        "hi": 0.18686843316086937,
+        "lo": 0.18290164110291507,
+        "median": 0.18533346861622563,
+        "n": 50
+      },
+      "standoff_error_m": {
+        "hi": 0.1950671925225398,
+        "lo": 0.19220375011698473,
+        "median": 0.193672693258511,
+        "n": 50
+      },
+      "standoff_error_p95_10_15_m": {
+        "hi": 0.21571563432021437,
+        "lo": 0.2104258131867874,
+        "median": 0.21243433268413867,
+        "n": 50
+      },
+      "state_bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "track_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "violation_count": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      }
+    },
+    {
+      "agent_track_error_max_m": {
+        "hi": 0.10186240876741903,
+        "lo": 0.09641802774692676,
+        "median": 0.09867658110067809,
+        "n": 50
+      },
+      "agent_track_error_p95_m": {
+        "hi": 0.07189648538956486,
+        "lo": 0.06925855006079172,
+        "median": 0.07027743863070166,
+        "n": 50
+      },
+      "bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "cell_failed": false,
+      "command_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "command_timeout_agent_steps_pooled_wilson": {
+        "count": 0,
+        "hi": 1.918773782112599e-05,
+        "lo": 1.6940658945086007e-21,
+        "n": 200200,
+        "rate": 0.0
+      },
+      "command_timeout_fraction": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "coverage_largest_gap_median_deg": {
+        "hi": 99.95104446845244,
+        "lo": 99.22252636536453,
+        "median": 99.52858359628007,
+        "n": 50
+      },
+      "decision_estimate_error_max_m": {
+        "hi": 0.07933322721608085,
+        "lo": 0.07211869216534313,
+        "median": 0.07397907581047147,
+        "n": 50
+      },
+      "decision_estimate_error_p95_m": {
+        "hi": 0.059823628475997793,
+        "lo": 0.05762527044870627,
+        "median": 0.0588507389031753,
+        "n": 50
+      },
+      "decision_failed_fraction": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "failure_rule_registered": true,
+      "gs_group_estimate_p95_m": {
+        "hi": 0.06983230685886826,
+        "lo": 0.06526774494771012,
+        "median": 0.06744300109815095,
+        "n": 50
+      },
+      "leaving_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "loss": 0.3,
+      "messages_per_second": {
+        "hi": 160.8,
+        "lo": 160.8,
+        "median": 160.8,
+        "n": 50
+      },
+      "min_true_separation_m": {
+        "hi": 1.270924209566582,
+        "lo": 1.2088645951419668,
+        "median": 1.2395061257401698,
+        "n": 50
+      },
+      "mode": "onboard",
+      "n_seeds": 50,
+      "outage": "none",
+      "plan_disagreement_fraction": {
+        "hi": 0.029970029970029972,
+        "lo": 0.01998001998001998,
+        "median": 0.024975024975024976,
+        "n": 50
+      },
+      "plan_disagreement_steps_pooled_wilson": {
+        "count": 1376,
+        "hi": 0.028961691504208378,
+        "lo": 0.026095850105019063,
+        "n": 50050,
+        "rate": 0.027492507492507492
+      },
+      "raw_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "seeds_with_violation_wilson": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "standoff_error_10_15_m": {
+        "hi": 0.18838312563196055,
+        "lo": 0.18446763035837693,
+        "median": 0.18688322269344337,
+        "n": 50
+      },
+      "standoff_error_15_20_m": {
+        "hi": 0.18819307044521644,
+        "lo": 0.18446395889217954,
+        "median": 0.18549815102397368,
+        "n": 50
+      },
+      "standoff_error_m": {
+        "hi": 0.19654092679772284,
+        "lo": 0.19434732018969703,
+        "median": 0.19565562262567127,
+        "n": 50
+      },
+      "standoff_error_p95_10_15_m": {
+        "hi": 0.22718188979116027,
+        "lo": 0.2168897653968169,
+        "median": 0.21894517762797028,
+        "n": 50
+      },
+      "state_bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "track_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "violation_count": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      }
+    },
+    {
+      "agent_track_error_max_m": {
+        "hi": 0.10186240876741903,
+        "lo": 0.09641802774692676,
+        "median": 0.09867658110067809,
+        "n": 50
+      },
+      "agent_track_error_p95_m": {
+        "hi": 0.07189648538956486,
+        "lo": 0.06925855006079172,
+        "median": 0.07027743863070166,
+        "n": 50
+      },
+      "bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "cell_failed": null,
+      "command_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "command_timeout_agent_steps_pooled_wilson": {
+        "count": 0,
+        "hi": 1.918773782112599e-05,
+        "lo": 1.6940658945086007e-21,
+        "n": 200200,
+        "rate": 0.0
+      },
+      "command_timeout_fraction": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "coverage_largest_gap_median_deg": {
+        "hi": 99.95104446845244,
+        "lo": 99.22252636536453,
+        "median": 99.52858359628007,
+        "n": 50
+      },
+      "decision_estimate_error_max_m": {
+        "hi": 0.07933322721608085,
+        "lo": 0.07211869216534313,
+        "median": 0.07397907581047147,
+        "n": 50
+      },
+      "decision_estimate_error_p95_m": {
+        "hi": 0.059823628475997793,
+        "lo": 0.05762527044870627,
+        "median": 0.0588507389031753,
+        "n": 50
+      },
+      "decision_failed_fraction": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "failure_rule_registered": false,
+      "gs_group_estimate_p95_m": {
+        "hi": 0.07136590659814485,
+        "lo": 0.06708437840690133,
+        "median": 0.06937636787664643,
+        "n": 50
+      },
+      "leaving_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "loss": 0.3,
+      "messages_per_second": {
+        "hi": 160.8,
+        "lo": 160.8,
+        "median": 160.8,
+        "n": 50
+      },
+      "min_true_separation_m": {
+        "hi": 1.270924209566582,
+        "lo": 1.2088645951419668,
+        "median": 1.2395061257401698,
+        "n": 50
+      },
+      "mode": "onboard",
+      "n_seeds": 50,
+      "note": "Onboard decisions use each drone's own shared estimate, so the ground link outage does not change them.",
+      "outage": "10_15",
+      "plan_disagreement_fraction": {
+        "hi": 0.029970029970029972,
+        "lo": 0.01998001998001998,
+        "median": 0.024975024975024976,
+        "n": 50
+      },
+      "plan_disagreement_steps_pooled_wilson": {
+        "count": 1376,
+        "hi": 0.028961691504208378,
+        "lo": 0.026095850105019063,
+        "n": 50050,
+        "rate": 0.027492507492507492
+      },
+      "raw_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "seeds_with_violation_wilson": {
+        "count": 0,
+        "hi": 0.07134759913335872,
+        "lo": 6.938893903907228e-18,
+        "n": 50,
+        "rate": 0.0
+      },
+      "standoff_error_10_15_m": {
+        "hi": 0.18838312563196055,
+        "lo": 0.18446763035837693,
+        "median": 0.18688322269344337,
+        "n": 50
+      },
+      "standoff_error_15_20_m": {
+        "hi": 0.18819307044521644,
+        "lo": 0.18446395889217954,
+        "median": 0.18549815102397368,
+        "n": 50
+      },
+      "standoff_error_m": {
+        "hi": 0.19654092679772284,
+        "lo": 0.19434732018969703,
+        "median": 0.19565562262567127,
+        "n": 50
+      },
+      "standoff_error_p95_10_15_m": {
+        "hi": 0.22718188979116027,
+        "lo": 0.2168897653968169,
+        "median": 0.21894517762797028,
+        "n": 50
+      },
+      "state_bytes_per_second": {
+        "hi": 38592.0,
+        "lo": 38592.0,
+        "median": 38592.0,
+        "n": 50
+      },
+      "track_bytes_per_second": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      },
+      "violation_count": {
+        "hi": 0.0,
+        "lo": 0.0,
+        "median": 0.0,
+        "n": 50
+      }
+    }
+  ],
+  "paired_differences": [
+    {
+      "loss": 0.0,
+      "median_ground_minus_onboard_standoff_10_15_m": {
+        "hi": 0.006466488797572334,
+        "lo": 0.0010028028247794085,
+        "median": 0.004410115001282272,
+        "n": 50
+      },
+      "outage": "none"
+    },
+    {
+      "loss": 0.0,
+      "median_ground_minus_onboard_standoff_10_15_m": {
+        "hi": 1.0542608514520329,
+        "lo": 0.9987543679614695,
+        "median": 1.0284275311201545,
+        "n": 50
+      },
+      "outage": "10_15"
+    },
+    {
+      "loss": 0.1,
+      "median_ground_minus_onboard_standoff_10_15_m": {
+        "hi": 0.012455956343800811,
+        "lo": 0.007384886465536894,
+        "median": 0.009800548388538069,
+        "n": 50
+      },
+      "outage": "none"
+    },
+    {
+      "loss": 0.1,
+      "median_ground_minus_onboard_standoff_10_15_m": {
+        "hi": 1.0487776779013718,
+        "lo": 0.9979529519487412,
+        "median": 1.0280944602244537,
+        "n": 50
+      },
+      "outage": "10_15"
+    },
+    {
+      "loss": 0.3,
+      "median_ground_minus_onboard_standoff_10_15_m": {
+        "hi": 0.033208027830446185,
+        "lo": 0.02848161087856893,
+        "median": 0.03118343354756925,
+        "n": 50
+      },
+      "outage": "none"
+    },
+    {
+      "loss": 0.3,
+      "median_ground_minus_onboard_standoff_10_15_m": {
+        "hi": 1.136155629415978,
+        "lo": 1.035106555705343,
+        "median": 1.0877522694824635,
+        "n": 50
+      },
+      "outage": "10_15"
+    }
+  ],
+  "registered_comparison": {
+    "cells": [
+      {
+        "ground_over_onboard_ratio": {
+          "hi": 0.08299129353233832,
+          "lo": 0.08299129353233832,
+          "median": 0.08299129353233832,
+          "n": 50
+        },
+        "ground_raw_plus_command_bytes_per_second": {
+          "hi": 3202.8,
+          "lo": 3202.8,
+          "median": 3202.8,
+          "n": 50
+        },
+        "loss": 0.0,
+        "onboard_state_bytes_per_second": {
+          "hi": 38592.0,
+          "lo": 38592.0,
+          "median": 38592.0,
+          "n": 50
+        },
+        "outage": "none"
+      },
+      {
+        "ground_over_onboard_ratio": {
+          "hi": 0.0771455223880597,
+          "lo": 0.0771455223880597,
+          "median": 0.0771455223880597,
+          "n": 50
+        },
+        "ground_raw_plus_command_bytes_per_second": {
+          "hi": 2977.2000000000003,
+          "lo": 2977.2000000000003,
+          "median": 2977.2000000000003,
+          "n": 50
+        },
+        "loss": 0.0,
+        "onboard_state_bytes_per_second": {
+          "hi": 38592.0,
+          "lo": 38592.0,
+          "median": 38592.0,
+          "n": 50
+        },
+        "outage": "10_15"
+      },
+      {
+        "ground_over_onboard_ratio": {
+          "hi": 0.08299129353233832,
+          "lo": 0.08296019900497513,
+          "median": 0.08299129353233832,
+          "n": 50
+        },
+        "ground_raw_plus_command_bytes_per_second": {
+          "hi": 3202.8,
+          "lo": 3201.6000000000004,
+          "median": 3202.8,
+          "n": 50
+        },
+        "loss": 0.1,
+        "onboard_state_bytes_per_second": {
+          "hi": 38592.0,
+          "lo": 38592.0,
+          "median": 38592.0,
+          "n": 50
+        },
+        "outage": "none"
+      },
+      {
+        "ground_over_onboard_ratio": {
+          "hi": 0.0771455223880597,
+          "lo": 0.07711442786069651,
+          "median": 0.07711442786069651,
+          "n": 50
+        },
+        "ground_raw_plus_command_bytes_per_second": {
+          "hi": 2977.2000000000003,
+          "lo": 2976.0,
+          "median": 2976.0,
+          "n": 50
+        },
+        "loss": 0.1,
+        "onboard_state_bytes_per_second": {
+          "hi": 38592.0,
+          "lo": 38592.0,
+          "median": 38592.0,
+          "n": 50
+        },
+        "outage": "10_15"
+      },
+      {
+        "ground_over_onboard_ratio": {
+          "hi": 0.08289800995024876,
+          "lo": 0.08286691542288557,
+          "median": 0.08286691542288557,
+          "n": 50
+        },
+        "ground_raw_plus_command_bytes_per_second": {
+          "hi": 3199.2000000000003,
+          "lo": 3198.0,
+          "median": 3198.0,
+          "n": 50
+        },
+        "loss": 0.3,
+        "onboard_state_bytes_per_second": {
+          "hi": 38592.0,
+          "lo": 38592.0,
+          "median": 38592.0,
+          "n": 50
+        },
+        "outage": "none"
+      },
+      {
+        "ground_over_onboard_ratio": {
+          "hi": 0.0769900497512438,
+          "lo": 0.07692786069651741,
+          "median": 0.07695895522388059,
+          "n": 50
+        },
+        "ground_raw_plus_command_bytes_per_second": {
+          "hi": 2971.2000000000003,
+          "lo": 2968.8,
+          "median": 2970.0,
+          "n": 50
+        },
+        "loss": 0.3,
+        "onboard_state_bytes_per_second": {
+          "hi": 38592.0,
+          "lo": 38592.0,
+          "median": 38592.0,
+          "n": 50
+        },
+        "outage": "10_15"
+      }
+    ],
+    "interval_note": "Pooled step Wilson intervals assume independent steps and are too narrow because steps are autocorrelated.",
+    "note": "Onboard sends no separate track messages, so onboard track bytes/s is 0 by construction because the shared track rides inside the 240 B state message. The simulator raw message is 56 B and the command is 24 B, read from traffic[kind].message_bytes, rather than the 32 B assumed at registration. Prediction 3 is judged on totals over all kinds, per the orchestrator decision."
+  },
+  "traffic": {
+    "command": {
+      "message_bytes": 24
+    },
+    "leaving": {
+      "message_bytes": 1
+    },
+    "raw": {
+      "message_bytes": 56
+    },
+    "state": {
+      "message_bytes": 240
+    },
+    "track": {
+      "message_bytes": 216
+    }
+  }
+}

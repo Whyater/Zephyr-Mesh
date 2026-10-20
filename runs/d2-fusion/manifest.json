@@ -1,0 +1,281 @@
+{
+  "argv": [
+    "--output",
+    "runs/d2-fusion",
+    "--processes",
+    "4"
+  ],
+  "code_sha256": {
+    "design/horizon_tokens.json": "2968a0a8a22c6001ec441b36fe9597d4c10e417578c69e0cb444762a55d48f1d",
+    "sim/__init__.py": "b5c4e06e700bf9268baefbdd45fd6ee3a779b89d785cc304f23b8971cb584793",
+    "sim/adapters.py": "3df245cc7a11a10b646708ddc784b33bdbcb186d4e3b71f0fdbbfdfd3c8c4862",
+    "sim/authority.py": "7f602adc5b52ffe7657fd726d6610aa9147521bdeda5caf0d5b86034069ce5e6",
+    "sim/coop/__init__.py": "8ee474a6e91b0d38c51d44c5d7117c0b66b3953e6e45a04fc93a316e004ae26a",
+    "sim/coop/fusion.py": "5ab2dbe682dc798465d8d2f6c3e9e3577a947e6d549ba66ebdb27562e33fa11f",
+    "sim/coop/net.py": "3e6552a2a13a77dab2e254360a497d6c7d260797b1ba40d05bfef23b8e101fec",
+    "sim/coop/observers.py": "92d5e0a59f470097f5220bf4283b9bfccf7653c4d301f6785f5c16e350a8f988",
+    "sim/estimation/__init__.py": "6e8981cdfdcf234fd4f2cf9879a38c11567411a04b32721411831f6ccb9d25c2",
+    "sim/estimation/base.py": "e247f7aace69ce7e63c8a12a2d8813f624fb0493b0d585df6e4d3e64eec32e37",
+    "sim/estimation/consistency.py": "d9553433e8f4af94c0d4af192f7c296cc553a48822c2705b1553d38fd7030857",
+    "sim/estimation/cv.py": "e7850c104aa5542000c2ddc017a5c0ebeccbaf04a82ccbbee12717fdd9a1cae0",
+    "sim/estimation/factory.py": "bcff372083358102a58d3f0250922512dc26359e863cc9ab9351c4cfc6d097e1",
+    "sim/estimation/kinematics.py": "8b4215ac94ef2a815eb47ebedc4cc0845368b7498941fd6504847b0b8b13ca5e",
+    "sim/estimation/sweep.py": "1b0489c2435cc17fe78240a892b67cd4dd940de0b7d2bb31efabd9eaf38f0f7b",
+    "sim/estimation/targets.py": "2e14fcc23d99627dff7de7ff6e2a354b694c2eb1c971c712fb252026f06ad9b7",
+    "sim/failsafe.py": "bd986171a8226ce800c492e7c0f673dea3fef4e24b462d59b30fa189489ffbe1",
+    "sim/hardware.py": "15b3dc15d80b2cd8965548e7bb9d0aae05fd595424c1b1ef76a7ab616fcf78ed",
+    "sim/link.py": "ea167aba91b618029c575e8348e2305d1c357cae818a77e20c85d79708a87ced",
+    "sim/radio/__init__.py": "2f955fe60495563de22199604cc235139e20221e53723c5af820a5b5ca9b8035",
+    "sim/radio/channel.py": "e095a023fc3c9c3a11844ec27be608f0d283fe0966e86eb954f2a7d31d68e6b1",
+    "sim/radio/mac.py": "5ccdb58940f8d75466e84081fbc4f566e95b37e23124820d7b3aa9e36f257be9",
+    "sim/radio/params.py": "bfc1d4a794818399581e0d5b6330ea98356ac30e0006622118e09996ae4370d1",
+    "sim/s6_recovery.py": "bc0c8b1363d85d4c9f6f6f73900b29f6e9553f01471c7e46a053eaf3cd1ab63d",
+    "sim/sensor.py": "ca028be92da927d9d7e8e8b3b2b0e9d0b8dd18543b87c22b0bbb6ced73dc4a95",
+    "sim/tracker.py": "741e17c76d23f009629bbf990156b99ebf93f7465169bb150f17fe4cee09e12f",
+    "tools/__init__.py": "951ea81ff0224e39e6f39ddd01b6bf632c1a0dc1480f1e19ed83dfd9b06a4ed4",
+    "tools/c_common.py": "ab3697780e05514a0270bc09edc461b75d4cdf0a113d5d56a64bb84c0a7887d6",
+    "tools/d_common.py": "676e5ce72b37f60c2c9faa9fbee28aa55ca47657cde517602b706fe7b6a82a0e",
+    "tools/d_make_fusion_figure.py": "bfafc3997a56b3ca6af70dcfa1bbc8269b35b59a8f3358c882c34b16e5256e91",
+    "tools/d_run_fusion.py": "68432887f712146d74dd2e62ba25e1db6b6344010464c599a4610883c3e074e3",
+    "tools/horizon_mpl.py": "016a70cedc02c7acb02d4e11ebb96885bff8ab29a91911aef63548ce5fff4eaa"
+  },
+  "config": {
+    "active_n_observers": [
+      2,
+      3,
+      4,
+      6
+    ],
+    "active_noise_std_m": [
+      0.05,
+      0.1
+    ],
+    "active_targets": [
+      "straight",
+      "turn",
+      "jinking"
+    ],
+    "arms": [
+      "single",
+      "central",
+      "star_avg",
+      "peer_ci",
+      "peer_naive"
+    ],
+    "ci_modes": [
+      "fast",
+      "exact"
+    ],
+    "exact_ci_subset": {
+      "loss_probability": [
+        0.0,
+        0.3
+      ],
+      "n_observers": [
+        2,
+        3,
+        6
+      ],
+      "noise_std_m": 0.05,
+      "seeds": 50,
+      "target": "turn"
+    },
+    "filter_measurement_std_m": 0.05,
+    "link": {
+      "delay_s": 0.05,
+      "loss_model": "independent",
+      "mode": "abstract"
+    },
+    "loss_probability": [
+      0.0,
+      0.3
+    ],
+    "n_observers": [
+      2,
+      3,
+      4,
+      6
+    ],
+    "noise_std_m": [
+      0.05,
+      0.1
+    ],
+    "phase": "random",
+    "rate_hz": 10.0,
+    "recovery_config": {
+      "burn_in_s": 2.0,
+      "duration_s": 12.0,
+      "failure_max_m": 0.5,
+      "failure_p95_m": 0.25,
+      "initial_position_variance_m2": 1.0,
+      "initial_velocity_variance_m2ps2": 1.0,
+      "observation_period_s": 0.1,
+      "query_dt_s": 0.02,
+      "target_speed_mps": 1.0,
+      "tracker_acceleration_psd": 0.1,
+      "tracker_measurement_std_m": 0.05,
+      "turn_radius_m": 1.0
+    },
+    "seeds": 50,
+    "targets": [
+      {
+        "label": "straight",
+        "name": "cv",
+        "params": []
+      },
+      {
+        "label": "turn",
+        "name": "ct",
+        "params": []
+      },
+      {
+        "label": "jinking",
+        "name": "jink",
+        "params": []
+      }
+    ]
+  },
+  "config_sha256": "f6af030f9c083697ca41f7517ca7d97c3b94642b6d31adbd01e67354e3172811",
+  "full_run_estimate_by_job_type": {
+    "exact:peer_ci:N=2": {
+      "full_cpu_s": 108.99264500000001,
+      "full_jobs": 100,
+      "full_wall_s_4_processes": 27.248161250000003,
+      "mean_worker_cpu_s": 1.08992645,
+      "pilot_jobs": 100
+    },
+    "exact:peer_ci:N=3": {
+      "full_cpu_s": 388.24836200000004,
+      "full_jobs": 100,
+      "full_wall_s_4_processes": 97.06209050000001,
+      "mean_worker_cpu_s": 3.8824836200000004,
+      "pilot_jobs": 100
+    },
+    "exact:peer_ci:N=6": {
+      "full_cpu_s": 3593.9890629999995,
+      "full_jobs": 100,
+      "full_wall_s_4_processes": 898.4972657499999,
+      "mean_worker_cpu_s": 35.939890629999994,
+      "pilot_jobs": 100
+    },
+    "fast:single,central,star_avg,peer_ci,peer_naive:N=2": {
+      "full_cpu_s": 205.72490699999994,
+      "full_jobs": 600,
+      "full_wall_s_4_processes": 51.431226749999986,
+      "mean_worker_cpu_s": 0.34287484499999993,
+      "pilot_jobs": 600
+    },
+    "fast:single,central,star_avg,peer_ci,peer_naive:N=3": {
+      "full_cpu_s": 295.80393299999986,
+      "full_jobs": 600,
+      "full_wall_s_4_processes": 73.95098324999996,
+      "mean_worker_cpu_s": 0.4930065549999998,
+      "pilot_jobs": 600
+    },
+    "fast:single,central,star_avg,peer_ci,peer_naive:N=4": {
+      "full_cpu_s": 436.3122049999997,
+      "full_jobs": 600,
+      "full_wall_s_4_processes": 109.07805124999993,
+      "mean_worker_cpu_s": 0.7271870083333328,
+      "pilot_jobs": 600
+    },
+    "fast:single,central,star_avg,peer_ci,peer_naive:N=6": {
+      "full_cpu_s": 1043.6020519999997,
+      "full_jobs": 600,
+      "full_wall_s_4_processes": 260.90051299999993,
+      "mean_worker_cpu_s": 1.7393367533333328,
+      "pilot_jobs": 600
+    }
+  },
+  "full_run_estimate_cpu_s": 6072.673166999999,
+  "full_run_estimate_wall_s_4_processes": 1518.1682917499998,
+  "git_revision": "e8e8a542b4843ac48877105f288f1914d7621ac2",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no drone, camera or radio hardware was used, and nothing here is measured.",
+    "Agents are simulated kinematic point masses; nothing here is measured.",
+    "Sensor noise is simulated Gaussian noise on the target position and independent over time.",
+    "Links are abstract with a fixed delay and independent loss.",
+    "At sensor noise 0.10 m the filter still assumes 0.05 m, as in Run B's atlas, so NEES is inflated for every arm there; consistency is judged at noise 0.05 m.",
+    "Failure thresholds are research criteria applied to simulated outcomes."
+  ],
+  "n_processes": 4,
+  "numpy": "2.5.1",
+  "outputs": {
+    "fusion_consistency.png": "ef0ae175430a0a5955f7a937988a814a0b6ea91238222342518f427f1909d223",
+    "fusion_error.png": "be9e2bc98de9ee7e036c9b8a55cb943c1ef4af6d1d56a43e1892253cbb9d3262",
+    "math_checks.json": "fd3efa0da1b803a40dd1288037ec6dcd25668b19ca5a23a60eada539f8e99d92",
+    "per_seed.csv": "308880232e8263c5f7dda20e6881e0735f26f84f2efd3e2364c06963db4fdbb3",
+    "summary.json": "cebde0794255fc2d5cf9a49ae7068e40edcdb63919c12a483333fd83ccb4badf"
+  },
+  "pilot_worker_cpu_s": 6072.673166999999,
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. {python} tools/d_run_fusion.py --output {out} --processes 4",
+  "runtime_s": 1844.8218515420012,
+  "schema": "zephyr-d-fusion-manifest-1",
+  "seeds": [
+    613272490,
+    2551403641,
+    1234618866,
+    210688351,
+    3839744762,
+    2050996229,
+    534637481,
+    4006071766,
+    4235564050,
+    3526222631,
+    3388653822,
+    1187101840,
+    1058158709,
+    15722421,
+    2504357457,
+    3201860937,
+    3926492334,
+    3779179883,
+    142058067,
+    3909169104,
+    2997621259,
+    1100831847,
+    3639533274,
+    1791465174,
+    1497817761,
+    382002702,
+    3002435633,
+    1327297613,
+    4203189344,
+    312052099,
+    1469721422,
+    1148100863,
+    2654645021,
+    1364048551,
+    3035413256,
+    945483659,
+    3955561442,
+    3491170733,
+    3047346774,
+    3463035768,
+    560280322,
+    2298825103,
+    3875430010,
+    2741026609,
+    1541757570,
+    1904533342,
+    1559353957,
+    2509748230,
+    2856874735,
+    4037894919
+  ],
+  "volatile_fields": [
+    "runtime_s",
+    "git_revision",
+    "git_tree_state",
+    "platform",
+    "n_processes",
+    "argv",
+    "pilot_worker_cpu_s",
+    "full_run_estimate_cpu_s",
+    "full_run_estimate_wall_s_4_processes",
+    "full_run_estimate_by_job_type"
+  ]
+}
