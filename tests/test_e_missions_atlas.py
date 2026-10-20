@@ -124,19 +124,21 @@ def test_output_is_byte_identical(tmp_path):
 
 def test_formation_separation_rule_and_comparison_scope(tmp_path):
     rows = [
-        formation_row(0.0, separation_rule="coop", slice="main"),
-        formation_row(0.1, separation_rule="coop", slice="main"),
-        formation_row(0.0, separation_rule="local", slice="local_guard_comparison", separation=0.2),
-        formation_row(0.1, separation_rule="local", slice="local_guard_comparison", separation=0.2),
+        formation_row(0.0, separation_rule="local", slice="main"),
+        formation_row(0.1, separation_rule="local", slice="main"),
+        formation_row(0.0, separation_rule="coop", slice="coop_comparison", separation=0.2),
+        formation_row(0.1, separation_rule="coop", slice="coop_comparison", separation=0.2),
     ]
     data = run_atlas(tmp_path, exp034_rows=rows)
     entries = data["missions"]["formation"]["entries"]
     assert len(entries) == 2
-    coop = next(e for e in entries if e["slice"] == "main")
-    local = next(e for e in entries if e["slice"] == "local_guard_comparison")
-    assert all(c["met"] for c in coop["cells"])
-    assert all(not c["met"] for c in local["cells"])
-    assert any("comparison rule" in note for note in local["notes"])
+    main = next(e for e in entries if e["slice"] == "main")
+    comparison = next(e for e in entries if e["slice"] == "coop_comparison")
+    assert all(c["met"] for c in main["cells"])
+    assert all(not c["met"] for c in comparison["cells"])
+    assert comparison["scope"] == atlas.SCOPE_COMPARISON
+    assert any("comparison slice" in note for note in comparison["notes"])
+    assert any("registered 0.8 m" in note for note in main["notes"])
     assert data["missions"]["tag"]["notes"][0] == atlas.FOLLOWERS_NOTE
     assert "Rows with separation_rule local are labelled as the comparison rule." in atlas.FOLLOWERS_NOTE
     assert "entries labelled local" not in " ".join(data["limits"])

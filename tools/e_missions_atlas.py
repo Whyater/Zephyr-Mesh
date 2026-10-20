@@ -139,6 +139,7 @@ SCOPE_EXTRA = "pre-registered extra slice, Addendum A goal applied"
 SCOPE_PHYSICS = "pre-registered physics subset, Addendum A goal applied"
 SCOPE_EXPLORATORY = "exploratory slice (Addendum B, added after the pilots), not pre-registered"
 SCOPE_PILOT = "pilot run, not a result"
+SCOPE_COMPARISON = "comparison slice added after the pre-registration, not pre-registered"
 SWEEP_EXPLORATORY_SLICE = "exploratory, added after the pilot, not pre-registered"
 SLICE_SCOPES = {
     "tag": {"main": SCOPE_GOAL, "calm": SCOPE_EXTRA, "followers": SCOPE_EXTRA, "physics": SCOPE_PHYSICS,
@@ -147,7 +148,7 @@ SLICE_SCOPES = {
     "relay": {"main": SCOPE_GOAL, "physics": SCOPE_PHYSICS},
     "monitor": {"main": SCOPE_GOAL, "physics": SCOPE_PHYSICS},
     "formation": {"main": SCOPE_GOAL, "physics": SCOPE_PHYSICS,
-                  "local_guard_comparison": SCOPE_EXTRA, "pilot": SCOPE_PILOT,
+                  "coop_comparison": SCOPE_COMPARISON, "pilot": SCOPE_PILOT,
                   "pilot_physics": SCOPE_PILOT},
 }
 ADAPTER_LABELS = {
@@ -171,8 +172,10 @@ LIMITS = (
     "and a modelled floor).",
     "Every entry names its adapter: the full grids run on the point-mass adapter; physics entries are the "
     "pre-registered physics subsets (fewer seeds and cells) and are labelled as such.",
-    "Multi-follower tag and formation entries use Run D's reciprocal velocity rule by default; rows with "
-    "separation_rule local are labelled as the comparison rule and exist only for comparison.",
+    "Multi-follower tag entries use Run D's reciprocal velocity rule (decision D-123); rows with separation_rule "
+    "local are labelled as the comparison rule and exist only for comparison.",
+    "Formation entries use the registered pairwise 0.8 m guard (separation_rule local, decision D-126); the "
+    "coop_comparison slice runs Run D's rule, was added after the pre-registration and exists only for comparison.",
     "The EXP-031 calm-policy slice is exploratory (Addendum B, added after the pilots, not pre-registered) and is "
     "labelled in every entry; pre-registered grids are listed first.",
     "Goal thresholds are Run E reporting choices fixed before any full-grid run (Addendum A), not product rules.",
@@ -514,9 +517,12 @@ def formation_conditions(rows: list[dict]) -> list[dict]:
 
 
 def formation_entries(rows: list[dict]) -> list[dict]:
-    rows = [dict(row, separation_rule=row.get("separation_rule", "coop")) for row in rows]
+    rows = [dict(row, separation_rule=row.get("separation_rule", "local")) for row in rows]
     def describe(labels: dict) -> dict:
-        notes = ["local separation rule, comparison rule"] if labels.get("separation_rule") == "local" else []
+        if labels.get("separation_rule") == "coop":
+            notes = ["Run D separation rule, comparison slice added after the pre-registration"]
+        else:
+            notes = ["registered 0.8 m separation guard"]
         return {"sigma_m": labels["sigma_m"], "preset": labels["preset"], "notes": notes}
 
     return axis_entries(rows, mission="formation", group_keys=("slice", "sigma_m", "preset", "adapter", "separation_rule"),
