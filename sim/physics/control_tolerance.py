@@ -22,6 +22,21 @@ CONTROL_DT_S = 0.01
 SETPOINT_SAMPLE_S = 0.02
 WHOLE_STATE_SAMPLE_S = 0.01
 
+# Rule sets for calling a run a failure.  EXP021_RULES are the pre-registered
+# EXP-021 rules and stay the default, so EXP-021 reproduces unchanged.
+# FAILED_TO_FLY_RULES is the stricter D-088 rule for future experiments: it
+# is only used when a caller opts in with ``failed_to_fly_rule=True``.
+EXP021_RULES = "exp021_preregistered"
+FAILED_TO_FLY_RULES = "d088_failed_to_fly"
+_MAX_ERROR_M = 5.0
+_GROWTH_RATIO = 1.2
+_GROWTH_FLOOR_M = 0.05
+_RULE_LIMITS = {
+    # rule set: (tilt limit in degrees, lowest allowed height in m or None, axes checked for growth)
+    EXP021_RULES: (80.0, None, (0,)),
+    FAILED_TO_FLY_RULES: (45.0, 0.0, (0, 1, 2)),
+}
+
 
 def _configured_scoring_windows() -> Mapping[str, Any]:
     """Read scoring windows from the experiment configuration."""
@@ -193,10 +208,83 @@ def _state_instability(state, reference: str, t_s: float) -> tuple[str, float] |
     return None
 
 
+def _growing_error(pos_arr: np.ndarray, ref_arr: np.ndarray, axes: tuple[int, ...]) -> bool:
+    """True if the error on any of ``axes`` peaks more than 1.2 times higher in
+    the last third of the run than in the middle third, and above 0.05 m."""
+    third = max(1, len(pos_arr) // 3)
+    for axis in axes:
+        middle_peak = float(np.max(np.abs(pos_arr[third:2 * third, axis] - ref_arr[third:2 * third, axis])))
+        last_peak = float(np.max(np.abs(pos_arr[2 * third:, axis] - ref_arr[2 * third:, axis])))
+        # The 0.05 m floor keeps tiny converged wiggles from counting as growth.
+        if last_peak > _GROWTH_RATIO * middle_peak and last_peak > _GROWTH_FLOOR_M:
+            return True
+    return False
+
+
+def classify_trajectory(times_s, positions_m, references_m, tilts_deg, *,
+                        rule_set: str) -> dict[str, Any]:
+    """Classify a recorded run under one rule set.
+
+    ``rule_set`` is required so a caller always names the rules it uses.
+    Inputs are one row per control step: time (s), 3-D position and reference
+    (m), and tilt from upright (degrees, NaN if the attitude was not finite).
+    The first step that breaks a per-step rule decides the verdict:
+    non-finite sample, tilt above the limit, height below the limit (D-088
+    only), or 3-D error above 5 m.  If no step does, the growth rule runs on
+    the whole record (x only for EXP-021, x, y and z for D-088).
+
+    With EXP021_RULES this mirrors the pre-registered rules on a recorded
+    trajectory (it sees position and tilt only, not velocities).  Every run
+    those rules fail also fails FAILED_TO_FLY_RULES, no later in time.
+    """
+    if rule_set not in _RULE_LIMITS:
+        raise ValueError(f"rule_set must be {EXP021_RULES!r} or {FAILED_TO_FLY_RULES!r}")
+    t = np.asarray(times_s, dtype=float)
+    pos = np.asarray(positions_m, dtype=float)
+    ref = np.asarray(references_m, dtype=float)
+    tilt = np.asarray(tilts_deg, dtype=float)
+    n = len(t)
+    if pos.shape != (n, 3) or ref.shape != (n, 3) or tilt.shape != (n,):
+        raise ValueError("expected n times, n x 3 positions and references, and n tilts")
+    if n == 0 or not np.all(np.isfinite(t)) or np.any(np.diff(t) <= 0):
+        raise ValueError("times must be non-empty, finite and increasing")
+    tilt_limit_deg, min_height_m, growth_axes = _RULE_LIMITS[rule_set]
+    errors = np.linalg.norm(pos - ref, axis=1)
+    with np.errstate(invalid="ignore"):
+        checks = [
+            ("non_finite_state", ~(np.all(np.isfinite(pos), axis=1) & np.isfinite(tilt)
+                                   & np.all(np.isfinite(ref), axis=1))),
+            (f"tilt_above_{tilt_limit_deg:g}_deg", tilt > tilt_limit_deg),
+        ]
+        if min_height_m is not None:
+            checks.append((f"height_below_{min_height_m:g}_m", pos[:, 2] < min_height_m))
+        checks.append(("max_error_above_5_m", errors > _MAX_ERROR_M))
+    first_step, first_reason = n, None
+    for reason, hits in checks:
+        if np.any(hits):
+            step = int(np.argmax(hits))
+            # Earlier steps win; on the same step the order above wins.
+            if step < first_step:
+                first_step, first_reason = step, reason
+    if first_reason is not None:
+        return {"failed": True, "reason": first_reason, "time_s": float(t[first_step])}
+    if n >= 6 and _growing_error(pos, ref, growth_axes):
+        reason = "growing_oscillation" if rule_set == EXP021_RULES else "growing_error"
+        return {"failed": True, "reason": reason, "time_s": float(t[-1])}
+    return {"failed": False, "reason": None, "time_s": None}
+
+
 def run_episode(profile, arm: str, reference: str, delay_s: float, loss_p: float, seed: int,
                 axis_note: str | None = None, *, duration_s: float | None = None,
-                scoring_windows: Mapping[str, Any] | None = None) -> dict[str, Any]:
-    """Run one deterministic EXP-021 episode and return JSON-safe metrics."""
+                scoring_windows: Mapping[str, Any] | None = None,
+                failed_to_fly_rule: bool = False) -> dict[str, Any]:
+    """Run one deterministic EXP-021 episode and return JSON-safe metrics.
+
+    ``unstable`` always uses the pre-registered EXP-021 rules.  With
+    ``failed_to_fly_rule=True`` the result also carries a D-088 verdict
+    (``failed_to_fly`` and its reason and time) for the same flight.  The
+    flight itself is unchanged: it still stops only on the EXP-021 rules.
+    """
     p = _profile_obj(profile)
     delay = float(delay_s)
     loss = float(loss_p)
@@ -255,13 +343,8 @@ def run_episode(profile, arm: str, reference: str, delay_s: float, loss_p: float
         # Error criteria use the complete run history, including the early transient.
         if not unstable and (not np.all(np.isfinite(errors)) or float(np.max(errors)) > 5.0):
             unstable, reason, unstable_time = True, "max_error_above_5_m", float(t_arr[int(np.argmax(errors))])
-        if not unstable and len(errors) >= 6:
-            third = max(1, len(errors) // 3)
-            middle_peak = float(np.max(np.abs(pos_arr[third:2 * third, 0] - ref_arr[third:2 * third, 0])))
-            last_peak = float(np.max(np.abs(pos_arr[2 * third:, 0] - ref_arr[2 * third:, 0])))
-            # The 0.05 m floor keeps tiny converged wiggles from counting as growth.
-            if last_peak > 1.2 * middle_peak and last_peak > 0.05:
-                unstable, reason, unstable_time = True, "growing_oscillation", float(t_arr[-1])
+        if not unstable and len(errors) >= 6 and _growing_error(pos_arr, ref_arr, (0,)):
+            unstable, reason, unstable_time = True, "growing_oscillation", float(t_arr[-1])
     # Production scoring windows are supplied by the run configuration.  Load
     # that same configuration for direct callers that omit the argument.
     windows = _configured_scoring_windows() if scoring_windows is None else scoring_windows
@@ -316,14 +399,34 @@ def run_episode(profile, arm: str, reference: str, delay_s: float, loss_p: float
     }
     if response is not None:
         result.update({"step_overshoot_pct": response["overshoot_pct"], "settling_time_s": response["settling_time_s"], "step_response": response})
+    if failed_to_fly_rule:
+        verdict = classify_trajectory(t_arr, pos_arr.reshape(-1, 3), ref_arr.reshape(-1, 3),
+                                      np.degrees(np.asarray(tilts, dtype=float)),
+                                      rule_set=FAILED_TO_FLY_RULES)
+        if not verdict["failed"] and unstable:
+            # The state checks also see velocity and angular rate, which the
+            # recorded trajectory lacks.  Keep D-088 at least as strict.
+            verdict = {"failed": True, "reason": reason, "time_s": unstable_time}
+        result.update({
+            "failed_to_fly": bool(verdict["failed"]),
+            "failed_to_fly_reason": verdict["reason"],
+            "failed_to_fly_time_s": verdict["time_s"],
+            "failed_to_fly_rule_set": FAILED_TO_FLY_RULES,
+        })
     return result
 
 
 def find_d_crit(profile, *, arm: str = "b", resolution_s: float = CONTROL_DT_S,
                 bracket: tuple[float, float] = (0.0, 0.5), seed: int = 0,
                 duration_s: float | None = None,
-                scoring_windows: Mapping[str, Any] | None = None) -> dict[str, Any]:
-    """Bisect the stable/unstable boundary on the 10 ms control grid."""
+                scoring_windows: Mapping[str, Any] | None = None,
+                failed_to_fly_rule: bool = False) -> dict[str, Any]:
+    """Bisect the stable/unstable boundary on the 10 ms control grid.
+
+    By default a run counts as unstable under the EXP-021 rules.  With
+    ``failed_to_fly_rule=True`` it bisects on the D-088 ``failed_to_fly``
+    verdict instead and records ``rule_set`` in the answer.
+    """
     p = _profile_obj(profile)
     lo, hi = map(float, bracket)
     if lo < 0 or hi <= lo or resolution_s <= 0:
@@ -340,6 +443,10 @@ def find_d_crit(profile, *, arm: str = "b", resolution_s: float = CONTROL_DT_S,
         run_kwargs["duration_s"] = float(duration_s)
     if scoring_windows is not None:
         run_kwargs["scoring_windows"] = scoring_windows
+    verdict_key = "unstable"
+    if failed_to_fly_rule:
+        run_kwargs["failed_to_fly_rule"] = True
+        verdict_key = "failed_to_fly"
 
     results: dict[int, dict[str, Any]] = {}
 
@@ -349,20 +456,20 @@ def find_d_crit(profile, *, arm: str = "b", resolution_s: float = CONTROL_DT_S,
 
     low_result = _run(low_step)
     high_result = _run(high_step)
-    if low_result["unstable"]:
+    if low_result[verdict_key]:
         raise ValueError("lower bracket must be stable")
-    if not high_result["unstable"]:
+    if not high_result[verdict_key]:
         raise ValueError("upper bracket must be unstable")
     while high_step - low_step > 1:
         mid_step = (low_step + high_step) // 2
         result = _run(mid_step)
-        if result["unstable"]:
+        if result[verdict_key]:
             high_step = mid_step
         else:
             low_step = mid_step
     stable_delay = round(low_step * CONTROL_DT_S, 10)
     unstable_delay = round(high_step * CONTROL_DT_S, 10)
-    return {
+    answer = {
         "profile": p.profile_id,
         "arm": arm,
         "d_crit_s": float(unstable_delay),
@@ -373,17 +480,31 @@ def find_d_crit(profile, *, arm: str = "b", resolution_s: float = CONTROL_DT_S,
         "stable_side": _diagnostics(results[low_step]),
         "unstable_side": _diagnostics(results[high_step]),
     }
+    if failed_to_fly_rule:
+        answer["rule_set"] = FAILED_TO_FLY_RULES
+    return answer
 
 
 def _diagnostics(result: Mapping[str, Any]) -> dict[str, Any]:
     keys = ("rms_error_m", "max_error_m", "whole_run_max_error_m", "whole_run_max_tilt_deg",
             "whole_run_min_z_m", "unstable_reason", "unstable_time_s")
-    return {key: result.get(key) for key in keys}
+    out = {key: result.get(key) for key in keys}
+    if "failed_to_fly" in result:
+        out.update({key: result[key] for key in ("failed_to_fly", "failed_to_fly_reason", "failed_to_fly_time_s")})
+    return out
 
 # Alternate descriptive name used by sweep code.
 d_crit_search = find_d_crit
 
 __all__ = [
-    "SetpointDelayController", "FeedbackDelayController", "WholeStateDelayController",
-    "reference_position", "run_episode", "find_d_crit", "d_crit_search",
+    "EXP021_RULES",
+    "FAILED_TO_FLY_RULES",
+    "FeedbackDelayController",
+    "SetpointDelayController",
+    "WholeStateDelayController",
+    "classify_trajectory",
+    "d_crit_search",
+    "find_d_crit",
+    "reference_position",
+    "run_episode",
 ]
