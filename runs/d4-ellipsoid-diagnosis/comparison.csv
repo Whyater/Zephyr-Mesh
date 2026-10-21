@@ -1,0 +1,18 @@
+group,kind,speed,delay,loss,dr,offset,radius,as_run centre/ellipsoid,no_vertical_noise centre/ellipsoid,flat_avoidance centre/ellipsoid,altitude_hold centre/ellipsoid,ellipsoid_avoidance centre/ellipsoid
+fails_ellipsoid,head_on,2.0,0.5,0.0,True,0.1,0.55,0/1 of 75,11/8 of 75,4/2 of 75,5/4 of 75,25/17 of 75
+fails_ellipsoid,head_on,0.5,0.2,0.1,False,0.1,0.4,0/1 of 75,0/0 of 75,0/0 of 75,1/0 of 75,72/0 of 75
+fails_ellipsoid,crossing,1.0,0.0,0.1,False,0.0,0.4,0/11 of 75,0/0 of 75,0/0 of 75,0/0 of 75,69/0 of 75
+fails_ellipsoid,crossing,1.0,0.3,0.0,True,0.0,0.45,0/6 of 75,2/2 of 75,1/0 of 75,1/1 of 75,27/2 of 75
+fails_ellipsoid,ring_swap,1.0,0.1,0.0,True,0.0,0.5,0/53 of 75,2/13 of 75,6/1 of 75,15/28 of 75,9/0 of 75
+noisy_passes_ellipsoid,head_on,2.0,0.5,0.3,False,0.0,0.95,0/0 of 75,45/43 of 75,38/36 of 75,21/19 of 75,41/39 of 75
+noisy_passes_ellipsoid,head_on,2.0,0.0,0.3,True,0.1,0.45,0/0 of 75,0/0 of 75,0/0 of 75,0/0 of 75,37/0 of 75
+noisy_passes_ellipsoid,crossing,2.0,0.5,0.1,False,0.0,1.2,0/0 of 75,8/4 of 75,18/7 of 75,40/31 of 75,75/75 of 75
+noisy_passes_ellipsoid,crossing,1.0,0.3,0.3,False,0.0,0.7,0/0 of 75,53/50 of 75,48/45 of 75,5/1 of 75,55/55 of 75
+noisy_passes_ellipsoid,ring_swap,1.0,0.5,0.3,True,0.0,1.1,0/0 of 75,6/3 of 75,14/10 of 75,9/2 of 75,1/1 of 75
+noise_free,head_on,1.0,0.2,0.3,True,0.1,0.4,0/0 of 75,0/0 of 75,0/0 of 75,0/0 of 75,75/0 of 75
+noise_free,head_on,0.5,0.2,0.3,False,0.1,0.4,0/0 of 75,0/0 of 75,0/0 of 75,0/0 of 75,75/0 of 75
+noise_free,crossing,0.5,0.3,0.0,False,0.0,0.5,0/0 of 75,0/0 of 75,0/0 of 75,0/0 of 75,75/75 of 75
+noise_free,crossing,0.5,0.0,0.1,True,0.0,0.4,0/0 of 75,0/0 of 75,0/0 of 75,0/0 of 75,75/0 of 75
+most_failing,head_on,0.5,0.1,0.1,False,0.0,0.4,0/29 of 75,1/0 of 75,2/0 of 75,1/0 of 75,74/0 of 75
+most_failing,crossing,2.0,0.1,0.0,False,0.0,0.5,0/73 of 75,1/0 of 75,0/0 of 75,14/36 of 75,0/0 of 75
+total,,,,,,,,0/174 of 1200,129/123 of 1200,131/101 of 1200,112/122 of 1200,785/264 of 1200
