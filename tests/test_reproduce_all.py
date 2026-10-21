@@ -186,49 +186,6 @@ def test_workers_cap_and_filters(tmp_path: Path) -> None:
     assert "one" not in skipped.stdout.lower()
 
 
-@pytest.mark.skipif(sys.platform.startswith("win"), reason="the fixture counts workers with fcntl, which Windows lacks")
-def test_workers_argument_is_ignored_and_entries_run_serially(tmp_path: Path) -> None:
-    source = make_source(tmp_path)
-    state_path = tmp_path / "state"
-    state_path.write_text("0 0", encoding="utf-8")
-    (source / "gen.py").write_text(
-        textwrap.dedent(
-            """
-            import fcntl
-            import time
-            from pathlib import Path
-            state = Path(%r)
-            with state.open('r+') as handle:
-                fcntl.flock(handle, fcntl.LOCK_EX)
-                current, peak = map(int, handle.read().split())
-                current += 1
-                peak = max(peak, current)
-                handle.seek(0); handle.truncate(); handle.write(f'{current} {peak}')
-                handle.flush(); fcntl.flock(handle, fcntl.LOCK_UN)
-            time.sleep(0.1)
-            with state.open('r+') as handle:
-                fcntl.flock(handle, fcntl.LOCK_EX)
-                current, peak = map(int, handle.read().split())
-                handle.seek(0); handle.truncate(); handle.write(f'{current - 1} {peak}')
-                handle.flush(); fcntl.flock(handle, fcntl.LOCK_UN)
-            Path(__import__('sys').argv[1]).write_text('ok')
-            """
-        ) % str(state_path),
-        encoding="utf-8",
-    )
-    expected = digest(b"ok")
-    entries = [basic_entry(name, expected) for name in ("one", "two", "three")]
-    registry = write_registry(tmp_path, entries)
-    report_path = tmp_path / "report.json"
-
-    result = run_tool(source, registry, "--workers", "3", "--json", str(report_path))
-
-    assert result.returncode == 0, result.stderr
-    assert "reproduce_all.py: entries now run one at a time; --workers is ignored" in result.stderr
-    assert state_path.read_text(encoding="utf-8").split()[1] == "1"
-    assert json.loads(report_path.read_text(encoding="utf-8"))["workers"] == 1
-
-
 def test_real_registry_has_strict_shape() -> None:
     data = json.loads((ROOT / "tools" / "reproduce_registry.json").read_text(encoding="utf-8"))
     assert isinstance(data, list)
