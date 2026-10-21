@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import concurrent.futures
 import hashlib
 import json
 import os
@@ -219,7 +218,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--source-dir", type=Path, help="copy this plain directory instead of using git archive")
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--timeout", type=float, default=3600.0)
-    parser.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 1) // 3))
+    parser.add_argument(
+        "--workers", type=int, default=1,
+        help="kept for old commands and ignored (entries run one at a time)",
+    )
     parser.add_argument("--only", help="comma-separated run directory basenames")
     parser.add_argument("--skip", help="comma-separated run directory basenames")
     parser.add_argument("--json", type=Path, help="write machine-readable report")
@@ -246,17 +248,20 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if args.workers < 1:
         parser.error("--workers must be at least 1")
+    if args.workers != 1:
+        print(
+            "reproduce_all.py: entries now run one at a time; --workers is ignored",
+            file=sys.stderr,
+        )
     only, skip = parse_names(args.only), parse_names(args.skip)
     selected = [e for e in entries if (only is None or Path(e["run_dir"]).name in only) and (skip is None or Path(e["run_dir"]).name not in skip)]
     source_dir = args.source_dir.resolve() if args.source_dir else None
     results: list[dict[str, Any]] = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as pool:
-        futures = [pool.submit(run_entry, e, repo_root, args.rev, source_dir, args.python, args.timeout, args.keep_temp) for e in selected]
-        for future in futures:
-            results.append(future.result())
+    for entry in selected:
+        results.append(run_entry(entry, repo_root, args.rev, source_dir, args.python, args.timeout, args.keep_temp))
     for result in results:
         print_result(result)
-    report = {"results": results, "selected": len(selected), "workers": args.workers}
+    report = {"results": results, "selected": len(selected), "workers": 1}
     if args.json:
         args.json.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     return 0 if all(r.get("status") == "byte-identical" for r in results) else 1
