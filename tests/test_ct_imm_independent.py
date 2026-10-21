@@ -185,6 +185,8 @@ def test_ct_ekf_nees_on_continuous_time_turn_truth():
     band for 400 runs (+/- 0.482 on 7, +/- 0.182 on 1) widened by 0.25 and 0.10.
     A separate 4000-run check measured 6.967 +/- 0.058 and 0.977 +/- 0.022, so
     the real bias is under about 1 percent and the widening is conservative.
+    Limit: this band only catches large process-noise errors. A turn-noise Q
+    off by a factor of 10 is caught; one off by about 1.3 is not.
     """
     rng = np.random.default_rng(20261021)
     runs, steps, dt, substeps = 400, 40, 0.1, 20

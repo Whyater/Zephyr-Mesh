@@ -3,9 +3,13 @@
 Setup: one drone watches one target that moves in a straight line at 0.8 m/s.
 The drone's camera has zero noise. A ground station fuses the drone's
 measurements and sends the result back. The drone then carries that old
-result forward to "now". Nothing here is copied from the simulator: the
-expected numbers come from the small helpers below, written from the
-textbook equations.
+result forward to "now". The expected numbers come from the small helpers
+below, written from the textbook equations. Three inputs are the filter's
+default settings rather than derived values (random-push strength q = 0.1,
+assumed measurement variance R = 0.05^2, starting variances 1); the simulator
+always uses those defaults, so a test below pins them and fails loudly if they
+change. The aged velocity variance is not checked separately: only position
+variance is reported.
 
 Why the age is what it is
 -------------------------
@@ -63,16 +67,27 @@ from sim.coop.simulator import (
     CoopSwarmConfig,
     CoopSwarmSimulator,
 )
+from sim.estimation.base import EstimatorSettings
 
 # ---------------------------------------------------------------------------
 # Plain-numpy helpers, written from the textbook equations. None of them
-# reads anything from the simulator.
+# reads anything from the simulator; the one test right after the constants
+# only pins the filter defaults they assume.
 # ---------------------------------------------------------------------------
 
 Q = 0.1  # random-push strength, m^2/s^3
 R = 0.05**2  # assumed measurement variance per axis, m^2
 SPEED = 0.8  # target speed along x, m/s
 P0 = np.array([[1.0, 0.0], [0.0, 1.0]])  # starting uncertainty, per axis
+
+
+def test_reference_inputs_match_the_filter_defaults():
+    """The reference uses the filter's default q, R and starting variances; pin them."""
+    settings = EstimatorSettings()
+    assert settings.q_acc_psd == Q
+    assert settings.measurement_std_m**2 == pytest.approx(R, rel=1e-15)
+    assert settings.initial_position_variance_m2 == P0[0, 0]
+    assert settings.initial_velocity_variance_m2ps2 == P0[1, 1]
 
 
 def _f(dt):

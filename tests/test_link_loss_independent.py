@@ -28,8 +28,10 @@ deviation sqrt(1 - b)/b.
 Cooperative abstract links: six routes, each a long stream of packets at 10 Hz.
 Loss per route is again a binomial count (with the band split over six routes
 so all six together still fail by chance only once in a thousand), delay is a
-lognormal with a stated mean, and a packet sent in the last second is dropped
-as too late at the end of the run. For the burst version the start chance that
+lognormal with a stated mean, and a packet is dropped as too late if its delay
+carries it past the end of the run (so only packets sent in the final fraction
+of a second can be late). Delay spread is not asserted here; the existing link
+tests check jitter mean and shape for the single link. For the burst version the start chance that
 makes the long-run loss equal a target P is s = P*e/(1 - P*(1 - e)), obtained
 by solving P = s/(s + e - s*e) for s.
 
