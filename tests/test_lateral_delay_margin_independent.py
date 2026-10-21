@@ -13,8 +13,9 @@ with Kp = 2, Kd = 1.5, Kp_att = 100, Kd_att = 18 (per unit inertia) and a
 first-order rotor lag tau (0.070 s esp-fly, 0.072 s crazyflie).  Mass,
 inertia, g and the thrust coefficient cancel.  Dropped, each zero at first
 order for a pure x step: vertical coupling, gyroscopic terms, roll, yaw and
-y, the rotor speed-squared law, and the atan, sine and thrust-projection
-geometry of the controller.  Drag and battery sag are off in both profiles.
+y, and the atan, sine and thrust-projection geometry of the controller.  The
+rotor speed-squared law only sets a gain, and it cancels against the mixer's
+square-root command.  Drag and battery sag are off in both profiles.
 
 Reference, derived by hand and typed here (nothing from ``sim`` is used):
 the loop gain is L(s) = (Kp + Kd s) T_in(s) exp(-s d) / s**2 with
@@ -26,7 +27,9 @@ the reply half a cycle (180 degrees) late, the velocity term pulls it
 atan(Kd w* / Kp) = 53.8 degrees earlier and the attitude loop pushes it
 18.5 degrees later, leaving a phase margin of 35.3 degrees (0.616 rad).
 A delay d turns cos(w t) into cos(w (t - d)), the same wave w d radians
-later, so the margin is used up at d* = 0.616 / 1.823 = 0.3380 s.  The
+later, so the margin is used up at d* = 0.6161 rad / 1.8228 rad/s, about
+0.338 s.  (In the formulas, s stands for j w, a wave of frequency w, with j
+the square root of -1.)  The
 rotor lag raises d* by about 2 ms: inside the fast attitude loop it slightly
 cuts that loop's lag at 1.8 rad/s.
 
@@ -38,16 +41,22 @@ reading, so that hold acts like 5 ms of extra rotor lag and costs almost
 nothing here (+0.15 ms).  The simulator's boundary is therefore predicted at
 d* - 0.005 = 0.3330 s.  (The vertical test subtracts 10 ms because its held
 thrust goes straight into acceleration with no feedback inside the tick.)
-Exact sampled-data models, written separately three times, put the boundary
-at 0.33314 s (esp-fly) and 0.33319 s (crazyflie) when interpolated like this
-test does, so the simple rule is 0.19 ms low.  Tolerance budget for the
-boundary: that 0.19 ms (0.154 ms rule residual plus 0.035 ms from straight-
-line interpolation), with peak-fit and small-amplitude effects below 1 us.
-The tolerance is 1.0 ms, about 5 times that, while the smallest planted bug
-(rotor lag removed) moves the boundary 1.8 ms and fails.
+Exact sampled-data models, written separately three times as scratch
+scripts that are not kept in this repo, put the boundary at 0.33314 s
+(esp-fly) and 0.33319 s (crazyflie) when interpolated like this test does,
+so the simple rule is 0.19 ms low (0.154 ms rule residual plus 0.035 ms from
+straight-line interpolation; peak-fit and small-amplitude effects are below
+1 us).  The healthy simulator measured with this file's own helpers gives
+the same 0.19 ms.  The tolerance is 1.0 ms, about 5 times that, while the
+smallest planted bug (rotor lag removed) moves the boundary 1.8 ms and
+fails.  It is weak on small rotor-lag errors: making the rotor-speed lag
+use 1.1 or 0.5 times the time constant moved the boundary 0.4 and 0.7 ms
+(passes), while 2 times moved it 2.0 ms (caught).
 
-Growth slope: differentiating s**2 + (Kp + Kd s) T_in(s) exp(-s d) = 0 with
-respect to d gives ds/dd = -F_d / F_s; its real part at s = j w* is about
+Growth slope: the loop is on the edge where F(s, d) = s**2 + (Kp + Kd s)
+T_in(s) exp(-s d) = 0.  Differentiating with respect to d (implicit
+differentiation, with F_d and F_s the derivatives of F with respect to d and
+s) gives ds/dd = -F_d / F_s; its real part at s = j w* is about
 +2.17 per s per s, so 10 ms past the boundary the wobble grows about 2
 percent per second.  The test compares the secant between 0.33 s and 0.34 s,
 which sits 0.6 percent below the tangent because the growth rate bends down.
@@ -58,10 +67,13 @@ peak.  That needs a growth rate of ln(1.2) over 3 or 4 half-periods, which is
 12 to 16 ms past the linear boundary, so the reported value is at least
 0.35 s.  A 1 m step tilts the drone 15 to 30 degrees, and that is
 stabilizing (the extra lift tracks the tilt command, which leads the actual
-tilt), so it can only push the flag later.  Ruling out 0.37 s rests partly on
-two small nonlinear planar models written outside this repo, not on hand
-reasoning alone.  The simulator's 0.35 s run is about 1 percent under the
-1.2 threshold, so both 0.35 s and 0.36 s are allowed.
+tilt), so it pushes the flag later; the simulator's own 1 m window ratios
+sit below the small-step ones, which shows the sign.  Ruling out 0.37 s rests
+partly on two small nonlinear planar models written outside this repo, not
+on hand reasoning alone.  The simulator's 0.35 s run is about 1 percent under
+the 1.2 threshold, so both 0.35 s and 0.36 s are allowed.  The interval
+catches a delay one tick too short (it reports 0.37 s) but cannot see one
+tick too long (0.35 s); the boundary tests catch both.
 """
 
 from __future__ import annotations
@@ -94,8 +106,12 @@ PROFILES = {"esp_fly_class": 0.070, "crazyflie_class": 0.072}
 # Planted-bug runs use one profile to keep the file affordable.
 BUG_PROFILE = "crazyflie_class"
 
+# Healthy boundary error is 0.19 ms; see the module docstring.
 TOL_BOUNDARY_S = 0.001
+# The wobble frequency drifts -0.71 rad/s per s of delay, so at 0.33 s and
+# 0.34 s it sits +0.12 and -0.32 percent from w*.
 TOL_OMEGA_REL = 0.005
+# The 0.33 to 0.34 s secant sits 0.56 to 0.59 percent below the tangent slope.
 TOL_SLOPE_REL = 0.015
 
 # What find_d_crit may report; see the module docstring.
@@ -301,6 +317,9 @@ def test_typed_constants_match_live_code():
         assert document["rotor"]["motor_time_constant_s"] == tau_s
         assert document["airframe"]["drag_coefficient"] == 0.0
         assert document["battery"] is None
+        vehicle = _vehicle(name, 0.0)
+        assert vehicle.actuator.motor_time_constant_s == tau_s
+        assert vehicle.drone.drag_coefficient == 0.0
     assert control_tolerance.CONTROL_DT_S == DT
     assert control_tolerance.SETPOINT_SAMPLE_S == 2 * DT
 
