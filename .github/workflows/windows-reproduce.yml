@@ -1,0 +1,78 @@
+name: Windows reproduce check
+
+# Proposal: runs only when started by hand from the Actions tab. It rebuilds a few
+# registered runs on Windows from a clean git archive and checks that every output
+# file has the same sha256 as the one recorded in tools/reproduce_registry.json.
+# A mismatch fails the job; the JSON report is uploaded either way.
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Comma-separated run folder names from tools/reproduce_registry.json"
+        required: true
+        type: string
+        default: "s0-baseline,s2-physics,c-exp013-channel,s7-coop,e-exp029-part-a,d8-consensus"
+      timeout_seconds:
+        description: "Time limit for each run, in seconds"
+        required: true
+        type: string
+        default: "1800"
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: windows-2022
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install simulator dependencies
+        run: python -m pip install --requirement requirements.txt
+      - name: Check the run names
+        # reproduce_all.py passes when nothing is selected, so stop here if any
+        # requested name is missing from the registry or the list is empty.
+        shell: bash
+        env:
+          ONLY: ${{ inputs.only }}
+        run: |
+          python - <<'EOF'
+          import json, os, sys
+          from pathlib import Path
+          registry = json.loads(Path("tools/reproduce_registry.json").read_text(encoding="utf-8"))
+          known = {Path(entry["run_dir"]).name for entry in registry}
+          wanted = {name.strip() for name in os.environ["ONLY"].split(",") if name.strip()}
+          unknown = sorted(wanted - known)
+          if not wanted or unknown:
+              print(f"No runs selected, or unknown names: {unknown}", file=sys.stderr)
+              sys.exit(1)
+          print(f"{len(wanted)} runs selected: {', '.join(sorted(wanted))}")
+          EOF
+      - name: Reproduce the selected runs
+        # Registry commands use POSIX shell syntax, so reproduce_all.py runs them
+        # through the bash that ships with Git for Windows. The interpreter path is
+        # passed with forward slashes so it reads the same inside bash.
+        shell: bash
+        env:
+          ONLY: ${{ inputs.only }}
+          RUN_TIMEOUT: ${{ inputs.timeout_seconds }}
+        run: |
+          set -euo pipefail
+          python_path="$(cygpath -m "$(python -c 'import sys; print(sys.executable)')")"
+          python tools/reproduce_all.py \
+            --only "$ONLY" \
+            --workers 1 \
+            --timeout "$RUN_TIMEOUT" \
+            --python "$python_path" \
+            --json reproduce-windows.json
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reproduce-windows
+          path: reproduce-windows.json
+          if-no-files-found: warn
