@@ -27,13 +27,13 @@ def test_zero_check_reports_k_nonzero_without_asserting():
 
 def test_strata_counts():
     groups = [s["group"] for s in study.build_strata()]
-    assert groups.count("consistent") == 6
+    assert groups.count("matched") == 6
     assert groups.count("mismodelled") == 6
     assert groups.count("overconfident") == 4
 
 
 def test_smoke_run_one_stratum_keys_and_counts():
-    stratum = next(s for s in study.build_strata() if s["group"] == "consistent")
+    stratum = next(s for s in study.build_strata() if s["group"] == "matched")
     out = study.run_stratum(stratum, 3)
     assert out["n"] == 3
     for key in ("diverged", "inconsistent", "old_rule_failed", "new_rule_failed"):

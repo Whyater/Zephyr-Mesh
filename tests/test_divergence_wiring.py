@@ -78,6 +78,31 @@ def test_two_high_windows_are_not_enough():
     assert out.failed is False
 
 
+def test_no_windows_leaves_the_outcome_alone():
+    # A run with no scored windows (for example an empty error list) cannot diverge.
+    out = apply_divergence_rule(_outcome([]), DivergenceRule())
+    assert out.extras["nees_check"]["diverged"] is False
+    assert out.failed is False
+
+
+def test_three_non_finite_windows_count_as_diverged():
+    # Documented choice: a non-finite window mean counts as above both levels,
+    # so three in a row make a run fail even if the old error rule passed it.
+    nan, inf = float("nan"), float("inf")
+    out = apply_divergence_rule(_outcome([1.0, nan, inf, nan]), DivergenceRule())
+    assert out.extras["nees_check"]["diverged"] is True
+    assert out.extras["nees_check"]["diverged_first_window"] == 1
+    assert out.failed is True
+    out = apply_divergence_rule(_outcome([nan, nan, 1.0]), DivergenceRule())
+    assert out.extras["nees_check"]["diverged"] is False
+
+
+def test_missing_extras_are_handled():
+    bare = CoopOutcome(0.1, 0.2, 0.05, False, 3.0, (1.0, 1.0, 1.0), 0.0, 7, None)
+    out = apply_divergence_rule(bare, DivergenceRule())
+    assert set(out.extras) == {"nees_check"}
+
+
 def test_rule_never_clears_an_existing_failure():
     out = apply_divergence_rule(_outcome([1.0, 1.0, 1.0], failed=True), DivergenceRule())
     assert out.extras["nees_check"]["diverged"] is False
@@ -94,6 +119,9 @@ def test_input_outcome_is_not_mutated():
 # 3. Real simulator, default off.
 
 def test_default_is_off_and_identical():
+    # This only shows that leaving the argument out and passing None agree. The
+    # evidence that the default path matches the base commit is
+    # tools/burn_divergence_wire_identity.py (base export versus new tree).
     cell = CoopCell(target="ct", n_observers=2, noise_std_m=0.05)
     plain = run_seed(cell, 11, arms=("single", "peer_ci"))
     explicit_none = run_seed(cell, 11, arms=("single", "peer_ci"), divergence_rule=None)

@@ -64,7 +64,9 @@ ROW_COLUMNS = (
     "frac_windows_above_band", "fused_count", "diverged", "diverged_time_s",
 )
 # Extra columns written only with --nees-divergence (opt-in proposal; registered
-# runs never add them, so their per_seed.csv bytes are unchanged).
+# runs never add them, so their per_seed.csv bytes are unchanged). With the flag
+# on, the older "diverged" column still means only the non-finite (exception)
+# divergence, while "failed" also includes nees_diverged.
 NEES_COLUMNS = ("nees_diverged", "nees_diverged_first_window", "nees_inconsistent")
 METRIC_FIELDS = ("p95_error_m", "max_error_m", "rmse_m", "mean_nees",
                  "frac_windows_above_band")

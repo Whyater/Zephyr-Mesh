@@ -2,15 +2,19 @@
 
 All results come from the simulator; nothing here is measured hardware data.
 
-Question 1: when the filter is honest, how often does the ``diverged`` flag
+Question 1: when the filter's models match the simulated world, how often does the ``diverged`` flag
 (3 windows in a row of 10-query mean NEES above 100) or the ``inconsistent``
 flag (same test at the chi-square 0.1 % level) fire?
 Question 2: when the filter is told its sensor is much better than it is, how
 often does each flag fire, and does the old error rule notice?
 
 Strata
-- consistent: target ``cv`` (a straight line, which the constant-velocity
+- matched: target ``cv`` (a straight line, which the constant-velocity
   filter models exactly), sensor noise 0.05 m equal to the assumed 0.05 m.
+  This filter is model-matched but mildly conservative, not exactly
+  calibrated: its process noise allows for turns the straight target never
+  makes, so its median mean NEES is about 2, not the 3 of an exactly
+  calibrated 3-axis filter. The false-flag bound applies to this filter.
   Arms ``single`` (1 observer) and ``central`` (2 and 3 observers), link loss
   0.0 and 0.3, link delay 0.05 s (the same link as tools/d_run_fusion.py).
 - mismodelled: targets ``ct`` and ``jink``, arms ``single``, ``central`` and
@@ -22,7 +26,7 @@ Strata
 
 Seeds: stratum number k (0, 1, 2, ... in ``build_strata`` order) uses seeds
 k * SEED_BLOCK + 1 .. k * SEED_BLOCK + N, so no two strata share a seed and the
-pooled consistent count is a count of separately seeded runs. Each run is done once with no
+pooled matched count is a count of separately seeded runs. Each run is done once with no
 rule (the old behaviour, giving the old ``failed`` value) and the windowed
 check is then applied to that same outcome with ``apply_divergence_rule``,
 which is exactly what ``run_seed(..., divergence_rule=...)`` does.
@@ -77,11 +81,11 @@ def _stratum(name, group, target, arm, n_obs, loss, r_std=None):
 def build_strata() -> list[dict]:
     strata = []
     for loss in (0.0, 0.3):
-        strata.append(_stratum(f"consistent cv single N=1 loss={loss}", "consistent",
+        strata.append(_stratum(f"matched cv single N=1 loss={loss}", "matched",
                                "cv", "single", 1, loss))
         for n_obs in (2, 3):
-            strata.append(_stratum(f"consistent cv central N={n_obs} loss={loss}",
-                                   "consistent", "cv", "central", n_obs, loss))
+            strata.append(_stratum(f"matched cv central N={n_obs} loss={loss}",
+                                   "matched", "cv", "central", n_obs, loss))
     for target in ("ct", "jink"):
         for arm in ("single", "central", "peer_ci"):
             n_obs = 1 if arm == "single" else 3
@@ -155,6 +159,7 @@ def summarize(stratum: dict, rows: list[dict]) -> dict:
         "old_pass_but_diverged_seeds": old_pass_new_fail[:20],
         "diverged_seeds": [r["seed"] for r in rows if r["diverged"]][:20],
         "median_mean_nees": float(np.median(nees)) if nees else None,
+        "_mean_nees_values": nees,
     }
 
 
@@ -188,14 +193,18 @@ def run_study(n_seeds: int, n_mismodel_seeds: int) -> dict:
     for index, stratum in enumerate(build_strata()):
         seeds = n_mismodel_seeds if stratum["group"] == "mismodelled" else n_seeds
         results.append(run_stratum(stratum, seeds, index=index))
-    consistent = [r for r in results if r["group"] == "consistent"]
+    matched = [r for r in results if r["group"] == "matched"]
+    pooled_nees = sorted(v for r in matched for v in r.pop("_mean_nees_values"))
+    for r in results:
+        r.pop("_mean_nees_values", None)
     return {
         "note": "All results are simulated. Stratum k uses seeds k * 10000 + 1 .. k * 10000 + n.",
         "seeds": int(n_seeds),
         "mismodel_seeds": int(n_mismodel_seeds),
         "rule": {"window": 10, "consecutive": 3, "gross_nees": 100.0,
                  "chi2_window_threshold": DivergenceRule().threshold},
-        "consistent_pool": pool(consistent),
+        "matched_pool": {**pool(matched),
+                         "median_mean_nees": float(np.median(pooled_nees)) if pooled_nees else None},
         "strata": results,
     }
 
@@ -214,9 +223,10 @@ def print_table(study: dict) -> None:
         print(f"{r['name']:<42}{r['n']:>5}  {_fmt(r['diverged']):<24}"
               f"{_fmt(r['inconsistent']):<30}{r['old_rule_failed']['k']:>10d}"
               f"{r['old_pass_but_diverged_count']:>11d}{med:>10}")
-    p = study["consistent_pool"]
-    print(f"{'CONSISTENT POOL':<42}{p['n']:>5}  {_fmt(p['diverged']):<24}"
-          f"{_fmt(p['inconsistent']):<30}{p['old_rule_failed']['k']:>10d}")
+    p = study["matched_pool"]
+    med = "n/a" if p["median_mean_nees"] is None else f"{p['median_mean_nees']:.2f}"
+    print(f"{'MATCHED POOL (mildly conservative)':<42}{p['n']:>5}  {_fmt(p['diverged']):<24}"
+          f"{_fmt(p['inconsistent']):<30}{p['old_rule_failed']['k']:>10d}{'':>11}{med:>10}")
     z = p["diverged_zero_check"]
     print(f"pool diverged k={p['diverged']['k']}: rule of three upper = {z['rule_of_three_upper']:.6f}"
           + (f", closed form {z['closed_form_upper']:.6f}, wilson_interval "
@@ -227,9 +237,9 @@ def print_table(study: dict) -> None:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--seeds", type=int, default=DEFAULT_SEEDS,
-                        help="seeds 1..N for consistent and overconfident strata")
+                        help="seeds per matched and overconfident stratum")
     parser.add_argument("--mismodel-seeds", type=int, default=DEFAULT_MISMODEL_SEEDS,
-                        help="seeds 1..N for the mismodelled strata")
+                        help="seeds per mismodelled stratum")
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)
     if args.seeds < 1 or args.mismodel_seeds < 1:
