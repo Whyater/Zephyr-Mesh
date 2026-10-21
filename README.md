@@ -39,7 +39,7 @@ All of these are simulated. Nothing is measured on hardware. The failure line be
 - On the turn, lost packets matter more than delay: at 30 % random loss the recovery tracker fails from 150 ms just like the basic one, and at 50 % both fail at every delay (`runs/s6-recovery`).
 - On a 1 m radius turn at 300 ms delay and 30 % loss, a tracker that models turning stays under the line (0.20 m) where the straight-line recovery tracker fails (0.40 m) (`runs/s6-turn`).
 - Delaying the drone's own position and velocity feedback is what really hurts its control loop: in an 80 s check, two micro-quad profiles built from published specs at 0.33 s of delay the wobble after a 1 m step still shrinks, but slowly (its peak in each 10 s window falls from 0.73 m to 0.41 m over 80 s), and at 0.34 s it grows instead (up to 1.24 m) (`runs/a6-long-check`, `runs/a6-control-tolerance`).
-- In a simulated ESP-NOW style link, the worst p95 radio latency in the tracker test was about 28 ms, well under the 150 to 200 ms where the tracker starts failing from delay, so lost packets break it first (`runs/c-exp017-tolerance-r2`).
+- In a simulated ESP-NOW style link, the worst p95 radio latency in the tracker test was about 27.5 ms (the median over repeated runs; the worst single run was about 40 ms), well under the 150 to 200 ms where the tracker starts failing from delay, so lost packets break it first (`runs/c-exp017-tolerance-r2`).
 - Twelve drones each sending 32-byte packets 50 times a second keep the channel about two thirds busy. With retries every packet arrives, with a p95 latency of 4.4 ms. This assumes no outside Wi-Fi traffic and that every drone hears every other one (`runs/c-exp014-mac-r2`).
 
 Full results, limits and commands: [docs/RESULTS.md](docs/RESULTS.md)
@@ -62,7 +62,7 @@ Set up once with the steps in [INSTALL.md](INSTALL.md#run-from-source), then run
 
 - It is not flight-tested. All data is simulated.
 - The multi-drone layer is simplified point-mass coordination, not full 6-DOF swarm flight.
-- Radio, motor and sensor values come from published sources, not my own measurements.
+- Many radio and motor values come from published sources. The rest are scaled from a similar drone, modelling choices, or not yet confirmed. Sensor noise, update rates, delay and loss are settings I chose for the study. I did not measure any of these values myself.
 - No hardware has been built yet.
 
 ## Download
@@ -75,7 +75,7 @@ Full install and build steps: [INSTALL.md](INSTALL.md)
 
 ## Current features
 
-- A full 6-degree-of-freedom quadcopter simulation with wind, drag, an RK4 integrator and a cascaded position and attitude controller.
+- A full 6-degree-of-freedom quadcopter simulation with wind, drag, an RK4 integrator and a cascaded position and attitude controller. Drag is switched off in the two micro-quad profiles, which have no sourced drag value.
 - A radio link model with delay, jitter, random and bursty loss, duplicates and out-of-order packets, plus an ESP-NOW style radio model.
 - Seeded sensor noise and several trackers, with sweeps that compare how well each one recovers from delay and loss.
 - Simplified multi-drone scenarios (formation, dropouts, keep-out zones) that write reproducible replay files.
@@ -100,7 +100,7 @@ These are plans. None of them is built yet.
 ## Known limitations
 
 - The replays and desktop views are synthetic. No measured radio, camera, motor or flight data is included yet.
-- The recovery tracker drops late, out-of-order packets instead of re-filtering them, and the headline results assume perfectly synced clocks.
+- The recovery tracker and the trackers that model turning drop late, out-of-order packets instead of re-filtering them. Re-filtering them cut the error by under 1 cm in a follow-up test (`runs/s6-retro`). The tracker results in the Results section assume perfectly synced clocks (`runs/s6-clocks` tests clock error separately).
 - The drone controller has no integral action and the simulator has no ground plane. Inertia is a fixed estimate, not measured.
 - The multi-drone scenarios are simplified point-mass models over abstract links. They do not show radio tolerance or flight performance.
 - A physical Windows install and the in-app updater are still untested on real machines, and the macOS app is not notarized.

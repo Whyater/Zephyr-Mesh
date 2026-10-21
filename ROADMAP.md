@@ -2,7 +2,7 @@
 
 This roadmap is written for contributors and reviewers. It separates shipped code from local work and future proposals.
 
-## Local now
+## Released in v0.2.4
 
 - Deterministic S0-S6 Python fixtures for physics, communication, sensing, tracking, and bounded investigation.
 - Stage 7 foundation: a seeded multi-agent scenario contract with stable identities, explicit obstacle and keep-out events, cooperative formation commands, and replayable telemetry. See the Python module and tests for the exact scope.
@@ -32,8 +32,8 @@ This roadmap is written for contributors and reviewers. It separates shipped cod
 
 ## Later
 
-- SimAdapter and hardware adapters behind one state contract.
-- Rotor/motor lag, thrust saturation, battery sag, downwash, weather, and venue airflow models with independent validation.
+- Hardware adapters behind the same `DroneAdapter` contract as the existing `SimAdapter`.
+- Check the simulated motor lag, thrust saturation, battery sag, wind, ground effect, and downwash models against measurements, and add venue airflow and weather models beyond steady wind and gusts.
 - Mission authoring, replay export, and a supervised non-contact indoor tag demo.
 
 Payload, contact interception, targeting people, and covert surveillance remain outside the project.

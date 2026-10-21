@@ -50,7 +50,7 @@ Limits: simulated, with literature-derived profiles and one controller tuning; t
 
 In a simulated ESP-NOW-style link (parameters from the literature, not measured):
 
-- Radio delay stays small. The worst p95 radio latency in the tracker test was about 28 ms, well under the 150 to 200 ms where the tracker starts failing from delay. In this model the tracker fails from lost packets, not from radio delay.
+- Radio delay stays small. The worst p95 radio latency in the tracker test was about 27.5 ms (the median over repeated runs; the worst single run was about 40 ms), well under the 150 to 200 ms where the tracker starts failing from delay. In this model the tracker fails from lost packets, not from radio delay.
 - Twelve drones each sending 32-byte packets 50 times a second keep the channel about two thirds busy. With retries every packet arrives, with a p95 latency of 4.4 ms. Without retries about 98 % arrive.
 
 Limits: no outside Wi-Fi or Bluetooth traffic, every drone hears every other drone, carrier sense is perfect, and the model's top packet rate is about 13 % below the one published measurement. Data: `runs/c-exp014-mac-r2`, `runs/c-exp017-tolerance-r2`.

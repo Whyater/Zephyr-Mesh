@@ -11,7 +11,7 @@ The native app requires macOS 14 or newer. Download the architecture that matche
 
 If you downloaded v0.2.2: that Mac build crashes at launch on any Mac other than the one that built it, because it cannot find its bundled replay file. v0.2.4 includes the fix.
 
-Unzip the download and open `ZephyrMesh.app`. SHA-256 sidecars are attached to the release. The package is ad hoc signed and may require a one-time confirmation in macOS Privacy & Security. To build the local bundle instead, install the Xcode Command Line Tools and run:
+Unzip the download and open `Zephyr Mesh.app`. SHA-256 sidecars are attached to the release. The package is ad hoc signed and may require a one-time confirmation in macOS Privacy & Security. To build the local bundle instead, install the Xcode Command Line Tools and run:
 
 ```bash
 python3 macos/build_app.py
