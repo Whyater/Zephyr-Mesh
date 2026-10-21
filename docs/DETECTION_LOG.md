@@ -11,7 +11,7 @@ Run every command from the repo root with the project's virtual environment set 
 ## Pieces
 
 | Piece | File | Job |
-|---|---|---|
+| --- | --- | --- |
 | Format | this page | One header line, then one line per observation |
 | Reader and writer | `sim/detection_log.py` | Reads a log and stops at the first bad line, naming its line number |
 | Fit | `sim/vision_noise_fit.py`, `tools/fit_vision_noise.py` | Turns one log with ground truth into bias, spread, dropout and latency, each with an interval |
@@ -32,7 +32,7 @@ It is the existing `zephyr-vision-trace-1` vision trace split into lines, so the
 ```
 
 | Field | Required | Meaning |
-|---|---|---|
+| --- | --- | --- |
 | `schema` | yes | Always `zephyr-detection-log-1` |
 | `trace_id` | yes | A name for this run |
 | `status` | yes | `measured`, `synthetic` or `fixture` |
@@ -46,7 +46,7 @@ It is the existing `zephyr-vision-trace-1` vision trace split into lines, so the
 A log marked `"status":"measured"` must also have `source` (text) and a `provenance` object with these keys:
 
 | Key | Rule |
-|---|---|
+| --- | --- |
 | `instrument` | An object with exactly `kind`, `model` and `settings` (`settings` is an object) |
 | `calibration_ref` | The SHA-256 hash (64 hex characters) of the camera calibration file, or `null` together with `calibration_ref_null_reason` (text) |
 | `raw_sha256` | The SHA-256 hash of the raw recording (64 hex characters) |
@@ -69,7 +69,7 @@ Here is a header that passes the reader. **All of these values are made up for i
 ```
 
 | Field | Reader needs it | Unit | Used by the fit for |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `observation_id` | yes, unique in the file | text | |
 | `frame_id` | yes | text | |
 | `subject_id` | yes | text | choosing which target to fit |
@@ -114,7 +114,7 @@ PYTHONPATH=. python tools/fit_vision_noise.py run.jsonl --output run-fit.json
 ```
 
 | Option | Default | Meaning |
-|---|---|---|
+| --- | --- | --- |
 | `--output PATH` | print to the screen | Where to write the result. It must not be the input file, and an existing file is replaced |
 | `--subject ID` | none | Which `subject_id` to fit. Needed when the log has more than one |
 | `--dropout-mode` | `independent` | `independent` or `burst`: which dropout model goes in `sensor_config.mode` |
@@ -152,7 +152,7 @@ The first command writes a synthetic log and, next to it, `/tmp/fixture.params.j
 On the machine this page was checked on, the two commands gave these values, rounded to 4 decimals. The same commands give the same file on the same Python and NumPy versions.
 
 | Setting | True | Fitted | 95% interval |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | bias x (m) | 0.02 | 0.0192 | 0.0178 to 0.0208 |
 | bias y (m) | -0.01 | -0.0113 | -0.0128 to -0.0096 |
 | bias z (m) | 0.05 | 0.0493 | 0.0481 to 0.0508 |
