@@ -16,15 +16,13 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from sim.detection_log import read_detection_log
 from sim.vision_noise_fit import DROPOUT_MODES, fit_vision_noise
 from sim.vision_trace import VisionTrace
 
 
 def _load(path: Path, source_bytes: bytes) -> VisionTrace:
     if path.suffix.lower() == ".jsonl":
-        # Imported here so this tool still imports while the reader is absent.
-        from sim.detection_log import read_detection_log
-
         return read_detection_log(path)
     return VisionTrace.from_dict(json.loads(source_bytes.decode("utf-8")))
 
