@@ -29,7 +29,7 @@ Download the [Windows x86_64 package](https://github.com/Whyater/Zephyr-Mesh/rel
 
 The Windows download is unsigned, so Windows SmartScreen may show a warning the first time you run it. Release v0.2.4 adds Windows startup diagnostics (`startup.log` and `README-Windows.txt`) to help with startup failures. Startup problems have not been reproduced on a Windows machine or confirmed fixed.
 
-To build locally, install Python 3.11 or newer, open PowerShell at the repository root, and run:
+To build locally, install 64-bit Python 3.12 (the version the release builds use), open PowerShell at the repository root, and run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File desktop/build_windows.ps1
@@ -39,12 +39,14 @@ The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\Zeph
 
 ## Run from source
 
-On Windows, use `.venv\Scripts\activate` in place of `source .venv/bin/activate`.
+You need Python 3.12, 3.13 or 3.14. The pinned packages in `requirements.txt` will not install on older versions, including the Python 3.9 that comes with macOS, or on Python 3.15. On a Mac with [Homebrew](https://brew.sh), `brew install python@3.12` gives you `python3.12`. If you use 3.13 or 3.14 instead, change the first line below to match.
+
+The commands below are for a bash or zsh terminal, like the macOS Terminal. On Windows, install 64-bit Python 3.12 from [python.org](https://www.python.org/downloads/windows/), run the commands in Git Bash, which comes with [Git for Windows](https://git-scm.com/downloads/win), and change the first two lines to `py -3.12 -m venv .venv` and `source .venv/Scripts/activate`. This Windows route has not been tried on a Windows machine yet.
 
 The Python simulator and replay tools run offline from the repository root:
 
 ```bash
-python3 -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python -m pytest -q
