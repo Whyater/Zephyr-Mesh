@@ -1,6 +1,6 @@
-"""Proposal check: EXP-016 gives the same bytes for any --workers value.
+"""Proposal check: EXP-016 gives the same bytes at 1 and several --workers.
 
-The runner's independent cells go through sim.estimation.sweep.run_jobs, which
+The runner's independent cells go through sim.ordered_pool.ordered_map, which
 returns results in job order. These tests compare files by sha256, so they
 catch any change in row order, column order or number formatting.
 """
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from sim.estimation.sweep import run_jobs
+from sim.ordered_pool import ordered_map
 from tools import c_exp016_heartbeat as runner
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,8 +41,8 @@ def test_interference_cells_match_in_process_and_in_pool() -> None:
     # The pilot has one interference cell, which never reaches the pool, so
     # run several tiny cells here through both paths.
     jobs = [{"margin": m, "dur": 1, "rise": r, "pilot": True} for m in (20, 30) for r in (10, 20)]
-    serial = run_jobs(jobs, "tools.c_exp016_heartbeat:_interference_job", processes=1, progress=False)
-    pooled = run_jobs(jobs, "tools.c_exp016_heartbeat:_interference_job", processes=2, progress=False)
+    serial = ordered_map("tools.c_exp016_heartbeat:_interference_job", jobs, workers=1)
+    pooled = ordered_map("tools.c_exp016_heartbeat:_interference_job", jobs, workers=2)
     assert json.dumps(serial) == json.dumps(pooled)
     assert [(row["margin_db"], row["noise_rise_db"]) for row in pooled] == [(20, 10), (20, 20), (30, 10), (30, 20)]
 

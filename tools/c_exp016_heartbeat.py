@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 import jsonschema
 
-from sim.estimation.sweep import run_jobs
+from sim.ordered_pool import effective_workers, ordered_map
 from sim.radio.channel import GilbertElliott, packet_error_rate, mean_rssi_dbm
 from sim.radio.heartbeat import (detection_delay_bounds, detection_delay_samples,
                                   false_alarm_rate_ge_per_hour, false_alarm_rate_iid_per_hour,
@@ -59,7 +59,7 @@ def _conditions(pilot: bool) -> list[dict]:
     return out
 
 
-# CSV column order (run_jobs returns rows with sorted keys, so the order is fixed here).
+# CSV column order, fixed here so it never depends on dict key order.
 FALSE_ALARM_COLUMNS = ("h_hz", "timeout_s", "loss_condition", "kind", "p", "duration_s", "expected_count",
                        "simulated_count", "expected_rate_per_hour", "simulated_rate_per_hour", "z")
 DELAY_COLUMNS = ("h_hz", "timeout_s", "loss_condition", "mean_s", "p95_s", "max_s",
@@ -255,7 +255,7 @@ def _false_alarm_job(job: dict) -> dict:
 
 
 def _plain(value):
-    """numpy scalars to Python numbers, so run_jobs can pass results between processes as JSON."""
+    """numpy scalars to Python numbers, so every row holds the same plain types."""
     if isinstance(value, dict):
         return {k: _plain(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
@@ -296,10 +296,10 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
                                "p95_s": float(np.percentile(d, 95)), "max_s": float(np.max(d)),
                                "bound_low_s": lo_b, "bound_high_s": hi_b, "bound_mean_s": mean_b})
     # Each (condition, rate) cell draws from its own seeded streams, so cells are
-    # independent and can run in any process; run_jobs returns them in job order.
+    # independent and can run in any process; ordered_map returns them in job order.
     cell_jobs = [{"ci": ci, "cond": cond, "hi": hi, "h": h, "timeouts": list(timeouts), "pilot": pilot}
                  for ci, cond in enumerate(conditions) for hi, h in enumerate(rates)]
-    for cell in run_jobs(cell_jobs, "tools.c_exp016_heartbeat:_false_alarm_job", processes=workers, progress=False):
+    for cell in ordered_map("tools.c_exp016_heartbeat:_false_alarm_job", cell_jobs, workers=workers):
         false_rows += cell["false_rows"]; delay_rows += cell["delay_rows"]
     thresholds = select_thresholds(false_rows)
     # Add delays to threshold records where available.
@@ -314,7 +314,7 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
     frame_b = frame_bytes(32, default_phy()); cfg = channel_preset("indoor_gym")
     int_jobs = [{"margin": margin, "dur": dur, "rise": rise, "pilot": pilot}
                 for margin in margins for dur in durations for rise in rises]
-    int_rows = run_jobs(int_jobs, "tools.c_exp016_heartbeat:_interference_job", processes=workers, progress=False)
+    int_rows = ordered_map("tools.c_exp016_heartbeat:_interference_job", int_jobs, workers=workers)
     rule_rows = [r for r in false_rows if r["timeout_s"] == 0.3 and r["h_hz"] in (10, 20)]
     with open(output / "false_alarms.csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=FALSE_ALARM_COLUMNS); w.writeheader(); w.writerows(false_rows)
@@ -340,7 +340,7 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
         "snr_at_half_loss_db": _snr_at_half_loss(cfg, frame_b)})
     _write_figures(output, false_rows, rule_rows)
     outputs = ["summary.json", "false_alarms.csv", "detection_delay.csv", "interference.csv", "thresholds.json", "exp016_false_alarms.png", "exp016_rule_300ms.png"]
-    stable_argv = ["--pilot" if pilot else "--full", "--processes", str(processes or 1)]
+    stable_argv = ["--pilot" if pilot else "--full", "--workers", str(workers)]
     return write_manifest(output, schema="zephyr-run-c-manifest-1", argv=stable_argv,
         command="PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output {out}", config={"pilot": pilot, "rates": rates, "timeouts": timeouts},
         seeds=[BASE_SEED], outputs=outputs, limits=["All values are simulated; radio parameters are literature-derived.",
@@ -348,11 +348,11 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
         "The 1 per 100 hours threshold uses the closed form only: 10 simulated hours cannot resolve it.",
         "When burst duration x heartbeat rate < 1 (e.g. 0.05 s or 0.2 s at 5 Hz) a burst is a single packet, so those cases coincide."],
         runtime_s=time.perf_counter() - start,
-        n_processes=workers, hashed_sources=["sim/radio/heartbeat.py", "sim/radio/interference.py", "sim/radio/channel.py", "tools/c_exp016_heartbeat.py"])
+        n_processes=max(effective_workers(workers, len(cell_jobs)), effective_workers(workers, len(int_jobs))), hashed_sources=["sim/radio/heartbeat.py", "sim/radio/interference.py", "sim/radio/channel.py", "tools/c_exp016_heartbeat.py"])
 
 
 def main(argv=None):
-    argv = argv_or_default(argv); p = argparse.ArgumentParser(description=__doc__.splitlines()[0]); p.add_argument("--output", type=Path, required=True); p.add_argument("--pilot", action="store_true"); p.add_argument("--processes", type=int, default=default_processes(), help="kept for old commands; ignored"); p.add_argument("--workers", type=int, default=1, help="worker processes for the independent cells (default 1 = serial); outputs are byte-identical for any value"); a = p.parse_args(argv); run(a.output, argv, a.pilot, a.processes, a.workers); return 0
+    argv = argv_or_default(argv); p = argparse.ArgumentParser(description=__doc__.splitlines()[0]); p.add_argument("--output", type=Path, required=True); p.add_argument("--pilot", action="store_true"); p.add_argument("--processes", type=int, default=default_processes(), help="kept for old commands; ignored"); p.add_argument("--workers", type=int, default=1, help="worker processes for the independent cells (default 1 = serial, at most 4); outputs matched at 1 and 4 workers in tests"); a = p.parse_args(argv); run(a.output, argv, a.pilot, a.processes, a.workers); return 0
 
 
 if __name__ == "__main__": raise SystemExit(main())

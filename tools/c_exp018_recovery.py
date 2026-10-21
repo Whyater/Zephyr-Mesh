@@ -16,6 +16,7 @@ from pathlib import Path
 
 import numpy as np
 
+from sim.ordered_pool import effective_workers, ordered_map
 from sim.radio.channel import GilbertElliott
 from sim.radio.params import PARAMS, channel_preset
 from sim.s6_recovery import wilson_interval
@@ -99,7 +100,10 @@ def recover_one(seed: int, n_true: float, packets: int = 1000, distances: tuple[
     return row
 
 
-def _run_cells(cells: list[tuple[int, float, int, tuple[float, ...]]], processes: int) -> list[dict]:
+def _run_cells(cells: list[tuple[int, float, int, tuple[float, ...]]], processes: int,
+               workers: int | None = None) -> list[dict]:
+    if workers is not None:
+        return ordered_map("tools.c_exp018_recovery:_recover_cell", cells, workers=workers)
     if processes > 1 and len(cells) > 1:
         with ProcessPoolExecutor(max_workers=processes) as pool:
             return list(pool.map(_recover_cell, cells))
@@ -151,18 +155,31 @@ def _sweep_summary(rows: list[dict]) -> list[dict]:
     return out
 
 
-def _sweeps(seeds: list[int], pilot: bool, processes: int) -> list[dict]:
+def _sweep_groups(seeds: list[int], pilot: bool) -> list[tuple[str, int, list[tuple[int, float, int, tuple[float, ...]]]]]:
     reps = 10 if pilot else 200
-    rows = []
-    for packets in (100, 300, 1000, 3000):
-        cells = [(seeds[i], 2.0, packets, DISTANCES_M) for i in range(reps)]
-        for r in _run_cells(cells, processes):
-            r["sweep"] = "packets"; r["setting"] = packets; rows.append(r)
+    groups = [("packets", packets, [(seeds[i], 2.0, packets, DISTANCES_M) for i in range(reps)])
+              for packets in (100, 300, 1000, 3000)]
     for k in (3, 5, 8, 12):
         ds = tuple(float(x) for x in np.geomspace(1.0, 40.0, k))
-        cells = [(seeds[reps + i], 2.0, 1000, ds) for i in range(reps)]
-        for r in _run_cells(cells, processes):
-            r["sweep"] = "distances"; r["setting"] = k; rows.append(r)
+        groups.append(("distances", k, [(seeds[reps + i], 2.0, 1000, ds) for i in range(reps)]))
+    return groups
+
+
+def _sweeps(seeds: list[int], pilot: bool, processes: int, workers: int | None = None) -> list[dict]:
+    groups = _sweep_groups(seeds, pilot)
+    if workers is None:
+        # Old path: one pool per sweep setting, as in the registered run.
+        results = [_run_cells(cells, processes) for _, _, cells in groups]
+    else:
+        # Opt-in path: one pool for all eight settings, then split back in order.
+        flat = _run_cells([cell for _, _, cells in groups for cell in cells], processes, workers)
+        results, start = [], 0
+        for _, _, cells in groups:
+            results.append(flat[start:start + len(cells)]); start += len(cells)
+    rows = []
+    for (sweep, setting, _), group_rows in zip(groups, results):
+        for r in group_rows:
+            r["sweep"] = sweep; r["setting"] = setting; rows.append(r)
     return rows
 
 
@@ -217,7 +234,7 @@ def burst_aware_sizing_table(confidence: float = 0.95) -> list[dict]:
     return rows
 
 
-def run(output: Path, argv: list[str], pilot: bool, processes: int) -> None:
+def run(output: Path, argv: list[str], pilot: bool, processes: int, workers: int | None = None) -> None:
     import os
     os.environ.setdefault("MPLCONFIGDIR", "/tmp/zephyr-mplconfig")
     import matplotlib
@@ -228,8 +245,8 @@ def run(output: Path, argv: list[str], pilot: bool, processes: int) -> None:
     reps = 10 if pilot else 200
     seeds = seeds_from(BASE_SEED, 3 * reps + 2 * reps)
     cells = [(seeds[i * reps + j], n, 1000, DISTANCES_M) for i, n in enumerate(N_VALUES) for j in range(reps)]
-    recovery = _run_cells(cells, processes)
-    sweeps = _sweeps(seeds[3 * reps:], pilot, processes)
+    recovery = _run_cells(cells, processes, workers)
+    sweeps = _sweeps(seeds[3 * reps:], pilot, processes, workers)
     with open(output / "recovery.csv", "w", newline="") as f:
         fields = list(recovery[0]); w = csv.DictWriter(f, fieldnames=fields); w.writeheader()
         for r in recovery: w.writerow({k: ("" if v is None else f"{v:.10g}" if isinstance(v, float) else v) for k, v in r.items()})
@@ -302,11 +319,12 @@ def run(output: Path, argv: list[str], pilot: bool, processes: int) -> None:
                            "sweep_packet_settings": [100, 300, 1000, 3000]}, seeds=seeds,
                    outputs=["summary.json", "recovery.csv", "sweeps.csv", "exp018_coverage.png", "exp018_design.png"],
                    limits=["Static shadowing is one draw per distance per trace; no fast RSSI noise is added.", "Synthetic traces are not radio measurements."], runtime_s=time.perf_counter()-start,
-                   n_processes=processes, hashed_sources=["tools/c_exp018_recovery.py", "tools/calibrate_radio_from_trace.py", "sim/trace.py", "sim/radio/channel.py"])
+                   n_processes=(processes if workers is None else effective_workers(workers, len(cells))),
+                   hashed_sources=["tools/c_exp018_recovery.py", "tools/calibrate_radio_from_trace.py", "sim/trace.py", "sim/radio/channel.py"])
 
 
 def main(argv: list[str] | None = None) -> int:
-    argv = argv_or_default(argv); p = argparse.ArgumentParser(description=__doc__.splitlines()[0]); p.add_argument("--output", type=Path, required=True); p.add_argument("--pilot", action="store_true"); p.add_argument("--processes", type=int, default=default_processes()); a = p.parse_args(argv); run(a.output, argv, a.pilot, a.processes); return 0
+    argv = argv_or_default(argv); p = argparse.ArgumentParser(description=__doc__.splitlines()[0]); p.add_argument("--output", type=Path, required=True); p.add_argument("--pilot", action="store_true"); p.add_argument("--processes", type=int, default=default_processes()); p.add_argument("--workers", type=int, default=None, help="worker processes through sim.ordered_pool, at most 4 (opt-in; when given, --processes is ignored; default: the old --processes pool); outputs matched the old path at 1 and 4 workers in tests"); a = p.parse_args(argv); run(a.output, argv, a.pilot, a.processes, a.workers); return 0
 
 
 if __name__ == "__main__":
