@@ -54,9 +54,9 @@ Set up once with the steps in [INSTALL.md](INSTALL.md#run-from-source), then run
 | Step response | Vertical 3 m step: 8.4 % overshoot, settles in 3.0 s; 1 m sideways step: 19 % overshoot, settles in 3.4 s (plot: `runs/s0-baseline-v2/a_s0_baseline_v2.png`) | `PYTHONPATH=. python tools/a_make_s0_baseline_v2.py --output-dir /tmp/s0-v2` |
 | Controller timestep limit | The controller refuses time steps at or above 2/18 = 0.111 s, where its attitude damping would go unstable | `python -m pytest tests/test_vehicle.py -k sampled_attitude_limit` |
 | Reproducibility | Running the same scenario and seed twice gives byte-identical output (run it twice to two files and compare them with `cmp`) | `PYTHONPATH=. python tools/run_scenario.py --config sim/scenario_example.json --output /tmp/run.json --summary` |
-| Every published run | Reruns each registered run from a clean copy and checks its output hashes (slow: several hours. The `s6-sending` and `s6-atlas` runs took over an hour each when they were made. The timeout gives each run up to 3 hours.) | `python tools/reproduce_all.py --timeout 10800` |
+| Every published run | Reruns each registered run from a clean copy and checks its output hashes. Slow: several hours. The `s6-sending` and `s6-atlas` runs each took over an hour when they were made, longer than the default 1 hour limit. `--timeout 10800` gives each run up to 3 hours (10800 seconds). | `python tools/reproduce_all.py --timeout 10800` |
 
-These commands need Python 3.12, 3.13 or 3.14 and a bash or zsh terminal (Git Bash on Windows). `reproduce_all.py` copies the repository with `git archive`, so it also needs a git clone and `git` on your PATH. A ZIP download from GitHub will not work.
+These commands need Python 3.12, 3.13 or 3.14 and a bash or zsh terminal (Git Bash on Windows, untested there). `reproduce_all.py` copies the repository with `git archive`, so it also needs a git clone and `git` on your PATH. A ZIP download from GitHub will not work.
 
 ![RK4 error against time step, dropping about 16x each time the step is halved](runs/s2-physics-v2/a_s2_convergence.png)
 

@@ -29,21 +29,21 @@ Download the [Windows x86_64 package](https://github.com/Whyater/Zephyr-Mesh/rel
 
 The Windows download is unsigned, so Windows SmartScreen may show a warning the first time you run it. Release v0.2.4 adds Windows startup diagnostics (`startup.log` and `README-Windows.txt`) to help with startup failures. Startup problems have not been reproduced on a Windows machine or confirmed fixed.
 
-To build locally, install 64-bit Python 3.12 (the version the release builds use), open PowerShell at the repository root, and run:
+To build locally, install 64-bit Python 3.12 (the version the release builds use, and the only one tested), open PowerShell at the repository root, and run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File desktop/build_windows.ps1
 ```
 
-The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\ZephyrMeshUpdater.exe`. Keep the updater beside the application directory. The app's update action only installs a published release asset with a matching platform architecture and GitHub SHA-256 digest. The digest check is an integrity check only, not publisher authentication: it does not prove who published the file. Releases are not notarized or signed with a developer certificate.
+The script runs `py`, which picks the newest Python you have installed. If that is not 3.12, add `-Python` and the full path to your 3.12 `python.exe`. The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\ZephyrMeshUpdater.exe`. Keep the updater beside the application directory. The app's update action only installs a published release asset with a matching platform architecture and GitHub SHA-256 digest. The digest check is an integrity check only, not publisher authentication: it does not prove who published the file. Releases are not notarized or signed with a developer certificate.
 
 ## Run from source
 
-You need Python 3.12, 3.13 or 3.14. The pinned packages in `requirements.txt` will not install on older versions, including the Python 3.9 that comes with macOS, or on Python 3.15. On a Mac with [Homebrew](https://brew.sh), `brew install python@3.12` gives you `python3.12`. If you use 3.13 or 3.14 instead, change the first line below to match.
+You need Python 3.12, 3.13 or 3.14. The pinned packages in `requirements.txt` will not install on older versions, including the Python 3.9 that comes with macOS, or on Python 3.15. On a Mac with [Homebrew](https://brew.sh), `brew install python@3.12` gives you `python3.12`. If you use 3.13 or 3.14 instead, change the first command below to match.
 
-The commands below are for a bash or zsh terminal, like the macOS Terminal. On Windows, install 64-bit Python 3.12 from [python.org](https://www.python.org/downloads/windows/), run the commands in Git Bash, which comes with [Git for Windows](https://git-scm.com/downloads/win), and change the first two lines to `py -3.12 -m venv .venv` and `source .venv/Scripts/activate`. This Windows route has not been tried on a Windows machine yet.
+The commands below are for a bash or zsh terminal, like the macOS Terminal. On Windows, install 64-bit Python 3.12 from [python.org](https://www.python.org/downloads/windows/) and run the commands in Git Bash, which comes with [Git for Windows](https://git-scm.com/downloads/win). Replace the first two commands in the block below with `py -3.12 -m venv .venv` and `source .venv/Scripts/activate`. This Windows route has not been tried on a Windows machine yet.
 
-The Python simulator and replay tools run offline from the repository root:
+Get the code with `git clone https://github.com/Whyater/Zephyr-Mesh.git`, then `cd Zephyr-Mesh`. The Python simulator and replay tools run offline from that folder, the repository root:
 
 ```bash
 python3.12 -m venv .venv
