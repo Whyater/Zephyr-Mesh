@@ -154,7 +154,7 @@ def test_pilot_reproducible_independent_rows_math_figures_and_manifest(tmp_path)
     plotted["p95_error_m"]["median"] += 0.001
     plotted["mean_nees"]["median"] += 0.1
     (changed / "summary.json").write_text(
-        json.dumps(changed_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        json.dumps(changed_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n"
     )
     make_figures(changed)
     assert (changed / "fusion_error.png").read_bytes() != (first / "fusion_error.png").read_bytes()

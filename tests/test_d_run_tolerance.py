@@ -83,7 +83,7 @@ def test_checkpoint_resume_reproduces_fresh_run(tmp_path):
 def test_mismatched_checkpoint_fails_loudly(tmp_path):
     checkpoint = tmp_path / "checkpoint"
     checkpoint.mkdir()
-    (checkpoint / "stale.json").write_text(json.dumps({"fingerprint": "stale"}), encoding="utf-8")
+    (checkpoint / "stale.json").write_text(json.dumps({"fingerprint": "stale"}), encoding="utf-8", newline="\n")
     with pytest.raises(ValueError, match=str(checkpoint)):
         main(["--pilot", "--processes", "1", "--checkpoint", str(checkpoint),
               "--output", str(tmp_path / "output")])
@@ -214,7 +214,7 @@ def test_figure_changes_when_boundary_data_change(pilot_outputs, tmp_path):
     data[key]["censored"] = None
     data[key]["fails_at_zero"] = False
     changed = tmp_path / "changed.json"
-    changed.write_text(json.dumps(data, sort_keys=True), encoding="utf-8")
+    changed.write_text(json.dumps(data, sort_keys=True), encoding="utf-8", newline="\n")
     make_figure(changed, second, pilot=True)
     assert first.stat().st_size > 10_000
     assert _digest(first) != _digest(second)

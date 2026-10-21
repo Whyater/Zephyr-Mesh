@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -10,6 +11,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _run_pilot(path: Path) -> None:
@@ -23,6 +26,8 @@ def _run_pilot(path: Path) -> None:
             "--output",
             str(path),
         ],
+        cwd=ROOT,
+        env=dict(os.environ, PYTHONPATH=str(ROOT)),
         check=True,
     )
 

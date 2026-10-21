@@ -97,7 +97,7 @@ def test_input_statuses_pilot_and_manifest_hash(tmp_path):
     assert preview["missions"]["tag"]["entries"] == []
     assert preview["missions"]["tag"]["pilot_entries"]
 
-    (folder / "tag.csv").write_text((folder / "tag.csv").read_text(encoding="utf-8") + "\n", encoding="utf-8")
+    (folder / "tag.csv").write_text((folder / "tag.csv").read_text(encoding="utf-8") + "\n", encoding="utf-8", newline="\n")
     out_bad = tmp_path / "out_bad"
     atlas.run(out_bad, [], inputs=inputs)
     bad = json.loads((out_bad / atlas.OUTPUT_NAME).read_text(encoding="utf-8"))
@@ -108,7 +108,7 @@ def test_input_statuses_pilot_and_manifest_hash(tmp_path):
     assert atlas.load_input("exp030", missing, "tag.csv", "EXP-030")["status"] == atlas.NOT_AVAILABLE
     unfinished = tmp_path / "unfinished"
     unfinished.mkdir()
-    (unfinished / "tag.csv").write_text("slice\nmain\n", encoding="utf-8")
+    (unfinished / "tag.csv").write_text("slice\nmain\n", encoding="utf-8", newline="\n")
     assert atlas.load_input("exp030", unfinished, "tag.csv", "EXP-030")["status"] == atlas.NOT_AVAILABLE
 
 

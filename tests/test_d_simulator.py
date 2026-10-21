@@ -37,7 +37,7 @@ def test_generator_is_byte_stable(tmp_path):
     _generate(b)
     assert (a / "run.json").read_bytes() == (b / "run.json").read_bytes()
     assert (a / "replay_v1.json").read_bytes() == (b / "replay_v1.json").read_bytes()
-    ma, mb = json.loads((a / "manifest.json").read_text()), json.loads((b / "manifest.json").read_text())
+    ma, mb = json.loads((a / "manifest.json").read_text(encoding="utf-8")), json.loads((b / "manifest.json").read_text(encoding="utf-8"))
     ma.pop("volatile")
     mb.pop("volatile")
     assert ma == mb
@@ -47,15 +47,15 @@ def test_both_schemas_validate(tmp_path):
     out = tmp_path / "run"
     _generate(out)
     for name, schema in (("run.json", "sim/s7_coop_run_schema.json"), ("replay_v1.json", "sim/s7_run_schema.json")):
-        value = json.loads((out / name).read_text())
-        validator = Draft202012Validator(json.loads((ROOT / schema).read_text()))
+        value = json.loads((out / name).read_text(encoding="utf-8"))
+        validator = Draft202012Validator(json.loads((ROOT / schema).read_text(encoding="utf-8")))
         assert list(validator.iter_errors(value)) == []
 
 
 def test_demo_moves_and_re_spaces(tmp_path):
     out = tmp_path / "run"
     _generate(out)
-    run = json.loads((out / "run.json").read_text())
+    run = json.loads((out / "run.json").read_text(encoding="utf-8"))
     positions = [np.asarray(s["agents"][1]["position_m"]) for s in run["steps"]]
     assert sum(np.linalg.norm(positions[i] - positions[i - 1]) > 1e-12 for i in range(1, len(positions))) >= 0.9 * (len(positions) - 1)
     truth = [np.asarray(s["target_truth_position_m"]) for s in run["steps"]]
