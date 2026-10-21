@@ -107,6 +107,23 @@ These are plans. None of them is built yet.
 
 Full list: [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
 
+## Repository layout
+
+| Folder | What is in it |
+| --- | --- |
+| `sim/` | The simulator (Python package `sim`) |
+| `tests/` | The Python test suite |
+| `runs/` | Saved run outputs and their manifests |
+| `tools/` | Scripts that build and reproduce runs, reports, and releases |
+| `desktop/` | The Windows replay app and shared replay code |
+| `macos/` | The macOS replay app |
+| `design/` | Design source for both apps |
+| `docs/` | Install steps, roadmap, features, limitations, and results |
+| `firmware/` | Flight controller firmware (Planned) |
+| `hardware/` | Flight controller hardware (Planned) |
+
+The hardware phase, a physical flight controller in `firmware/` and `hardware/`, is Planned. Nothing for it is built yet.
+
 ## Contributing
 
 Start with the core question: how much radio latency, packet loss, and tracking noise can a cooperative drone tracker tolerate, and what helps it recover? Keep changes reproducible, label synthetic and measured data separately, and run the test suite before opening a pull request.
