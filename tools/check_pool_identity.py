@@ -6,10 +6,11 @@ variant's manifest.json and fails if a variant asked for more than one worker
 but really ran on one process (for example on a two-core machine the cap can
 turn 4 into 2, which still counts, but never into 1).
 
-Full runs are slow. The registered manifests record about 2324 s (EXP-016)
-and 154 s at 2 processes (EXP-018) on a busy Mac; EXP-016 took 346.5 s serial on
-a less busy one. Together they are well over 10 CPU minutes, so run full mode
-under the heavy lock.
+Full runs are slow. The registered manifests (runs/c5-heartbeat and
+runs/c-exp018-recovery-r2) record runtime_s 2324 s and 154 s, both with
+n_processes 2, so together the variants here are well over 10 CPU minutes: run
+full mode under the heavy lock. This script prints and saves the wall and CPU
+seconds of every variant it runs.
 
 Examples:
     PYTHONPATH=. python tools/check_pool_identity.py --pilot
