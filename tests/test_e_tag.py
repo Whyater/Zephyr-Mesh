@@ -12,6 +12,7 @@ from sim.missions.api import Scenario
 from sim.missions.engine import run_mission
 from sim.missions.log import validate_log
 from sim.missions.tag import TagMission
+from platform_compare import same_tree
 from tests.reference_e.hand_checks import tail_follow_time_s
 
 
@@ -240,4 +241,4 @@ def test_local_separation_rule_reproduces_pre_run_d_metrics():
         'time_to_tag_s': 4.44,
     }
     result = run_mission(_scenario(params={"target_class": "jink", "n_followers": 3, "separation_rule": "local"}))
-    assert result.metrics == before
+    assert same_tree(result.metrics, before)

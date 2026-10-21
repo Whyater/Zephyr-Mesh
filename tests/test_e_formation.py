@@ -8,6 +8,7 @@ import pytest
 from sim.missions.api import Scenario
 from sim.missions.engine import run_mission
 from sim.missions.log import validate_log
+from platform_compare import same_tree
 from tests.reference_e.hand_checks import first_order_loop_jitter_std
 
 
@@ -59,7 +60,7 @@ def test_local_separation_rule_reproduces_pre_run_d_metrics():
     }
     result = run_mission(_scenario(1, duration_s=30.0, fix_noise_std_m=0.10, fix_latency_s=0.2,
                                    separation_rule="local"))
-    assert result.metrics == before
+    assert same_tree(result.metrics, before)
 
 
 def test_error_grows_with_fix_noise():

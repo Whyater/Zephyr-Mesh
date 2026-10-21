@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -19,7 +20,7 @@ from tools.d_run_separation import MIN_SEPARATION_M, search_radius_table, separa
 from tools.d_make_separation_figure import _baseline_figure, _buffer_figure, make_figures
 
 ROOT = Path(__file__).resolve().parents[1]
-PYTHON = "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python"
+PYTHON = sys.executable
 
 
 def _run_pilot(path: Path) -> str:
@@ -27,7 +28,7 @@ def _run_pilot(path: Path) -> str:
         PYTHON, "tools/d_run_separation.py", "--output", str(path), "--pilot", "--processes", "2"
     ]
     return subprocess.run(
-        command, cwd=ROOT, env={"PYTHONPATH": "."}, check=True,
+        command, cwd=ROOT, env={**os.environ, "PYTHONPATH": "."}, check=True,
         capture_output=True, text=True,
     ).stdout
 
@@ -223,13 +224,13 @@ for module in sys.modules.values():
     filename = getattr(module, "__file__", None)
     if filename:
         try:
-            paths.append(str(__import__("pathlib").Path(filename).resolve().relative_to(root)))
+            paths.append(__import__("pathlib").Path(filename).resolve().relative_to(root).as_posix())
         except ValueError:
             pass
 print(json.dumps(sorted(set(paths))))
 """
     result = subprocess.run(
-        [PYTHON, "-c", code], cwd=ROOT, env={"PYTHONPATH": "."}, check=True,
+        [PYTHON, "-c", code], cwd=ROOT, env={**os.environ, "PYTHONPATH": "."}, check=True,
         capture_output=True, text=True,
     )
     loaded = set(json.loads(result.stdout))
