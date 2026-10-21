@@ -216,12 +216,20 @@ def replay_trace(trace: Any) -> list[PacketEvent]:
     counter is, so replay cannot unwrap it.  A capture tool with a narrow
     counter must supply the explicit ``duplicate`` and ``out_of_order`` flags,
     or write an unwrapped ``seq``; those override the derived values.
+
+    Echo captures (``clock_domain = "sender_round_trip"``) are refused: they
+    hold no one-way arrival time on the sender's clock, only a round trip, and
+    replay would have to invent one. Fit them with ``tools/fit_espnow_log.py``
+    instead.
     """
 
     from .trace import EspNowTrace
 
     if not isinstance(trace, EspNowTrace):
         raise TypeError("trace must be a validated EspNowTrace")
+    if trace.clock_domain == "sender_round_trip":
+        raise ValueError("sender_round_trip (echo) traces have no one-way arrival times to replay; "
+                         "fit them with tools/fit_espnow_log.py instead")
     packets = trace.packets
     clock_domain = getattr(trace, "clock_domain", "")
     events: list[PacketEvent] = []
