@@ -20,6 +20,7 @@ import json
 import math
 import platform
 import shlex
+import subprocess
 import sys
 import time
 from collections.abc import Callable
@@ -28,14 +29,16 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from sim.s6_recovery import RecoveryConfig, seed_list
+from sim.vision_trace import TRACE_STATUSES
 from tools.run_s6_recovery import (
     MAIN_DELAYS,
     MAIN_LOSSES,
+    MAIN_NOISES,
     _cell_summary,
     _csv_value,
     _git_value,
@@ -45,17 +48,19 @@ from tools.run_s6_recovery import (
     build_cells,
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
 FIT_SCHEMA = "zephyr-vision-noise-fit-1"
 SUMMARY_SCHEMA = "zephyr-s6-measured-rerun-1"
 MANIFEST_SCHEMA = "zephyr-s6-measured-rerun-manifest-1"
 HASHED_SOURCES = ("sim/tracker.py", "sim/s6_recovery.py", "sim/link.py", "sim/sensor.py",
                   "tools/run_s6_recovery.py", "tools/s6_measured_rerun.py")
 BRACKET_LABELS = ("pooled", "depth")
-REGISTERED_NOISES = (0.0, 0.02, 0.05, 0.10)
 REGISTERED_SUMMARY = Path("runs") / "s6-recovery" / "summary.json"
 BASE_SEED = 20261013
 CAMERA_DEPTH_AXIS = "z"
+DEPTH_AXIS_RULE = (
+    'The default depth axis is z only when position_frame is "camera" (the OpenCV camera frame, z out of the '
+    "lens); for any other frame the depth axis must be given."
+)
 
 
 class RerunError(ValueError):
@@ -95,8 +100,12 @@ def validate_fit(fit: Any) -> None:
         raise RerunError("per_axis.std_m must list three values")
     for name, value in zip(axes, std):
         _noise_value(value, f"per_axis.std_m[{name}]")
-    if not isinstance(fit.get("input", {}), dict):
+    input_block = fit.get("input", {})
+    if not isinstance(input_block, dict):
         raise RerunError("fit input block must be an object")
+    if "status" in input_block and (not isinstance(input_block["status"], str)
+                                    or input_block["status"] not in TRACE_STATUSES):
+        raise RerunError(f"fit input.status must be one of {sorted(TRACE_STATUSES)}, got {input_block['status']!r}")
 
 
 def resolve_brackets(fit: dict[str, Any], bracket: tuple[str, ...] = BRACKET_LABELS,
@@ -133,6 +142,12 @@ def resolve_brackets(fit: dict[str, Any], bracket: tuple[str, ...] = BRACKET_LAB
     return entries
 
 
+def _noise_part(noise: float) -> str:
+    """The registered three-decimal text when it is exact, else the full value."""
+    text = f"{noise:.3f}"
+    return text if float(text) == noise else repr(float(noise))
+
+
 def build_rerun_cells(noise_std_m: float) -> list[dict[str, Any]]:
     """The registered S6 main slice, with its noise replaced by ``noise_std_m``.
 
@@ -146,7 +161,7 @@ def build_rerun_cells(noise_std_m: float) -> list[dict[str, Any]]:
         new["noise_std_m"] = float(noise_std_m)
         new["cell_id"] = (
             f"{new['slice']}/{new['motion']}/d{new['delay_s']:.3f}/l{new['loss_probability']:.2f}/"
-            f"n{new['noise_std_m']:.3f}/{new['loss_model']}/j{new['jitter_s']:.3f}/r{new['tracker_measurement_std_m']:.3f}"
+            f"n{_noise_part(new['noise_std_m'])}/{new['loss_model']}/j{new['jitter_s']:.3f}/r{new['tracker_measurement_std_m']:.3f}"
         )
         cells.append(new)
     expected = 2 * len(MAIN_DELAYS) * len(MAIN_LOSSES)
@@ -155,19 +170,44 @@ def build_rerun_cells(noise_std_m: float) -> list[dict[str, Any]]:
     return cells
 
 
-def check_paths(fit_path: Path, output: Path) -> Path:
-    """Refuse unsafe output folders. Returns the resolved output path."""
-    resolved = output.resolve()
-    runs_dir = (REPO_ROOT / "runs").resolve()
-    if resolved == runs_dir or resolved.is_relative_to(runs_dir):
-        raise RerunError(f"output must not be inside {runs_dir}; registered outputs live there")
-    if fit_path.resolve().is_relative_to(resolved):
-        raise RerunError("the fit file must not be inside the output folder")
+def _git_common_dir() -> Path | None:
+    """The shared .git folder (the main checkout's, inside a worktree), or None without git."""
+    try:
+        text = subprocess.check_output(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                                       text=True, stderr=subprocess.DEVNULL, cwd=REPO_ROOT).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return Path(text) if text else None
+
+
+def protected_runs_dirs() -> list[Path]:
+    """The runs/ folders that hold registered outputs: this checkout's and the main checkout's."""
+    dirs = [(REPO_ROOT / "runs").resolve()]
+    common = _git_common_dir()
+    if common is not None:
+        main_runs = (common.parent / "runs").resolve()
+        if main_runs not in dirs:
+            dirs.append(main_runs)
+    return dirs
+
+
+def _require_fresh_folder(resolved: Path) -> None:
     if resolved.exists():
         if not resolved.is_dir():
             raise RerunError(f"output path is not a directory: {resolved}")
         if any(resolved.iterdir()):
             raise RerunError(f"output folder is not empty: {resolved}; pick a new folder")
+
+
+def check_paths(fit_path: Path, output: Path) -> Path:
+    """Refuse unsafe output folders. Returns the resolved output path."""
+    resolved = output.resolve()
+    for runs_dir in protected_runs_dirs():
+        if resolved == runs_dir or resolved.is_relative_to(runs_dir):
+            raise RerunError(f"output must not be inside {runs_dir}; registered outputs live there")
+    if fit_path.resolve().is_relative_to(resolved):
+        raise RerunError("the fit file must not be inside the output folder")
+    _require_fresh_folder(resolved)
     return resolved
 
 
@@ -186,7 +226,7 @@ def _read_registered(noises: tuple[float, ...]) -> tuple[dict[tuple, dict[str, A
 
 def _write_comparison(path: Path, labels: list[str], noises: dict[str, float],
                       summaries: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
-    registered, info = _read_registered(REGISTERED_NOISES)
+    registered, info = _read_registered(MAIN_NOISES)
     grid: list[tuple[str, float, float]] = []
     by_label: dict[str, dict[tuple, dict[str, Any]]] = {}
     for label in labels:
@@ -199,7 +239,7 @@ def _write_comparison(path: Path, labels: list[str], noises: dict[str, float],
     fields = ["motion", "delay_s", "loss_probability"]
     for label in labels:
         fields += [f"{label}_noise_std_m", f"{label}_recovery_p95_median_m", f"{label}_naive_p95_median_m"]
-    for noise in REGISTERED_NOISES:
+    for noise in MAIN_NOISES:
         fields += [f"registered_n{noise:.3f}_recovery_p95_median_m", f"registered_n{noise:.3f}_naive_p95_median_m"]
     with path.open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
@@ -211,7 +251,7 @@ def _write_comparison(path: Path, labels: list[str], noises: dict[str, float],
                 row[f"{label}_noise_std_m"] = noises[label]
                 row[f"{label}_recovery_p95_median_m"] = None if arms is None else arms["recovery"]["p95_median_m"]
                 row[f"{label}_naive_p95_median_m"] = None if arms is None else arms["naive"]["p95_median_m"]
-            for noise in REGISTERED_NOISES:
+            for noise in MAIN_NOISES:
                 arms = registered.get((*key, noise))
                 row[f"registered_n{noise:.3f}_recovery_p95_median_m"] = None if arms is None else arms["recovery"]["p95_median_m"]
                 row[f"registered_n{noise:.3f}_naive_p95_median_m"] = None if arms is None else arms["naive"]["p95_median_m"]
@@ -219,9 +259,35 @@ def _write_comparison(path: Path, labels: list[str], noises: dict[str, float],
     return info
 
 
-def _status_text(input_status: Any) -> str:
-    return (f"proposal: S6 main slice rerun with noise from a {input_status} fit; "
+def fit_status(fit: dict[str, Any]) -> str:
+    """The fit's input status, or "unknown" when the fit does not give one."""
+    block = fit.get("input", {})
+    return block.get("status", "unknown")
+
+
+def _status_text(input_status: str) -> str:
+    article = "an" if input_status[:1] in "aeiou" else "a"
+    return (f"proposal: S6 main slice rerun with noise from {article} {input_status} fit; "
             "simulated link and tracker, not flight performance")
+
+
+def _readme_text(status: str, fit_path: Path, fit_sha256: str, entries: list[dict[str, Any]]) -> str:
+    lines = [status, "", f"input fit: {fit_path}", f"input fit sha256: {fit_sha256}", "", "bracket values:"]
+    lines += [f"  {item['label']}: noise {item['noise_std_m']!r} m ({item['source']})" for item in entries]
+    lines += [
+        "",
+        "files:",
+        "  <bracket>/summary.json: the S6 main-slice cell summaries for that noise value, with status and limits.",
+        "  <bracket>/per_seed.csv: one row per cell, arm and seed, in the registered column layout.",
+        "  comparison.csv: median p95 error per cell for each bracket next to the registered noise levels.",
+        "  manifest.json: fit hash, code hashes, git state, options, and a hash of every output file.",
+        "",
+        "comparison.csv and per_seed.csv carry no label of their own. This README and manifest.json are the label:",
+        "every number here comes from a simulated link and tracker with the noise taken from the fit above,",
+        "and none of it is flight performance.",
+        "",
+    ]
+    return "\n".join(lines)
 
 
 def run_rerun(fit_path: Path, output: Path, *, bracket: tuple[str, ...] = BRACKET_LABELS,
@@ -256,7 +322,7 @@ def run_rerun(fit_path: Path, output: Path, *, bracket: tuple[str, ...] = BRACKE
     seeds = seed_list(seeds_count, base_seed=base_seed)
     config = RecoveryConfig()
     input_block = fit.get("input", {})
-    status = _status_text(input_block.get("status", "unknown"))
+    status = _status_text(fit_status(fit))
 
     # Provenance is captured before anything is written so the new output
     # files cannot make the tree look dirty.
@@ -270,7 +336,6 @@ def run_rerun(fit_path: Path, output: Path, *, bracket: tuple[str, ...] = BRACKE
         if depth_axis is not None:
             argv += ["--depth-axis", depth_axis]
 
-    resolved_output.mkdir(parents=True, exist_ok=True)
     start = time.perf_counter()
     results: dict[str, list[dict[str, Any]]] = {}
     with ProcessPoolExecutor(max_workers=processes) as pool:
@@ -289,11 +354,9 @@ def run_rerun(fit_path: Path, output: Path, *, bracket: tuple[str, ...] = BRACKE
         f"{seeds_count} seeds per cell",
     ]
     summaries: dict[str, list[dict[str, Any]]] = {}
-    written: list[Path] = []
+    summary_texts: dict[str, str] = {}
     for entry in entries:
         label = entry["label"]
-        folder = resolved_output / label
-        folder.mkdir()
         summaries[label] = [_cell_summary(cell, result) for cell, result in zip(cells_by_label[label], results[label])]
         summary = {
             "schema": SUMMARY_SCHEMA,
@@ -307,14 +370,28 @@ def run_rerun(fit_path: Path, output: Path, *, bracket: tuple[str, ...] = BRACKE
             "cells": summaries[label],
             "limits": limits,
         }
+        summary_texts[label] = json.dumps(summary, indent=2, sort_keys=True) + "\n"
+
+    # Nothing is created until every result is in, so a failed run leaves no folder behind.
+    _require_fresh_folder(resolved_output)
+    resolved_output.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+    for entry in entries:
+        label = entry["label"]
+        folder = resolved_output / label
+        folder.mkdir()
         summary_path = folder / "summary.json"
-        summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
+        summary_path.write_text(summary_texts[label])
         csv_path = folder / "per_seed.csv"
         _write_csv(csv_path, cells_by_label[label], results[label], seeds)
         written += [summary_path, csv_path]
     comparison_path = resolved_output / "comparison.csv"
     registered_info = _write_comparison(comparison_path, labels, noises, summaries)
     written.append(comparison_path)
+    fit_sha256 = hashlib.sha256(fit_bytes).hexdigest()
+    readme_path = resolved_output / "README.txt"
+    readme_path.write_text(_readme_text(status, fit_path, fit_sha256, entries))
+    written.append(readme_path)
 
     sensor_config = fit["sensor_config"]
     not_applied = {
@@ -328,12 +405,15 @@ def run_rerun(fit_path: Path, output: Path, *, bracket: tuple[str, ...] = BRACKE
         "schema": MANIFEST_SCHEMA,
         "status": status,
         "fit_path": str(fit_path),
-        "fit_sha256": hashlib.sha256(fit_bytes).hexdigest(),
+        "fit_sha256": fit_sha256,
         "fit_schema": fit["schema"],
         "fit_input": input_block,
+        "assumptions": fit.get("assumptions"),
+        "evidence_boundary": fit.get("evidence_boundary"),
         "bracket": entries,
         "noise_interval": noise_interval,
-        "depth_axis": depth_axis if depth_axis is not None else (CAMERA_DEPTH_AXIS if "depth" in labels else None),
+        "depth_axis": (depth_axis if depth_axis is not None else CAMERA_DEPTH_AXIS) if "depth" in labels else None,
+        "depth_axis_rule": DEPTH_AXIS_RULE,
         "position_frame": fit["per_axis"].get("position_frame"),
         "not_applied": not_applied,
         "registered_summary": registered_info,
