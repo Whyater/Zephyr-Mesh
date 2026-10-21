@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -110,9 +111,11 @@ def test_rejections(bad, func, label, line):
     assert f"{label}:{line}:" in str(exc.value)
 
 
-def test_echoer_empty_rows_allowed_and_sender_only_unknown(tmp_path):
-    parsed = parse_echoer_log("\n".join(ECHOER_META) + "\n")
-    assert parsed.rows == ()
+def test_header_only_logs_are_rejected_and_sender_only_is_unknown(tmp_path):
+    with pytest.raises(EchoLogError, match="echoer:7: no packets"):
+        parse_echoer_log("\n".join(ECHOER_META) + "\n")
+    with pytest.raises(EchoLogError, match="sender:11: no packets"):
+        parse_sender_log("\n".join(SENDER_META) + "\n")
     trace = read_echo_logs(_write(tmp_path, "sender.log", sender_text(rows=range(8)).replace("2,1002000,1003000", "2,1002000,").replace("6,1006000,1007000", "6,1006000,")), None, trace_id="solo", status="synthetic")
     assert all(p.outcome == "unknown" for p in trace.packets)
 
@@ -126,16 +129,61 @@ def test_cli_synthetic_and_measured_requirements(tmp_path):
     sender = tmp_path / "sender.log"; sender.write_text(sender_text().replace("2,1002000,1003000", "2,1002000,").replace("6,1006000,1007000", "6,1006000,"), encoding="utf-8", newline="")
     out = tmp_path / "trace.json"
     script = Path(__file__).parents[1] / "tools" / "import_espnow_log.py"
-    py = "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python"
+    py = sys.executable
     result = subprocess.run([py, str(script), "--sender", str(sender), "--trace-id", "cli", "--status", "synthetic", "--out", str(out)], check=False, capture_output=True, text=True, cwd=Path(__file__).parents[1], env={**os.environ, "PYTHONPATH": str(Path(__file__).parents[1])})
     assert result.returncode == 0, result.stderr
-    decoded = json.loads(out.read_text())
+    decoded = json.loads(out.read_text(encoding="utf-8"))
     EspNowTrace.from_path(out)
-    schema = json.loads((Path(__file__).parents[1] / "sim" / "trace_schema.json").read_text())
+    schema = json.loads((Path(__file__).parents[1] / "sim" / "trace_schema.json").read_text(encoding="utf-8"))
     Draft202012Validator(schema).validate(decoded)
     missing = subprocess.run([py, str(script), "--sender", str(sender), "--trace-id", "cli", "--status", "measured", "--out", str(out), "--source", "bench"], check=False, capture_output=True, text=True, cwd=Path(__file__).parents[1], env={**os.environ, "PYTHONPATH": str(Path(__file__).parents[1])})
     assert missing.returncode == 2 and "operator" in missing.stderr
     measured = subprocess.run([py, str(script), "--sender", str(sender), "--trace-id", "cli", "--status", "measured", "--out", str(out), "--source", "bench", "--operator", "A", "--captured-at", "2026-10-20T12:00:00-06:00", "--code-revision", "abc", "--instrument-model", "m"], check=False, capture_output=True, text=True, cwd=Path(__file__).parents[1], env={**os.environ, "PYTHONPATH": str(Path(__file__).parents[1])})
     assert measured.returncode == 0, measured.stderr
-    prov = json.loads(out.read_text())["provenance"]
+    prov = json.loads(out.read_text(encoding="utf-8"))["provenance"]
     assert prov["raw_sha256"] == hashlib.sha256(sender.read_bytes()).hexdigest()
+
+
+# Rules added after the first code review. Line numbers are worked out by hand:
+# SENDER_META is 10 lines, so data row k (0-based) is line 11 + k; ECHOER_META
+# is 6 lines, so echoer data row k is line 7 + k.
+@pytest.mark.parametrize("bad,func,label,line", [
+    (sender_text()[:-1], parse_sender_log, "sender", 18),  # cut off: no final newline
+    (sender_text().replace("2,1002000,", "2,1002000\x0b,", 1), parse_sender_log, "sender", 13),
+    (sender_text().replace("0,1000000,", "0,10000000000000000000,"), parse_sender_log, "sender", 11),
+    (sender_text().replace("0,1000000,", "0," + "9" * 400 + ","), parse_sender_log, "sender", 11),
+    (sender_text().replace("# peer=B", "# peer=A"), parse_sender_log, "sender", 4),
+    (sender_text().replace("# rate_hz=50", "# rate_hz=1_0"), parse_sender_log, "sender", 9),
+    (sender_text().replace("# firmware=echo-bench-0.1", "# firmware=bench\x00"), parse_sender_log, "sender", 6),
+    (echoer_text().replace("2,2002000,2002100,-42", "2,2002000,2002100,-0"), parse_echoer_log, "echoer", 7),
+    (echoer_text().replace("1,2004000,,-44", "1,2004000,2004010,-44"), parse_echoer_log, "echoer", 9),
+])
+def test_rejections_added_after_review(bad, func, label, line):
+    with pytest.raises(EchoLogError) as exc:
+        func(bad, label)
+    assert f"{label}:{line}:" in str(exc.value)
+
+
+def test_cross_file_errors_name_the_file_and_line(tmp_path):
+    sender = _write(tmp_path, "a.log", sender_text())
+    # Echoer board does not match the sender's peer: points at the board line (3).
+    with pytest.raises(EchoLogError, match="b.log:3: board=C"):
+        read_echo_logs(sender, _write(tmp_path, "b.log", echoer_text().replace("# board=B", "# board=C")), trace_id="x", status="synthetic")
+    # seq 2 round trip on A is 1003000 - 1002000 = 1000 us; B's hold of 2000 us is impossible.
+    # seq 2 is sender data row 2, line 13.
+    with pytest.raises(EchoLogError, match="a.log:13: echoer held seq 2 for 2000 us"):
+        read_echo_logs(sender, _write(tmp_path, "b.log", echoer_text().replace("2,2002000,2002100", "2,2002000,2004000")), trace_id="x", status="synthetic")
+    # A logged an echo for seq 6 (line 17) but B shows no echo for it.
+    with pytest.raises(EchoLogError, match="a.log:17: echo logged for seq 6"):
+        read_echo_logs(sender, _write(tmp_path, "b.log", echoer_text().replace("6,2006000,2006100", "6,2006000,")), trace_id="x", status="synthetic")
+    # B logged seq 9, which A never sent: echoer row 0 is line 7.
+    with pytest.raises(EchoLogError, match="b.log:7: seq 9 does not appear"):
+        read_echo_logs(sender, _write(tmp_path, "b.log", echoer_text().replace("2,2002000,2002100,-42", "9,2002000,,-42")), trace_id="x", status="synthetic")
+
+
+def test_cli_reports_bad_input_without_a_traceback(tmp_path, capsys):
+    from tools.import_espnow_log import main
+
+    sender = _write(tmp_path, "a.log", sender_text().replace("0,1000000,", "0," + "9" * 400 + ","))
+    assert main(["--sender", str(sender), "--trace-id", "x", "--status", "synthetic", "--out", str(tmp_path / "t.json")]) == 2
+    assert "a.log:11:" in capsys.readouterr().err

@@ -24,7 +24,7 @@ def echo_payload():
 
 
 def validators():
-    schema = json.loads((Path(__file__).parents[1] / "sim" / "trace_schema.json").read_text())
+    schema = json.loads((Path(__file__).parents[1] / "sim" / "trace_schema.json").read_text(encoding="utf-8"))
     return Draft202012Validator(schema)
 
 

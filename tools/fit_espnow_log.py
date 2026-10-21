@@ -75,6 +75,10 @@ from typing import Any
 import numpy as np
 from scipy import stats
 
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 from sim.link import LinkConfig
 from sim.s6_recovery import wilson_interval
 from sim.trace import EspNowTrace

@@ -277,12 +277,6 @@ class EspNowPacket:
             raise ValueError(f"{outcome} packets cannot have unknown_reason")
         if outcome != "lost" and loss_reason is not None:
             raise ValueError(f"{outcome} packets cannot have loss_reason")
-        send_time_s = _finite_nonnegative(raw.get("send_time_s"), "send_time_s")
-        if echo_time_s is not None:
-            if echo_time_s < send_time_s:
-                raise ValueError("echo_time_s cannot precede send_time_s (both are on the sender's clock)")
-            if echo_turnaround_s is not None and echo_turnaround_s > echo_time_s - send_time_s:
-                raise ValueError("echo_turnaround_s cannot exceed echo_time_s - send_time_s")
         rssi_dbm = raw.get("rssi_dbm")
         if rssi_dbm is not None:
             if isinstance(rssi_dbm, bool) or not isinstance(rssi_dbm, (int, float)):
@@ -290,6 +284,14 @@ class EspNowPacket:
             rssi_dbm = float(rssi_dbm)
             if not math.isfinite(rssi_dbm):
                 raise ValueError("rssi_dbm must be finite or null")
+        # send_time_s is checked here, after rssi_dbm, as before echo mode existed,
+        # so non-echo traces report errors in the same order.
+        send_time_s = _finite_nonnegative(raw.get("send_time_s"), "send_time_s")
+        if echo_time_s is not None:
+            if echo_time_s < send_time_s:
+                raise ValueError("echo_time_s cannot precede send_time_s (both are on the sender's clock)")
+            if echo_turnaround_s is not None and echo_turnaround_s > echo_time_s - send_time_s:
+                raise ValueError("echo_turnaround_s cannot exceed echo_time_s - send_time_s")
         return cls(
             packet_id=packet_id,
             sender_id=sender_id,
