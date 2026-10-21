@@ -1,5 +1,13 @@
 """Receiver-side replay and freshness checks for the drone simulator.
 
+Name warning: "replay" here means a replay ATTACK, where someone re-sends an
+old packet hoping the receiver accepts it again. This module is the guard that
+rejects such stale or repeated frames. It does not replay a recorded ESP-NOW
+capture. Replaying a captured trace packet by packet is
+``sim.link.replay_trace``; reading an ESP32 echo log is
+``tools/import_espnow_log.py``; fitting link parameters from a log is
+``tools/fit_espnow_log.py``. (Renaming this module is a separate proposal.)
+
 This module simulates a receiver-side check. It does not provide authenticity:
 a party that can forge sequence numbers can defeat this check without a MAC or
 encryption. ESP-NOW's own encryption is a separate topic covered in the

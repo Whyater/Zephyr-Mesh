@@ -4,6 +4,37 @@ The schema keeps raw observations separate from the stochastic link fixture.
 It can describe a measured capture today, while synthetic examples remain
 explicitly labelled and cannot be mistaken for radio evidence. Replay keeps
 the observed receive outcome and timestamps instead of fitting a distribution.
+
+Clock domains (``clock_domain``):
+
+* ``shared_monotonic``: send and receive stamps come from one clock, so
+  one-way age ``receive_time_s - send_time_s`` is a real measurement.
+* ``device_and_host`` and ``unknown``: stamps come from different clocks; no
+  one-way age is computed.
+* ``sender_round_trip`` (echo mode, a proposal on this branch): the sender
+  stamps ``send_time_s`` and ``echo_time_s`` on its own clock, the receiver
+  bounces the packet straight back, and ``receive_time_s`` (when present) is
+  the receiver's own clock, which is NOT comparable with the sender's.
+  ``echo_turnaround_s`` is how long the receiver held the packet before
+  echoing it, measured on the receiver's clock (a difference of two stamps on
+  one clock, so the unknown offset between the boards cancels). The round
+  trip is ``rtt = echo_time_s - send_time_s - echo_turnaround_s``.
+
+  One-way delay is then ESTIMATED as ``rtt / 2``. That rests on an
+  assumption, not a measurement: the outbound leg (sender to receiver) and the
+  return leg take the same time on average. If the outbound leg is really
+  ``d_out`` and the return ``d_back``, then ``rtt / 2 = (d_out + d_back) / 2``,
+  so the estimate is off by ``(d_back - d_out) / 2`` and nothing in an echo
+  log can detect that error. A shared wired clock edge between the two boards
+  is the only way to check it. Clock drift between the boards does not matter
+  here because each difference uses one board's clock only, except that the
+  receiver's turnaround is scaled by its clock-rate error (parts per million
+  of a sub-millisecond hold, which is negligible).
+
+  ``sim.link.replay_trace`` treats an echo trace like ``device_and_host``: it
+  keeps the receiver-clock arrival order and computes no one-way age. A
+  received packet known only from its echo has no arrival time, so replay
+  stops with an error. Fit echo traces with ``tools/fit_espnow_log.py``.
 """
 from __future__ import annotations
 
@@ -32,7 +63,9 @@ _PACKET_FIELDS = {
     "packet_id", "sender_id", "receiver_id", "sender_session_id", "seq", "send_time_s",
     "outcome", "receive_time_s", "callback_time_s", "rssi_dbm", "payload_bytes",
     "retry_count", "loss_reason", "unknown_reason", "duplicate", "out_of_order",
+    "echo_time_s", "echo_turnaround_s",
 }
+CLOCK_DOMAINS = {"shared_monotonic", "device_and_host", "unknown", "sender_round_trip"}
 _TRACE_FIELDS = {
     "schema", "trace_id", "status", "clock_domain", "source", "code_revision",
     "clock_uncertainty_s", "notes", "provenance", "capture", "packets",
@@ -162,6 +195,13 @@ class EspNowPacket:
     observation. ``packet_id`` should remain stable across raw-log exports;
     sequence numbers alone can repeat after a device reboot.
 
+    ``echo_time_s`` and ``echo_turnaround_s`` exist only for echo captures
+    (``clock_domain = "sender_round_trip"``, see the module docstring). An
+    echo proves the outbound packet arrived, so a packet with an echo must be
+    ``received``. A ``received`` packet with no echo means the return leg was
+    lost (or the receiver did not echo). In that domain a ``received`` packet
+    may omit ``receive_time_s`` when an echo shows it arrived.
+
     ``seq`` should be an unwrapped counter within one ``sender_session_id``.
     A narrow hardware counter (uint8, uint16) repeats values, and replay then
     derives false duplicate flags; either unwrap it when exporting or supply
@@ -184,9 +224,16 @@ class EspNowPacket:
     unknown_reason: str | None = None
     duplicate: bool | None = None
     out_of_order: bool | None = None
+    echo_time_s: float | None = None
+    echo_turnaround_s: float | None = None
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any]) -> "EspNowPacket":
+    def from_dict(cls, raw: Mapping[str, Any], clock_domain: str | None = None) -> "EspNowPacket":
+        """Validate one packet.
+
+        ``clock_domain`` is the parent trace's domain. It only relaxes or adds
+        rules for ``sender_round_trip``; every other domain behaves as before.
+        """
         if not isinstance(raw, Mapping):
             raise ValueError("packet must be an object")
         _reject_unknown(raw, _PACKET_FIELDS, "packet")
@@ -202,7 +249,16 @@ class EspNowPacket:
             raise ValueError(f"outcome must be one of {sorted(OUTCOMES)}")
         receive_time_s = _optional_float(raw.get("receive_time_s"), "receive_time_s")
         callback_time_s = _optional_float(raw.get("callback_time_s"), "callback_time_s")
-        if outcome == "received" and receive_time_s is None:
+        echo_time_s = _optional_float(raw.get("echo_time_s"), "echo_time_s")
+        echo_turnaround_s = _optional_float(raw.get("echo_turnaround_s"), "echo_turnaround_s")
+        echo_mode = clock_domain == "sender_round_trip"
+        if not echo_mode and (echo_time_s is not None or echo_turnaround_s is not None):
+            raise ValueError("echo_time_s and echo_turnaround_s are only allowed when clock_domain is sender_round_trip")
+        if echo_turnaround_s is not None and echo_time_s is None:
+            raise ValueError("echo_turnaround_s requires echo_time_s")
+        if echo_time_s is not None and outcome != "received":
+            raise ValueError("a packet with echo_time_s must be received (the echo proves it arrived)")
+        if outcome == "received" and receive_time_s is None and not (echo_mode and echo_time_s is not None):
             raise ValueError("received packets require receive_time_s")
         if outcome != "received" and receive_time_s is not None:
             raise ValueError(f"{outcome} packets cannot have receive_time_s")
@@ -233,13 +289,21 @@ class EspNowPacket:
             rssi_dbm = float(rssi_dbm)
             if not math.isfinite(rssi_dbm):
                 raise ValueError("rssi_dbm must be finite or null")
+        # send_time_s is checked here, after rssi_dbm, as before echo mode existed,
+        # so non-echo traces report errors in the same order.
+        send_time_s = _finite_nonnegative(raw.get("send_time_s"), "send_time_s")
+        if echo_time_s is not None:
+            if echo_time_s < send_time_s:
+                raise ValueError("echo_time_s cannot precede send_time_s (both are on the sender's clock)")
+            if echo_turnaround_s is not None and echo_turnaround_s > echo_time_s - send_time_s:
+                raise ValueError("echo_turnaround_s cannot exceed echo_time_s - send_time_s")
         return cls(
             packet_id=packet_id,
             sender_id=sender_id,
             receiver_id=receiver_id,
             sender_session_id=sender_session_id,
             seq=seq,
-            send_time_s=_finite_nonnegative(raw.get("send_time_s"), "send_time_s"),
+            send_time_s=send_time_s,
             outcome=outcome,
             receive_time_s=receive_time_s,
             callback_time_s=callback_time_s,
@@ -250,10 +314,29 @@ class EspNowPacket:
             unknown_reason=unknown_reason,
             duplicate=_optional_bool(raw.get("duplicate"), "duplicate"),
             out_of_order=_optional_bool(raw.get("out_of_order"), "out_of_order"),
+            echo_time_s=echo_time_s,
+            echo_turnaround_s=echo_turnaround_s,
         )
 
     def as_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        data = asdict(self)
+        # Echo fields are left out when unused so non-echo traces serialize
+        # exactly as they did before echo mode existed.
+        for key in ("echo_time_s", "echo_turnaround_s"):
+            if data[key] is None:
+                data.pop(key)
+        return data
+
+    def round_trip_s(self) -> float | None:
+        """Sender-clock round trip minus the receiver's hold time, or None.
+
+        Only meaningful for ``sender_round_trip`` captures. A missing
+        turnaround is treated as zero, which makes the round trip (and the
+        ``rtt / 2`` one-way estimate) too long by the receiver's hold time.
+        """
+        if self.echo_time_s is None:
+            return None
+        return self.echo_time_s - self.send_time_s - (self.echo_turnaround_s or 0.0)
 
 
 @dataclass(frozen=True)
@@ -282,8 +365,8 @@ class EspNowTrace:
         if status not in TRACE_STATUSES:
             raise ValueError(f"status must be one of {sorted(TRACE_STATUSES)}")
         clock_domain = _required_text(raw.get("clock_domain"), "clock_domain")
-        if clock_domain not in {"shared_monotonic", "device_and_host", "unknown"}:
-            raise ValueError("clock_domain must be shared_monotonic, device_and_host, or unknown")
+        if clock_domain not in CLOCK_DOMAINS:
+            raise ValueError("clock_domain must be shared_monotonic, device_and_host, unknown, or sender_round_trip")
         capture = raw.get("capture")
         if not isinstance(capture, Mapping):
             raise ValueError("capture must be an object")
@@ -304,7 +387,7 @@ class EspNowTrace:
         packets_raw = raw.get("packets")
         if not isinstance(packets_raw, list):
             raise ValueError("packets must be an array")
-        packets = tuple(EspNowPacket.from_dict(packet) for packet in packets_raw)
+        packets = tuple(EspNowPacket.from_dict(packet, clock_domain) for packet in packets_raw)
         packet_ids = [packet.packet_id for packet in packets]
         if len(packet_ids) != len(set(packet_ids)):
             raise ValueError("packet_id values must be unique")

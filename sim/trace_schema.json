@@ -9,7 +9,7 @@
     "schema": {"const": "zephyr-espnow-trace-1"},
     "trace_id": {"type": "string", "minLength": 1},
     "status": {"enum": ["measured", "synthetic", "fixture"]},
-    "clock_domain": {"description": "shared_monotonic permits age and ordering checks; device_and_host and unknown do not invent one-way age.", "enum": ["shared_monotonic", "device_and_host", "unknown"]},
+    "clock_domain": {"description": "shared_monotonic permits age and ordering checks; device_and_host and unknown do not invent one-way age. sender_round_trip is echo mode (proposal): send_time_s and echo_time_s are on the sender's clock, receive_time_s is on the receiver's own clock, and one-way delay can only be ESTIMATED as (echo_time_s - send_time_s - echo_turnaround_s) / 2, which assumes the outbound and return legs take the same time on average. An echo log cannot detect a difference between the two legs.", "enum": ["shared_monotonic", "device_and_host", "unknown", "sender_round_trip"]},
     "source": {"type": ["string", "null"]},
     "code_revision": {"type": ["string", "null"]},
     "clock_uncertainty_s": {"type": ["number", "null"], "minimum": 0},
@@ -215,15 +215,28 @@
           "loss_reason": {"type": ["string", "null"]},
           "unknown_reason": {"type": ["string", "null"]},
           "duplicate": {"type": ["boolean", "null"]},
-          "out_of_order": {"type": ["boolean", "null"]}
+          "out_of_order": {"type": ["boolean", "null"]},
+          "echo_time_s": {"type": ["number", "null"], "minimum": 0, "description": "Echo mode only (clock_domain sender_round_trip): sender-clock time the echo came back. An echo proves the outbound packet arrived."},
+          "echo_turnaround_s": {"type": ["number", "null"], "minimum": 0, "description": "Echo mode only: how long the receiver held the packet before echoing it, from two stamps on the receiver's clock. Requires echo_time_s."}
         },
         "allOf": [
           {
             "if": {"properties": {"outcome": {"const": "received"}}, "required": ["outcome"]},
             "then": {
-              "properties": {"receive_time_s": {"type": "number"}, "loss_reason": {"type": "null"}, "unknown_reason": {"type": "null"}},
-              "required": ["receive_time_s"]
+              "properties": {"loss_reason": {"type": "null"}, "unknown_reason": {"type": "null"}},
+              "anyOf": [
+                {"properties": {"receive_time_s": {"type": "number"}}, "required": ["receive_time_s"]},
+                {"properties": {"echo_time_s": {"type": "number"}}, "required": ["echo_time_s"]}
+              ]
             }
+          },
+          {
+            "if": {"properties": {"echo_time_s": {"type": "number"}}, "required": ["echo_time_s"]},
+            "then": {"properties": {"outcome": {"const": "received"}}}
+          },
+          {
+            "if": {"properties": {"echo_turnaround_s": {"type": "number"}}, "required": ["echo_turnaround_s"]},
+            "then": {"properties": {"echo_time_s": {"type": "number"}}, "required": ["echo_time_s"]}
           },
           {
             "if": {"properties": {"outcome": {"const": "lost"}}, "required": ["outcome"]},
@@ -248,6 +261,20 @@
     {
       "if": {"properties": {"status": {"const": "measured"}}, "required": ["status"]},
       "then": {"required": ["source", "provenance"], "properties": {"source": {"type": "string", "minLength": 1}}}
+    },
+    {
+      "if": {"not": {"properties": {"clock_domain": {"const": "sender_round_trip"}}, "required": ["clock_domain"]}},
+      "then": {
+        "properties": {
+          "packets": {
+            "items": {
+              "properties": {"echo_time_s": {"type": "null"}, "echo_turnaround_s": {"type": "null"}},
+              "if": {"properties": {"outcome": {"const": "received"}}, "required": ["outcome"]},
+              "then": {"properties": {"receive_time_s": {"type": "number"}}, "required": ["receive_time_s"]}
+            }
+          }
+        }
+      }
     }
   ],
   "additionalProperties": false
