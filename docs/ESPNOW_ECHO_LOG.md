@@ -1,13 +1,13 @@
 # ESP-NOW echo log format (proposal)
 
-Status: proposal on a branch. No firmware writes this format yet, and no
-measured log exists. The format is kept as small as possible so the bench
-firmware stays easy to write.
+Status: proposal on a branch. The bench firmware that would write this format
+is not written yet, and every log in the repo is synthetic. The format uses as
+few columns as possible so that firmware is easy to write.
 
-This page describes the plain text log two ESP32 boards would write during an
-echo test, how `tools/import_espnow_log.py` turns it into a
-`zephyr-espnow-trace-1` trace, and how `tools/fit_espnow_log.py` turns that
-trace into simulator link settings.
+This page covers the plain text log two ESP32 boards write during an echo
+test. `tools/import_espnow_log.py` turns the log into a `zephyr-espnow-trace-1`
+trace, and `tools/fit_espnow_log.py` turns that trace into simulator link
+settings.
 
 ---
 
@@ -19,12 +19,12 @@ packet to their own USB serial port, and the laptop saves each port to a file.
 
 - A stamps the send time and the echo arrival time with its own clock.
 - B stamps the arrival time and the echo send time with its own clock.
-- The two clocks start at different times (each board starts counting at
-  boot), so a time from A can never be subtracted from a time from B.
+- Each board starts its clock at boot, so the clocks have different origins
+  and a time from A can never be subtracted from a time from B.
 
-### What the echo can and cannot tell you
+### Limits of echo timing
 
-The round trip is measured honestly, because each piece uses one clock:
+The round trip is a real measurement, because each piece uses one clock:
 
 ```text
 rtt = (echo_us - tx_us)            on A's clock
@@ -88,7 +88,7 @@ seq,rx_us,echo_tx_us,rssi_dbm
 | `seq` | The packet number B received, copied from the packet. One row per arrival, in arrival order. |
 | `rx_us` | B's clock when the packet arrived. |
 | `echo_tx_us` | B's clock when B sent the echo. Empty if B did not echo it. |
-| `rssi_dbm` | Signal strength B saw for this packet, a whole number in dBm (for example `-47`). Empty if not available. |
+| `rssi_dbm` | Signal strength B saw for this packet, a whole number in dBm such as `-47`. Empty if not available. |
 
 Without the echoer log, a missing echo cannot be blamed on either direction,
 so every packet without an echo becomes `unknown` and the loss fit has nothing
@@ -104,7 +104,8 @@ It never skips or repairs a line.
 1. Text is UTF-8. Lines end in `\n` (a `\r\n` ending is accepted and the
    `\r` is dropped).
 2. Line 1 is exactly `# zephyr-espnow-echo-log-1`.
-3. Then `# key=value` lines, one key each, no spaces around `=`, no key twice.
+3. Then `# key=value` lines with one key per line, written with `=` directly
+   between key and value. Each key appears at most once.
    - Both files need `role`, `board`, `peer`, `session`.
    - The sender file also needs `firmware`.
    - Optional in either file: `payload_bytes` (whole number), `channel`
@@ -112,8 +113,8 @@ It never skips or repairs a line.
    - Any other key is an error.
 4. Then the column header, exactly `seq,tx_us,echo_us` (sender) or
    `seq,rx_us,echo_tx_us,rssi_dbm` (echoer).
-5. Then data rows only. No blank lines, no comments, no spaces, no boot
-   messages. Each row has exactly the header's number of fields.
+5. Then data rows only, each with exactly the header's number of fields.
+   Blank lines, comments, spaces and board boot messages are all errors.
 6. `seq` and every time are whole numbers of zero or more, written as plain
    digits. `rssi_dbm` is a whole number from -128 to 0.
 7. Sender file: `seq` goes up by exactly 1 each row. A jump means serial lines
@@ -122,13 +123,13 @@ It never skips or repairs a line.
 8. Echoer file: `rx_us` never goes down. `echo_tx_us` is never earlier than
    `rx_us`. A `seq` may repeat (a duplicate arrival) or arrive out of order.
    Every `seq` must also appear in the sender file.
-9. The two headers must agree: the echoer's `peer` is the sender's `board`
-   and the other way round.
+9. The echoer's `peer` is the sender's `board`, and the sender's `peer` is
+   the echoer's `board`.
 10. If A logged an echo for a packet, B must have logged that packet with an
     `echo_tx_us`. Otherwise one of the two serial logs is incomplete, and the
     reader refuses to guess which.
 
-## How each packet is labelled in the trace
+## Packet labels in the trace
 
 One trace record per sender row, with `clock_domain = "sender_round_trip"`:
 
@@ -158,7 +159,7 @@ python tools/fit_espnow_log.py trace.json --out fit.json
 ```
 
 `--status measured` also needs the capture details (operator, capture time,
-code revision, source); the reader records the SHA-256 of both raw files.
+code revision, source). The reader records the SHA-256 of both raw files.
 
-A synthetic example made from known settings lives in
-`tests/data/espnow_echo/`. It is not a measurement.
+`tests/data/espnow_echo/` holds a synthetic example made from known settings.
+It is not a measurement.
