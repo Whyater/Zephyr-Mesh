@@ -252,3 +252,13 @@ def test_guard_blocks_live_mode(tmp_path):
         tool.main(["--output", str(tmp_path / "c.json")])
     with pytest.raises(GuardTripped):
         cv2.VideoCapture(0)
+
+
+def test_save_views_guard_catches_a_differently_cased_repo_path(tmp_path):
+    repo = tmp_path / "Repo-Folder"
+    repo.mkdir()
+    swapped = tmp_path / "rEPO-fOLDER"
+    if not swapped.exists():
+        pytest.skip("this disk is case-sensitive, so a differently cased path is a different folder")
+    assert tool._inside(swapped / "views", repo)
+    assert not tool._inside(tmp_path / "elsewhere" / "views", repo)

@@ -417,11 +417,17 @@ def list_cameras(run: Callable[..., Any] = subprocess.run, platform: str = sys.p
 
 
 def inside_folder(path: Path, folder: Path) -> bool:
-    try:
-        path.resolve().relative_to(folder.resolve())
-    except ValueError:
+    """True if path is folder or anywhere under it.
+
+    Compares real folders with os.path.samefile, so a differently cased path
+    on a case-insensitive Mac disk is still caught.
+    """
+    if not folder.exists():
         return False
-    return True
+    for candidate in (path.resolve(), *path.resolve().parents):
+        if candidate.exists() and os.path.samefile(candidate, folder):
+            return True
+    return False
 
 
 def output_paths(output: Path) -> dict[str, Path]:

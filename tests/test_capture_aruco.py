@@ -1131,6 +1131,22 @@ def test_live_output_inside_the_repo_exits_2_but_a_dry_run_may_write_there(tmp_p
     assert not inside.exists()
 
 
+
+def _case_insensitive_disk(folder: Path) -> bool:
+    swapped = folder.parent / folder.name.swapcase()
+    return swapped != folder and swapped.exists()
+
+
+def test_privacy_guard_catches_a_differently_cased_repo_path(tmp_path):
+    repo = tmp_path / "Repo-Folder"
+    (repo / "tools").mkdir(parents=True)
+    if not _case_insensitive_disk(repo):
+        pytest.skip("this disk is case-sensitive, so a differently cased path is a different folder")
+    assert cap.inside_folder(tmp_path / "REPO-FOLDER" / "tools" / "x.jsonl", repo)
+    assert cap.inside_folder(tmp_path / "repo-folder" / "new-dir" / "x.jsonl", repo)
+    assert not cap.inside_folder(tmp_path / "other" / "x.jsonl", repo)
+    assert not cap.inside_folder(tmp_path / "Repo-Folder-2" / "x.jsonl", repo)
+
 # --- repair round: OpenCV tests -------------------------------------------------
 
 def test_read_error_at_frame_12_keeps_the_frames_before_it_and_exits_1(scene, tmp_path, capsys):

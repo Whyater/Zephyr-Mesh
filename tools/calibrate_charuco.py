@@ -310,8 +310,13 @@ def calibration_document(cv2: Any, result: Calibration, square_mm: float, marker
 
 
 def _inside(path: Path, folder: Path) -> bool:
-    path, folder = path.resolve(), folder.resolve()
-    return path == folder or folder in path.parents
+    """True if path is folder or anywhere under it, also for a differently cased path on a Mac disk."""
+    if not folder.exists():
+        return False
+    for candidate in (path.resolve(), *path.resolve().parents):
+        if candidate.exists() and os.path.samefile(candidate, folder):
+            return True
+    return False
 
 
 def _write_new_file(path: Path, data: bytes, overwrite: bool) -> None:
