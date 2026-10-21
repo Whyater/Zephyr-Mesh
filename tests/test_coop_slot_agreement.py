@@ -147,3 +147,28 @@ def test_lost_or_late_claims_do_not_leave_a_clash_or_an_empty_slot(fault):
     steps = _FaultyLinkSimulator(config, FAULTS[fault]).run().as_dict()["steps"]
     # The faults end by 12 s; two more seconds lets every planner re-agree.
     assert _final_slot_problems(steps, start_s=14.0) == []
+
+
+def test_ground_mode_with_shared_claims_keeps_distinct_slots():
+    # The ground station plans for everyone at once and ignores claims; the
+    # drones' own fallback planners still see claims. Check the mix still ends
+    # with four distinct slots after a ground-station outage.
+    config = CoopSwarmConfig(
+        n_agents=4,
+        seed=101,
+        duration_s=16.0,
+        control_dt_s=0.02,
+        fusion="central",
+        decision="ground",
+        link=CoopLinkConfig(delay_s=0.05, loss_probability=0.3, loss_model="independent", share_rate_hz=10.0),
+        heartbeat_timeout_s=0.5,
+        gs_outage=((8.0, 11.0),),
+        dropouts=(),
+        log_every=1,
+        share_slot_claims=True,
+    )
+    steps = CoopSwarmSimulator(config).run().as_dict()["steps"]
+    for step in steps:
+        if float(step["time_s"]) >= 14.0:
+            own = sorted(int(row["slot_index"]) for row in step["agents"] if row["active"])
+            assert own == [0, 1, 2, 3], step["time_s"]

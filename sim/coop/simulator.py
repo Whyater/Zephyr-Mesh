@@ -90,9 +90,11 @@ class CoopSwarmConfig:
     ci_mode: str = "fast"
     # Proposal (EXP-026 close-pass review), opt-in: each drone broadcasts the
     # slot it is flying to and the alive list it planned with, and every
-    # planner uses those shared claims for the switch penalty. The default
-    # False keeps the original private hysteresis (and the registered Run D
-    # outputs), which can lock two survivors onto the same slot after a dropout.
+    # onboard planner uses those shared claims for the switch penalty. The
+    # ground station is a single planner for everyone, so it does not use
+    # them. The default False keeps the original private hysteresis (and the
+    # registered Run D outputs), which can lock two survivors onto the same
+    # slot after a dropout.
     share_slot_claims: bool = False
 
     def __post_init__(self) -> None:
