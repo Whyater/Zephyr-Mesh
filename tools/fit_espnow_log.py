@@ -519,7 +519,7 @@ def fit_echo_trace(trace: EspNowTrace, *, confidence: float = 0.95, n_boot: int 
     if delay is None:
         link_reason = "no delay estimate (no echoes), so no link settings can be given"
     elif loss["loss_rate"] is None:
-        link_reason = "no packet with a known outbound outcome, so no loss setting can be given"
+        link_reason = "no loss setting can be given: " + loss["reason"]
     else:
         delay_s = delay["one_way_estimate"]["delay_s"]["value"]
         jitter_s = delay["one_way_estimate"]["delay_jitter_s"]["value"]

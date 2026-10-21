@@ -122,7 +122,8 @@ It never skips or repairs a line.
 3. Then `# key=value` lines with one key per line, written with `=` directly
    between key and value. Each key appears at most once.
    - Both files need `role`, `board`, `peer`, `session`, and `peer` must
-     differ from `board`. Values are plain printable text.
+     differ from `board`. Values are plain printable text with no `=`
+     sign and no space at either end.
    - The sender file also needs `firmware`.
    - Optional in either file: `payload_bytes` (whole number), `channel`
      (1 to 14), `rate_hz` (positive decimal number such as `50` or `12.5`),
