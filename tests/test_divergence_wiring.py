@@ -138,7 +138,8 @@ def test_default_is_off_and_identical():
 
 def test_matched_filter_is_not_flagged():
     # Straight-line target, sensor noise equal to what the filter assumes, one
-    # observer, no loss. This is the textbook case where the filter is honest.
+    # observer, no loss. This is the model-matched case: a mildly conservative
+    # filter (median mean NEES about 2), not an exactly calibrated one (about 3).
     cell = CoopCell(target="cv", n_observers=1, noise_std_m=0.05)
     rule = DivergenceRule()
     for seed in range(1, 11):

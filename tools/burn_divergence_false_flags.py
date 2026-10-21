@@ -18,7 +18,7 @@ Strata
   Arms ``single`` (1 observer) and ``central`` (2 and 3 observers), link loss
   0.0 and 0.3, link delay 0.05 s (the same link as tools/d_run_fusion.py).
 - mismodelled: targets ``ct`` and ``jink``, arms ``single``, ``central`` and
-  ``peer_ci`` (3 observers), noise 0.05 m, loss 0. The filter is honest about
+  ``peer_ci`` (3 observers), noise 0.05 m, loss 0. The filter is right about
   the sensor but its motion model is wrong for a turning target.
 - overconfident: target ``cv``, ``single``, noise 0.05 m, filter measurement
   std ``r_std_m`` in (0.002, 0.005, 0.01, 0.02) m, so the filter believes its
