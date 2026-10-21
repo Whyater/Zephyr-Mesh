@@ -7,10 +7,11 @@ import hashlib
 import json
 import math
 
+import numpy as np
 import pytest
 
 from sim.sensor import SensorConfig
-from sim.vision_noise_fit import FIT_SCHEMA, fit_vision_noise
+from sim.vision_noise_fit import FIT_SCHEMA, _block_bootstrap_moments, fit_vision_noise
 from sim.vision_trace import VisionTrace
 from tools.fit_vision_noise import main as fit_cli
 
@@ -189,6 +190,55 @@ def test_one_latency_record_gives_null_delay_with_reason():
     assert "found 1" in reason
     assert fit["uncertainty"]["measurement_delay_s"]["estimate"] is None
     assert fit["uncertainty"]["measurement_jitter_s"]["n"] == 1
+
+
+@pytest.mark.parametrize("n", [2, 7])
+def test_small_residual_samples_warn(n):
+    fit = fit_vision_noise(_trace([_det(i, 1.0 + 0.1 * i, (float(i), 0.0, 0.0)) for i in range(n)]), n_bootstrap=0)
+    assert any(f"Only {n} detected records with ground truth were used" in text for text in fit["assumptions"])
+
+
+def test_eight_residual_samples_do_not_warn():
+    fit = fit_vision_noise(_trace([_det(i, 1.0 + 0.1 * i, (float(i), 0.0, 0.0)) for i in range(8)]), n_bootstrap=0)
+    assert not any("detected records with ground truth were used" in text for text in fit["assumptions"])
+
+
+@pytest.mark.parametrize("n", [2, 7])
+def test_small_latency_samples_warn(n):
+    records = [_det(i, 1.0 + 0.1 * i, (float(i), 0.0, 0.0), processing=1.02 + 0.1 * i) for i in range(n)]
+    fit = fit_vision_noise(_trace(records), n_bootstrap=0)
+    assert any(f"Only {n} latency records were used" in text for text in fit["assumptions"])
+
+
+def test_eight_latency_samples_do_not_warn():
+    records = [_det(i, 1.0 + 0.1 * i, (float(i), 0.0, 0.0), processing=1.02 + 0.1 * i) for i in range(8)]
+    fit = fit_vision_noise(_trace(records), n_bootstrap=0)
+    assert not any("latency records were used" in text for text in fit["assumptions"])
+
+
+@pytest.mark.parametrize("n, block", [(23, 3), (24, 4)])
+def test_block_bootstrap_moments_matches_explicit_reference(n, block):
+    data_rng = np.random.default_rng(9182 + n)
+    x = data_rng.normal(size=(n, 3))
+    n_bootstrap = 50
+    n_blocks = (n + block - 1) // block
+    function_rng = np.random.default_rng(4401)
+    reference_rng = np.random.default_rng(4401)
+    mean, var = _block_bootstrap_moments(x, n_bootstrap, block, function_rng)
+
+    # The reference shares only the random draw order with the code under test.
+    starts = reference_rng.integers(0, n - block + 1, size=(n_bootstrap, n_blocks))
+    reference_mean = np.empty((n_bootstrap, x.shape[1]))
+    reference_var = np.empty((n_bootstrap, x.shape[1]))
+    remainder = n - block * (n_blocks - 1)
+    for row, row_starts in enumerate(starts):
+        pieces = [x[start:start + block] for start in row_starts[:-1]]
+        pieces.append(x[row_starts[-1]:row_starts[-1] + remainder])
+        sample = np.concatenate(pieces, axis=0)
+        reference_mean[row] = sample.mean(axis=0)
+        reference_var[row] = sample.var(axis=0, ddof=1)
+    assert np.allclose(mean, reference_mean)
+    assert np.allclose(var, reference_var)
 
 
 # D D ? A ? A -> segments [D D], [A], [A]. Only one step is counted: D -> D.

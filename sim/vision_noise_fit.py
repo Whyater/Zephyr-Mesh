@@ -493,6 +493,18 @@ def fit_vision_noise(trace: VisionTrace, *, subject_id: str | None = None, dropo
         "Records flagged duplicate or out_of_order are used as they are, not dropped.",
         "Latency = processing_time_s - capture_time_s: detector processing only. Exposure, readout, and transport before the capture stamp are not seen. It is fitted only under clock_domain shared_monotonic.",
     ]
+    if n_res < 8:
+        assumptions.append(
+            f"Only {n_res} detected records with ground truth were used; intervals from so few values are unreliable "
+            "(a bootstrap of fewer than about 8 values often gives a spread interval that runs from 0 to the estimate). "
+            "Collect more frames before trusting them."
+        )
+    if 2 <= len(latencies) < 8:
+        assumptions.append(
+            f"Only {len(latencies)} latency records were used; intervals from so few values are unreliable "
+            "(a bootstrap of fewer than about 8 values often gives a spread interval that runs from 0 to the estimate). "
+            "Collect more frames before trusting them."
+        )
     unidentified = [name for name, reason in (("burst_start_probability", s_reason), ("burst_end_probability", e_reason)) if reason is not None]
     if unidentified:
         assumptions.append(
