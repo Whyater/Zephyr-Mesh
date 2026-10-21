@@ -46,7 +46,7 @@ Full results, limits and commands: [docs/RESULTS.md](docs/RESULTS.md)
 
 ## Results you can check yourself
 
-Set up once with the steps in [INSTALL.md](INSTALL.md#run-from-source), then run these from the repository root.
+Set up once with the steps in [docs/INSTALL.md](docs/INSTALL.md#run-from-source), then run these from the repository root.
 
 | Check | What it shows | Command |
 | --- | --- | --- |
@@ -73,7 +73,7 @@ Get [Zephyr Mesh v0.2.4](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.
 
 The builds are unsigned or only ad hoc signed, so expect a one-time security prompt the first time you open them.
 
-Full install and build steps: [INSTALL.md](INSTALL.md)
+Full install and build steps: [docs/INSTALL.md](docs/INSTALL.md)
 
 ## Current features
 
@@ -109,11 +109,28 @@ These are plans. None of them is built yet.
 
 Full list: [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
 
+## Repository layout
+
+| Folder | What is in it |
+| --- | --- |
+| `sim/` | The simulator (Python package `sim`) |
+| `tests/` | The Python test suite |
+| `runs/` | Saved run outputs and their manifests |
+| `tools/` | Scripts that build and reproduce runs, reports, and releases |
+| `desktop/` | The Windows replay app and shared replay code |
+| `macos/` | The macOS replay app |
+| `design/` | Design source for both apps |
+| `docs/` | Install steps, roadmap, features, limitations, and results |
+| `firmware/` | Flight controller firmware (Planned) |
+| `hardware/` | Flight controller hardware (Planned) |
+
+The hardware phase, a physical flight controller in `firmware/` and `hardware/`, is Planned. Nothing for it is built yet.
+
 ## Contributing
 
 Start with the core question: how much radio latency, packet loss, and tracking noise can a cooperative drone tracker tolerate, and what helps it recover? Keep changes reproducible, label synthetic and measured data separately, and run the test suite before opening a pull request.
 
-Use the commands in [Run from source](INSTALL.md#run-from-source) for setup and tests. On Windows, follow the Git Bash steps there. See [`ROADMAP.md`](ROADMAP.md) for the current evidence gates.
+Use the commands in [Run from source](docs/INSTALL.md#run-from-source) for setup and tests. On Windows, follow the Git Bash steps there. See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the current evidence gates.
 
 ## License
 
