@@ -46,7 +46,7 @@ Full results, limits and commands: [docs/RESULTS.md](docs/RESULTS.md)
 
 ## Results you can check yourself
 
-Set up once with the steps in [INSTALL.md](INSTALL.md#run-from-source), then run these from the repository root.
+Set up once with the steps in [docs/INSTALL.md](docs/INSTALL.md#run-from-source), then run these from the repository root.
 
 | Check | What it shows | Command |
 | --- | --- | --- |
@@ -71,7 +71,7 @@ Get [Zephyr Mesh v0.2.4](https://github.com/Whyater/Zephyr-Mesh/releases/tag/v0.
 
 The builds are unsigned or only ad hoc signed, so expect a one-time security prompt the first time you open them.
 
-Full install and build steps: [INSTALL.md](INSTALL.md)
+Full install and build steps: [docs/INSTALL.md](docs/INSTALL.md)
 
 ## Current features
 
@@ -111,7 +111,7 @@ Full list: [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
 
 Start with the core question: how much radio latency, packet loss, and tracking noise can a cooperative drone tracker tolerate, and what helps it recover? Keep changes reproducible, label synthetic and measured data separately, and run the test suite before opening a pull request.
 
-Use the commands in [Run from source](INSTALL.md#run-from-source) for setup and tests. On Windows, use `.venv\Scripts\activate` in place of `source .venv/bin/activate`. See [`ROADMAP.md`](ROADMAP.md) for the current evidence gates.
+Use the commands in [Run from source](docs/INSTALL.md#run-from-source) for setup and tests. On Windows, use `.venv\Scripts\activate` in place of `source .venv/bin/activate`. See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the current evidence gates.
 
 ## License
 

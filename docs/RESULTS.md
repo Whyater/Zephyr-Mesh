@@ -1,6 +1,6 @@
 # Results
 
-All numbers on this page come from simulation. The link, sensor and radio inputs are assumed or taken from published sources, not measured, and nothing here is flight-tested. Run the commands from the repository root after the setup in [INSTALL.md](../INSTALL.md#run-from-source). The short version is in the [README](../README.md#results).
+All numbers on this page come from simulation. The link, sensor and radio inputs are assumed or taken from published sources, not measured, and nothing here is flight-tested. Run the commands from the repository root after the setup in [INSTALL.md](INSTALL.md#run-from-source). The short version is in the [README](../README.md#results).
 
 ## Result so far
 
