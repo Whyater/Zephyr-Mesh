@@ -1,6 +1,6 @@
 # Zephyr Mesh public roadmap
 
-This roadmap is written for contributors and reviewers. It separates shipped code from local work and future proposals.
+This roadmap is written for contributors and reviewers. It separates released code from next steps and future proposals.
 
 ## Released in v0.2.4
 

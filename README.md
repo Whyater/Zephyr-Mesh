@@ -62,7 +62,7 @@ Set up once with the steps in [INSTALL.md](INSTALL.md#run-from-source), then run
 
 - It is not flight-tested. All data is simulated.
 - The multi-drone layer is simplified point-mass coordination, not full 6-DOF swarm flight.
-- Many radio and motor values come from published sources. The rest are scaled from a similar drone, modelling choices, or not yet confirmed. Sensor noise, update rates, delay and loss are settings I chose for the study. I did not measure any of these values myself.
+- Many radio and motor values come from published sources. The rest are scaled from a similar drone, set by modelling choices, or not yet confirmed. Sensor noise, update rates, delay and loss are settings I chose for the study. I did not measure any of these values myself.
 - No hardware has been built yet.
 
 ## Download
