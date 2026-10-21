@@ -12,8 +12,10 @@ The rules that keep a parallel run byte-identical to a serial one:
 3. Results come back in the order the jobs were given, never in finish order.
 4. One worker is not a different code path: the parent calls the same
    ``_run_one`` that the workers call, on the same pickled bytes, so a job sees
-   a fresh copy of its input and the parent gets a fresh copy of the result,
-   exactly as across a process boundary.
+   a fresh copy of its input and the parent gets a fresh copy of the result.
+   That copies the data only: in the parent a job can still see the parent's
+   globals (imported modules, environment, caches), while a pooled worker starts
+   fresh. Rule 2 is what makes that difference harmless.
 
 Workers are started with "spawn" on every OS, so Linux behaves like macOS and
 Windows (no copy of the parent's memory, including any global random state).

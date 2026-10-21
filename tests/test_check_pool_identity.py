@@ -81,3 +81,11 @@ def test_exp016_pilot(tmp_path: Path) -> None:
         ["--runner", "exp016", "--pilot", "--keep", str(tmp_path)]
     )
     assert exit_code == 0
+
+
+def test_manifest_processes_reads_the_runner_manifest(tmp_path: Path) -> None:
+    assert check_pool_identity._manifest_processes(tmp_path) is None
+    (tmp_path / "manifest.json").write_text(json.dumps({"n_processes": 3}), encoding="utf-8")
+    assert check_pool_identity._manifest_processes(tmp_path) == 3
+    (tmp_path / "manifest.json").write_text("not json", encoding="utf-8")
+    assert check_pool_identity._manifest_processes(tmp_path) is None

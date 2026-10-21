@@ -1,10 +1,15 @@
 """Check that runner output is identical across serial and four worker runs.
 
 This proves that the selected runners give byte-identical output when run
-serially and with four workers through sim/ordered_pool.py. Full runs take
-minutes: EXP-016 takes about 6 CPU minutes serial, EXP-018 takes a few CPU
-minutes, and together they take over 10 CPU minutes. Run full mode under the
-heavy lock.
+serially and with four workers through sim/ordered_pool.py. It also reads each
+variant's manifest.json and fails if a variant asked for more than one worker
+but really ran on one process (for example on a two-core machine the cap can
+turn 4 into 2, which still counts, but never into 1).
+
+Full runs are slow. The registered manifests record about 2324 s (EXP-016)
+and 154 s at 2 processes (EXP-018) on a busy Mac; EXP-016 took 346.5 s serial on
+a less busy one. Together they are well over 10 CPU minutes, so run full mode
+under the heavy lock.
 
 Examples:
     PYTHONPATH=. python tools/check_pool_identity.py --pilot
@@ -161,6 +166,15 @@ def run_variant(
     return wall, cpu
 
 
+def _manifest_processes(output_dir: Path) -> int | None:
+    """The process count the runner wrote into its manifest (None if absent)."""
+    try:
+        value = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8")).get("n_processes")
+    except (OSError, ValueError):
+        return None
+    return value if isinstance(value, int) else None
+
+
 def _git_value(args: list[str]) -> str | bool | None:
     try:
         result = subprocess.run(
@@ -190,6 +204,7 @@ def _print_runner(
     hashes: dict[str, dict[str, str | None]],
     wall: dict[str, float],
     cpu: dict[str, float | None],
+    used: dict[str, int | None],
 ) -> None:
     variants = list(hashes)
     print(runner)
@@ -202,7 +217,7 @@ def _print_runner(
         print(name.ljust(34) + "  " + "  ".join(labels) + f"  {same}")
     for variant in variants:
         cpu_text = "null" if cpu[variant] is None else f"{cpu[variant]:.3f}"
-        print(f"{variant}: wall {wall[variant]:.3f}s, CPU {cpu_text}s")
+        print(f"{variant}: wall {wall[variant]:.3f}s, CPU {cpu_text}s, processes {used[variant]}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -258,12 +273,17 @@ def main(argv: list[str] | None = None) -> int:
                 hashes: dict[str, dict[str, str | None]] = {}
                 wall: dict[str, float] = {}
                 cpu: dict[str, float | None] = {}
+                used: dict[str, int | None] = {}
                 for variant, workers in variants:
                     output_dir = base / runner / variant
                     output_dir.mkdir(parents=True, exist_ok=True)
                     wall[variant], cpu[variant] = run_variant(
                         runner, variant, output_dir, args.pilot, workers
                     )
+                    used[variant] = _manifest_processes(output_dir)
+                    if workers is not None and workers > 1 and (used[variant] or 0) < 2:
+                        failed.append(f"{runner} {variant}: asked for {workers} workers, "
+                                      f"manifest says {used[variant]} process")
                     hashes[variant] = {
                         name: sha256_file(output_dir / name) if (output_dir / name).is_file() else None
                         for name in runner_outputs[runner]
@@ -275,6 +295,7 @@ def main(argv: list[str] | None = None) -> int:
                 }
                 report["wall_s"][runner] = wall
                 report["cpu_s"][runner] = cpu
+                report.setdefault("n_processes", {})[runner] = used
                 report["identical"][runner] = identical
                 if args.pilot:
                     report["registry_match"][runner] = None
@@ -283,7 +304,7 @@ def main(argv: list[str] | None = None) -> int:
                     matched, registry_detail = registry_match(first, runner_expected[runner])
                     report["registry_match"][runner] = matched
                     report.setdefault("registry_detail", {})[runner] = registry_detail
-                _print_runner(runner, runner_outputs[runner], hashes, wall, cpu)
+                _print_runner(runner, runner_outputs[runner], hashes, wall, cpu, used)
                 if identity_detail:
                     failed.extend(f"{runner} {name}: {reason}" for name, reason in identity_detail.items())
                 if not args.pilot and report["registry_match"][runner] is False:
