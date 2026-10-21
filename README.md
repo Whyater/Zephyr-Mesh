@@ -113,7 +113,7 @@ Full list: [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
 
 Start with the core question: how much radio latency, packet loss, and tracking noise can a cooperative drone tracker tolerate, and what helps it recover? Keep changes reproducible, label synthetic and measured data separately, and run the test suite before opening a pull request.
 
-Use the commands in [Run from source](INSTALL.md#run-from-source) for setup and tests. On Windows, use `.venv\Scripts\activate` in place of `source .venv/bin/activate`. See [`ROADMAP.md`](ROADMAP.md) for the current evidence gates.
+Use the commands in [Run from source](INSTALL.md#run-from-source) for setup and tests. On Windows, follow the Git Bash steps there. See [`ROADMAP.md`](ROADMAP.md) for the current evidence gates.
 
 ## License
 
