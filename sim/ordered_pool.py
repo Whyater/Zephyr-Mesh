@@ -101,12 +101,15 @@ def ordered_map(fn: str, jobs: Iterable[Any], *, workers: int = 1) -> list[Any]:
 def _selftest_job(job: dict[str, Any]) -> dict[str, Any]:
     """Tiny job for the unit tests (module level, so spawned workers can import it).
 
-    sleep_s pauses first, so later jobs can finish before earlier ones.
+    sleep_s pauses first, so later jobs can finish before earlier ones;
+    fail=True raises, so tests can check that an error reaches the caller.
     """
     import time
 
     import numpy as np
 
+    if job.get("fail"):
+        raise RuntimeError(f"selftest job {job['index']} failed on purpose")
     if job.get("sleep_s"):
         time.sleep(float(job["sleep_s"]))
     rng = np.random.default_rng(np.random.SeedSequence([int(job["seed"]), int(job["index"])]))

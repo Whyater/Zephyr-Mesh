@@ -84,3 +84,11 @@ def test_bad_function_name_fails_before_any_work() -> None:
 
 def test_empty_job_list() -> None:
     assert ordered_map(FN, [], workers=4) == []
+
+
+@pytest.mark.parametrize("workers", [1, 3])
+def test_a_failing_job_raises_in_the_caller(workers: int) -> None:
+    jobs = _jobs(5)
+    jobs[2]["fail"] = True
+    with pytest.raises(RuntimeError, match="selftest job 2 failed on purpose"):
+        ordered_map(FN, jobs, workers=workers)
