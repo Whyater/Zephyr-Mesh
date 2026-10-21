@@ -6,6 +6,7 @@ enum WindowID {
     static let about = "about-replay"
     static let scenarioRun = "scenario-run"
     static let evidenceReport = "evidence-report"
+    static let results = "results"
 }
 
 @main
@@ -54,6 +55,14 @@ struct ZephyrMeshApp: App {
             }
         }
         .defaultSize(width: LayoutMetrics.aboutWindowWidth, height: LayoutMetrics.aboutWindowHeight)
+        .windowResizability(.contentMinSize)
+
+        Window(UIText.Results.windowTitle, id: WindowID.results) {
+            AppearanceRoot {
+                ResultsWindowRoot(store: store)
+            }
+        }
+        .defaultSize(width: LayoutMetrics.resultsWindowWidth, height: LayoutMetrics.resultsWindowHeight)
         .windowResizability(.contentMinSize)
 
         WindowGroup("Scenario Run", id: WindowID.scenarioRun, for: UUID.self) { $id in
@@ -132,6 +141,10 @@ private struct MainWindowRoot: View {
         guard let request = ScreenshotSetup.current.open else { return }
         if request == "about" {
             openWindow(id: WindowID.about)
+            return
+        }
+        if ResultsPage(openRequest: request) != nil {
+            openWindow(id: WindowID.results)
             return
         }
         Task {

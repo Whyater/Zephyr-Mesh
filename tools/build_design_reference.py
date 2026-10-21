@@ -51,6 +51,11 @@ JOBS = {
     "onAlert": "Text placed on an alert or caution fill",
     "selectionFill": "Selected row, pressed button, selected segment",
     "hoverFill": "Row and button under the pointer",
+    "bandFill": "Interval band behind the recovery line in the Results charts",
+    "atlasStop1": "Tolerance atlas cell, 0 to 25 ms",
+    "atlasStop2": "Tolerance atlas cell, 50 to 100 ms",
+    "atlasStop3": "Tolerance atlas cell, 150 to 200 ms",
+    "atlasStop4": "Tolerance atlas cell, more than 300 ms",
 }
 TEXT_ROLES = ("text", "textSecondary", "accent", "target", "keepOut", "ok", "caution", "alert", "info")
 # Inline SVG for each status shape, drawn in a 16 by 16 box.

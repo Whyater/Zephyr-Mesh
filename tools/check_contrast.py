@@ -10,6 +10,8 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 TEXT_COLORS = ("text", "textSecondary", "accent", "target", "keepOut", "ok", "caution", "alert", "info")
 FILL_NAMES = ("selectionFill", "hoverFill")
+# Results window fills. Only body text (`text`) is ever drawn on them, so only that pair is checked.
+RESULT_FILL_NAMES = ("bandFill", "atlasStop1", "atlasStop2", "atlasStop3", "atlasStop4")
 
 
 def unwrap(item: Any) -> Any:
@@ -74,7 +76,7 @@ def check_derived_fills(colors: dict[str, Any], theme: str) -> list[str]:
     """Return errors for stale stored fill hex values."""
     errors = []
     resolved = {key: str(unwrap(item)) for key, item in colors.items()}
-    for fill_name in FILL_NAMES:
+    for fill_name in FILL_NAMES + RESULT_FILL_NAMES:
         fill = colors[fill_name]
         expected = blend(resolved[fill["base"]], resolved[fill["over"]], float(fill["alpha"]))
         stored = str(fill.get("hex", "")).upper()
@@ -167,6 +169,14 @@ def main() -> int:
                         f"{theme} {foreground} on {fill_name}: stale needs-approval mark",
                         file=sys.stderr,
                     )
+        for fill_name in RESULT_FILL_NAMES:
+            ratio = contrast(resolved["text"], str(colors[fill_name]["hex"]))
+            marked_pair = pair_name(theme, "text", fill_name) in marked
+            if print_pair(theme, "text", fill_name, ratio, 4.5, marked_pair):
+                failures.append((theme, "text", fill_name, ratio, 4.5))
+            elif marked_pair and ratio >= 4.5:
+                failures.append((theme, "text", fill_name, ratio, 4.5))
+                print(f"{theme} text on {fill_name}: stale needs-approval mark", file=sys.stderr)
     if fill_errors:
         print("\nDerived fill errors:", file=sys.stderr)
         for error in fill_errors:
