@@ -34,7 +34,7 @@ All of these are simulated. Nothing is measured on hardware. The failure line be
 
 ![Tracking error against link delay for a naive tracker and a capture-time recovery tracker, on a straight line and on a turn](runs/s6-recovery/s6_recovery.png)
 
-- A basic tracker's error grows by about speed x delay. Its p95 error (the error it stays under 95 % of the time) crosses the 0.25 m line at 200 ms of delay with no loss, for a 1 m/s target, 10 Hz measurements, 5 cm noise and 50 seeds (`runs/s6-recovery`).
+- A basic tracker's error grows by about speed x delay. Its p95 error (the error it stays under 95 % of the time) crosses the 0.25 m line at 200 ms of delay with no loss, for a 1 m/s target, 10 Hz measurements, 5 cm noise and 50 seeds. The 200 ms depends on that noise: with 0 or 2 cm it still passes at 200 ms and first fails at 300 ms (the next delay tested), and with 10 cm it fails from 150 ms (`runs/s6-recovery`).
 - Stamping each measurement with the time it was taken, then predicting forward, cuts the 300 ms error with no loss from 0.36 m to 0.16 m on a straight line, and from 0.38 m to 0.29 m on a 1 m radius turn (`runs/s6-recovery`).
 - On the turn, lost packets matter more than delay: at 30 % random loss the recovery tracker fails from 150 ms just like the basic one, and at 50 % both fail at every delay (`runs/s6-recovery`).
 - On a 1 m radius turn at 300 ms delay and 30 % loss, a tracker that models turning stays under the line (0.20 m) where the straight-line recovery tracker fails (0.40 m) (`runs/s6-turn`).
