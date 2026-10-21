@@ -88,11 +88,12 @@ class CoopSwarmConfig:
     gs_outage: tuple = ()
     metric_windows: tuple = ((0.0, 5.0), (5.0, 10.0), (10.0, 20.0))
     ci_mode: str = "fast"
-    # Proposal (EXP-026 close-pass review): each drone broadcasts the slot it
-    # is flying to, and every planner uses those shared claims for the switch
-    # penalty. False keeps the original private hysteresis, which can lock two
-    # survivors onto the same slot after a dropout.
-    share_slot_claims: bool = True
+    # Proposal (EXP-026 close-pass review), opt-in: each drone broadcasts the
+    # slot it is flying to and the alive list it planned with, and every
+    # planner uses those shared claims for the switch penalty. The default
+    # False keeps the original private hysteresis (and the registered Run D
+    # outputs), which can lock two survivors onto the same slot after a dropout.
+    share_slot_claims: bool = False
 
     def __post_init__(self) -> None:
         if isinstance(self.n_agents, bool) or int(self.n_agents) != self.n_agents or not 1 <= int(self.n_agents) <= 12:
@@ -165,7 +166,7 @@ class _Agent:
     previous_slots: dict[str, int] = field(default_factory=dict)
     previous_alive: tuple[str, ...] = ()
     slot_index: int = 0
-    slot_count: int = 0
+    slot_members: tuple[str, ...] = ()
     believed_assignment: dict[str, int] = field(default_factory=dict)
     flags: set[str] = field(default_factory=set)
     leaving_sent: bool = False
@@ -382,7 +383,17 @@ class CoopSwarmSimulator:
                 elif message["kind"] == "leaving":
                     self._gs_state_messages.pop(event.sender, None)
             elif message["kind"] == "state":
-                self.agents[event.receiver].latest[event.sender] = dict(message, receive_time=float(event.receive_time), sent_at=float(event.send_time))
+                receiver = self.agents[event.receiver]
+                if self.config.share_slot_claims:
+                    # Opt-in claims only: a late packet must not bring back a drone
+                    # that already said it left, or replace a newer claim with an
+                    # older one.
+                    newest = receiver.latest.get(event.sender)
+                    if event.sender in receiver.left_peers or (
+                        newest is not None and float(event.send_time) < float(newest["sent_at"])
+                    ):
+                        continue
+                receiver.latest[event.sender] = dict(message, receive_time=float(event.receive_time), sent_at=float(event.send_time))
             elif message["kind"] == "leaving":
                 self.agents[event.receiver].latest.pop(event.sender, None)
                 self.agents[event.receiver].left_peers.add(event.sender)
@@ -476,19 +487,26 @@ class CoopSwarmSimulator:
         """Return the slot indices that the switch penalty should favour."""
         if not self.config.share_slot_claims:
             return {key: value for key, value in agent.previous_slots.items() if key in alive}
-        # Shared claims: own slot plus each peer's last broadcast slot, kept only
-        # when it was chosen on a ring with the current number of slots, so an
-        # index from the old ring never pulls a drone to a different place.
-        size = len(alive)
-        previous: dict[str, int] = {}
-        if agent.slot_count == size:
-            previous[agent.agent_id] = int(agent.slot_index)
+        # Shared claims: own slot plus each peer's last broadcast slot. A claim
+        # counts only when it was planned with exactly this planner's alive list
+        # (its membership identity), so a claim made while a departed drone was
+        # still counted, or on a ring of another size, never pulls a drone.
+        claims: dict[str, int] = {}
+        if agent.slot_members == alive:
+            claims[agent.agent_id] = int(agent.slot_index)
         for peer in alive:
             message = agent.latest.get(peer)
             if peer == agent.agent_id or message is None:
                 continue
-            if int(message.get("slot_count", 0)) == size:
-                previous[peer] = int(message["slot_index"])
+            if tuple(message.get("slot_members", ())) == alive:
+                claims[peer] = int(message["slot_index"])
+        # Two drones claiming one slot: the lowest ID keeps the bonus and the
+        # others lose theirs, so every planner holding the same claims breaks
+        # the tie the same way.
+        previous: dict[str, int] = {}
+        for peer in sorted(claims):
+            if claims[peer] not in previous.values():
+                previous[peer] = claims[peer]
         return previous
 
     def _ground_command(self, t: float, gs_mean: np.ndarray | None) -> None:
@@ -570,7 +588,7 @@ class CoopSwarmSimulator:
                     }
                     if c.share_slot_claims:
                         message["slot_index"] = int(agent.slot_index)
-                        message["slot_count"] = int(agent.slot_count)
+                        message["slot_members"] = agent.slot_members
                     for receiver in c.agent_ids:
                         if receiver != aid and receiver not in agent.left_peers:
                             self._send(aid, receiver, t, "state", message)
@@ -642,7 +660,7 @@ class CoopSwarmSimulator:
                 agent.previous_slots = dict(assignment)
                 agent.previous_alive = alive
                 agent.slot_index = slot_index
-                agent.slot_count = len(alive)
+                agent.slot_members = alive
                 agent.believed_assignment = dict(assignment)
             step_disagreement_count = _count_disagreements(alive_cache, assignments)
             if k < n_steps:
