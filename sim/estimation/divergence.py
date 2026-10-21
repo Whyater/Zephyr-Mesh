@@ -26,7 +26,11 @@ Two levels come out:
   The value 100 is a chosen line, not a chi-square quantile; it was fixed
   before looking at any run data.
 
-Nothing in the registered runs calls this. It changes no existing result.
+Opt-in use: ``sim.coop.observers.run_seed(..., divergence_rule=DivergenceRule())``
+and ``tools/d_run_fusion.py --nees-divergence``. Registered runs never pass a
+rule, so their results are unchanged.
+A trailing partial window (fewer than ``window`` queries) is dropped, the same
+way ``sim.coop.observers._outcome`` builds its window means.
 Errors at neighbouring queries are correlated in a real filter, so the
 chi-square false-alarm figure is an idealized value; see the tests.
 """
@@ -88,9 +92,12 @@ def _first_run(means, level: float, consecutive: int) -> int | None:
 
 
 def nees_values(errors, covariances) -> np.ndarray:
-    """NEES e' P^-1 e for each (error vector, covariance) pair."""
+    """NEES e' P^-1 e for each (error vector, covariance) pair.
+
+    The two sequences must have the same length; a mismatch raises ValueError.
+    """
     out = []
-    for e, p in zip(errors, covariances):
+    for e, p in zip(errors, covariances, strict=True):
         e = np.asarray(e, dtype=float)
         p = np.asarray(p, dtype=float)
         out.append(float(e @ np.linalg.solve(p, e)))

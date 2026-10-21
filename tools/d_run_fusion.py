@@ -63,6 +63,9 @@ ROW_COLUMNS = (
     "p95_error_m", "max_error_m", "rmse_m", "failed", "mean_nees",
     "frac_windows_above_band", "fused_count", "diverged", "diverged_time_s",
 )
+# Extra columns written only with --nees-divergence (opt-in proposal; registered
+# runs never add them, so their per_seed.csv bytes are unchanged).
+NEES_COLUMNS = ("nees_diverged", "nees_diverged_first_window", "nees_inconsistent")
 METRIC_FIELDS = ("p95_error_m", "max_error_m", "rmse_m", "mean_nees",
                  "frac_windows_above_band")
 
@@ -95,8 +98,13 @@ def _job(job: dict) -> dict:
     started = time.process_time()
     cell = _cell(job)
     selected_arms = tuple(job.get("arms", ARMS))
-    outcomes = run_seed(cell, int(job["seed"]), arms=selected_arms,
-                        config=RecoveryConfig())
+    if job.get("nees_divergence"):
+        from sim.estimation.divergence import DivergenceRule
+        outcomes = run_seed(cell, int(job["seed"]), arms=selected_arms,
+                            config=RecoveryConfig(), divergence_rule=DivergenceRule())
+    else:
+        outcomes = run_seed(cell, int(job["seed"]), arms=selected_arms,
+                            config=RecoveryConfig())
     rows = []
     for arm in selected_arms:
         outcome = outcomes[arm]
@@ -119,6 +127,13 @@ def _job(job: dict) -> dict:
         for name in METRIC_FIELDS:
             row[name] = _finite_or_none(getattr(outcome, name))
         row["nonfinite_metric_count"] = sum(row[name] is None for name in METRIC_FIELDS)
+        if "nees_check" in extras:
+            # Opt-in check: outcome.failed already includes nees_diverged. Its
+            # metrics stay (they are finite); only the old non-finite flag blanks them.
+            check = extras["nees_check"]
+            row["nees_diverged"] = bool(check["diverged"])
+            row["nees_diverged_first_window"] = check["diverged_first_window"]
+            row["nees_inconsistent"] = bool(check["inconsistent"])
         if diverged:
             # A diverged seed is a failure, never a number in the medians.
             for name in METRIC_FIELDS:
@@ -170,6 +185,11 @@ def _summarize(rows: list[dict]) -> list[dict]:
             "nis_band": {"lo": float(band_low), "hi": float(band_high),
                          "window_queries": 10, "dof": 3, "confidence": 0.95},
         })
+        if any("nees_diverged" in row for row in selected):
+            output[-1]["nees_diverged_count"] = sum(bool(row.get("nees_diverged"))
+                                                    for row in selected)
+            output[-1]["nees_inconsistent_warning_count"] = sum(
+                bool(row.get("nees_inconsistent")) for row in selected)
     return output
 
 
@@ -290,8 +310,9 @@ def _math_checks() -> dict:
     }
 
 
-def _jobs(ns, noises, targets, losses, seeds, ci):
-    return [{"n_observers": n, "noise_std_m": noise, "target_label": label,
+def _jobs(ns, noises, targets, losses, seeds, ci, nees_divergence=False):
+    extra = {"nees_divergence": True} if nees_divergence else {}
+    return [{**extra, "n_observers": n, "noise_std_m": noise, "target_label": label,
              "target": target, "target_params": params, "loss_probability": loss,
              "seed": seed, "ci": ci}
             for n in ns for noise in noises for label, target, params in targets
@@ -314,7 +335,8 @@ def _source_paths() -> list[str]:
     return sorted(paths)
 
 
-def run(output: Path, *, pilot: bool = False, processes: int | None = None, argv=None) -> dict:
+def run(output: Path, *, pilot: bool = False, processes: int | None = None, argv=None,
+        nees_divergence: bool = False) -> dict:
     """Run the pilot or registered grid and write all simulated outputs."""
     started = time.perf_counter()
     output = prepare_output(output)
@@ -324,9 +346,9 @@ def run(output: Path, *, pilot: bool = False, processes: int | None = None, argv
     noises = (0.05,) if pilot else (0.05, 0.10)
     targets = PILOT_TARGETS if pilot else TARGETS
     losses = (0.0, 0.3)
-    fast_jobs = _jobs(ns, noises, targets, losses, seeds, "fast")
+    fast_jobs = _jobs(ns, noises, targets, losses, seeds, "fast", nees_divergence)
     exact_ns = (2, 6) if pilot else (2, 3, 6)
-    exact_jobs = _jobs(exact_ns, (0.05,), (TARGETS[1],), losses, seeds, "exact")
+    exact_jobs = _jobs(exact_ns, (0.05,), (TARGETS[1],), losses, seeds, "exact", nees_divergence)
     for job in exact_jobs:
         job["arms"] = ("peer_ci",)
     worker_count = processes or default_processes()
@@ -347,7 +369,8 @@ def run(output: Path, *, pilot: bool = False, processes: int | None = None, argv
         raise RuntimeError("fast row count does not match the requested grid")
     if len(exact_rows) != len(exact_jobs):
         raise RuntimeError("exact row count does not match the requested grid")
-    write_csv(output / "per_seed.csv", fast_rows + exact_rows, ROW_COLUMNS)
+    columns = ROW_COLUMNS + NEES_COLUMNS if nees_divergence else ROW_COLUMNS
+    write_csv(output / "per_seed.csv", fast_rows + exact_rows, columns)
     write_json(output / "summary.json", {"cells": _summarize(fast_rows),
                                          "exact_ci_subset": _exact_subset(fast_rows, exact_rows)})
     write_json(output / "math_checks.json", _math_checks())
@@ -386,11 +409,21 @@ def run(output: Path, *, pilot: bool = False, processes: int | None = None, argv
                             "loss_probability": [0.0, 0.3], "seeds": seed_count},
         "recovery_config": dataclasses.asdict(RecoveryConfig()),
     }
+    if nees_divergence:
+        from sim.estimation.divergence import DivergenceRule
+        rule = DivergenceRule()
+        config["nees_divergence"] = {
+            "status": "proposal, opt-in", **dataclasses.asdict(rule),
+            "threshold": rule.threshold,
+            "failure": "nees_diverged counts as failed; nees_inconsistent is a warning only",
+        }
     command = "PYTHONPATH=. {python} tools/d_run_fusion.py --output {out}"
     if pilot:
         command += " --pilot"
     if processes is not None:
         command += f" --processes {int(processes)}"
+    if nees_divergence:
+        command += " --nees-divergence"
     volatile = ["runtime_s", "git_revision", "git_tree_state", "platform", "n_processes",
                 "argv", "pilot_worker_cpu_s", "full_run_estimate_cpu_s",
                 "full_run_estimate_wall_s_4_processes", "full_run_estimate_by_job_type"]
@@ -425,8 +458,11 @@ def main(argv=None):
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--pilot", action="store_true")
     parser.add_argument("--processes", type=int)
+    parser.add_argument("--nees-divergence", action="store_true",
+                        help="opt-in proposal: count windowed-NEES divergence as a failure")
     args = parser.parse_args(argv)
-    run(args.output, pilot=args.pilot, processes=args.processes, argv=argv)
+    run(args.output, pilot=args.pilot, processes=args.processes, argv=argv,
+        nees_divergence=args.nees_divergence)
 
 
 if __name__ == "__main__":

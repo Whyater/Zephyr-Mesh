@@ -104,11 +104,12 @@ def test_rule_validation():
 
 
 def test_registered_observer_path_does_not_use_the_new_check():
-    # Default unchanged: no registered runner or simulator imports the new module
-    # (the burn_ diagnostic script is the only user).
+    # Only the opt-in wiring imports the module (plus the burn_ diagnostic scripts):
+    # observers.py inside apply_divergence_rule, and d_run_fusion.py behind --nees-divergence.
     from pathlib import Path
     root = Path(__file__).resolve().parents[1]
     users = [f for d in ("sim", "tools") for f in (root / d).rglob("*.py")
              if not f.name.startswith("burn_")
              and "sim.estimation.divergence" in f.read_text(encoding="utf-8")]
-    assert users == []
+    assert sorted(f.relative_to(root).as_posix() for f in users) == [
+        "sim/coop/observers.py", "tools/d_run_fusion.py"]

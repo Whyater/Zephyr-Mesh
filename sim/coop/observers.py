@@ -631,8 +631,44 @@ def _peer(cell, config, target, names, captures, measurements, table, mode):
     return result
 
 
-def run_seed(cell: CoopCell, seed: int, arms=ARMS, config: RecoveryConfig = RecoveryConfig()):
-    """Run selected simulated cooperative tracking arms for one seed."""
+def apply_divergence_rule(outcome: CoopOutcome, rule) -> CoopOutcome:
+    """Return a copy of ``outcome`` with the windowed NEES check applied (opt-in).
+
+    ``rule`` is a ``sim.estimation.divergence.DivergenceRule``. The check reads
+    the 10-query window means already stored in ``nees_window_means``. Its result
+    goes in ``extras["nees_check"]``. ``diverged`` (``rule.consecutive`` windows
+    in a row above ``rule.gross_nees``) makes the run a failure;
+    ``inconsistent`` (the chi-square level) is a warning only and never changes
+    ``failed``. An existing failure is never cleared. The input is not changed.
+    """
+    from sim.estimation.divergence import check_window_means
+
+    check = check_window_means(outcome.nees_window_means, rule)
+    extras = dict(outcome.extras or {})
+    extras["nees_check"] = {
+        "diverged": bool(check.diverged),
+        "diverged_first_window": check.first_window,
+        "inconsistent": bool(check.inconsistent),
+        "inconsistent_first_window": check.inconsistent_first_window,
+        "threshold": float(check.threshold),
+        "gross_nees": float(check.gross_nees),
+        "window": int(rule.window),
+        "consecutive": int(rule.consecutive),
+    }
+    return CoopOutcome(outcome.p95_error_m, outcome.max_error_m, outcome.rmse_m,
+                       bool(outcome.failed or check.diverged), outcome.mean_nees,
+                       outcome.nees_window_means, outcome.frac_windows_above_band,
+                       outcome.fused_count, extras)
+
+
+def run_seed(cell: CoopCell, seed: int, arms=ARMS, config: RecoveryConfig = RecoveryConfig(),
+             *, divergence_rule=None):
+    """Run selected simulated cooperative tracking arms for one seed.
+
+    ``divergence_rule`` is opt-in and off by default. When it is a
+    ``DivergenceRule``, each arm's outcome goes through ``apply_divergence_rule``.
+    When it is ``None``, outcomes are exactly what the registered runs produce.
+    """
     if isinstance(arms, (set, frozenset)):
         arms = tuple(sorted(arms))
     else:
@@ -668,10 +704,13 @@ def run_seed(cell: CoopCell, seed: int, arms=ARMS, config: RecoveryConfig = Reco
             out[arm] = _peer(cell, config, target, names, captures, measurements, table, "ci")
         else:
             out[arm] = _peer(cell, config, target, names, captures, measurements, table, "naive")
+        if divergence_rule is not None:
+            out[arm] = apply_divergence_rule(out[arm], divergence_rule)
     return out
 
 
-def run_cell(cell: CoopCell, seeds: Iterable[int], arms=ARMS, config: RecoveryConfig = RecoveryConfig()):
+def run_cell(cell: CoopCell, seeds: Iterable[int], arms=ARMS, config: RecoveryConfig = RecoveryConfig(),
+             *, divergence_rule=None):
     if isinstance(arms, (set, frozenset)):
         arms = tuple(sorted(arms))
     else:
@@ -679,7 +718,8 @@ def run_cell(cell: CoopCell, seeds: Iterable[int], arms=ARMS, config: RecoveryCo
     seed_values = tuple(int(seed) for seed in seeds)
     results = {arm: [] for arm in arms}
     for seed in seed_values:
-        outcomes = run_seed(cell, seed, arms=arms, config=config)
+        outcomes = run_seed(cell, seed, arms=arms, config=config,
+                            divergence_rule=divergence_rule)
         for arm in arms:
             results[arm].append(outcomes[arm])
     return results
