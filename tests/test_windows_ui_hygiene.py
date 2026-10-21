@@ -22,6 +22,10 @@ UI_MODULES = (
     "desktop/scene_projection.py",
     "desktop/ui_settings.py",
     "desktop/replay_session.py",
+    "desktop/results_data.py",
+    "desktop/ui_results.py",
+    "desktop/ui_results_chart.py",
+    "desktop/ui_results_atlas.py",
 )
 VISIBLE_KEYWORDS = {"text", "label", "title", "message", "accelerator"}
 VISIBLE_CALLS = {"title", "showinfo", "showwarning", "showerror", "askopenfilename", "add_command", "heading"}

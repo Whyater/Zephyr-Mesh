@@ -9,7 +9,8 @@ struct CockpitCommands: Commands {
     @Environment(\.openWindow) private var openWindow
 
     private var model: CockpitModel? { store.cockpit }
-    private var typing: Bool { model?.isTextFieldFocused ?? false }
+    /// Typing in a field, or working in the Results window, which uses the arrows and letters itself.
+    private var typing: Bool { (model?.isTextFieldFocused ?? false) || store.isResultsWindowKey }
     /// Arrow-key items also give way to the focused team list, which uses the arrows itself.
     private var arrowsTaken: Bool { typing || (model?.isTeamListFocused ?? false) }
     private var unavailable: Bool { model == nil }
@@ -48,7 +49,10 @@ struct CockpitCommands: Commands {
                 .disabled(unavailable || typing)
             Button(UIText.Menus.filterDrones) { model?.requestFilterFocus() }
                 .shortcut("focusFilter")
-                .disabled(unavailable)
+                .disabled(unavailable || store.isResultsWindowKey)
+            Divider()
+            Button(UIText.Menus.showResults) { openWindow(id: WindowID.results) }
+                .shortcut("showResults")
             Divider()
         }
         CommandMenu(UIText.Menus.playback) {

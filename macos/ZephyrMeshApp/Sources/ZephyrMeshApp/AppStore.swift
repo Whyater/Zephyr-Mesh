@@ -22,6 +22,9 @@ final class AppStore: ObservableObject {
     let loadError: String?
     @Published private(set) var documents: [UUID: ViewerDocument] = [:]
     @Published var openError: OpenError?
+    /// True while the Results window has the keyboard, so the main window's single-key menu
+    /// shortcuts (arrows, Space, R, I) stand aside for its charts and atlas.
+    @Published var isResultsWindowKey = false
     /// Files being read and checked right now, so a second open of the same file while the
     /// first is still running does not create a second document.
     private var pendingURLs: Set<String> = []

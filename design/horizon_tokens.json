@@ -28,6 +28,36 @@
         "alpha": 0.06,
         "over": "surface",
         "hex": "#242D3F"
+      },
+      "bandFill": {
+        "base": "accent",
+        "alpha": 0.16,
+        "over": "surface",
+        "hex": "#273A54"
+      },
+      "atlasStop1": {
+        "base": "accent",
+        "alpha": 0.16,
+        "over": "surface",
+        "hex": "#273A54"
+      },
+      "atlasStop2": {
+        "base": "accent",
+        "alpha": 0.27,
+        "over": "surface",
+        "hex": "#324C6A"
+      },
+      "atlasStop3": {
+        "base": "accent",
+        "alpha": 0.38,
+        "over": "surface",
+        "hex": "#3D5E81"
+      },
+      "atlasStop4": {
+        "base": "accent",
+        "alpha": 0.49,
+        "over": "surface",
+        "hex": "#487097"
       }
     },
     "light": {
@@ -71,6 +101,36 @@
         "alpha": 0.05,
         "over": "surface",
         "hex": "#F4F4F5"
+      },
+      "bandFill": {
+        "base": "accent",
+        "alpha": 0.16,
+        "over": "surface",
+        "hex": "#DBE8F8"
+      },
+      "atlasStop1": {
+        "base": "accent",
+        "alpha": 0.12,
+        "over": "surface",
+        "hex": "#E4EEF9"
+      },
+      "atlasStop2": {
+        "base": "accent",
+        "alpha": 0.24,
+        "over": "surface",
+        "hex": "#C9DCF4"
+      },
+      "atlasStop3": {
+        "base": "accent",
+        "alpha": 0.38,
+        "over": "surface",
+        "hex": "#AAC8EE"
+      },
+      "atlasStop4": {
+        "base": "accent",
+        "alpha": 0.55,
+        "over": "surface",
+        "hex": "#84B0E6"
       }
     }
   },
@@ -233,7 +293,28 @@
     "settingsWidth": 360,
     "messageMaxWidth": 520,
     "emptyWindowMinWidth": 420,
-    "emptyWindowMinHeight": 240
+    "emptyWindowMinHeight": 240,
+    "resultsWindowWidth": 1440,
+    "resultsWindowHeight": 840,
+    "resultsWindowMinWidth": 980,
+    "resultsWindowMinHeight": 680,
+    "resultsSidebarWidth": 200,
+    "chartPanelMinWidth": 260,
+    "chartPanelHeight": 220,
+    "chartPlotInset": 36,
+    "chartLineWidth": 1.5,
+    "chartMarkerSize": 6,
+    "chartCapWidth": 6,
+    "chartHoverRing": 10,
+    "failureLineWidth": 1.5,
+    "atlasCellWidth": 104,
+    "atlasCellMinWidth": 84,
+    "atlasCellHeight": 36,
+    "atlasRowHeaderWidth": 168,
+    "atlasWinnerBorder": 2,
+    "atlasWinnerBar": 3,
+    "legendSwatchWidth": 22,
+    "legendSwatchHeight": 10
   },
   "contrast": {
     "minimumTextRatio": 4.5,
@@ -320,6 +401,27 @@
     "strokeRangeBar": 5,
     "tooltipDelayMs": 550,
     "noticeMs": 2400,
-    "copiedMs": 1200
+    "copiedMs": 1200,
+    "resultsWindow": {
+      "width": 1440,
+      "height": 840,
+      "minWidth": 980,
+      "minHeight": 680
+    },
+    "resultsSidebarWidth": 200,
+    "chartPanelHeight": 220,
+    "chartPlotInset": 40,
+    "chartMarkerSize": 6,
+    "chartCapWidth": 6,
+    "atlasCellWidth": 104,
+    "atlasCellMinWidth": 84,
+    "atlasCellHeight": 36,
+    "atlasRowHeaderWidth": 168,
+    "legendSwatchWidth": 22,
+    "legendSwatchHeight": 10,
+    "dashPattern": [
+      4,
+      3
+    ]
   }
 }

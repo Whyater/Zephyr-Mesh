@@ -19,7 +19,7 @@ PY_PATH = ROOT / "desktop" / "design_tokens.py"
 PALETTE_FIELDS = (
     "background", "surface", "line", "lineStrong", "text", "textSecondary",
     "accent", "target", "keepOut", "ok", "caution", "alert", "info", "onAlert",
-    "selectionFill", "hoverFill",
+    "selectionFill", "hoverFill", "bandFill", "atlasStop1", "atlasStop2", "atlasStop3", "atlasStop4",
 )
 
 
@@ -173,13 +173,37 @@ def validate_ui(ui: dict[str, Any]) -> None:
         raise ValueError(f"teamFilter.pinnedLevels has unknown levels: {unknown}")
 
 
+def swift_string_constant(name: str, text: str, indent: str = "        ", limit: int = 140) -> list[str]:
+    """Render one string constant, splitting a long literal over lines with ``+``."""
+    single = f"{indent}static let {name} = {swift_string(text)}"
+    if len(single) <= limit:
+        return [single]
+    room = limit - len(indent) - 8  # quotes plus the " +" tail
+    words = text.split(" ")
+    chunks: list[str] = []
+    current = ""
+    for word in words:
+        candidate = word if not current else current + " " + word
+        if len(swift_string(candidate)) > room and current:
+            chunks.append(current + " ")
+            current = word
+        else:
+            current = candidate
+    chunks.append(current)
+    lines = [f"{indent}static let {name} ="]
+    for index, chunk in enumerate(chunks):
+        tail = " +" if index < len(chunks) - 1 else ""
+        lines.append(f"{indent}    {swift_string(chunk)}{tail}")
+    return lines
+
+
 def swift_text_enum(name: str, section: dict[str, Any]) -> list[str]:
     """Render a nested Swift enum of string, string-list, and integer constants."""
     ids = identifiers(list(section))
     lines = [f"    enum {name} {{"]
     for key, item in section.items():
         if isinstance(item, str):
-            lines.append(f"        static let {ids[key]} = {swift_string(item)}")
+            lines.extend(swift_string_constant(ids[key], item))
         elif isinstance(item, bool):
             continue
         elif isinstance(item, int):
@@ -267,6 +291,7 @@ def generate_swift(tokens: dict[str, Any], ui: dict[str, Any]) -> str:
         "        let background, surface, line, lineStrong, text, textSecondary: Color",
         "        let accent, target, keepOut, ok, caution, alert, info, onAlert: Color",
         "        let selectionFill, hoverFill: Color",
+        "        let bandFill, atlasStop1, atlasStop2, atlasStop3, atlasStop4: Color",
     ]
     for field in PALETTE_FIELDS:
         lines.append(f"        var {identifier(field)}NS: NSColor {{ NSColor({identifier(field)}) }}")
@@ -404,6 +429,8 @@ def generate_swift(tokens: dict[str, Any], ui: dict[str, Any]) -> str:
         ("teamFilter", "TeamFilter"),
         ("menus", "Menus"),
         ("inspector", "Inspector"),
+        ("results", "Results"),
+        ("atlas", "Atlas"),
     ):
         if json_key in ui:
             lines.extend(swift_text_enum(enum_name, ui[json_key]))
