@@ -30,6 +30,11 @@ Clock domains (``clock_domain``):
   here because each difference uses one board's clock only, except that the
   receiver's turnaround is scaled by its clock-rate error (parts per million
   of a sub-millisecond hold, which is negligible).
+
+  ``sim.link.replay_trace`` treats an echo trace like ``device_and_host``: it
+  keeps the receiver-clock arrival order and computes no one-way age. A
+  received packet known only from its echo has no arrival time, so replay
+  stops with an error. Fit echo traces with ``tools/fit_espnow_log.py``.
 """
 from __future__ import annotations
 

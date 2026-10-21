@@ -106,6 +106,16 @@ def test_non_echo_as_dict_omits_echo_keys_and_round_trips():
     assert EspNowTrace.from_dict(encoded).as_dict() == encoded
 
 
-def test_replay_trace_refuses_echo_trace():
-    with pytest.raises(ValueError, match="sender_round_trip"):
+def test_replay_trace_never_invents_one_way_age_for_echo_traces():
+    # sim/link.py is left byte-identical to the base commit (the registered S6
+    # summary records its SHA-256), so replay treats echo traces like the
+    # existing device_and_host domain. An echo-only received packet has no
+    # arrival time at all, so replay stops loudly.
+    with pytest.raises(ValueError, match="missing receive_time_s"):
         replay_trace(EspNowTrace.from_dict(echo_payload()))
+    # With the receiver's own arrival stamp, replay keeps it but computes no age,
+    # because the two stamps come from different clocks.
+    payload = echo_payload()
+    payload["packets"][0]["receive_time_s"] = 55.0
+    events = replay_trace(EspNowTrace.from_dict(payload))
+    assert events[0].receive_time == 55.0 and events[0].packet_age_s is None
