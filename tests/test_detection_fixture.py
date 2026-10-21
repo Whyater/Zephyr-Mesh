@@ -68,9 +68,11 @@ def test_burst_mode_has_geometric_miss_runs() -> None:
         lengths.append(current)
     assert lengths
     mean_length = float(np.mean(lengths))
-    # A geometric run has variance (1-e)/e^2; use observed run count for its SE.
-    standard_error = math.sqrt((1 - end_probability) / end_probability**2 / len(lengths))
-    assert abs(mean_length - 1 / end_probability) < 5 * standard_error
+    # In sim/sensor.py a dropped step returns to available with probability
+    # q = e(1-s), so miss runs are geometric with mean 1/q and variance (1-q)/q^2.
+    q = end_probability * (1 - 0.05)
+    standard_error = math.sqrt((1 - q) / q**2 / len(lengths))
+    assert abs(mean_length - 1 / q) < 5 * standard_error
 
 
 def test_static_trajectory_has_constant_truth() -> None:

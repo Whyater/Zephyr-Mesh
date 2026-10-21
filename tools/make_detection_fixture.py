@@ -121,6 +121,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--burst-start and --burst-end require --mode burst")
     if args.mode == "burst" and args.dropout != 0:
         parser.error("--dropout must be zero in burst mode")
+    if args.mode == "burst" and (args.burst_start is None or args.burst_end is None):
+        parser.error("--mode burst requires --burst-start and --burst-end")
     burst_start = 0.0 if args.burst_start is None else args.burst_start
     burst_end = 1.0 if args.burst_end is None else args.burst_end
     try:
