@@ -63,12 +63,15 @@ Give exactly one of these:
 The 70 in the examples is a placeholder, not a measured value. To correct a
 guess, put the marker at a taped distance and compare. Example: with 70
 degrees, z reads 1.65 m but the tape says 1.50 m. tan(35 deg) = 0.700, times
-1.65 / 1.50 = 1.10 gives 0.770, and 2 x atan(0.770) is about 75.4 degrees.
+1.65 / 1.50 = 1.10 gives 0.770, and 2 x atan(0.770) is about 75.2 degrees.
 
 Step 3: check the camera first (writes no files)
 ------------------------------------------------
     PYTHONPATH=. ~/zephyr-camera-venv/bin/python tools/capture_aruco.py \
         --check-camera --marker-length-m 0.150 --hfov-deg 70
+
+For lining up the taped axis line, use --calibration FILE instead of
+--hfov-deg, so the crosshair sits at the calibrated image center.
 
 The preview shows a crosshair at the image center the camera model uses
 (cx, cy), the marker outline, and live numbers: x, y, z and range in mm, and
@@ -100,9 +103,13 @@ Enter, then step away", counts down 3 seconds and records 300 frames (about
 10 s at 30 fps). --yes skips both questions. Press q in the preview or Ctrl-C
 to stop early: the frames so far still go in the log and the script exits 0.
 If --condition, --distance-m or --operator is missing, it asks for them.
+The bench method waits about 10 s after you step away: add --countdown-s 13
+to get that. For the long still run, add --frames 1800.
 
-A good run says almost every frame was detected, with spreads of a few mm or
-less. If the marker is not detected, or less than half the frames are, check:
+A good run says almost every frame was detected. How big the spreads should
+be is not known yet for this camera. The bench method's guess is a few mm at
+1 m and more at 2 m, mostly in z, so write down what you get and do not
+discard a run for being bigger than you expected. If the marker is not detected, or less than half the frames are, check:
 the whole white margin is in view, the paper is flat and matte, the room is
 bright with no glare on the marker, the marker is not too far away, and the
 preview draws an outline around it. Then run the same command with
@@ -171,8 +178,8 @@ Limits on macOS (read these before you trust a number)
     error that is the same on every frame (focal length, tape) shows up as
     bias, not noise.
 
-Exit codes: 0 ok (also after q or Ctrl-C), 2 a wrong option, 1 a failure
-while running.
+Exit codes: 0 ok (also after q or Ctrl-C), 2 a wrong option or you said
+the preview is not the Mac's camera, 1 a failure while running.
 """
 from __future__ import annotations
 
