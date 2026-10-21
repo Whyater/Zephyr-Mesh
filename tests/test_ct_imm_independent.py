@@ -46,7 +46,10 @@ modes must behave like one textbook Kalman filter. Without switching, the log
 odds between two models add up the per-step log-likelihood differences
 (Bayes). Every expected value comes from numpy or the standard library, or is
 a literal worked out by hand; nothing is imported from sim/ except the objects
-under test.
+under test. One exception: the no-switching Bayes check takes the CT
+likelihoods and states from a stand-alone CTEstimator, so it checks how the
+IMM combines its modes, not the CT innovation itself (the CT step and Jacobian
+checks above cover that).
 """
 from __future__ import annotations
 
@@ -290,7 +293,9 @@ def test_imm_mixing_is_mixture_moments_and_no_switching_is_bayes():
     27/14, px variance 2.25 and 3.066326531, other diagonals 1.5 and 82/28;
     combined px mean 1.4, px variance 3.24, other diagonals 2.4.
     (b) With tau = 1e300 nothing switches, so the log odds of CT over CV add up
-    the per-step log-likelihood differences of two stand-alone filters (Bayes)."""
+    the per-step log-likelihood differences of two stand-alone filters (Bayes).
+    The CV side is a textbook filter written here; the CT side is the sim's own
+    CTEstimator, so this part checks the IMM bookkeeping, not CT itself."""
     imm = IMMEstimator((0.0, 0.0, 0.0), EstimatorSettings())
     x1 = np.zeros(7)
     x1[0] = 2.0
