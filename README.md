@@ -52,7 +52,7 @@ Set up once with the steps in [docs/INSTALL.md](docs/INSTALL.md#run-from-source)
 | --- | --- | --- |
 | RK4 accuracy | Error drops about 16x each time the time step halves, ratios of 16.09, 16.03 and 16.01, so order about 4, as expected for RK4 (plot: `sim/runs/s2-physics-v2/a_s2_convergence.png`) | `PYTHONPATH=. python tools/make_s2_convergence.py --output /tmp/convergence.json` |
 | Step response | Vertical 3 m step: 8.4 % overshoot, settles in 3.0 s; 1 m sideways step: 19 % overshoot, settles in 3.4 s (plot: `sim/runs/s0-baseline-v2/a_s0_baseline_v2.png`) | `PYTHONPATH=. python tools/a_make_s0_baseline_v2.py --output-dir /tmp/s0-v2` |
-| Controller timestep limit | The controller refuses time steps at or above 2/18 = 0.111 s, where its attitude damping would go unstable | `python -m pytest tests/test_vehicle.py -k sampled_attitude_limit` |
+| Controller timestep limit | The controller refuses time steps at or above 2/18 = 0.111 s, where its attitude damping would go unstable | `python -m pytest sim/tests/test_vehicle.py -k sampled_attitude_limit` |
 | Reproducibility | Running the same scenario and seed twice gives byte-identical output (run it twice to two files and compare them with `cmp`) | `PYTHONPATH=. python tools/run_scenario.py --config sim/scenario_example.json --output /tmp/run.json --summary` |
 | Every published run | Reruns each registered run from a clean copy and checks its output hashes. Slow: several hours. The `s6-sending` and `s6-atlas` runs each took over an hour when they were made, longer than the default 1 hour limit. `--timeout 10800` gives each run up to 3 hours (10800 seconds). | `python tools/reproduce_all.py --timeout 10800` |
 
@@ -113,16 +113,13 @@ Full list: [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
 
 | Folder | What is in it |
 | --- | --- |
-| `sim/` | The simulator (Python package `sim`) |
-| `tests/` | The Python test suite |
-| `sim/runs/` | Saved run outputs and their manifests |
-| `tools/` | Scripts that build and reproduce runs, reports, and releases |
-| `tools/desktop/` | The Windows replay app and shared replay code |
-| `tools/macos/` | The macOS replay app |
-| `tools/design/` | Design source for both apps |
+| `sim/` | The simulator (Python package `sim`), its tests in `sim/tests/`, and saved run outputs with their manifests in `sim/runs/` |
+| `tools/` | Scripts that build and reproduce runs, reports, and releases, plus the apps: `tools/desktop/` (Windows replay app), `tools/macos/` (macOS replay app), `tools/design/` (shared design source), and their tests in `tools/tests/` |
 | `docs/` | Install steps, roadmap, features, limitations, and results |
 | `firmware/` | Flight controller firmware (Planned) |
 | `hardware/` | Flight controller hardware (Planned) |
+
+At the top level, `main.py` runs the baseline simulation, `VERSION` holds the app version, `requirements.txt` lists the Python packages, and `pyproject.toml` tells pytest where the tests are.
 
 The hardware phase, a physical flight controller in `firmware/` and `hardware/`, is Planned. Nothing for it is built yet.
 

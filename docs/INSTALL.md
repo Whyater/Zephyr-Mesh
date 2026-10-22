@@ -62,7 +62,7 @@ PYTHONPATH=. python tools/analyze_s7_run.py sim/runs/s7-swarm/run.json
 PYTHONPATH=. python tools/run_scenario.py --config sim/scenario_example.json --output /tmp/zephyr-s7-scenario-run.json --summary
 ```
 
-A scenario config may add `velocity_mps` to a keep-out sphere for a bounded linear moving constraint; the generated frame snapshots retain each synthetic center for inspection. The canonical artifacts are [`sim/runs/s0-baseline`](../runs/s0-baseline), [`sim/runs/s2-physics`](../runs/s2-physics), and [`sim/runs/s7-swarm`](../runs/s7-swarm). The native and Windows surfaces consume the S7 replay through [`tools/desktop/replay.py`](../desktop/replay.py) and the checked-in macOS fixture projection. See [`ROADMAP.md`](ROADMAP.md) for evidence gates.
+A scenario config may add `velocity_mps` to a keep-out sphere for a bounded linear moving constraint; the generated frame snapshots retain each synthetic center for inspection. The canonical artifacts are [`sim/runs/s0-baseline`](../sim/runs/s0-baseline), [`sim/runs/s2-physics`](../sim/runs/s2-physics), and [`sim/runs/s7-swarm`](../sim/runs/s7-swarm). The native and Windows surfaces consume the S7 replay through [`tools/desktop/replay.py`](../tools/desktop/replay.py) and the checked-in macOS fixture projection. See [`ROADMAP.md`](ROADMAP.md) for evidence gates.
 
 To inspect a trace or profile in either desktop app, create a portable report
 with `tools/build_evidence_report.py`, then choose **Open evidence report…**

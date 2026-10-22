@@ -4,7 +4,7 @@ All numbers on this page come from simulation. The link, sensor and radio inputs
 
 ## Result so far
 
-![Tracking error against link delay for a naive tracker and a capture-time recovery tracker, on a straight line and on a turn](../runs/s6-recovery/s6_recovery.png)
+![Tracking error against link delay for a naive tracker and a capture-time recovery tracker, on a straight line and on a turn](../sim/runs/s6-recovery/s6_recovery.png)
 
 In simulation (target at 1 m/s, 10 Hz measurements, 5 cm noise, 50 seeds), the naive tracker's p95 error (the error it stays under 95 % of the time) grows by about speed x delay and crosses the 0.25 m failure line at 200 ms with no loss. That 200 ms depends on the sensor noise (the filter is always told 5 cm): with 0 or 2 cm the naive tracker still passes at 200 ms and first fails at 300 ms (the next delay tested), and with 10 cm it fails from 150 ms. Stamping each measurement with its capture time and predicting forward cuts the 300 ms error with no loss from 0.36 m to 0.16 m on a straight line (no failing cell up to 300 ms and 50 % random loss) and from 0.38 m to 0.29 m on a 1 m radius turn (the first failure moves from 200 ms to 300 ms). On the turn, loss takes over: at 30 % random loss it fails from 150 ms just like naive, at 50 % both fail at every delay and recovery is up to 2 cm worse, and with bursty loss it can be up to 13 cm worse.
 
@@ -17,7 +17,7 @@ PYTHONPATH=. python tools/make_s6_figure.py sim/runs/s6-recovery/summary.json --
 
 ### What else helps a delayed tracker
 
-![Map of which tracker tolerates the most link delay, for nine target paths (straight lines, circles, a jinking path, a figure eight, start and stop) under random and bursty packet loss. Most cells are ties, and with 30 to 50 % bursty loss on the hardest paths no tracker passes even at zero delay](../runs/s6-atlas/atlas_which_method.png)
+![Map of which tracker tolerates the most link delay, for nine target paths (straight lines, circles, a jinking path, a figure eight, start and stop) under random and bursty packet loss. Most cells are ties, and with 30 to 50 % bursty loss on the hardest paths no tracker passes even at zero delay](../sim/runs/s6-atlas/atlas_which_method.png)
 
 In simulation, each idea below was tried against the capture-time tracker above, with the same 0.25 m p95 research line. In the map, a cell fails when at least half its seeds fail; that rule is proposed, not yet adopted.
 

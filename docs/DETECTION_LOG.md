@@ -4,7 +4,7 @@ This page describes a line-based log that a camera plus a detector can write whi
 
 **Status: proposal, tested on synthetic data only.** The repo has no real camera log yet, so this page doesn't say how well any real camera or detector performs.
 
-Run every command from the repo root with the project's virtual environment set up and activated (see [INSTALL.md](../INSTALL.md)), so that `python` is the environment's Python.
+Run every command from the repo root with the project's virtual environment set up and activated (see [INSTALL.md](INSTALL.md)), so that `python` is the environment's Python.
 
 ---
 
@@ -161,7 +161,7 @@ On the machine this page was checked on, the two commands gave these values, rou
 | latency mean (s) | 0.03 | 0.0303 | 0.0299 to 0.0306 |
 | latency std (s) | 0.008 | 0.0082 | 0.0079 to 0.0084 |
 
-`tests/test_vision_noise_recovery.py` checks the same idea automatically on bigger logs. It also runs 40 seeds on 1,000-frame logs and requires the 95% intervals for `noise_std_m` and `dropout_probability` to contain the true value in at least 32 of the 40 seeds each, and the three bias intervals together in at least 106 of 120.
+`tools/tests/test_vision_noise_recovery.py` checks the same idea automatically on bigger logs. It also runs 40 seeds on 1,000-frame logs and requires the 95% intervals for `noise_std_m` and `dropout_probability` to contain the true value in at least 32 of the 40 seeds each, and the three bias intervals together in at least 106 of 120.
 
 ---
 

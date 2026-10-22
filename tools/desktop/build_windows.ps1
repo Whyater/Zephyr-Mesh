@@ -18,7 +18,7 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
     }
     $Version = (Get-Content -Raw $versionFile).Trim() + "-dev"
 }
-& $Python -m pip install --requirement requirements-windows.txt
+& $Python -m pip install --requirement tools\desktop\requirements-windows.txt
 New-Item -ItemType Directory -Force -Path $Output | Out-Null
 $iconArgs = @()
 $iconPath = Join-Path $repoRoot "tools\design\icon\ZephyrMesh.ico"
