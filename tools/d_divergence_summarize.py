@@ -1,4 +1,4 @@
-"""Summarize the saved per-run NEES windows from burn_divergence_diagnostic (proposal, diagnostic only)."""
+"""Summarize the saved per-run NEES windows from d_divergence_diagnostic (proposal, diagnostic only)."""
 from __future__ import annotations
 
 import collections

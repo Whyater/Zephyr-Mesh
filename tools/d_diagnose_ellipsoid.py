@@ -1,6 +1,6 @@
 """Diagnose why EXP-025 passes the 0.35 m centre rule but fails the ellipsoid check.
 
-Proposal tool (burn branch), simulated only.  It reruns a small sample of
+Proposal tool, simulated only.  It reruns a small sample of
 EXP-025 conditions at the radius ``buffer.json`` reports as passing, with the
 same 75 seeds, and records where the two closest drones were when the Run A
 ellipsoid check (radii 0.12, 0.12, 0.30 m per drone) came closest to failing.

@@ -1,11 +1,11 @@
-"""Tests for the import-closure helper in tools/burn_divergence_wire_identity.py.
+"""Tests for the import-closure helper in tools/d_divergence_wire_identity.py.
 
 Each case builds a tiny fake package in a temporary folder and checks which
 files the closure reaches. No simulation code runs here.
 """
 from pathlib import Path
 
-from tools.burn_divergence_wire_identity import (
+from tools.d_divergence_wire_identity import (
     chain_to,
     command_scripts,
     import_closure,

@@ -121,7 +121,7 @@ def test_input_outcome_is_not_mutated():
 def test_default_is_off_and_identical():
     # This only shows that leaving the argument out and passing None agree. The
     # evidence that the default path matches the base commit is
-    # tools/burn_divergence_wire_identity.py (base export versus new tree).
+    # tools/d_divergence_wire_identity.py (base export versus new tree).
     cell = CoopCell(target="ct", n_observers=2, noise_std_m=0.05)
     plain = run_seed(cell, 11, arms=("single", "peer_ci"))
     explicit_none = run_seed(cell, 11, arms=("single", "peer_ci"), divergence_rule=None)

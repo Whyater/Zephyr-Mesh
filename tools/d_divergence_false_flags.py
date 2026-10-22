@@ -35,7 +35,7 @@ Output JSON is deterministic for identical arguments (sorted keys, no
 timestamps). CPU seconds are printed, not stored.
 
 Usage:
-    TMPDIR=/tmp PYTHONPATH=. python tools/burn_divergence_false_flags.py \
+    TMPDIR=/tmp PYTHONPATH=. python tools/d_divergence_false_flags.py \
         --seeds 500 --out /tmp/false_flags.json
 """
 from __future__ import annotations

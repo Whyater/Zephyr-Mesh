@@ -14,7 +14,7 @@ frame to everyone:
   B_broadcast_shares   a state share and a ground track are each ONE broadcast frame (no ACK),
                        raw reports and ground commands stay unicast (commands differ per drone).
 
-Run:  PYTHONPATH=. python tools/burn_rund_exp027_airtime.py --out <dir>/airtime.json
+Run:  PYTHONPATH=. python tools/d_exp027_airtime.py --out <dir>/airtime.json
 """
 from __future__ import annotations
 
@@ -171,7 +171,7 @@ def main() -> None:
         results[phy_name] = phy_block
 
     out = {
-        "schema": "burn-rund-exp027-airtime-1",
+        "schema": "d-exp027-airtime-1",
         "note": "Computed from registered per-kind traffic; simulation not rerun. Timing from sim/radio/mac.py and params.py.",
         "prediction_on_record": "ground/onboard airtime ratio stays above 1, between 1.1 and 1.6",
         "source_summary": args.summary,

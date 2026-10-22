@@ -6,7 +6,7 @@ the registered per_seed.csv uses (booleans are written as true/false).
 import pytest
 
 from sim.estimation.sweep import write_csv
-from tools.burn_divergence_wire_effect import _rows, compare
+from tools.d_divergence_wire_effect import _rows, compare
 from tools.d_run_fusion import NEES_COLUMNS, ROW_COLUMNS
 
 

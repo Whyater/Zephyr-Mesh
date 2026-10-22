@@ -46,7 +46,7 @@ REGISTRY = "tools/reproduce_registry.json"
 SEED = 20261020
 
 # Files that are listed but never counted for reachability.
-IGNORED_PREFIXES = ("tests/", "tools/burn_")
+IGNORED_PREFIXES = ("tests/", "tools/d_divergence_")
 
 # Runner scripts that have a dynamic check in Part B.
 RUNNERS = {
@@ -351,7 +351,7 @@ def part_a(repo: Path, base: str) -> dict:
     scans = {}
     problems = []
     if changes["relevant_other"]:
-        problems.append("changed non-Python files outside tests/ and tools/burn_*: "
+        problems.append("changed non-Python files outside tests/ and tools/d_divergence_*: "
                         + ", ".join(changes["relevant_other"]))
     if not registry_unchanged:
         problems.append(f"{REGISTRY} differs from the base")

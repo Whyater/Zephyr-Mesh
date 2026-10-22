@@ -2,7 +2,7 @@
 
 Usage (repo root)::
 
-    PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. "/Users/akashi0281/Desktop/Zephyr Mesh/Zephyr-Mesh/.venv/bin/python" tools/e_exp029_part_b.py --output runs/e-exp029-part-b --pilot
+    PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .venv/bin/python tools/e_exp029_part_b.py --output runs/e-exp029-part-b --pilot
 
 Everything in this runner is simulated.  The tag mission uses synthetic link
 loss, a scripted total blackout, and literature-derived vehicle parameters.

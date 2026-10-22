@@ -5,12 +5,12 @@ been on, which rows would change from passed to failed, by arm and observer
 count? Rows are matched on (n_observers, noise, target, loss, arm, ci, seed).
 
 Usage (full flag-on run already made):
-    PYTHONPATH=. python tools/burn_divergence_wire_effect.py \
+    PYTHONPATH=. python tools/d_divergence_wire_effect.py \
         runs/d2-fusion/per_seed.csv /tmp/d2-on/per_seed.csv --json /tmp/effect.json
 
 Usage (sample: rerun the first K registered seeds of every cell with the flag on,
 one process, and compare with the matching registered rows):
-    PYTHONPATH=. python tools/burn_divergence_wire_effect.py \
+    PYTHONPATH=. python tools/d_divergence_wire_effect.py \
         runs/d2-fusion/per_seed.csv --sample-seeds 4 --json /tmp/effect_sample.json
 """
 from __future__ import annotations

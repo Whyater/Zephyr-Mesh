@@ -24,7 +24,7 @@ Two distance metrics are reported:
 - same_time: drone and target at the same instant t.
 
 Usage:
-  PYTHONPATH=. python tools/burn_rund_s7_keepout.py --output <dir>/variants.json
+  PYTHONPATH=. python tools/d_s7_keepout.py --output <dir>/variants.json
 """
 from __future__ import annotations
 
@@ -285,7 +285,7 @@ def main():
         return value
 
     payload = {
-        "schema": "burn-rund-s7-keepout-variants-1",
+        "schema": "d-s7-keepout-variants-1",
         "simulated_only": True,
         "keep_out_radius_m": base.keep_out_radius_m,
         "control_dt_s": base.control_dt_s,

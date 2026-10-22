@@ -1,6 +1,6 @@
 """Small fast tests for the divergence false-flag study helpers."""
 from sim.s6_recovery import wilson_interval
-from tools import burn_divergence_false_flags as study
+from tools import d_divergence_false_flags as study
 
 
 def test_zero_upper_closed_form_matches_wilson_interval():

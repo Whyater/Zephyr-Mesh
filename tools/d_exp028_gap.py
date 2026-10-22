@@ -4,7 +4,7 @@ Rebuilds the zero-loss, zero-delay cells of runs/d8-consensus for the ring and t
 same graphs, eps, seeds and starting values as tools/d_run_consensus.py, then splits the gap between
 ln(0.01)/ln(rho) and the measured median into parts. Read only: it never writes into runs/.
 
-    PYTHONPATH=. python tools/burn_rund_exp028_gap.py --output <dir>   (run from the repo root)
+    PYTHONPATH=. python tools/d_exp028_gap.py --output <dir>   (run from the repo root)
 """
 from __future__ import annotations
 
