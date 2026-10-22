@@ -10,7 +10,7 @@ a real camera. It says nothing about any real camera until you record data.
 
 Every command below runs from the repo folder:
 
-    cd "$HOME/Desktop/Zephyr Mesh/Zephyr-Mesh"
+    cd Zephyr-Mesh   # the folder you cloned the repository into
 
 Set up a camera environment (once)
 ----------------------------------
@@ -35,7 +35,7 @@ Settings > Privacy & Security > Camera.
 
 Make the data folder once, before the first capture:
 
-    mkdir -p "$HOME/Desktop/Zephyr Mesh/Data/aruco"
+    mkdir -p "$HOME/zephyr-data/aruco"
 
 Step 1: print the marker
 ------------------------
@@ -91,7 +91,7 @@ Step 4: record one placement (one command, one log)
         --distance-m 0.998 --lateral-m 0 --vertical-m 0 --range-m 0.998 \
         --marker-length-m 0.150 --hfov-deg 70 --operator "Your Name" \
         --notes "2 paper shims, lid at 90 deg" \
-        --output "$HOME/Desktop/Zephyr Mesh/Data/aruco/2026-10-24_d1.0_center_yaw0_r1.jsonl"
+        --output "$HOME/zephyr-data/aruco/2026-10-24_d1.0_center_yaw0_r1.jsonl"
 
 The name reads: date, distance 1.0 m, center spot, yaw 0, placement 1. Make
 one log per placement. The fit takes one mean and one spread per file, so
@@ -148,16 +148,16 @@ Step 5: fit the noise (with the repo's .venv)
 The end of every run prints the exact command. It looks like this:
 
     PYTHONPATH=. .venv/bin/python tools/fit_vision_noise.py \
-        "$HOME/Desktop/Zephyr Mesh/Data/aruco/NAME.jsonl" \
-        --output "$HOME/Desktop/Zephyr Mesh/Data/aruco/NAME.fit.json"
+        "$HOME/zephyr-data/aruco/NAME.jsonl" \
+        --output "$HOME/zephyr-data/aruco/NAME.fit.json"
 
 Replay a saved video (a dry run, no camera)
 -------------------------------------------
     PYTHONPATH=. ~/zephyr-camera-venv/bin/python tools/capture_aruco.py \
-        --dry-run "$HOME/Desktop/Zephyr Mesh/Data/aruco/NAME.raw.mkv" \
-        --frame-times "$HOME/Desktop/Zephyr Mesh/Data/aruco/NAME.frames.jsonl" \
+        --dry-run "$HOME/zephyr-data/aruco/NAME.raw.mkv" \
+        --frame-times "$HOME/zephyr-data/aruco/NAME.frames.jsonl" \
         --condition NAME --distance-m 0.998 --marker-length-m 0.150 --hfov-deg 70 \
-        --output "$HOME/Desktop/Zephyr Mesh/Data/aruco/NAME-replay.jsonl"
+        --output "$HOME/zephyr-data/aruco/NAME-replay.jsonl"
 
 With --frame-times the replay uses the live capture times and gives exactly
 the same positions. Without it, give --fps. A folder of pictures works too,
@@ -1329,7 +1329,7 @@ def validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace, mod
     if mode == "live" and inside_folder(args.output, PRIVACY_ROOT):
         parser.error(f"--output {args.output} is inside the repo ({PRIVACY_ROOT}). A live run saves raw "
                      "video that can show you and your room, so write it outside the repo, for example "
-                     "in \"$HOME/Desktop/Zephyr Mesh/Data/aruco/\".")
+                     "in \"$HOME/zephyr-data/aruco/\".")
     paths = output_paths(args.output)
     wanted = ["log", "frames"] + (["raw"] if mode == "live" and args.video_codec != "none" else [])
     if not args.overwrite:

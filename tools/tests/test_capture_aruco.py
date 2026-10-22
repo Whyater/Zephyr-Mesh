@@ -1084,8 +1084,8 @@ def test_usage_text_is_a_raw_string_with_plain_line_continuations():
     doc = cap.__doc__
     assert " \\\n" in doc and "\\\\" not in doc  # one backslash, so commands copy straight from the file
     assert "\u2014" not in doc and "\u2013" not in doc
-    assert doc.index('mkdir -p "$HOME/Desktop/Zephyr Mesh/Data/aruco"') < doc.index("--condition 2026-10-24")
-    assert doc.index('cd "$HOME/Desktop/Zephyr Mesh/Zephyr-Mesh"') < doc.index("tools/capture_aruco.py")
+    assert doc.index('mkdir -p "$HOME/zephyr-data/aruco"') < doc.index("--condition 2026-10-24")
+    assert doc.index('cd Zephyr-Mesh') < doc.index("tools/capture_aruco.py")
     assert "PYTHONPATH=. .venv/bin/python tools/fit_vision_noise.py" in doc
     assert '--print-marker "$HOME/Desktop/' in doc and "tools/calibrate_charuco.py" in doc
     assert "2026-10-24_d1.0_center_yaw0_r1" in doc and "--check-camera" in doc

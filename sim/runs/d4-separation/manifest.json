@@ -5,7 +5,7 @@
     "--processes",
     "4",
     "--checkpoint",
-    "/Users/akashi0281/.zm-worktrees/run-d-briefs/checkpoints/separation"
+    "<local checkpoint folder, path removed>"
   ],
   "code_sha256": {
     "sim/__init__.py": "b5c4e06e700bf9268baefbdd45fd6ee3a779b89d785cc304f23b8971cb584793",

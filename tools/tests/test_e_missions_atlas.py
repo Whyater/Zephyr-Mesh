@@ -166,3 +166,9 @@ def test_seed_count_note_when_zero_events_cannot_pass():
     assert note is not None and "20 runs with zero events" in note
     passing = {"conditions": [{"statistic": "wilson_high", "met": False, "summary": {"n": 50, "count": 3}}]}
     assert atlas.seed_count_note({"cells": [passing]}) is None
+
+
+def test_default_inputs_point_at_the_committed_runs():
+    assert atlas.DEFAULT_INPUTS == atlas.REPO_ROOT / "sim" / "runs"
+    for _, folder, _, _ in atlas.INPUT_SPECS:
+        assert (atlas.DEFAULT_INPUTS / folder).is_dir(), folder

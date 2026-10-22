@@ -245,14 +245,20 @@ def test_one_cell_matches_registered_bytes(tmp_path):
                      if c["cell_id"] == ONE_CELL)
     old_entry = next(c for c in json.loads((REGISTERED_DIR / "summary.json").read_text())["cells"]
                      if c["cell_id"] == ONE_CELL)
-    assert same_tree(new_entry, old_entry)
+    if EXACT:
+        assert json.dumps(new_entry, indent=2, sort_keys=True) == json.dumps(old_entry, indent=2, sort_keys=True)
+    else:
+        assert same_tree(new_entry, old_entry)
     # The comparison file carries the same cell's registered value at noise 0.05.
     header, *rows = (out / "comparison.csv").read_text().splitlines()
     columns = header.split(",")
     row = next(r.split(",") for r in rows if r.startswith("constant_velocity,0.1,0.3,"))
     expected_p95 = old_entry["arms"]["recovery"]["p95_median_m"]
     for name in ("registered_n0.050_recovery_p95_median_m", "pooled_recovery_p95_median_m"):
-        assert same_tree(float(row[columns.index(name)]), expected_p95)
+        if EXACT:
+            assert row[columns.index(name)] == repr(expected_p95)
+        else:
+            assert same_tree(float(row[columns.index(name)]), expected_p95)
 
 
 def test_bad_options(tmp_path):

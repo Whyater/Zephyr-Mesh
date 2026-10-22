@@ -14,7 +14,7 @@ Setup (once). Use the separate camera venv, never the repo .venv:
 
 All commands below start from the repo folder:
 
-    cd "$HOME/Desktop/Zephyr Mesh/Zephyr-Mesh"
+    cd Zephyr-Mesh   # the folder you cloned the repository into
 
 1. Print the board.
 
@@ -33,8 +33,8 @@ All commands below start from the repo folder:
 
 3. Calibrate live (this opens the camera and a preview window):
 
-    mkdir -p "$HOME/Desktop/Zephyr Mesh/Data/aruco"
-    PYTHONPATH=. ~/zephyr-camera-venv/bin/python tools/calibrate_charuco.py --square-mm 35.0 --marker-mm 26.25 --output "$HOME/Desktop/Zephyr Mesh/Data/aruco/calibration-1280x720.json"
+    mkdir -p "$HOME/zephyr-data/aruco"
+    PYTHONPATH=. ~/zephyr-camera-venv/bin/python tools/calibrate_charuco.py --square-mm 35.0 --marker-mm 26.25 --output "$HOME/zephyr-data/aruco/calibration-1280x720.json"
 
    Before it opens the camera it lists the cameras macOS knows about. Index 0
    may be an iPhone (Continuity Camera) or a virtual camera instead of the
@@ -48,7 +48,7 @@ All commands below start from the repo folder:
 
    Or calibrate from pictures you already saved, which never opens a camera:
 
-    PYTHONPATH=. ~/zephyr-camera-venv/bin/python tools/calibrate_charuco.py --images "$HOME/Desktop/Zephyr Mesh/Data/aruco/calib-views/*.png" --square-mm 35.0 --marker-mm 26.25 --output "$HOME/Desktop/Zephyr Mesh/Data/aruco/calibration-1280x720.json"
+    PYTHONPATH=. ~/zephyr-camera-venv/bin/python tools/calibrate_charuco.py --images "$HOME/zephyr-data/aruco/calib-views/*.png" --square-mm 35.0 --marker-mm 26.25 --output "$HOME/zephyr-data/aruco/calibration-1280x720.json"
 
 How to take good views:
 - About 20 views.

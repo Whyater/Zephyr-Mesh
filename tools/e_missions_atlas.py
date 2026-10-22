@@ -47,7 +47,7 @@ SCRIPT = "tools/e_missions_atlas.py"
 SCHEMA_PATH = REPO_ROOT / "sim" / "missions" / "missions_atlas_schema.json"
 ATLAS_SCHEMA_ID = "zephyr-missions-atlas-1"
 OUTPUT_NAME = "missions_atlas.json"
-DEFAULT_INPUTS = REPO_ROOT / "runs"
+DEFAULT_INPUTS = REPO_ROOT / "sim" / "runs"
 
 RESULT = "result"
 NOT_AVAILABLE = "not available"
