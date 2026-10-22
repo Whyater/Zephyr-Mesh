@@ -139,7 +139,7 @@ for module in sys.modules.values():
     if filename and filename.endswith('.py'):
         path = pathlib.Path(filename).resolve()
         try:
-            loaded.append(str(path.relative_to(root)))
+            loaded.append(path.relative_to(root).as_posix())
         except ValueError:
             pass
 print(json.dumps(sorted(set(loaded))))

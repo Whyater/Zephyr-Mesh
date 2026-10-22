@@ -11,7 +11,6 @@ from pathlib import Path
 
 import pytest
 
-
 ROOT = Path(__file__).resolve().parents[2]
 RUN = ROOT / "sim/runs/s7-swarm/run.json"
 
@@ -298,12 +297,29 @@ class _Driver:
                 return
         pytest.fail("the Results window kept producing new controls after eight passes")
 
+    def _hit_testable(self, scroll, x_root, y_root):
+        """Make sure the screen point under the fake mouse really belongs to ``scroll``.
+
+        The app routes the wheel by asking Tk which widget sits at the pointer. On Windows that question goes to the
+        OS (WindowFromPoint), and a layered window at alpha 0 is see-through to the mouse, so it answers "nothing".
+        A real user's window is opaque. Raising the alpha to the smallest visible-to-the-mouse value (still invisible
+        to the eye) restores what a user has; macOS answers from Tk's own window list and never needs it.
+        """
+        window = self.results.window
+        if scroll.contains(window.winfo_containing(x_root, y_root)):
+            return
+        window.attributes("-alpha", 0.01)
+        _settle(self.root)
+        found = window.winfo_containing(x_root, y_root)
+        assert scroll.contains(found), f"no widget of {scroll.outer} under the pointer at ({x_root}, {y_root}): {found}"
+
     def wheel(self):
         """One wheel turn over the content and one over the inspector, as a mouse would send them."""
         window = self.results.window
         for scroll in (self.results.content_scroll, self.results.inspector_scroll):
             area = scroll.outer
             x, y = max(1, area.winfo_width() // 2), max(1, area.winfo_height() // 2)
+            self._hit_testable(scroll, area.winfo_rootx() + x, area.winfo_rooty() + y)
             for delta in (-120, 120):
                 self.act("wheel_event", window, lambda x=x, y=y, delta=delta, area=area: window.event_generate(
                     "<MouseWheel>", x=x, y=y, rootx=area.winfo_rootx() + x, rooty=area.winfo_rooty() + y, delta=delta))
