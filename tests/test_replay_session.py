@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from desktop.replay_session import ReplaySession
+from tools.desktop.replay_session import ReplaySession
 
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -8,7 +8,7 @@ recorded". Where the numbers come from:
 
 - Every metric (status, tracking headline, estimate error, link delay, packet loss, target age,
   altitude, speed, heading, neighbors, groups, and events) comes from the presentation records
-  that `desktop/presentation.py` computes and the fixture embeds. The Swift code only formats
+  that `tools/desktop/presentation.py` computes and the fixture embeds. The Swift code only formats
   them.
 - The raw position, velocity and fused-target vectors and the hardware profile values under
   Details, and the scene geometry (drone and target positions, keep-out spheres, and each drone's

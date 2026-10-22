@@ -41,7 +41,7 @@ final class ReplayFixtureTests: XCTestCase {
     }
 
     func testRunNameAndNotInReplayComeFromTheGoldenPresentation() throws {
-        // The fixture copies these from desktop/presentation.py; Swift never builds them.
+        // The fixture copies these from tools/desktop/presentation.py; Swift never builds them.
         let goldenURL = sourceURL("../../design/golden/s7_presentation.json")
         let raw = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: goldenURL)) as? [String: Any])
         let fixture = try loadFixture()

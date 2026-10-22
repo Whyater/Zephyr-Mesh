@@ -1,6 +1,6 @@
 """Tk-free text formatting for the Windows replay surface.
 
-Every value shown on screen comes from ``desktop.presentation`` (or a decoded
+Every value shown on screen comes from ``tools.desktop.presentation`` (or a decoded
 report) and passes through one of these helpers, so precision and the wording
 for missing values stay identical everywhere. ``None`` always means the data
 did not contain the value; callers show ``NOT_RECORDED`` for it, never zero.

@@ -67,9 +67,9 @@ What the window shows, top to bottom:
   right row when the list scrolls. Behavior described here was checked on macOS
   Tk 9.
 
-Every number comes from `desktop/presentation.py` through `ReplaySession`, and
+Every number comes from `tools/desktop/presentation.py` through `ReplaySession`, and
 every color, font size, and label comes from the generated
-`desktop/design_tokens.py` (built from `tools/design/*.json`). The theme is ttk's
+`tools/desktop/design_tokens.py` (built from `tools/design/*.json`). The theme is ttk's
 `clam` restyled for the dark and light palettes; choose **View > Appearance**
 (System, Dark, or Light; Dark is the default). The choice is saved in
 `~/.zephyr-mesh/settings.json`, and System follows the Windows app theme
@@ -143,7 +143,7 @@ raw parameters. Both viewers keep the read-only evidence boundary visible.
 On Windows, build a self-contained executable from the repository root with:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File desktop/build_windows.ps1
+powershell -ExecutionPolicy Bypass -File tools/desktop/build_windows.ps1
 ```
 
 The resulting `dist/ZephyrMeshWindows/ZephyrMeshWindows.exe` is a local
@@ -158,9 +158,9 @@ vehicle counts match the bundled `run.json` itself, without relying on stdout fr
 On a Windows desktop, add `--gui-smoke` to launch the frozen Tk executable,
 step one replay frame through its smoke handshake, verify a readiness marker,
 and close it before publishing.
-Use `python -m desktop.windows_preview --headless` for a
+Use `python -m tools.desktop.windows_preview --headless` for a
 dependency-light smoke check on any platform. On any desktop with Tk,
-`python -m desktop.windows_preview --smoke-idle idle.txt` opens the window,
+`python -m tools.desktop.windows_preview --smoke-idle idle.txt` opens the window,
 runs the real event loop, and writes `idle renders=0 ...` when the window
 stops redrawing once start-up settles (or `busy` with the count if it does not). The macOS app remains the native
 SwiftUI + SceneKit surface.
@@ -221,7 +221,7 @@ check compares the installed package version instead of assuming the initial
 development version:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File desktop/build_windows.ps1 `
+powershell -ExecutionPolicy Bypass -File tools/desktop/build_windows.ps1 `
   -Version 0.1.5 -Package
 ```
 

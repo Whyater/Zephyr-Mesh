@@ -23,15 +23,15 @@ import traceback
 from typing import Any, Callable, Mapping, Sequence
 
 if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from desktop.design_tokens import LAYOUT, SHORTCUTS, SPACE, TRANSPORT, UI_TEXT, WIN_LAYOUT
-    from desktop.presentation import compact_name, filter_group_rows, pinned_levels, run_name, team_filter
-    from desktop.replay import ReplayModel
-    from desktop.replay_session import SPEEDS, ReplaySession
-    from desktop.scenario_run import load_scenario_run
-    from desktop.ui_icons import set_window_icon
-    from desktop import ui_format as fmt
-    from desktop.ui_settings import load_appearance, resolve_theme, save_appearance, system_prefers_dark, system_reduced_motion
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from tools.desktop.design_tokens import LAYOUT, SHORTCUTS, SPACE, TRANSPORT, UI_TEXT, WIN_LAYOUT
+    from tools.desktop.presentation import compact_name, filter_group_rows, pinned_levels, run_name, team_filter
+    from tools.desktop.replay import ReplayModel
+    from tools.desktop.replay_session import SPEEDS, ReplaySession
+    from tools.desktop.scenario_run import load_scenario_run
+    from tools.desktop.ui_icons import set_window_icon
+    from tools.desktop import ui_format as fmt
+    from tools.desktop.ui_settings import load_appearance, resolve_theme, save_appearance, system_prefers_dark, system_reduced_motion
 else:
     from .design_tokens import LAYOUT, SHORTCUTS, SPACE, TRANSPORT, UI_TEXT, WIN_LAYOUT
     from .presentation import compact_name, filter_group_rows, pinned_levels, run_name, team_filter
@@ -43,7 +43,7 @@ else:
     from .ui_settings import load_appearance, resolve_theme, save_appearance, system_prefers_dark, system_reduced_motion
 
 
-RESOURCE_ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1]))
+RESOURCE_ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
 RESOURCE_ROOTS = (RESOURCE_ROOT / "_internal", RESOURCE_ROOT)
 
 
@@ -179,7 +179,7 @@ def _take_previous_update_failure() -> str | None:
         try:
             from tools.release_updater import take_update_result
         except ModuleNotFoundError:
-            sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+            sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
             from tools.release_updater import take_update_result
         return take_update_result()
     except Exception:
@@ -457,9 +457,9 @@ class WindowsReplayApp:
         from tkinter import ttk
 
         if __package__ in (None, ""):
-            from desktop.scene_view import SceneView
-            from desktop.ui_theme import Fonts, ImageBank, Theme, apply_title_bar, configure_styles, ui_scale
-            from desktop import ui_widgets as widgets
+            from tools.desktop.scene_view import SceneView
+            from tools.desktop.ui_theme import Fonts, ImageBank, Theme, apply_title_bar, configure_styles, ui_scale
+            from tools.desktop import ui_widgets as widgets
         else:
             from .scene_view import SceneView
             from .ui_theme import Fonts, ImageBank, Theme, apply_title_bar, configure_styles, ui_scale
@@ -1727,7 +1727,7 @@ class WindowsReplayApp:
     # ---- windows -------------------------------------------------------------
     def _viewer_context(self) -> Any:
         if __package__ in (None, ""):
-            from desktop.ui_viewers import ViewerContext
+            from tools.desktop.ui_viewers import ViewerContext
         else:
             from .ui_viewers import ViewerContext
         return ViewerContext(self.root, lambda: self.theme, self.fonts, self.images, self.scale, self._theme_hooks.append,
@@ -1744,7 +1744,7 @@ class WindowsReplayApp:
 
     def _show_about(self) -> None:
         if __package__ in (None, ""):
-            from desktop.ui_viewers import about_window
+            from tools.desktop.ui_viewers import about_window
         else:
             from .ui_viewers import about_window
         self._replace_window("_about_window")
@@ -1753,7 +1753,7 @@ class WindowsReplayApp:
     def _show_results(self, view: str | None = None, select: Mapping[str, str] | None = None) -> Any:
         """Open the Results window, or bring the open one forward (there is only ever one)."""
         if __package__ in (None, ""):
-            from desktop.ui_results import open_results
+            from tools.desktop.ui_results import open_results
         else:
             from .ui_results import open_results
         if self._results is not None and self._results.exists():
@@ -1857,7 +1857,7 @@ class WindowsReplayApp:
                 try:
                     from tools.release_updater import GitHubReleaseClient, describe_update_error
                 except ModuleNotFoundError:
-                    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+                    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
                     from tools.release_updater import GitHubReleaseClient, describe_update_error
             except Exception as exc:
                 results.put(("done", (update_text["failed"].format(reason=f"the updater is missing ({type(exc).__name__})"), True)))
@@ -1919,7 +1919,7 @@ class WindowsReplayApp:
         """Load the shared report decoder without making Tk import it early."""
 
         if __package__ in (None, ""):
-            from desktop.evidence import EvidenceError, load_evidence_report
+            from tools.desktop.evidence import EvidenceError, load_evidence_report
         else:
             from .evidence import EvidenceError, load_evidence_report
         return load_evidence_report, EvidenceError
@@ -1956,8 +1956,8 @@ class WindowsReplayApp:
         """Decode a scenario run strictly, then show it without touching replay state."""
 
         if __package__ in (None, ""):
-            from desktop.scenario_run import ScenarioRunFormatError
-            from desktop.ui_viewers import scenario_window
+            from tools.desktop.scenario_run import ScenarioRunFormatError
+            from tools.desktop.ui_viewers import scenario_window
         else:
             from .scenario_run import ScenarioRunFormatError
             from .ui_viewers import scenario_window
@@ -2007,7 +2007,7 @@ class WindowsReplayApp:
 
     def _render_evidence_report(self, report: dict[str, Any], path: Path) -> None:
         if __package__ in (None, ""):
-            from desktop.ui_viewers import evidence_window
+            from tools.desktop.ui_viewers import evidence_window
         else:
             from .ui_viewers import evidence_window
         self._replace_window("_evidence_window")
@@ -2062,7 +2062,7 @@ def main(argv: list[str] | None = None) -> int:
     results_select = None
     if args.results_select:
         if __package__ in (None, ""):
-            from desktop.results_data import parse_select_spec
+            from tools.desktop.results_data import parse_select_spec
         else:
             from .results_data import parse_select_spec
         try:

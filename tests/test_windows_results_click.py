@@ -37,7 +37,7 @@ def app(monkeypatch):
         root.destroy()
         pytest.skip("this display cannot show a transparent window, so the test would flash over the desktop")
     root.deiconify()
-    from desktop import ui_results
+    from tools.desktop import ui_results
 
     real_init = ui_results.ResultsWindow.__init__
 
@@ -50,8 +50,8 @@ def app(monkeypatch):
             pass
 
     monkeypatch.setattr(ui_results.ResultsWindow, "__init__", quiet_init)
-    from desktop.replay import ReplayModel
-    from desktop.windows_preview import WindowsReplayApp
+    from tools.desktop.replay import ReplayModel
+    from tools.desktop.windows_preview import WindowsReplayApp
 
     application = WindowsReplayApp(root, ReplayModel.from_path(RUN), appearance="dark", persist_appearance=False)
     root.update_idletasks()
@@ -73,7 +73,7 @@ def _spy(monkeypatch, cls, name, tally, label):
 @pytest.fixture
 def tally(app, monkeypatch):
     """Counts of what really happened, installed before any Results window (and so any canvas binding) exists."""
-    from desktop import ui_results, ui_results_atlas, ui_results_chart, ui_widgets
+    from tools.desktop import ui_results, ui_results_atlas, ui_results_chart, ui_widgets
 
     counts = Counter()
     _spy(monkeypatch, ui_results_chart.DelayChart, "key", counts, "chart_key")

@@ -60,17 +60,17 @@ class FixtureError(ValueError):
 # ---- loading -------------------------------------------------------------------------------
 def resource_roots() -> tuple[Path, ...]:
     """Where bundled files live: the PyInstaller folder (and its ``_internal``), else the checkout."""
-    root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1]))
+    root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
     return (root / "_internal", root)
 
 
 def fixture_path() -> Path:
-    """``desktop/results_fixture.json`` in the first resource root that has it."""
+    """``tools/desktop/results_fixture.json`` in the first resource root that has it."""
     for root in resource_roots():
-        candidate = root / "desktop" / FIXTURE_NAME
+        candidate = root / "tools" / "desktop" / FIXTURE_NAME
         if candidate.is_file():
             return candidate
-    return resource_roots()[-1] / "desktop" / FIXTURE_NAME
+    return resource_roots()[-1] / "tools" / "desktop" / FIXTURE_NAME
 
 
 def _number(value: Any, where: str) -> float:

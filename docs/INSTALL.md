@@ -32,7 +32,7 @@ The Windows download is unsigned, so Windows SmartScreen may show a warning the 
 To build locally, install 64-bit Python 3.12 (the version the release builds use, and the only one tested), open PowerShell at the repository root, and run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File desktop/build_windows.ps1
+powershell -ExecutionPolicy Bypass -File tools/desktop/build_windows.ps1
 ```
 
 The script runs `py`, which picks the newest Python you have installed. If that is not 3.12, add `-Python` and the full path to your 3.12 `python.exe`. The script creates `dist\ZephyrMeshWindows\ZephyrMeshWindows.exe` and `dist\ZephyrMeshUpdater.exe`. Keep the updater beside the application directory. The app's update action only installs a published release asset with a matching platform architecture and GitHub SHA-256 digest. The digest check is an integrity check only, not publisher authentication: it does not prove who published the file. Releases are not notarized or signed with a developer certificate.
@@ -62,7 +62,7 @@ PYTHONPATH=. python tools/analyze_s7_run.py runs/s7-swarm/run.json
 PYTHONPATH=. python tools/run_scenario.py --config sim/scenario_example.json --output /tmp/zephyr-s7-scenario-run.json --summary
 ```
 
-A scenario config may add `velocity_mps` to a keep-out sphere for a bounded linear moving constraint; the generated frame snapshots retain each synthetic center for inspection. The canonical artifacts are [`runs/s0-baseline`](../runs/s0-baseline), [`runs/s2-physics`](../runs/s2-physics), and [`runs/s7-swarm`](../runs/s7-swarm). The native and Windows surfaces consume the S7 replay through [`desktop/replay.py`](../desktop/replay.py) and the checked-in macOS fixture projection. See [`ROADMAP.md`](ROADMAP.md) for evidence gates.
+A scenario config may add `velocity_mps` to a keep-out sphere for a bounded linear moving constraint; the generated frame snapshots retain each synthetic center for inspection. The canonical artifacts are [`runs/s0-baseline`](../runs/s0-baseline), [`runs/s2-physics`](../runs/s2-physics), and [`runs/s7-swarm`](../runs/s7-swarm). The native and Windows surfaces consume the S7 replay through [`tools/desktop/replay.py`](../desktop/replay.py) and the checked-in macOS fixture projection. See [`ROADMAP.md`](ROADMAP.md) for evidence gates.
 
 To inspect a trace or profile in either desktop app, create a portable report
 with `tools/build_evidence_report.py`, then choose **Open evidence report…**

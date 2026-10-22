@@ -35,7 +35,7 @@ enum Format {
         value.map { "\(number($0, decimals: 0))\u{00B0}" } ?? notRecorded
     }
 
-    /// Mirrors `heading_text` in desktop/ui_format.py: the heading when there is one; "At rest"
+    /// Mirrors `heading_text` in tools/desktop/ui_format.py: the heading when there is one; "At rest"
     /// when a recorded speed is below 0.01 m/s; "Straight up or down" when the drone moves with
     /// no horizontal motion; otherwise "Not recorded".
     static let atRestMps = 0.01
@@ -161,7 +161,7 @@ enum TeamPresentation {
         var id: String { group.id }
     }
 
-    /// Mirrors `filter_group_rows` in desktop/presentation.py: a pinned (late or lost) group is
+    /// Mirrors `filter_group_rows` in tools/desktop/presentation.py: a pinned (late or lost) group is
     /// never hidden and keeps every member; any other group stays only when a member matches,
     /// and then lists only the matching members. The selected drone is the one addition (macOS
     /// only so far): it stays listed in its group, marked, even when it does not match, so the
@@ -184,7 +184,7 @@ enum TeamPresentation {
     }
 
     /// Counts for the filter caption and empty state. Mirrors `team_filter` in
-    /// desktop/presentation.py: `shown` counts listed drones (pinned ones included), `matched`
+    /// tools/desktop/presentation.py: `shown` counts listed drones (pinned ones included), `matched`
     /// counts drones whose names match, `total` counts every drone in the frame.
     struct FilterCounts: Equatable {
         let shown: Int

@@ -28,7 +28,7 @@ from tools.make_s6_atlas_figure import (  # noqa: E402
 )
 
 OUT_MACOS = ROOT / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/results_fixture.json"
-OUT_DESKTOP = ROOT / "desktop/results_fixture.json"
+OUT_DESKTOP = ROOT / "tools/desktop/results_fixture.json"
 S6_DELAYS = [0, 0.025, 0.05, 0.1, 0.15, 0.2, 0.3]
 STRATUM_ORDER = ["central", "noise0", "noise2", "noise10", "rate5", "rate20", "rate50", "jitter", "student_t"]
 STRATUM_TITLES = {

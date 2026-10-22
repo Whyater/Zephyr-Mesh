@@ -15,7 +15,7 @@ def test_fallback_versions_match_the_version_file():
     expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip() + "-dev"
     swift = (ROOT / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/ReleaseUpdater.swift").read_text(encoding="utf-8")
     assert f'?? "{expected}"' in swift
-    windows = (ROOT / "desktop/windows_preview.py").read_text(encoding="utf-8")
+    windows = (ROOT / "tools/desktop/windows_preview.py").read_text(encoding="utf-8")
     assert f'else "{expected}"' in windows
 
 
@@ -29,7 +29,7 @@ def test_local_build_defaults_to_the_dev_version():
 
 
 def test_windows_build_reads_the_version_file_and_has_no_fallback_number():
-    script = (ROOT / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
+    script = (ROOT / "tools" / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
     assert 'Join-Path $repoRoot "VERSION"' in script
     assert '+ "-dev"' in script
     assert re.search(r'"[0-9]+\.[0-9]+\.[0-9]+', script) is None, "no hard-coded version number"
@@ -49,5 +49,5 @@ def test_watch_loop_opens_the_bundle_the_builder_writes():
 
 
 def test_docs_do_not_point_at_the_old_bundle_path():
-    for doc in ("README.md", "desktop/README.md", "tools/macos/ZephyrMeshApp/README.md"):
+    for doc in ("README.md", "tools/desktop/README.md", "tools/macos/ZephyrMeshApp/README.md"):
         assert "tools/macos/ZephyrMesh.app" not in (ROOT / doc).read_text(encoding="utf-8"), doc

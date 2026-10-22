@@ -13,7 +13,7 @@ from pathlib import Path
 from jsonschema import Draft202012Validator, ValidationError
 
 from sim.investigation import run_sweep
-from desktop.evidence import EvidenceError, build_evidence_report, write_evidence_report
+from tools.desktop.evidence import EvidenceError, build_evidence_report, write_evidence_report
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -32,7 +32,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.output.resolve() == args.source.resolve():
             raise EvidenceError("output must differ from source")
         report = build_evidence_report(args.source, "investigation")
-        schema = json.loads((Path(__file__).parents[1] / "desktop" / "evidence_report_schema.json").read_text(encoding="utf-8"))
+        schema = json.loads((Path(__file__).parents[1] / "tools" / "desktop" / "evidence_report_schema.json").read_text(encoding="utf-8"))
         Draft202012Validator(schema).validate(report)
         write_evidence_report(args.output, report)
     except (EvidenceError, OSError, ValidationError, json.JSONDecodeError) as exc:

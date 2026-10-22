@@ -15,7 +15,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_PATHS = [
-    ROOT / "desktop" / "results_fixture.json",
+    ROOT / "tools" / "desktop" / "results_fixture.json",
     ROOT / "tools" / "macos" / "ZephyrMeshApp" / "Sources" / "ZephyrMeshApp" / "Resources" / "results_fixture.json",
 ]
 S6_DIR = ROOT / "runs" / "s6-recovery"

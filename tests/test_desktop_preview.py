@@ -6,14 +6,14 @@ import types
 
 import pytest
 
-from desktop.replay import ReplayFormatError, ReplayModel, filter_agents
-from desktop.scenario_run import ScenarioFrame, ScenarioRunCursor, clamp_scenario_rail_x, load_scenario_run, project_scenario_altitude, project_scenario_altitude_radius, project_scenario_point, scenario_frame_geometry, scenario_rail_endpoints, selected_frame_summary
+from tools.desktop.replay import ReplayFormatError, ReplayModel, filter_agents
+from tools.desktop.scenario_run import ScenarioFrame, ScenarioRunCursor, clamp_scenario_rail_x, load_scenario_run, project_scenario_altitude, project_scenario_altitude_radius, project_scenario_point, scenario_frame_geometry, scenario_rail_endpoints, selected_frame_summary
 
 
 ROOT = Path(__file__).parents[1]
 RUN = ROOT / "runs/s7-swarm/run.json"
 # Read the counts straight from the file so regenerating the S7 run does not
-# break these tests. The JSON is parsed separately from desktop.replay.
+# break these tests. The JSON is parsed separately from tools.desktop.replay.
 _RAW = json.loads(RUN.read_text(encoding="utf-8"))
 RAW_FRAMES = len(_RAW["steps"])
 RAW_AGENTS = len(_RAW["steps"][0]["agents"])
@@ -33,7 +33,7 @@ def test_replay_model_reads_canonical_s7_fixture():
 
 def test_scenario_run_decoder_reads_summary_and_frames(tmp_path):
     from sim.scenario_runner import run_scenario, serialize_run
-    from desktop.scenario_run import load_scenario_run
+    from tools.desktop.scenario_run import load_scenario_run
 
     config = {
         "agent_count": 2,
@@ -68,7 +68,7 @@ def test_scenario_run_decoder_reads_summary_and_frames(tmp_path):
 def test_scenario_run_decoder_rejects_duplicate_keys_and_hash_mismatch(tmp_path):
     import json
     from sim.scenario_runner import run_scenario
-    from desktop.scenario_run import ScenarioRunFormatError, load_scenario_run
+    from tools.desktop.scenario_run import ScenarioRunFormatError, load_scenario_run
 
     duplicate = tmp_path / "duplicate.json"
     duplicate.write_text('{"schema":"zephyr-s7-scenario-run-1","schema":"zephyr-s7-scenario-run-1"}', encoding="utf-8")
@@ -84,10 +84,10 @@ def test_scenario_run_decoder_rejects_duplicate_keys_and_hash_mismatch(tmp_path)
 
 
 def test_windows_cli_exposes_scenario_run_inspection_path():
-    import desktop.windows_preview as preview
+    import tools.desktop.windows_preview as preview
 
-    source = (ROOT / "desktop" / "windows_preview.py").read_text(encoding="utf-8")
-    viewers = (ROOT / "desktop" / "ui_viewers.py").read_text(encoding="utf-8")
+    source = (ROOT / "tools" / "desktop" / "windows_preview.py").read_text(encoding="utf-8")
+    viewers = (ROOT / "tools" / "desktop" / "ui_viewers.py").read_text(encoding="utf-8")
     assert "--scenario-run" in source
     assert 'UI_TEXT["menus"]["openScenarioRun"], "openScenarioRun"' in source
     assert any(label == "Open Scenario Run..." for _menu, items in preview.MENU_LAYOUT for label, _a, _k in items)
@@ -100,7 +100,7 @@ def test_windows_cli_exposes_scenario_run_inspection_path():
 
 def test_desktop_scenario_decoder_rejects_payload_and_link_mutations(tmp_path):
     import json
-    from desktop.scenario_run import ScenarioRunFormatError, load_scenario_run
+    from tools.desktop.scenario_run import ScenarioRunFormatError, load_scenario_run
 
     source = ROOT / "tools/macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-scenario-run-1.json"
     document = json.loads(source.read_text(encoding="utf-8"))
@@ -120,7 +120,7 @@ def test_desktop_scenario_decoder_rejects_payload_and_link_mutations(tmp_path):
 def test_desktop_decoder_rejects_rehashed_frame_time_sequence(tmp_path):
     import hashlib
     import json
-    from desktop.scenario_run import ScenarioRunFormatError
+    from tools.desktop.scenario_run import ScenarioRunFormatError
 
     source = ROOT / "tools/macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
     document = json.loads(source.read_text(encoding="utf-8"))
@@ -138,7 +138,7 @@ def test_desktop_decoder_rejects_rehashed_frame_time_sequence(tmp_path):
 def test_desktop_decoder_rejects_rehashed_step_reorder_and_epsilon_boundary(tmp_path):
     import hashlib
     import json
-    from desktop.scenario_run import ScenarioRunFormatError
+    from tools.desktop.scenario_run import ScenarioRunFormatError
 
     source = ROOT / "tools/macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
     base = json.loads(source.read_text(encoding="utf-8"))
@@ -314,7 +314,7 @@ def test_fleet_filter_matches_ids_and_profile_ids_without_reordering():
 
 
 def test_windows_runtime_version_prefers_frozen_internal_resource(tmp_path, monkeypatch):
-    import desktop.windows_preview as preview
+    import tools.desktop.windows_preview as preview
 
     internal = tmp_path / "_internal"
     internal.mkdir()
@@ -326,7 +326,7 @@ def test_windows_runtime_version_prefers_frozen_internal_resource(tmp_path, monk
 
 def test_windows_runtime_version_reads_the_file_beside_the_frozen_exe(tmp_path, monkeypatch):
     # PyInstaller 6 layout: _MEIPASS is <app>/_internal, VERSION.txt sits beside the exe.
-    import desktop.windows_preview as preview
+    import tools.desktop.windows_preview as preview
 
     app = tmp_path / "ZephyrMeshWindows"
     internal = app / "_internal"
@@ -342,24 +342,24 @@ def test_windows_runtime_version_reads_the_file_beside_the_frozen_exe(tmp_path, 
 
 
 def test_windows_source_checkout_version_is_the_dev_version():
-    import desktop.windows_preview as preview
+    import tools.desktop.windows_preview as preview
 
     expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip() + "-dev"
     assert preview._runtime_version() == expected
 
 
 def test_windows_build_writes_utf8_version_without_bom():
-    script = (ROOT / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
+    script = (ROOT / "tools" / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
     assert "UTF8Encoding" in script
     assert "WriteAllText" in script
-    assert "hidden-import desktop.evidence" in script
-    assert "hidden-import desktop.scenario_run" in script
+    assert "hidden-import tools.desktop.evidence" in script
+    assert "hidden-import tools.desktop.scenario_run" in script
     assert "README-Windows.txt" in script
     assert "Extract the complete ZIP" in script
 
 
 def test_windows_startup_diagnostic_is_written_outside_install_dir(tmp_path, monkeypatch):
-    import desktop.windows_preview as preview
+    import tools.desktop.windows_preview as preview
 
     app_data = tmp_path / "LocalAppData"
     monkeypatch.setenv("LOCALAPPDATA", str(app_data))
@@ -375,7 +375,7 @@ def test_windows_startup_diagnostic_is_written_outside_install_dir(tmp_path, mon
 
 
 def test_windows_startup_failure_message_explains_zip_extraction(capsys, monkeypatch, tmp_path):
-    import desktop.windows_preview as preview
+    import tools.desktop.windows_preview as preview
 
     monkeypatch.setattr(preview.sys, "platform", "linux")
     preview.show_startup_failure(RuntimeError("Tk failed"), tmp_path / "startup.log")
@@ -384,7 +384,7 @@ def test_windows_startup_failure_message_explains_zip_extraction(capsys, monkeyp
 
 
 def test_windows_startup_failure_is_non_throwing_without_stderr(monkeypatch, tmp_path):
-    import desktop.windows_preview as preview
+    import tools.desktop.windows_preview as preview
 
     class BrokenMessageBox:
         def MessageBoxW(self, *_args):
@@ -405,16 +405,16 @@ def test_windows_requirements_pin_evidence_loader_dependencies():
 
 
 def test_windows_smoke_packages_and_checks_investigation_report():
-    build_script = (ROOT / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
+    build_script = (ROOT / "tools" / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
     validator = (ROOT / "tools" / "validate_windows_bundle.py").read_text(encoding="utf-8")
-    preview = (ROOT / "desktop" / "windows_preview.py").read_text(encoding="utf-8")
-    assert "investigation_report_example.json;desktop" in build_script
+    preview = (ROOT / "tools" / "desktop" / "windows_preview.py").read_text(encoding="utf-8")
+    assert "investigation_report_example.json;tools\\desktop" in build_script
     assert '"investigation_report_example.json", "investigation", "synthetic"' in validator
     assert 'action="append"' in preview
     assert '("s7_report_example.json", "swarm", "synthetic")' in validator
     from tools.validate_windows_bundle import expected_smoke_marker
-    from desktop.evidence import load_evidence_report
-    kinds = [load_evidence_report(ROOT / "desktop" / name)["kind"] for name in ("evidence_report_example.json", "investigation_report_example.json", "s7_report_example.json")]
+    from tools.desktop.evidence import load_evidence_report
+    kinds = [load_evidence_report(ROOT / "tools" / "desktop" / name)["kind"] for name in ("evidence_report_example.json", "investigation_report_example.json", "s7_report_example.json")]
     assert expected_smoke_marker("ready", RAW_FRAMES, kinds) == f"ready frame=2/{RAW_FRAMES} evidence_kind=espnow,investigation,swarm"
     assert expected_smoke_marker("healthy", 1, ["swarm", "espnow", "swarm"]) == "healthy frame=1/1 evidence_kind=espnow,swarm"
     assert 'README-Windows.txt' in validator
@@ -438,7 +438,7 @@ def test_windows_preview_constructs_when_tk_display_is_available():
     except tk.TclError:
         pytest.skip("no desktop display in this test environment")
     root.withdraw()
-    from desktop.windows_preview import WindowsReplayApp
+    from tools.desktop.windows_preview import WindowsReplayApp
     app = WindowsReplayApp(root, ReplayModel.from_path(RUN), appearance="dark", persist_appearance=False)
     assert app.selected_id == "drone-001"
     root.update()
@@ -452,7 +452,7 @@ def test_windows_preview_constructs_when_tk_display_is_available():
 
 
 # ---- Windows UI logic (no Tk display needed) --------------------------------
-from desktop.replay_session import ReplaySession  # noqa: E402
+from tools.desktop.replay_session import ReplaySession  # noqa: E402
 
 
 class _QueuedTree:
@@ -502,7 +502,7 @@ class _QueuedTree:
 
 
 def _selection_app(queue):
-    import desktop.windows_preview as preview
+    import tools.desktop.windows_preview as preview
 
     app = object.__new__(preview.WindowsReplayApp)
     app.session = ReplaySession(RUN)
@@ -600,7 +600,7 @@ def test_queued_event_model_catches_the_old_feedback_loop():
 
 
 def test_team_rows_group_drones_and_filter_never_hides_non_ok():
-    from desktop.windows_preview import desired_team_selection, drone_for_team_row, team_rows
+    from tools.desktop.windows_preview import desired_team_selection, drone_for_team_row, team_rows
 
     session = ReplaySession(RUN)
     session.seek_frame(5)
@@ -655,7 +655,7 @@ class _FakeWidget:
 
 
 def _playback_app():
-    from desktop.windows_preview import WindowsReplayApp
+    from tools.desktop.windows_preview import WindowsReplayApp
 
     app = object.__new__(WindowsReplayApp)  # skip __init__: it needs a Tk display
     app.root = _FakeRoot()
@@ -717,13 +717,13 @@ def test_playback_stops_at_the_last_frame_and_play_restarts():
 
 @pytest.mark.parametrize("widget_class,typing", [("Entry", True), ("TEntry", True), ("Text", True), ("Spinbox", True), ("TSpinbox", True), ("TCombobox", True), ("Canvas", False), ("TButton", False), ("Treeview", False), ("Tk", False)])
 def test_text_input_widgets_are_recognised(widget_class, typing):
-    from desktop.windows_preview import is_text_input_class
+    from tools.desktop.windows_preview import is_text_input_class
 
     assert is_text_input_class(widget_class) is typing
 
 
 def test_single_key_shortcuts_yield_to_the_focused_widget():
-    from desktop.windows_preview import WindowsReplayApp
+    from tools.desktop.windows_preview import WindowsReplayApp
 
     app = object.__new__(WindowsReplayApp)
     fired = []
@@ -743,8 +743,8 @@ def test_single_key_shortcuts_yield_to_the_focused_widget():
 
 
 def test_menu_layout_covers_every_shortcut_with_generated_accelerators():
-    from desktop.design_tokens import SHORTCUTS
-    from desktop.windows_preview import MENU_LAYOUT, SHORTCUT_HANDLERS, WindowsReplayApp, menu_accelerators
+    from tools.desktop.design_tokens import SHORTCUTS
+    from tools.desktop.windows_preview import MENU_LAYOUT, SHORTCUT_HANDLERS, WindowsReplayApp, menu_accelerators
 
     assert set(SHORTCUT_HANDLERS) == {shortcut.action_id for shortcut in SHORTCUTS}
     assert all(callable(getattr(WindowsReplayApp, name)) for name in SHORTCUT_HANDLERS.values())
@@ -773,7 +773,7 @@ def test_events_through_is_cumulative_oldest_first():
 
 # ---- formatting ------------------------------------------------------------
 def test_formatting_precision_and_missing_values():
-    from desktop import ui_format as fmt
+    from tools.desktop import ui_format as fmt
 
     assert fmt.format_value(None, "ms") is None
     assert fmt.display(None, "ms") == "Not recorded"
@@ -791,8 +791,8 @@ def test_formatting_precision_and_missing_values():
 
 
 def test_team_summary_and_run_name_come_from_the_presentation():
-    from desktop import ui_format as fmt
-    from desktop.presentation import run_name, team_summary
+    from tools.desktop import ui_format as fmt
+    from tools.desktop.presentation import run_name, team_summary
 
     records = [{"level": "ok", "word": "OK"}] * 45 + [{"level": "caution", "word": "Late"}] * 4 + [{"level": "waiting", "word": "Waiting"}]
     assert team_summary(records) == "50 drones: 45 OK, 4 late, 1 waiting"
@@ -806,7 +806,7 @@ def test_team_summary_and_run_name_come_from_the_presentation():
 
 def test_windows_inspector_shows_not_recorded_for_missing_neighbor_values():
     """A frame without neighbor_count or min_neighbor_distance_m reads "Not recorded", never 0."""
-    from desktop import ui_format as fmt
+    from tools.desktop import ui_format as fmt
 
     document = json.loads(json.dumps(_RAW))
     for agent in document["steps"][2]["agents"]:
@@ -821,14 +821,14 @@ def test_windows_inspector_shows_not_recorded_for_missing_neighbor_values():
     assert fmt.format_scalar(record.get("neighbor_count")) == "Not recorded"
     assert fmt.display(record.get("nearest_neighbor_m"), "m") == "Not recorded"
     assert fmt.format_scalar(0) == "0", "a recorded zero stays zero"
-    source = (ROOT / "desktop" / "windows_preview.py").read_text(encoding="utf-8")
+    source = (ROOT / "tools" / "desktop" / "windows_preview.py").read_text(encoding="utf-8")
     assert 'fmt.format_scalar(record.get("neighbor_count"))' in source
     assert 'fmt.format_value(record.get("nearest_neighbor_m"), "m")' in source
 
 
 def test_about_not_in_replay_uses_the_presentation_list():
-    from desktop.presentation import not_in_replay
-    from desktop.ui_viewers import unavailable_items
+    from tools.desktop.presentation import not_in_replay
+    from tools.desktop.ui_viewers import unavailable_items
 
     assert unavailable_items(_RAW) == (
         "Live radio link, camera or vision input, battery state, flight controller commands, measured flight performance"
@@ -839,7 +839,7 @@ def test_about_not_in_replay_uses_the_presentation_list():
 
 
 def test_labels_never_show_snake_case():
-    from desktop import ui_format as fmt
+    from tools.desktop import ui_format as fmt
 
     assert fmt.field_label("target_age_s") == "Target age (s)"
     assert fmt.humanize_key("p95_delay_ms") == "P95 delay (ms)"
@@ -853,7 +853,7 @@ def test_labels_never_show_snake_case():
 
 
 def test_accelerator_text_matches_generated_shortcuts():
-    from desktop import ui_format as fmt
+    from tools.desktop import ui_format as fmt
 
     assert fmt.accelerator("openEvidenceReport") == "Ctrl+O"
     assert fmt.accelerator("focusFilter") == "Ctrl+L"
@@ -865,8 +865,8 @@ def test_accelerator_text_matches_generated_shortcuts():
 def test_status_glyph_png_is_valid_rgba_with_antialiased_edges():
     import struct
     import zlib
-    from desktop.ui_icons import STATUS_SHAPES, coverage, status_png
-    from desktop.design_tokens import UI_TEXT
+    from tools.desktop.ui_icons import STATUS_SHAPES, coverage, status_png
+    from tools.desktop.design_tokens import UI_TEXT
 
     assert {spec["shape"] for spec in UI_TEXT["statusLevels"].values()} <= set(STATUS_SHAPES)
     png = status_png("circle", "#5FD39B", 12, 16)
@@ -888,10 +888,10 @@ def test_status_glyph_png_is_valid_rgba_with_antialiased_edges():
 
 def test_every_golden_event_renders_a_word_and_known_glyph():
     """Runtime check over the canonical presentation: no bare shapes in the event list."""
-    from desktop import ui_format as fmt
-    from desktop.design_tokens import UI_TEXT
-    from desktop.ui_icons import STATUS_SHAPES, status_png
-    from desktop.ui_theme import Theme, status_shape
+    from tools.desktop import ui_format as fmt
+    from tools.desktop.design_tokens import UI_TEXT
+    from tools.desktop.ui_icons import STATUS_SHAPES, status_png
+    from tools.desktop.ui_theme import Theme, status_shape
 
     golden = json.loads((ROOT / "tools" / "design" / "golden" / "s7_presentation.json").read_text(encoding="utf-8"))
     events = [event for frame in golden["frames"] for event in frame["events"]]
@@ -910,7 +910,7 @@ def test_every_golden_event_renders_a_word_and_known_glyph():
 
 # ---- scene projection (renderer math) ----------------------------------------
 def test_projection_is_not_mirrored():
-    from desktop.scene_projection import OrbitCamera, Projector, project_point, top_pose
+    from tools.desktop.scene_projection import OrbitCamera, Projector, project_point, top_pose
 
     looking_north = OrbitCamera(yaw=-90, pitch=35, distance=10, target=(0, 0, 0), swarm_radius=4)
     assert project_point(looking_north, (1, 0, 0), 800, 600).x > 400, "east is to the right when facing north"
@@ -922,7 +922,7 @@ def test_projection_is_not_mirrored():
 
 
 def test_segment_clipping_and_framing():
-    from desktop.scene_projection import NEAR_PLANE, OrbitCamera, Projector, ViewPose, fit_distance, framing_camera
+    from tools.desktop.scene_projection import NEAR_PLANE, OrbitCamera, Projector, ViewPose, fit_distance, framing_camera
 
     pose = ViewPose(0.0, 10.0, 5.0, (0.0, 0.0, 0.0))
     projector = Projector(pose, 800, 600)
@@ -941,7 +941,7 @@ def test_segment_clipping_and_framing():
 
 def test_xframe_glyph_shape_and_honest_heading():
     import math
-    from desktop.scene_projection import Projector, ViewPose, xframe_glyph
+    from tools.desktop.scene_projection import Projector, ViewPose, xframe_glyph
 
     projector = Projector(ViewPose(-90.0, 90.0, 10.0, (0.0, 0.0, 0.0)), 800, 600)
     resting = xframe_glyph(projector, (0.0, 0.0, 0.0), None)
@@ -958,7 +958,7 @@ def test_xframe_glyph_shape_and_honest_heading():
 
 
 def test_camera_animator_eases_and_respects_reduced_motion():
-    from desktop.scene_projection import CameraAnimator, ViewPose
+    from tools.desktop.scene_projection import CameraAnimator, ViewPose
 
     start = ViewPose(170.0, 30.0, 10.0, (0.0, 0.0, 0.0))
     goal = ViewPose(-170.0, 60.0, 5.0, (1.0, 0.0, 0.0))
@@ -974,7 +974,7 @@ def test_camera_animator_eases_and_respects_reduced_motion():
 
 
 def test_grid_has_one_meter_lines_and_stronger_five_meter_lines():
-    from desktop.scene_projection import grid_lines
+    from tools.desktop.scene_projection import grid_lines
 
     lines = grid_lines((0.0, 0.0), 6.0)
     xs = sorted({start[0] for start, end, _major in lines if start[0] == end[0]})
@@ -984,7 +984,7 @@ def test_grid_has_one_meter_lines_and_stronger_five_meter_lines():
 
 
 def test_appearance_resolution_defaults_to_dark():
-    from desktop.ui_settings import resolve_theme, system_reduced_motion
+    from tools.desktop.ui_settings import resolve_theme, system_reduced_motion
 
     assert resolve_theme("system", None) == "dark"
     assert resolve_theme("system", False) == "light"
@@ -997,11 +997,11 @@ def test_appearance_resolution_defaults_to_dark():
 def test_windows_build_lists_every_ui_module():
     from tools.validate_windows_bundle import WINDOWS_UI_MODULES
 
-    script = (ROOT / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
+    script = (ROOT / "tools" / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
     for module in ("presentation", "replay_session", "scene_projection", "scene_view", "ui_format", "ui_icons",
                    "ui_settings", "ui_theme", "ui_viewers", "ui_widgets"):
-        assert f"--hidden-import desktop.{module}" in script
-        assert f"desktop.{module}" in WINDOWS_UI_MODULES
+        assert f"--hidden-import tools.desktop.{module}" in script
+        assert f"tools.desktop.{module}" in WINDOWS_UI_MODULES
 
 
 def test_scene_hides_stale_target_and_bounds_top_view():
@@ -1011,7 +1011,7 @@ def test_scene_hides_stale_target_and_bounds_top_view():
     except tk.TclError:
         pytest.skip("no desktop display in this test environment")
     root.withdraw()
-    from desktop.windows_preview import WindowsReplayApp
+    from tools.desktop.windows_preview import WindowsReplayApp
     app = WindowsReplayApp(root, ReplayModel.from_path(RUN), appearance="dark", persist_appearance=False)
     root.update()
     scene = app.scene
@@ -1029,10 +1029,10 @@ def test_scene_hides_stale_target_and_bounds_top_view():
 
 
 def test_report_view_puts_ids_in_details_and_units_on_values():
-    from desktop import ui_format as fmt
-    from desktop.evidence import load_evidence_report
+    from tools.desktop import ui_format as fmt
+    from tools.desktop.evidence import load_evidence_report
 
-    report = load_evidence_report(ROOT / "desktop" / "evidence_report_example.json")
+    report = load_evidence_report(ROOT / "tools" / "desktop" / "evidence_report_example.json")
     view = fmt.report_view(report["summary"])
     rows = dict(row for _title, section in view["sections"] for row in section)
     assert rows["Delay"] == "Median 12 ms, p95 12 ms, max 12 ms (1 sample)", "seconds show as ms, no Unit row"
@@ -1040,7 +1040,7 @@ def test_report_view_puts_ids_in_details_and_units_on_values():
     assert "Schema" in dict(view["details"]) and any("Trace ID" in label for label, _value in view["details"])
     assert [label for label, _stat in view["timings"]] == ["Delay"]
     assert all("_" not in label for label in rows)
-    swarm = fmt.report_view(load_evidence_report(ROOT / "desktop" / "s7_report_example.json")["summary"])
+    swarm = fmt.report_view(load_evidence_report(ROOT / "tools" / "desktop" / "s7_report_example.json")["summary"])
     swarm_rows = dict(row for _title, section in swarm["sections"] for row in section)
     assert swarm_rows["Target age"].startswith("Median 100 ms")
     assert fmt.stat_line({"available": False, "count": 0, "unit": "s", "p50": None}) == "Not recorded"
@@ -1048,7 +1048,7 @@ def test_report_view_puts_ids_in_details_and_units_on_values():
 
 
 def test_missing_link_and_part_values_never_read_zero():
-    from desktop import ui_format as fmt
+    from tools.desktop import ui_format as fmt
 
     assert fmt.link_text({}) == "Not recorded"
     assert fmt.link_text({"loss_model": "none"}) == "delay not recorded, no loss"

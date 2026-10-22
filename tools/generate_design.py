@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TOKENS_PATH = ROOT / "tools" / "design" / "horizon_tokens.json"
 UI_PATH = ROOT / "tools" / "design" / "ui_text.json"
 SWIFT_PATH = ROOT / "tools" / "macos" / "ZephyrMeshApp" / "Sources" / "ZephyrMeshApp" / "DesignSystem.swift"
-PY_PATH = ROOT / "desktop" / "design_tokens.py"
+PY_PATH = ROOT / "tools" / "desktop" / "design_tokens.py"
 
 PALETTE_FIELDS = (
     "background", "surface", "line", "lineStrong", "text", "textSecondary",

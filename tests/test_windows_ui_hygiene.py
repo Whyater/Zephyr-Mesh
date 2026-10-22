@@ -7,25 +7,25 @@ from pathlib import Path
 
 import pytest
 
-from desktop.design_tokens import SHORTCUTS, UI_TEXT
+from tools.desktop.design_tokens import SHORTCUTS, UI_TEXT
 
 
 ROOT = Path(__file__).resolve().parents[1]
 UI_MODULES = (
-    "desktop/windows_preview.py",
-    "desktop/ui_theme.py",
-    "desktop/ui_widgets.py",
-    "desktop/ui_icons.py",
-    "desktop/ui_format.py",
-    "desktop/ui_viewers.py",
-    "desktop/scene_view.py",
-    "desktop/scene_projection.py",
-    "desktop/ui_settings.py",
-    "desktop/replay_session.py",
-    "desktop/results_data.py",
-    "desktop/ui_results.py",
-    "desktop/ui_results_chart.py",
-    "desktop/ui_results_atlas.py",
+    "tools/desktop/windows_preview.py",
+    "tools/desktop/ui_theme.py",
+    "tools/desktop/ui_widgets.py",
+    "tools/desktop/ui_icons.py",
+    "tools/desktop/ui_format.py",
+    "tools/desktop/ui_viewers.py",
+    "tools/desktop/scene_view.py",
+    "tools/desktop/scene_projection.py",
+    "tools/desktop/ui_settings.py",
+    "tools/desktop/replay_session.py",
+    "tools/desktop/results_data.py",
+    "tools/desktop/ui_results.py",
+    "tools/desktop/ui_results_chart.py",
+    "tools/desktop/ui_results_atlas.py",
 )
 VISIBLE_KEYWORDS = {"text", "label", "title", "message", "accelerator"}
 VISIBLE_CALLS = {"title", "showinfo", "showwarning", "showerror", "askopenfilename", "add_command", "heading"}
@@ -85,7 +85,7 @@ def _visible_strings(tree: ast.AST) -> list[str]:
 
 
 def test_legacy_tokens_are_gone_and_unused():
-    assert not (ROOT / "desktop" / "legacy_tokens.py").exists()
+    assert not (ROOT / "tools" / "desktop" / "legacy_tokens.py").exists()
     for relative in UI_MODULES:
         assert "legacy_tokens" not in _source(relative)
 
@@ -93,7 +93,7 @@ def test_legacy_tokens_are_gone_and_unused():
 @pytest.mark.parametrize("relative", UI_MODULES)
 def test_no_hex_colors_long_lines_or_em_dashes(relative):
     source = _source(relative)
-    assert not re.search(r"#[0-9A-Fa-f]{6}\b|#[0-9A-Fa-f]{3}\b", source), "colors come from desktop/design_tokens.py only"
+    assert not re.search(r"#[0-9A-Fa-f]{6}\b|#[0-9A-Fa-f]{3}\b", source), "colors come from tools/desktop/design_tokens.py only"
     assert "\u2014" not in source
     long_lines = [number for number, line in enumerate(source.splitlines(), 1) if len(line) > 140]
     assert not long_lines, f"lines over 140 characters: {long_lines}"
@@ -131,8 +131,8 @@ def test_status_words_come_from_ui_text():
         tree = ast.parse(_source(relative))
         literals = {node.value for node in ast.walk(tree) if isinstance(node, ast.Constant) and isinstance(node.value, str)}
         assert not (literals & words), f"{relative} hardcodes status words {sorted(literals & words)}"
-    from desktop.ui_icons import STATUS_SHAPES
-    from desktop.ui_theme import LEVELS, STATUS_GLYPHS
+    from tools.desktop.ui_icons import STATUS_SHAPES
+    from tools.desktop.ui_theme import LEVELS, STATUS_GLYPHS
 
     assert LEVELS is UI_TEXT["statusLevels"]
     assert STATUS_GLYPHS == UI_TEXT["statusShapes"]["windows"]
@@ -140,8 +140,8 @@ def test_status_words_come_from_ui_text():
 
 
 def test_menu_shortcut_table_equals_ui_text_shortcuts():
-    from desktop import ui_format as fmt
-    from desktop.windows_preview import MENU_LAYOUT, SHORTCUT_HANDLERS, menu_accelerators
+    from tools.desktop import ui_format as fmt
+    from tools.desktop.windows_preview import MENU_LAYOUT, SHORTCUT_HANDLERS, menu_accelerators
 
     assert set(SHORTCUT_HANDLERS) == set(UI_TEXT["shortcuts"]) == {item.action_id for item in SHORTCUTS}
     menu_actions = {action for _menu, items in MENU_LAYOUT for _label, action, _kind in items if action}

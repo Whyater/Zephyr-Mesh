@@ -47,7 +47,7 @@ def test_native_fixture_per_drone_fields_match_source_or_presentation():
     """Every native per-drone field has a direct canonical source."""
     canonical = json.loads((ROOT / "runs/s7-swarm/run.json").read_text(encoding="utf-8"))
     native = json.loads(FIXTURE.read_text(encoding="utf-8"))
-    from desktop.presentation import present_run
+    from tools.desktop.presentation import present_run
 
     presentation = present_run(canonical)
     source_fields = {

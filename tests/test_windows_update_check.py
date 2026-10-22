@@ -7,7 +7,7 @@ from types import ModuleType, SimpleNamespace
 
 import pytest
 
-from desktop.windows_preview import WindowsReplayApp
+from tools.desktop.windows_preview import WindowsReplayApp
 
 
 class _Label:
@@ -169,7 +169,7 @@ def test_smoke_run_prints_open_errors_instead_of_showing_a_dialog(tmp_path, caps
 
 
 def test_headless_missing_scenario_is_a_message_not_a_traceback(tmp_path, capsys):
-    from desktop.windows_preview import main
+    from tools.desktop.windows_preview import main
 
     assert main(["--headless", "--scenario-run", str(tmp_path / "missing.json")]) == 2
     err = capsys.readouterr().err
@@ -180,7 +180,7 @@ def test_headless_missing_scenario_is_a_message_not_a_traceback(tmp_path, capsys
 def test_read_only_app_folder_is_reported_before_anything_is_downloaded(harness, tmp_path, monkeypatch):
     import os
     import tools.release_updater as updater
-    import desktop.windows_preview as preview
+    import tools.desktop.windows_preview as preview
 
     app, dialogs, install, _calls = harness
     install(lambda: (SimpleNamespace(tag="v9.9.9"), object(), True))

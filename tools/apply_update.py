@@ -1,6 +1,6 @@
 """Wait for a desktop process to exit, then apply a staged update.
 
-Same steps as the packaged Windows helper (``desktop/windows_updater.py``):
+Same steps as the packaged Windows helper (``tools/desktop/windows_updater.py``):
 ``tools.release_updater.run_update_helper`` re-checks the staged folder, runs
 the new build's ``--self-test``, swaps, starts the new app, and puts the old
 one back on any failure.

@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 
-from desktop.evidence import EvidenceError, build_evidence_report, load_evidence_report, write_evidence_report
+from tools.desktop.evidence import EvidenceError, build_evidence_report, load_evidence_report, write_evidence_report
 
 
 ROOT = Path(__file__).parents[1]
@@ -110,7 +110,7 @@ def test_investigation_report_retains_synthetic_status_and_grid():
 
 def test_report_schema_accepts_emitted_investigation_envelope():
     report = build_evidence_report(ROOT / "sim/investigation_example.json", "investigation")
-    schema = json.loads((ROOT / "desktop/evidence_report_schema.json").read_text(encoding="utf-8"))
+    schema = json.loads((ROOT / "tools/desktop/evidence_report_schema.json").read_text(encoding="utf-8"))
     Draft202012Validator(schema).validate(report)
 
 

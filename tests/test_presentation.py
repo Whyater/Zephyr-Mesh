@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from desktop.presentation import estimate_error_p95, filter_group_rows, group_rows, present_run
+from tools.desktop.presentation import estimate_error_p95, filter_group_rows, group_rows, present_run
 
 ROOT = Path(__file__).parents[1]
 
@@ -135,7 +135,7 @@ def test_filter_matches_compact_heading_and_raw_drone_names():
 
 
 def test_team_filter_counts_and_texts_for_the_caption_and_empty_state():
-    from desktop.presentation import team_filter
+    from tools.desktop.presentation import team_filter
 
     groups = present_run(run())["frames"][3]["groups"]
     # Hand count: frame 3 has 3 late drones (always listed) and 47 OK drones.
@@ -204,8 +204,8 @@ def test_run_level_presentation_fields():
 
 
 def test_missing_neighbor_values_are_not_recorded_never_zero():
-    from desktop.presentation import per_drone_records
-    from desktop.replay import ReplayModel
+    from tools.desktop.presentation import per_drone_records
+    from tools.desktop.replay import ReplayModel
 
     document = run()
     for agent in document["steps"][1]["agents"]:
@@ -258,7 +258,7 @@ def test_went_inactive_event_uses_shared_template_on_hand_document():
 
 
 def test_drone_names_use_integer_suffixes():
-    from desktop.presentation import compact_name, heading_name
+    from tools.desktop.presentation import compact_name, heading_name
 
     assert compact_name("drone-007") == "D07"
     assert heading_name("drone-007") == "Drone 07"
@@ -286,7 +286,7 @@ def test_routine_packet_loss_is_never_an_alert_event():
 
 
 def test_every_golden_event_level_is_a_complete_status_level():
-    from desktop.design_tokens import UI_TEXT
+    from tools.desktop.design_tokens import UI_TEXT
 
     levels = {e["level"] for e in _golden_events()}
     assert "info" in levels

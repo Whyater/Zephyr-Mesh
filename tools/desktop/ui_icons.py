@@ -168,7 +168,7 @@ def photo_data(png: bytes) -> str:
 def set_window_icon(window: object, resource_root: Path | None = None) -> None:
     """Set the packaged PNG as a Tk window icon when it is available."""
     try:
-        root = Path(resource_root) if resource_root is not None else Path(__file__).resolve().parents[1]
+        root = Path(resource_root) if resource_root is not None else Path(__file__).resolve().parents[2]
         candidates = (
             root / "tools" / "design" / "icon" / "ZephyrMesh-256.png",
             root / "_internal" / "tools" / "design" / "icon" / "ZephyrMesh-256.png",

@@ -77,7 +77,7 @@ def test_changing_type_size_and_scene_color_changes_both_outputs(tmp_path: Path)
     )
     assert result.returncode == 0, result.stderr
     swift = (output_root / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
-    python = (output_root / "desktop/design_tokens.py").read_text(encoding="utf-8")
+    python = (output_root / "tools/desktop/design_tokens.py").read_text(encoding="utf-8")
     assert "Font.system(size: 17" in swift
     assert "'body': ('Segoe UI Variable Text', -17)" in python
     assert "SceneColor('#7CC4FF'" in python
@@ -186,7 +186,7 @@ def test_shared_copy_sections_are_emitted_and_transport_reuses_shortcut_labels()
     """New copy sections reach both outputs; transport labels are not duplicated in the JSON."""
     import pytest
 
-    from desktop.design_tokens import TRANSPORT, UI_TEXT
+    from tools.desktop.design_tokens import TRANSPORT, UI_TEXT
     from tools.generate_design import transport_rows, validate_ui
 
     ui = json.loads((ROOT / "tools" / "design" / "ui_text.json").read_text(encoding="utf-8"))
@@ -240,7 +240,7 @@ def test_results_fills_are_derived_and_atlas_stops_step_up() -> None:
 
 def test_results_tokens_and_strings_reach_both_outputs() -> None:
     """Layout, Windows layout, palette fields and the two copy sections are emitted to Swift and Python."""
-    from desktop.design_tokens import DARK, LAYOUT, LIGHT, UI_TEXT, WIN_LAYOUT
+    from tools.desktop.design_tokens import DARK, LAYOUT, LIGHT, UI_TEXT, WIN_LAYOUT
 
     swift = (ROOT / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
     assert LAYOUT["chartPanelHeight"] == 220 and LAYOUT["chartLineWidth"] == 1.5

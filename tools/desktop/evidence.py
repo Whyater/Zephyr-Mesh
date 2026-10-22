@@ -173,7 +173,7 @@ def _load_raw(kind: str, value: dict[str, Any]) -> tuple[str, str, dict[str, Any
         trace = BenchTrace.from_dict(value)
         return trace.status, BENCH_TRACE_SCHEMA, summarize_bench_trace(trace)
     if kind == "investigation":
-        schema_path = Path(__file__).parents[1] / "sim" / "investigation_schema.json"
+        schema_path = Path(__file__).parents[2] / "sim" / "investigation_schema.json"
         Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8"))).validate(value)
         source_status = value.get("status")
         if source_status != "synthetic investigation fixture; not flight performance":
@@ -187,7 +187,7 @@ def _load_raw(kind: str, value: dict[str, Any]) -> tuple[str, str, dict[str, Any
         }
         return "synthetic", RAW_SCHEMAS[kind], summary
     if kind == "swarm":
-        schema_path = Path(__file__).parents[1] / "sim" / "s7_run_schema.json"
+        schema_path = Path(__file__).parents[2] / "sim" / "s7_run_schema.json"
         Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8"))).validate(value)
         summary = summarize_s7_run(value)
         return "synthetic", RAW_SCHEMAS[kind], summary
@@ -203,12 +203,12 @@ def build_evidence_report(path: str | Path, kind: str) -> dict[str, Any]:
     value, raw = _parse_json(source_path)
     try:
         raw_schema_path = {
-            "espnow": Path(__file__).parents[1] / "sim" / "trace_schema.json",
-            "vision": Path(__file__).parents[1] / "sim" / "vision_trace_schema.json",
-            "hardware": Path(__file__).parents[1] / "sim" / "hardware_profile_schema.json",
-            "bench": Path(__file__).parents[1] / "sim" / "bench_trace_schema.json",
-            "investigation": Path(__file__).parents[1] / "sim" / "investigation_schema.json",
-            "swarm": Path(__file__).parents[1] / "sim" / "s7_run_schema.json",
+            "espnow": Path(__file__).parents[2] / "sim" / "trace_schema.json",
+            "vision": Path(__file__).parents[2] / "sim" / "vision_trace_schema.json",
+            "hardware": Path(__file__).parents[2] / "sim" / "hardware_profile_schema.json",
+            "bench": Path(__file__).parents[2] / "sim" / "bench_trace_schema.json",
+            "investigation": Path(__file__).parents[2] / "sim" / "investigation_schema.json",
+            "swarm": Path(__file__).parents[2] / "sim" / "s7_run_schema.json",
         }[kind]
         Draft202012Validator(json.loads(raw_schema_path.read_text(encoding="utf-8"))).validate(value)
         status, schema, summary = _load_raw(kind, value)

@@ -3,11 +3,11 @@
 This folder is the single design source for the two desktop replay apps:
 
 - the macOS app (SwiftUI and SceneKit) in `tools/macos/ZephyrMeshApp/`
-- the Windows app (Tkinter) in `desktop/`
+- the Windows app (Tkinter) in `tools/desktop/`
 
 Both apps replay a recorded simulation. Neither one talks to a radio, camera, motor, or drone. The design system keeps them looking and wording things the same way, and keeps them honest about what the data contains.
 
-The Windows descriptions here come from the source and from running the Windows app on macOS (Tk 9; a few regression tests also on Tk 8.6, see `desktop/README.md`). It has not yet been run on a Windows machine, so treat Windows fonts, scaling and exact rendering as unverified.
+The Windows descriptions here come from the source and from running the Windows app on macOS (Tk 9; a few regression tests also on Tk 8.6, see `tools/desktop/README.md`). It has not yet been run on a Windows machine, so treat Windows fonts, scaling and exact rendering as unverified.
 
 A visual version of the tokens (swatches, contrast ratios, type, spacing, status levels, icon) is in `tools/design/reference.html`. Open it in any browser; it needs no network.
 
@@ -19,7 +19,7 @@ Contents: [1 Principles](#1-principles) · [2 How the system works](#2-how-the-s
 
 **The first question is "is the tracker OK?"** The top of the window answers it before anything else: the status strip shows the tracking state as a shape, a color and a word ("Tracking held", "Tracking partial (47 of 50)", "Tracking lost", "Waiting for first target packet"), then four team numbers. Detail (one drone, raw vectors, hashes) is always one step further in, never in the way.
 
-**Show only what the run contains.** Every number on screen comes from the replay file. One shared presentation layer (`desktop/presentation.py`) reads the replay values and derives the display metrics (estimate error, speed, heading, link statistics, status levels); the views only format what it returns, plus raw values the Mac fixture copies straight from the run. A value the run does not hold reads **"Not recorded"** in the secondary text color. It is never shown as 0, as a blank, or as a guess.
+**Show only what the run contains.** Every number on screen comes from the replay file. One shared presentation layer (`tools/desktop/presentation.py`) reads the replay values and derives the display metrics (estimate error, speed, heading, link statistics, status levels); the views only format what it returns, plus raw values the Mac fixture copies straight from the run. A value the run does not hold reads **"Not recorded"** in the secondary text color. It is never shown as 0, as a blank, or as a guess.
 
 **Say what this is, once.** Each main window has exactly one badge, **"Simulation replay"** (`honesty.badge` in `ui_text.json`), plus an **About this replay** window that states the run's status, evidence boundary, command authority and failsafe, lists what is not in the replay (`notInReplay`), and shows the command that regenerates it. Tests limit how often the word "synthetic" can appear in UI strings, so the badge text lives in one place (`tests/test_macos_ui_hygiene.py`, `tests/test_windows_ui_hygiene.py`).
 
@@ -54,7 +54,7 @@ Palette values, type sizes, spacing, radii and layout sizes, and the shared stat
 `tools/generate_design.py` reads both JSON files and writes two generated modules:
 
 - `tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift` (`Theme`, `ScenePalette`, `TypeScale`, `Space`, `Radius`, `Motion`, `LayoutMetrics`, `UIText`)
-- `desktop/design_tokens.py` (`palette()`, `scene3d()`, `TYPE`, `SPACE`, `RADIUS`, `MOTION_MS`, `LAYOUT`, `WIN_LAYOUT`, `SHORTCUTS`, `UI_TEXT`)
+- `tools/desktop/design_tokens.py` (`palette()`, `scene3d()`, `TYPE`, `SPACE`, `RADIUS`, `MOTION_MS`, `LAYOUT`, `WIN_LAYOUT`, `SHORTCUTS`, `UI_TEXT`)
 
 Both start with `GENERATED FILE. Do not edit.` Run `python3 tools/generate_design.py --check` to see whether they still match the JSON; it exits 1 and names the stale file if not. `tests/test_design_system.py` runs that check and also proves a JSON edit flows into both outputs.
 
@@ -64,7 +64,7 @@ Both start with `GENERATED FILE. Do not edit.` Run `python3 tools/generate_desig
 
 ### The shared presentation layer
 
-`desktop/presentation.py` turns a frame of the replay into what the screen shows: each drone's status level, the tracking headline, group rows, the team summary, link statistics, estimate error p95, and event sentences. It reads thresholds, words and templates from the generated `UI_TEXT`. The Windows app calls it live through `desktop/replay_session.py`.
+`tools/desktop/presentation.py` turns a frame of the replay into what the screen shows: each drone's status level, the tracking headline, group rows, the team summary, link statistics, estimate error p95, and event sentences. It reads thresholds, words and templates from the generated `UI_TEXT`. The Windows app calls it live through `tools/desktop/replay_session.py`.
 
 ### The generated Mac fixture
 
@@ -109,7 +109,7 @@ The five Results fills are derived the same way as `selectionFill`: each stores 
 
 "Proposed" means the token file marks the light value `"status": "proposed"`: it is in use but still waiting for sign-off.
 
-The Windows app also derives a few shades in code (`desktop/ui_theme.py`: `accentHover`, `accentPressed`, `badgeFill`) by mixing the tokens above. They are not tokens in the JSON.
+The Windows app also derives a few shades in code (`tools/desktop/ui_theme.py`: `accentHover`, `accentPressed`, `badgeFill`) by mixing the tokens above. They are not tokens in the JSON.
 
 The 3D scene has its own small palette (`scene3D`), built from the tokens above: drone body, arms and rotor discs use `textSecondary`, the target ring uses `target`, the grid uses `line`, and the floor uses `background`. The keep-out volume is `keepOut` at **0.12 alpha in dark and 0.18 in light** (`scene3D.dark.keepOutVolume` and `scene3D.light.keepOutVolume`).
 
@@ -149,9 +149,9 @@ Every status is three things at once: a **shape**, a **color**, and a **word**. 
 | `unavailable` | Not recorded | dash | `textSecondary` | `minus` | – |
 | `info` | Info | info mark | `info` | `info.circle` | ⓘ |
 
-The Windows app draws these shapes as small antialiased PNGs (`STATUS_SHAPES` in `desktop/ui_icons.py`) rather than font glyphs, so they look the same on every font; the glyphs in the table are the text fallback stored in `ui_text.json`.
+The Windows app draws these shapes as small antialiased PNGs (`STATUS_SHAPES` in `tools/desktop/ui_icons.py`) rather than font glyphs, so they look the same on every font; the glyphs in the table are the text fallback stored in `ui_text.json`.
 
-**How a drone gets its level** (`status_for_agent` in `desktop/presentation.py`): an inactive drone is Lost with the word "Inactive"; a drone with no fused target estimate, or no target age, is Waiting; otherwise its target age decides.
+**How a drone gets its level** (`status_for_agent` in `tools/desktop/presentation.py`): an inactive drone is Lost with the word "Inactive"; a drone with no fused target estimate, or no target age, is Waiting; otherwise its target age decides.
 
 **Display thresholds** (`displayThresholds` in `ui_text.json`):
 
@@ -180,7 +180,7 @@ These are display choices, not safety limits. The JSON says so in each threshold
 | `metricSmall` | 15 | semibold, tabular digits | Inspector metric tiles |
 | `mono` | 12 | regular | Hashes and IDs inside Details only |
 
-Fonts: SF Pro through `Font.system` on macOS (SF Mono or Menlo for mono); Segoe UI Variable Text with Segoe UI as fallback on Windows (Cascadia Mono or Consolas for mono). Sizes are points on macOS; on Windows they are scaled by the display DPI (`ui_scale` in `desktop/ui_theme.py`). Numbers use tabular digits so columns do not jitter during playback.
+Fonts: SF Pro through `Font.system` on macOS (SF Mono or Menlo for mono); Segoe UI Variable Text with Segoe UI as fallback on Windows (Cascadia Mono or Consolas for mono). Sizes are points on macOS; on Windows they are scaled by the display DPI (`ui_scale` in `tools/desktop/ui_theme.py`). Numbers use tabular digits so columns do not jitter during playback.
 
 ### Spacing
 
@@ -202,7 +202,7 @@ Common uses: 16 around panel content (the content inset), 12 between strip and l
 | `userTriggeredOnly` | true: nothing moves unless the user (or playback they started) caused it |
 | `reducedMotionMs` | 0 |
 
-With Reduce Motion on (macOS) or animations turned off in Windows settings (`system_reduced_motion` in `desktop/ui_settings.py`), durations become 0 and the camera jumps instead of easing (`Motion.duration` in `DesignSystem.swift`, `reduced_motion` in `desktop/scene_view.py`).
+With Reduce Motion on (macOS) or animations turned off in Windows settings (`system_reduced_motion` in `tools/desktop/ui_settings.py`), durations become 0 and the camera jumps instead of easing (`Motion.duration` in `DesignSystem.swift`, `reduced_motion` in `tools/desktop/scene_view.py`).
 
 ### Layout sizes
 
@@ -246,12 +246,12 @@ Each entry: what it is for, what it is made of, its states, and where it lives.
 - **Anatomy:** the tracking headline (status shape in `headline` size, text in `metric` size), then four metrics with a caption over a value: Estimate error p95, Target link delay, Target packet loss, Target age (labels from `statusStrip`). Vertical hairlines separate the numbers. Hairline below.
 - **States:** a missing value shows "Not recorded" in `headline` type and `textSecondary`. Target age shows a newest to oldest range (for example "0.05–0.40 s") when drones differ.
 - **Platform differences:** on macOS the headline has no caption (the text already names the subject), the strip sits on `surface`, and it is one row at `stripOneRowMinWidth` or wider, otherwise the headline sits on its own row above the numbers. On Windows every cell, including the headline, has a caption ("Tracking", "Estimate error p95", ...) over its value, and the strip sits on `background`.
-- **Where:** `StatusStripView.swift`; Windows: `_build_strip` in `desktop/windows_preview.py`.
+- **Where:** `StatusStripView.swift`; Windows: `_build_strip` in `tools/desktop/windows_preview.py`.
 
 ### Simulation replay badge
 - **Purpose:** say once, everywhere, that this is a recorded simulation.
 - **Anatomy:** caption text in `textSecondary`, `small` radius, `badgeHeight` (22) tall on macOS. macOS draws a 1 pt `lineStrong` outline and no fill. Windows draws a quiet tinted pill with no border (fill is `badgeFill`, a mix of `lineStrong` and `surface`). Tooltip on macOS: every value comes from a recorded simulation file, not a live connection.
-- **Where:** `HonestyBadge` in `Components.swift` (toolbar, leading); `Badge.TLabel` in `desktop/ui_theme.py` (title row, after the run name).
+- **Where:** `HonestyBadge` in `Components.swift` (toolbar, leading); `Badge.TLabel` in `tools/desktop/ui_theme.py` (title row, after the run name).
 
 ### Window layout and toolbars
 - **macOS:** the toolbar holds view controls only: the 3D or Top segmented control, About this replay, and the inspector toggle, with one `Space.sm` gap between them (`CockpitView.swift`). The "Simulation replay" badge sits at the leading edge. The window title is "Zephyr Mesh" with the run name as subtitle. Playback is not in the toolbar.
@@ -264,27 +264,27 @@ Each entry: what it is for, what it is made of, its states, and where it lives.
 - **Columns:** the headers carry the units: "Age (s)" and "Loss (%)" (`fieldLabels` `age_s` and `loss_pct`; on Windows `windowsText` `columnAge` and `columnLoss`), so cells hold bare numbers. A group shows age, delay and loss as a min to max range when its members differ. macOS shows Status, Age, Loss and rounds a loss range to whole percents (a single loss keeps one decimal). Windows shows Drones, **Loss, then Age** (the order of `TEAM_COLUMNS`) and keeps one decimal for loss, range ends included.
 - **Missing values:** a missing cell shows a dash. On macOS its tooltip reads "Not recorded". On Windows the tooltip reads the same and a caption under the list ("– means not recorded") appears whenever a visible row shows a dash.
 - **States:** groups sort Lost first, then Late, Not recorded, Waiting, and OK last (`LEVEL_ORDER`). On macOS, groups that need attention (not OK) and the group holding the selected drone are open by default, OK groups are closed, and a click on a header overrides that. Hover uses `hoverFill`, selection uses `selectionFill`, the selected drone's name turns `bodyStrong`. A keyboard-focused list gets a 1 pt accent outline. Right-click: Focus Camera, Show in Inspector, Copy Drone ID.
-- **Filter rule** (`teamFilter` in `ui_text.json`, `filter_group_rows` and `team_filter` in `desktop/presentation.py`, mirrored in `TeamPresentation` in `Presentation.swift`):
+- **Filter rule** (`teamFilter` in `ui_text.json`, `filter_group_rows` and `team_filter` in `tools/desktop/presentation.py`, mirrored in `TeamPresentation` in `Presentation.swift`):
   - Only the late and lost groups are pinned (`pinnedLevels`): they keep every member whatever you type. Every other group keeps only the drones whose name matches (D07, Drone 07, or the raw ID) and disappears when none match.
   - While a filter is active, a caption reads "Showing N of M". When a pinned group is listed, the caption continues "Late and lost drones stay listed."
   - Group headers count the filtered members against the whole group: "1 of 47 drones" on macOS, "OK · 1 of 47" on Windows.
   - When nothing matches, the empty state reads `No drones match “query”` (curly quotes). On macOS it sits in the list with a **Clear filter** button; on Windows it is a centered label in the list and the filter field's clear icon (tooltip "Clear filter (Esc)") is shown.
   - **macOS only:** the selected drone stays listed in its group with a pin mark even when it does not match the filter, so the scene and inspector selection always has a row. The caption counts it. Windows does not do this.
-- **Where:** `TeamListView.swift` (`GroupRow`, `DroneRow`, `TeamColumns`, `TeamContextMenu`); Windows: a `ttk.Treeview` styled `Zephyr.Treeview` (`_build_team`, `team_rows` in `desktop/windows_preview.py`, styles in `desktop/ui_theme.py`).
+- **Where:** `TeamListView.swift` (`GroupRow`, `DroneRow`, `TeamColumns`, `TeamContextMenu`); Windows: a `ttk.Treeview` styled `Zephyr.Treeview` (`_build_team`, `team_rows` in `tools/desktop/windows_preview.py`, styles in `tools/desktop/ui_theme.py`).
 
 ### Filter field
 - **Purpose:** find a drone by name (D07, Drone 07, or its raw ID).
 - **Anatomy:** filter icon, placeholder "Filter drones" (Windows adds the shortcut), clear button when not empty. `background` fill inside the `surface` panel, `line` border, `small` radius, `controlHeight` (28) tall.
 - **States:** focus turns the border `accent`. Escape clears it and leaves the field. While it has focus, single-key shortcuts are off.
-- **Where:** `filterField` in `TeamListView.swift`; `Filter.TEntry` plus `Placeholder` in `desktop/ui_theme.py` and `desktop/ui_widgets.py`.
+- **Where:** `filterField` in `TeamListView.swift`; `Filter.TEntry` plus `Placeholder` in `tools/desktop/ui_theme.py` and `tools/desktop/ui_widgets.py`.
 
 ### Inspector
 - **Purpose:** everything about one selected drone.
 - **Anatomy, top to bottom:** the header (drone name, "Drone 07", with its status label); four metric tiles in a 2 by 2 grid, **in the same order as the status strip**: Estimate error, Target link delay, Target packet loss, Target age; "Position and motion" (altitude, speed, heading); "Neighbors" (count, nearest, neighbor link delay and loss); then a hairline and a collapsed **Details** disclosure with raw position, velocity and fused target vectors, constraint flags, hardware profile parts, and the drone ID in `mono`.
-- **Heading text** (`heading_text` in `desktop/ui_format.py`, `Format.heading` in `Presentation.swift`): degrees when a heading exists; "At rest" when a recorded speed is below 0.01 m/s; "Straight up or down" when the drone is moving but has no horizontal motion; "Not recorded" when the run has no velocity for it. The words are `fieldLabels` `at_rest` and `heading_vertical`.
+- **Heading text** (`heading_text` in `tools/desktop/ui_format.py`, `Format.heading` in `Presentation.swift`): degrees when a heading exists; "At rest" when a recorded speed is below 0.01 m/s; "Straight up or down" when the drone is moving but has no horizontal motion; "Not recorded" when the run has no velocity for it. The words are `fieldLabels` `at_rest` and `heading_vertical`.
 - **Metric tile:** caption over a `metricSmall` value, 1 pt `line` border, `small` radius. On macOS, missing values drop to `body` type in `textSecondary`; on Windows the tile keeps the same font and only the color changes, so a tile never changes height.
 - **States:** nothing selected shows an empty state: "No drone selected" and "Click a drone in the team list or the scene." (`inspector` in `ui_text.json`). macOS remembers whether Details was open. The drone name is `title` size on macOS and `headline` size on Windows.
-- **Where:** `InspectorView.swift`, `MetricTile` and `ValueRow` in `Components.swift`; `_build_inspector`, `MetricTile`, `KeyValueGrid`, `Disclosure` in `desktop/windows_preview.py` and `desktop/ui_widgets.py`. Toggle with I.
+- **Where:** `InspectorView.swift`, `MetricTile` and `ValueRow` in `Components.swift`; `_build_inspector`, `MetricTile`, `KeyValueGrid`, `Disclosure` in `tools/desktop/windows_preview.py` and `tools/desktop/ui_widgets.py`. Toggle with I.
 
 ### Timeline and transport controls
 - **Purpose:** move through the replay. Playback lives only in this row on macOS (the toolbar has none), and in this row plus the Playback menu on Windows.
@@ -293,7 +293,7 @@ Each entry: what it is for, what it is made of, its states, and where it lives.
 - **Scrubber:** 4 pt `line` track, `accent` fill and 14 pt thumb with a surface ring; `lineStrong` ticks under the track mark frames with events. On macOS they are 2 by 6 pt and their tooltip lists that frame's events; on Windows they are scaled to the display and have no tooltip. Dragging pauses and snaps to the nearest frame.
 - **Speed choice:** a segmented control with equal-width segments (macOS `speedSegmentWidth` 48 pt; Windows sizes every segment to the longest label). Windows puts a "Speed" caption before it.
 - **States:** on macOS, Restart and Step back are disabled at the start and Step forward at the end. Disabled controls use a dimmed `textSecondary`.
-- **Where:** `TimelineView.swift` (`ReplayScrubber`, `SegmentedChoice`); Windows: `_build_timeline` in `desktop/windows_preview.py` and `TimelineSlider` in `desktop/ui_widgets.py`.
+- **Where:** `TimelineView.swift` (`ReplayScrubber`, `SegmentedChoice`); Windows: `_build_timeline` in `tools/desktop/windows_preview.py` and `TimelineSlider` in `tools/desktop/ui_widgets.py`.
 
 ### Event list
 - **Purpose:** a plain-language log of what changed.
@@ -301,7 +301,7 @@ Each entry: what it is for, what it is made of, its states, and where it lives.
 - **States:** on both apps, events at the current time use `text` and earlier ones use `textSecondary` (Windows tags rows `current` and `past`). Hover uses `hoverFill`. Clicking an event pauses and seeks to it.
 - **Hint:** Windows shows the caption "Click an event to jump to it" (`windowsText` `eventsHint`) at the right of the header. macOS has no caption; each row's tooltip says "Click to jump to this event."
 - **Drone lists in events:** at most 5 compact names, then "+N more" (`eventDroneList` in `ui_text.json`); the event record still keeps every ID. On macOS, when a row is too narrow, it drops whole names and raises the "+N more" count instead of cutting inside a name (`EventText.variants` in `Presentation.swift`).
-- **Where:** `EventListView.swift`; `Events.Treeview` and `_build_events` in `desktop/windows_preview.py`.
+- **Where:** `EventListView.swift`; `Events.Treeview` and `_build_events` in `tools/desktop/windows_preview.py`.
 
 ### Viewer windows
 Evidence reports, scenario runs and About this replay open in their own windows, and they all follow one order:
@@ -317,7 +317,7 @@ Platform notes:
 - **Evidence report, macOS:** one budget of 100 rows (`JSONTree.limit`) covers the whole summary: plain values, group headers and group rows. When it runs out, the rest is counted as "N more in Details" and left to the Details raw tree. **Windows has no row cap** in its evidence summary (`evidence_window`).
 - **Restoration:** macOS does not reopen About, Scenario Run or Evidence Report windows at launch (`NotRestorable` in `ZephyrMeshApp.swift`), because their documents live only in memory.
 
-Where: `EvidenceReportView.swift`, `ScenarioRunView.swift`, `AboutReplayView.swift`; `evidence_window`, `scenario_window`, `about_window` in `desktop/ui_viewers.py`.
+Where: `EvidenceReportView.swift`, `ScenarioRunView.swift`, `AboutReplayView.swift`; `evidence_window`, `scenario_window`, `about_window` in `tools/desktop/ui_viewers.py`.
 
 ### Results window
 One window with two views, "Delay and loss" and "Tolerance atlas", opened from View, Show Results (Primary + R). It reads only the generated results fixture, never raw run files.
@@ -339,32 +339,32 @@ Every button, segmented control and the filter field are `controlHeight` (28) ta
 | Disclosure | Chevron plus `bodyStrong` title, no border | `DisclosureGroup` | `Link.TButton` inside `Disclosure` |
 | Segmented choice | Equal-width segments; selected: `text` on `selectionFill`, semibold; others `textSecondary` | `SegmentedChoice`, each segment `segmentWidth` wide, 1 pt `line` outline | `Segment.Toolbutton`, 2 pt gap between segments |
 
-**Windows button images.** `clam` draws square, notched borders, so the Windows app draws buttons, segments, the filter field, tiles and the badge from rounded 9-slice images (`RoundedElements` in `desktop/ui_theme.py`). The corner radius is `RADIUS.small` (4), scaled by DPI, and the images are recolored in place when the theme changes. The widget background stays the panel color in every state (`_same_in_every_state`): the image draws the fill and border, and the corners stay transparent over the panel, so a hovered or pressed button never shows a square light patch. States for the `Quiet` element: rest `surface` with `line`; hover `hoverFill` with `lineStrong`; pressed `selectionFill` with `lineStrong`; keyboard focus `accent` border; disabled dimmed text.
+**Windows button images.** `clam` draws square, notched borders, so the Windows app draws buttons, segments, the filter field, tiles and the badge from rounded 9-slice images (`RoundedElements` in `tools/desktop/ui_theme.py`). The corner radius is `RADIUS.small` (4), scaled by DPI, and the images are recolored in place when the theme changes. The widget background stays the panel color in every state (`_same_in_every_state`): the image draws the fill and border, and the corners stay transparent over the panel, so a hovered or pressed button never shows a square light patch. States for the `Quiet` element: rest `surface` with `line`; hover `hoverFill` with `lineStrong`; pressed `selectionFill` with `lineStrong`; keyboard focus `accent` border; disabled dimmed text.
 
 Spacing rules: segments in one segmented control sit 2 pt apart (`Space.xxs`) and transport buttons 4 pt apart (`Space.xs`), on both apps; separate groups are 8 to 16 pt apart (toolbar groups `Space.sm`, timeline groups `Space.lg`). Every icon-only button has a tooltip naming the action; on Windows the tooltip also gives the shortcut. Focus shows as an `accent` border, never the system accent color.
 
 ### Empty and error states
 - **Empty:** a quiet icon in `textSecondary`, a short `bodyStrong` line saying what is missing, and one `body` line saying what to do. Example: "No drone selected" / "Click a drone in the team list or the scene."
 - **Replay failed to load (macOS):** the alert status shape, "The replay could not be loaded", the decoder's message (selectable), and "Rebuild the replay fixture and the app, then open it again." (`LoadFailureView` in `ZephyrMeshApp.swift`). The app never fills in invented drones.
-- **File would not open:** "Could not open evidence report" or "Could not open scenario run" with the validation message (`AppStore.swift`). On Windows the message is a plain sentence per cause (missing file, not a file, no permission, not UTF-8, not JSON, not a valid report), from `windowsText` and `open_error_text` in `desktop/windows_preview.py`.
+- **File would not open:** "Could not open evidence report" or "Could not open scenario run" with the validation message (`AppStore.swift`). On Windows the message is a plain sentence per cause (missing file, not a file, no permission, not UTF-8, not JSON, not a valid report), from `windowsText` and `open_error_text` in `tools/desktop/windows_preview.py`.
 - **Windows start-up failure:** "Zephyr Mesh could not start." with the error, the path of a written diagnostic file, and a hint about extracting the whole ZIP (`show_startup_failure`).
 
 ### The 3D scene
-- **Drone glyph:** an X-frame quadcopter in one neutral color (`textSecondary`). On macOS it is a procedural model at true scale from the drone's hardware profile (arm length and propeller size, `DroneModel.swift`); on Windows a Canvas drawing with four rotor discs (`desktop/scene_view.py`). The selected drone uses `accent`.
-- **Late and lost markers (both apps, 3D and Top):** a late drone gets an amber triangle and a lost drone a red square above it, in the shared status shapes and colors. The marker keeps a fixed on-screen size (11 pt on macOS, 9 px on Windows) and is drawn on top of the drones, so status is never opacity alone. macOS does not fade drones for status; it outlines the marker in the floor color and lifts it above the selection ring on the selected drone. Windows still dims a late or lost drone's body when it is not selected, in addition to the marker. (`SceneController.swift` `statusMarker`; `status_points` and `MARKED_LEVELS` in `desktop/scene_view.py`.)
+- **Drone glyph:** an X-frame quadcopter in one neutral color (`textSecondary`). On macOS it is a procedural model at true scale from the drone's hardware profile (arm length and propeller size, `DroneModel.swift`); on Windows a Canvas drawing with four rotor discs (`tools/desktop/scene_view.py`). The selected drone uses `accent`.
+- **Late and lost markers (both apps, 3D and Top):** a late drone gets an amber triangle and a lost drone a red square above it, in the shared status shapes and colors. The marker keeps a fixed on-screen size (11 pt on macOS, 9 px on Windows) and is drawn on top of the drones, so status is never opacity alone. macOS does not fade drones for status; it outlines the marker in the floor color and lifts it above the selection ring on the selected drone. Windows still dims a late or lost drone's body when it is not selected, in addition to the marker. (`SceneController.swift` `statusMarker`; `status_points` and `MARKED_LEVELS` in `tools/desktop/scene_view.py`.)
 - **Legend:** macOS shows one chip at the top-left on `surface` with Target, Keep-out, Selected, Late, Lost and Grid 1 m (`SceneLegend` in `SceneView.swift`). Windows shows the Late and Lost shapes with their words at the top-left (`_draw_legend`) and a grid label next to the axis gizmo.
 - **Selection:** on macOS a ring in `accent` circles the drone at its altitude, faces the camera and stays 15 pt in radius on screen; it hides once the camera is close enough that the drone is wider than the ring, because the drone's own accent shell then marks the selection. On Windows the selected drone is drawn in `accent` with its compact name beside it.
 - **Target:** a ring in `target` with a thin stem down to the floor and a small foot ring.
 - **Keep-out sphere:** `keepOut` fill at 0.12 alpha in dark and 0.18 in light, with an outline ring that always faces the camera and a second ring at the equator (`updateKeepOut` in `SceneController.swift`). K shows or hides it. The Mac fixture builds the sphere from the scenario constraints (0.75 m radius); the Windows scene draws keep-out volumes only when the replay frame contains them, and the canonical run's frames have none.
 - **Floor grid:** 1 m squares with a heavier line every 5 m, on the `background` floor.
 - **Orbit camera:** drag to orbit, scroll or pinch to zoom, both eased and clamped. Pitch stays between 10 and 85 degrees, there is no roll and no panning. T switches to a straight-down top view. F focuses the selected drone, R resets. The Mac scene never uses SceneKit's free camera (`tests/test_macos_ui_hygiene.py`).
-- **Zoom-out limit:** macOS stops at **3 times the swarm radius** (`OrbitCamera.maximumDistance`). Windows stops at **6 times** for both the orbit and the top view (`FAR_LIMIT_RADII` in `desktop/scene_projection.py`, chosen because a wide, short canvas needs more than 3x to fit the ring). The two apps disagree; this is a pending decision (section 13).
+- **Zoom-out limit:** macOS stops at **3 times the swarm radius** (`OrbitCamera.maximumDistance`). Windows stops at **6 times** for both the orbit and the top view (`FAR_LIMIT_RADII` in `tools/desktop/scene_projection.py`, chosen because a wide, short canvas needs more than 3x to fit the ring). The two apps disagree; this is a pending decision (section 13).
 
 ## 7. Voice and wording
 
 - **Plain sentences.** "Target packet lost for 3 drones", not "PKT_LOSS x3".
 - **Units on labels.** The label carries the unit and the value stays a number: "Position (m)" over "6.00, 0.00, 1.50"; "Age (s)" and "Loss (%)" over bare numbers in the team list. Single values elsewhere show their unit: "0.12 s", "18 ms", "2.5%".
-- **No snake_case on screen.** Every data key has a label in `fieldLabels` (`agent_id` reads "Drone ID", `seed` reads "Random seed"). A key without a label falls back to spaces and a capital letter, never the raw key (`Format.label` in `Presentation.swift`, `field_label` in `desktop/ui_format.py`). Hygiene tests reject snake_case in visible strings.
+- **No snake_case on screen.** Every data key has a label in `fieldLabels` (`agent_id` reads "Drone ID", `seed` reads "Random seed"). A key without a label falls back to spaces and a capital letter, never the raw key (`Format.label` in `Presentation.swift`, `field_label` in `tools/desktop/ui_format.py`). Hygiene tests reject snake_case in visible strings.
 - **Drone names.** "D07" in lists, "Drone 07" in headings (`droneNaming`).
 - **Missing is "Not recorded".** Never 0, never "N/A", never empty. In narrow table cells a dash stands in for it, and the tooltip or a caption says "Not recorded".
 - **Say why there is no heading.** "At rest" and "Straight up or down" explain a missing heading; "Not recorded" is only for a run that has no velocity.
@@ -396,7 +396,7 @@ Other shared wording lives in `menus` (menu item titles), `transport` (button la
 ## 8. Iconography and the app icon
 
 ### Interface icons
-Status shapes are listed in section 4. Transport and disclosure icons are SF Symbols on macOS (`backward.end.fill`, `backward.frame.fill`, `play.fill`, `pause.fill`, `forward.frame.fill`, `chevron.right`) and matching shapes drawn as PNGs on Windows (`ICONS` in `desktop/ui_icons.py`). Icons take the `text` color, or `textSecondary` when they are hints.
+Status shapes are listed in section 4. Transport and disclosure icons are SF Symbols on macOS (`backward.end.fill`, `backward.frame.fill`, `play.fill`, `pause.fill`, `forward.frame.fill`, `chevron.right`) and matching shapes drawn as PNGs on Windows (`ICONS` in `tools/desktop/ui_icons.py`). Icons take the `text` color, or `textSecondary` when they are hints.
 
 ### The app icon
 
@@ -429,14 +429,14 @@ The build is deterministic: running it twice gives identical bytes. `tests/test_
 **Where the icon is used:**
 
 - **macOS bundle:** `tools/macos/build_app.py` copies `ZephyrMesh.icns` into the app's Resources and sets `CFBundleIconFile` in `Info.plist`. If the file is missing it prints a warning and builds without an icon.
-- **Windows executable:** `desktop/build_windows.ps1` passes `--icon design\icon\ZephyrMesh.ico` to PyInstaller and bundles the 256 px PNG under `design\icon`.
-- **Windows window:** the app sets the Tk window icon from the 256 px PNG at start-up (`set_window_icon` in `desktop/ui_icons.py`, called from `desktop/windows_preview.py`).
+- **Windows executable:** `tools/desktop/build_windows.ps1` passes `--icon design\icon\ZephyrMesh.ico` to PyInstaller and bundles the 256 px PNG under `design\icon`.
+- **Windows window:** the app sets the Tk window icon from the 256 px PNG at start-up (`set_window_icon` in `tools/desktop/ui_icons.py`, called from `tools/desktop/windows_preview.py`).
 
 ## 9. Platform mapping
 
 | Concept | macOS (SwiftUI) | Windows (Tk) |
 |---|---|---|
-| Generated tokens | `DesignSystem.swift`: `Theme`, `TypeScale`, `Space`, `Radius`, `Motion`, `LayoutMetrics`, `UIText` | `desktop/design_tokens.py`: `palette()`, `TYPE`, `SPACE`, `RADIUS`, `MOTION_MS`, `LAYOUT`, `WIN_LAYOUT`, `UI_TEXT` |
+| Generated tokens | `DesignSystem.swift`: `Theme`, `TypeScale`, `Space`, `Radius`, `Motion`, `LayoutMetrics`, `UIText` | `tools/desktop/design_tokens.py`: `palette()`, `TYPE`, `SPACE`, `RADIUS`, `MOTION_MS`, `LAYOUT`, `WIN_LAYOUT`, `UI_TEXT` |
 | Windows-only tokens | none | `WIN_LAYOUT` (from `windowsLayout`), `UI_TEXT["windowsText"]` |
 | Theme and appearance | `@Environment(\.palette)`; Settings > Appearance (System, Dark, Light) | `Theme` and `configure_styles` on ttk `clam` (`ui_theme.py`); View > Appearance, saved in `~/.zephyr-mesh/settings.json` |
 | Menus | `CockpitCommands.swift` | `MENU_LAYOUT` and `_build_menu` |
@@ -456,14 +456,14 @@ The build is deterministic: running it twice gives identical bytes. `tests/test_
 | Scene legend | `SceneLegend` chip | `_draw_legend` (Late and Lost) |
 | Viewer windows | `EvidenceReportView`, `ScenarioRunView`, `AboutReplayView` | `evidence_window`, `scenario_window`, `about_window` |
 | Reduced motion | `accessibilityReduceMotion` with `Motion.duration` | Windows animation setting via `system_reduced_motion` |
-| Update helper | `ReleaseUpdater.swift` (install script) | `desktop/windows_updater.py`, `tools/release_updater.py` |
+| Update helper | `ReleaseUpdater.swift` (install script) | `tools/desktop/windows_updater.py`, `tools/release_updater.py` |
 | Source rules test | `tests/test_macos_ui_hygiene.py` | `tests/test_windows_ui_hygiene.py`, `tests/test_windows_polish.py` |
 
 Differences that are deliberate or still open are called out in section 6 (strip captions, team list column order, selected drone kept in the list, Play button, zoom limit, row cap).
 
 ## 10. Updates and the self-test
 
-Both apps accept `--self-test`. It runs without opening a window, prints `self-test ok` or `self-test failed: <reason>`, and exits with 0 or 1. The macOS app loads its bundled replay (`ZephyrMeshApp.swift`); the Windows app loads the bundled replay and starts a Tcl/Tk interpreter, so a build missing its Tk files fails here and not at the first window (`run_self_test` in `desktop/windows_preview.py`).
+Both apps accept `--self-test`. It runs without opening a window, prints `self-test ok` or `self-test failed: <reason>`, and exits with 0 or 1. The macOS app loads its bundled replay (`ZephyrMeshApp.swift`); the Windows app loads the bundled replay and starts a Tcl/Tk interpreter, so a build missing its Tk files fails here and not at the first window (`run_self_test` in `tools/desktop/windows_preview.py`).
 
 Updates use the self-test as a gate (`ReleaseUpdater.swift`, `tools/release_updater.py`):
 

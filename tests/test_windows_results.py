@@ -11,14 +11,14 @@ from pathlib import Path
 
 import pytest
 
-from desktop import results_data as rd
-from desktop.design_tokens import UI_TEXT, palette
-from desktop.replay import ReplayModel
+from tools.desktop import results_data as rd
+from tools.desktop.design_tokens import UI_TEXT, palette
+from tools.desktop.replay import ReplayModel
 
 
 ROOT = Path(__file__).resolve().parents[1]
 RUN = ROOT / "runs/s7-swarm/run.json"
-RAW = json.loads((ROOT / "desktop" / "results_fixture.json").read_text(encoding="utf-8"))
+RAW = json.loads((ROOT / "tools" / "desktop" / "results_fixture.json").read_text(encoding="utf-8"))
 TEXT, ATLAS = UI_TEXT["results"], UI_TEXT["atlas"]
 
 
@@ -33,7 +33,7 @@ def app(monkeypatch):
     # On macOS an outside "quit" request (another process asking the Python app to quit) makes Tk exit the whole test run
     # quietly. Ignore it here; nothing in these tests needs the application quit handler.
     root.tk.eval("proc ::tk::mac::Quit {args} {}")
-    from desktop import ui_results
+    from tools.desktop import ui_results
 
     real_init = ui_results.ResultsWindow.__init__
 
@@ -46,7 +46,7 @@ def app(monkeypatch):
             pass
 
     monkeypatch.setattr(ui_results.ResultsWindow, "__init__", quiet_init)
-    from desktop.windows_preview import WindowsReplayApp
+    from tools.desktop.windows_preview import WindowsReplayApp
 
     application = WindowsReplayApp(root, ReplayModel.from_path(RUN), appearance="dark", persist_appearance=False)
     root.update_idletasks()
@@ -99,7 +99,7 @@ def _key(widget, key):
 
 
 def test_shortcut_opens_one_window_and_reopening_focuses_it(app):
-    from desktop.windows_preview import MENU_LAYOUT, SHORTCUT_HANDLERS, menu_accelerators
+    from tools.desktop.windows_preview import MENU_LAYOUT, SHORTCUT_HANDLERS, menu_accelerators
 
     assert SHORTCUT_HANDLERS["showResults"] == "_show_results"
     view_items = dict((action, label) for label, action, _kind in dict(MENU_LAYOUT)["View"] if action)
@@ -359,7 +359,7 @@ def test_hover_redraws_only_the_overlay(app):
 
 
 def test_a_broken_fixture_shows_a_plain_failure_state(app):
-    from desktop.ui_results import open_results
+    from tools.desktop.ui_results import open_results
 
     def broken():
         raise rd.FixtureError("results_fixture.json was not found")
@@ -429,7 +429,7 @@ def test_the_turn_bursty_no_loss_label_moves_off_the_curves(app):
 
 
 def test_atlas_winner_gets_a_bar_and_bold_text_and_cells_keep_an_8_pt_gap(app):
-    from desktop.design_tokens import LAYOUT, SPACE
+    from tools.desktop.design_tokens import LAYOUT, SPACE
 
     results = app._show_results("atlas")
     _settle(results)
@@ -465,7 +465,7 @@ def test_selection_ring_is_drawn_outside_the_cell(app):
 
 
 def test_cells_shrink_to_the_minimum_width_before_the_grid_scrolls(app):
-    from desktop.design_tokens import WIN_LAYOUT
+    from tools.desktop.design_tokens import WIN_LAYOUT
 
     results = app._show_results("atlas")
     _settle(results)
@@ -518,7 +518,7 @@ def test_clicking_a_loss_row_shows_that_loss_in_the_atlas(app):
 
 
 def test_the_window_takes_its_size_from_the_layout_tokens(app):
-    from desktop.design_tokens import WIN_LAYOUT
+    from tools.desktop.design_tokens import WIN_LAYOUT
 
     results = app._show_results("delay")
     _settle(results)
@@ -623,7 +623,7 @@ def test_winner_text_is_centred_like_the_other_cells(app):
 
 
 def test_segments_share_a_minimum_width_and_butt_together(app):
-    from desktop.ui_results import SEGMENT_MIN_CHARS
+    from tools.desktop.ui_results import SEGMENT_MIN_CHARS
 
     results = app._show_results("atlas")
     _settle(results)
@@ -634,7 +634,7 @@ def test_segments_share_a_minimum_width_and_butt_together(app):
 
 
 def test_delay_chart_has_vertical_gridlines_and_air_around_the_panel(app):
-    from desktop.design_tokens import SPACE
+    from tools.desktop.design_tokens import SPACE
 
     results = app._show_results("delay")
     _settle(results)
@@ -654,7 +654,7 @@ def test_delay_chart_has_vertical_gridlines_and_air_around_the_panel(app):
 
 
 def test_inspector_arm_help_has_a_gap_above_and_the_selected_loss_row_is_not_bold(app):
-    from desktop.design_tokens import SPACE
+    from tools.desktop.design_tokens import SPACE
 
     results = app._show_results("atlas", rd.parse_select_spec("stratum=central,loss=burst,level=0.3,variant=figure8,arm=ct"))
     _settle(results)

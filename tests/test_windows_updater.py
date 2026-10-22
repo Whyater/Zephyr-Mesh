@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from desktop.windows_updater import _pid_is_listed
-from desktop.windows_preview import updater_launch_path
+from tools.desktop.windows_updater import _pid_is_listed
+from tools.desktop.windows_preview import updater_launch_path
 
 
 def test_windows_updater_matches_exact_pid_in_tasklist_csv():
@@ -15,7 +15,7 @@ def test_embedded_updater_is_copied_outside_directory_before_swap(tmp_path, monk
     install.mkdir()
     helper = install / "ZephyrMeshUpdater.exe"
     helper.write_bytes(b"helper")
-    monkeypatch.setattr("desktop.windows_preview.tempfile.gettempdir", lambda: str(tmp_path / "temp"))
+    monkeypatch.setattr("tools.desktop.windows_preview.tempfile.gettempdir", lambda: str(tmp_path / "temp"))
     (tmp_path / "temp").mkdir()
 
     launched = updater_launch_path(helper, install, pid=123)
@@ -71,7 +71,7 @@ def _install(tmp_path):
 
 
 def _run_helper(monkeypatch, tmp_path, *, wait=lambda pid: None, self_test=lambda exe: None, exit_codes=(None,), staged=None):
-    import desktop.windows_updater as helper
+    import tools.desktop.windows_updater as helper
     import tools.release_updater as updater
 
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "appdata"))
@@ -255,7 +255,7 @@ def test_process_check_uses_exact_pids_and_reports_tasklist_failures(monkeypatch
 
 
 def test_app_reads_and_clears_the_previous_update_failure(monkeypatch, tmp_path):
-    from desktop.windows_preview import _take_previous_update_failure
+    from tools.desktop.windows_preview import _take_previous_update_failure
     from tools.release_updater import write_update_result
 
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))

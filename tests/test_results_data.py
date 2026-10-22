@@ -1,4 +1,4 @@
-"""Pure checks for desktop/results_data.py (no Tk).
+"""Pure checks for tools/desktop/results_data.py (no Tk).
 
 Expected values come from the raw fixture JSON read here directly, from hand
 calculations, or from the formatting rules both apps share, not from the
@@ -14,12 +14,12 @@ from pathlib import Path
 
 import pytest
 
-from desktop import results_data as rd
-from desktop.design_tokens import UI_TEXT
+from tools.desktop import results_data as rd
+from tools.desktop.design_tokens import UI_TEXT
 
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE = ROOT / "desktop" / "results_fixture.json"
+FIXTURE = ROOT / "tools" / "desktop" / "results_fixture.json"
 RAW = json.loads(FIXTURE.read_text(encoding="utf-8"))
 DATA = rd.load_fixture(FIXTURE)
 TEXT, ATLAS = UI_TEXT["results"], UI_TEXT["atlas"]
@@ -78,7 +78,7 @@ def test_loader_rejects_nan_and_reports_missing_or_bad_files(tmp_path):
 
 
 def test_fixture_path_prefers_the_frozen_bundle(tmp_path, monkeypatch):
-    bundled = tmp_path / "_internal" / "desktop" / "results_fixture.json"
+    bundled = tmp_path / "_internal" / "tools" / "desktop" / "results_fixture.json"
     bundled.parent.mkdir(parents=True)
     bundled.write_text("{}", encoding="utf-8")
     monkeypatch.setattr(rd.sys, "_MEIPASS", str(tmp_path), raising=False)
@@ -471,7 +471,7 @@ def test_atlas_select_spec_rejects_paths_and_trackers_outside_the_stratum():
 
 
 def test_cli_rejects_a_malformed_select_spec_before_opening_any_window(capsys):
-    from desktop.windows_preview import main
+    from tools.desktop.windows_preview import main
 
     with pytest.raises(SystemExit) as caught:
         main(["--open-results", "delay", "--results-select", "path"])
@@ -481,7 +481,7 @@ def test_cli_rejects_a_malformed_select_spec_before_opening_any_window(capsys):
 
 def test_results_modules_never_import_tk_numpy_or_matplotlib_at_import_time():
     for name in ("results_data", "ui_results", "ui_results_chart", "ui_results_atlas"):
-        source = (ROOT / "desktop" / f"{name}.py").read_text(encoding="utf-8")
+        source = (ROOT / "tools" / "desktop" / f"{name}.py").read_text(encoding="utf-8")
         assert "numpy" not in source and "matplotlib" not in source, name
         top = [line for line in source.splitlines() if line.startswith(("import ", "from "))]
         assert not [line for line in top if "tkinter" in line], name
@@ -647,7 +647,7 @@ def _fake_bundle(tmp_path, *, fixture="real"):
 
     dist = tmp_path / "dist"
     bundle = dist / "ZephyrMeshWindows"
-    (bundle / "_internal" / "desktop").mkdir(parents=True)
+    (bundle / "_internal" / "tools" / "desktop").mkdir(parents=True)
     (bundle / "_internal" / "runs" / "s7-swarm").mkdir(parents=True)
     (bundle / "ZephyrMeshWindows.exe").write_bytes(b"")
     (dist / "ZephyrMeshUpdater.exe").write_bytes(b"")
@@ -655,8 +655,8 @@ def _fake_bundle(tmp_path, *, fixture="real"):
     (bundle / "README-Windows.txt").write_text("Extract the complete ZIP ... startup.log\n", encoding="utf-8")
     shutil.copy(ROOT / "runs" / "s7-swarm" / "run.json", bundle / "_internal" / "runs" / "s7-swarm" / "run.json")
     for name in ("evidence_report_example.json", "investigation_report_example.json", "s7_report_example.json"):
-        shutil.copy(ROOT / "desktop" / name, bundle / "_internal" / "desktop" / name)
-    target = bundle / "_internal" / "desktop" / "results_fixture.json"
+        shutil.copy(ROOT / "tools" / "desktop" / name, bundle / "_internal" / "tools" / "desktop" / name)
+    target = bundle / "_internal" / "tools" / "desktop" / "results_fixture.json"
     if fixture == "real":
         shutil.copy(FIXTURE, target)
     elif fixture == "broken":
@@ -683,13 +683,13 @@ def test_bundle_validator_fails_on_a_missing_or_invalid_results_file(tmp_path, f
 
 
 def test_the_build_script_bundles_the_results_file_in_short_lines():
-    script = (ROOT / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
-    assert 'desktop\\results_fixture.json;desktop' in script
+    script = (ROOT / "tools" / "desktop" / "build_windows.ps1").read_text(encoding="utf-8")
+    assert 'tools\\desktop\\results_fixture.json;tools\\desktop' in script
     for module in ("results_data", "ui_results_chart", "ui_results_atlas", "ui_results"):
-        assert f"--hidden-import desktop.{module}" in script
+        assert f"--hidden-import tools.desktop.{module}" in script
     start = script.index("--name ZephyrMeshWindows")
     pyinstaller = script[start:script.index("if ($LASTEXITCODE", start)]
     lines = pyinstaller.splitlines()
     assert all(len(line) <= 140 for line in lines)
     assert all(line.endswith(" `") for line in lines[:-1]), "every line but the last continues with a backtick"
-    assert "desktop\\windows_preview.py" in lines[-1] and lines[-1].lstrip().startswith("--distpath")
+    assert "tools\\desktop\\windows_preview.py" in lines[-1] and lines[-1].lstrip().startswith("--distpath")

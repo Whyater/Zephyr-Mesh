@@ -424,7 +424,7 @@ struct FixturePresentation: Codable, Equatable {
     let headline: PresentationHeadline
     let perDrone: [PresentationDrone]
     let strip: PresentationStrip
-    /// "50 drones: 47 OK, 3 late", computed once in desktop/presentation.py.
+    /// "50 drones: 47 OK, 3 late", computed once in tools/desktop/presentation.py.
     let teamSummary: String
     let timeS: Double
     enum CodingKeys: String, CodingKey, CaseIterable {

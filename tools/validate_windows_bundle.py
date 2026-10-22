@@ -11,15 +11,15 @@ import tempfile
 import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from desktop.replay import ReplayModel
-from desktop.evidence import load_evidence_report
-from desktop.results_data import FIXTURE_NAME as RESULTS_FIXTURE, FixtureError, load_fixture as load_results_fixture
+from tools.desktop.replay import ReplayModel
+from tools.desktop.evidence import load_evidence_report
+from tools.desktop.results_data import FIXTURE_NAME as RESULTS_FIXTURE, FixtureError, load_fixture as load_results_fixture
 
 
 WINDOWS_UI_MODULES = (
-    "desktop.scene_projection", "desktop.ui_settings", "desktop.replay_session", "desktop.presentation",
-    "desktop.ui_format", "desktop.ui_icons", "desktop.ui_theme", "desktop.ui_widgets", "desktop.scene_view",
-    "desktop.ui_viewers", "desktop.results_data", "desktop.ui_results_chart", "desktop.ui_results_atlas", "desktop.ui_results",
+    "tools.desktop.scene_projection", "tools.desktop.ui_settings", "tools.desktop.replay_session", "tools.desktop.presentation",
+    "tools.desktop.ui_format", "tools.desktop.ui_icons", "tools.desktop.ui_theme", "tools.desktop.ui_widgets", "tools.desktop.scene_view",
+    "tools.desktop.ui_viewers", "tools.desktop.results_data", "tools.desktop.ui_results_chart", "tools.desktop.ui_results_atlas", "tools.desktop.ui_results",
 )
 
 
@@ -61,7 +61,7 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
     evidence_paths = []
     evidence_kinds = []
     for filename, kind, status in (("evidence_report_example.json", "espnow", "fixture"), ("investigation_report_example.json", "investigation", "synthetic"), ("s7_report_example.json", "swarm", "synthetic")):
-        evidence = next((root / "desktop" / filename for root in resource_roots if (root / "desktop" / filename).is_file()), None)
+        evidence = next((root / "tools" / "desktop" / filename for root in resource_roots if (root / "tools" / "desktop" / filename).is_file()), None)
         if evidence is None:
             raise FileNotFoundError(f"bundled {filename} is missing")
         evidence_report = load_evidence_report(evidence)
@@ -71,8 +71,8 @@ def validate(bundle_dir: Path, *, gui_smoke: bool = False) -> dict[str, str]:
         evidence_kinds.append(evidence_report["kind"])
     result["evidence"] = ",".join(str(path) for path in evidence_paths)
     # The Results window reads one bundled file; a build without it, or with a damaged copy, would open an empty window.
-    results_fixture = next((root / "desktop" / RESULTS_FIXTURE for root in resource_roots
-                            if (root / "desktop" / RESULTS_FIXTURE).is_file()), None)
+    results_fixture = next((root / "tools" / "desktop" / RESULTS_FIXTURE for root in resource_roots
+                            if (root / "tools" / "desktop" / RESULTS_FIXTURE).is_file()), None)
     if results_fixture is None:
         raise FileNotFoundError(f"bundled {RESULTS_FIXTURE} is missing")
     try:

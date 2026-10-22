@@ -4,7 +4,7 @@ import json
 import math
 from pathlib import Path
 
-from desktop.scene_projection import (
+from tools.desktop.scene_projection import (
     OrbitCamera,
     clamp_distance,
     clamp_pitch,

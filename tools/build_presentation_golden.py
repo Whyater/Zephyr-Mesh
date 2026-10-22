@@ -10,7 +10,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from desktop.presentation import present_run
+from tools.desktop.presentation import present_run
 
 
 def main(argv: list[str] | None = None) -> int:

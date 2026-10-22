@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 import types
 
-from desktop.ui_settings import load_appearance, save_appearance, system_prefers_dark
+from tools.desktop.ui_settings import load_appearance, save_appearance, system_prefers_dark
 
 
 def test_missing_corrupt_and_round_trip_settings(tmp_path):

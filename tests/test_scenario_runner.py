@@ -11,7 +11,7 @@ import sys
 import pytest
 from jsonschema import Draft202012Validator
 
-from desktop.replay import ReplayModel
+from tools.desktop.replay import ReplayModel
 from sim import scenario_runner
 from sim.scenario_runner import (
     JSON_SAFE_INTEGER_MAX,
@@ -192,7 +192,7 @@ def test_runner_rejects_rehashed_step_mutation_and_reorder_and_checks_tolerance(
 
 
 def test_json_safe_seed_boundary_is_accepted_by_runner_and_desktop(tmp_path):
-    from desktop.scenario_run import load_scenario_run
+    from tools.desktop.scenario_run import load_scenario_run
 
     result = run_scenario(config(seed=JSON_SAFE_INTEGER_MAX, steps=1), code_revision="test")
     path = tmp_path / "safe-seed.json"

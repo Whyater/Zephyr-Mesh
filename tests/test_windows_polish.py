@@ -14,11 +14,11 @@ import types
 
 import pytest
 
-from desktop import ui_format as fmt
-from desktop.design_tokens import LAYOUT, UI_TEXT, WIN_LAYOUT
-from desktop.replay import ReplayModel
-from desktop.replay_session import ReplaySession
-from desktop.ui_settings import load_appearance, settings_path
+from tools.desktop import ui_format as fmt
+from tools.desktop.design_tokens import LAYOUT, UI_TEXT, WIN_LAYOUT
+from tools.desktop.replay import ReplayModel
+from tools.desktop.replay_session import ReplaySession
+from tools.desktop.ui_settings import load_appearance, settings_path
 
 ROOT = Path(__file__).resolve().parents[1]
 RUN = ROOT / "runs/s7-swarm/run.json"
@@ -53,7 +53,7 @@ class _EventsTree:
 
 
 def _events_app():
-    from desktop.windows_preview import WindowsReplayApp
+    from tools.desktop.windows_preview import WindowsReplayApp
 
     app = object.__new__(WindowsReplayApp)
     app.session = ReplaySession(RUN)
@@ -101,7 +101,7 @@ def test_a_repeated_select_event_for_the_same_row_does_not_seek_back():
 
 
 def test_left_right_home_and_space_from_the_events_list_reach_the_replay():
-    from desktop.windows_preview import WindowsReplayApp
+    from tools.desktop.windows_preview import WindowsReplayApp
 
     app = object.__new__(WindowsReplayApp)
     events = type("Tree", (), {"winfo_class": lambda self: "Treeview", "__str__": lambda self: ".!frame.events"})()
@@ -133,7 +133,7 @@ class _Label:
 
 
 def test_inspector_header_refreshes_when_a_drone_comes_back():
-    from desktop.windows_preview import WindowsReplayApp
+    from tools.desktop.windows_preview import WindowsReplayApp
 
     app = object.__new__(WindowsReplayApp)
     app.session = ReplaySession(RUN)
@@ -179,7 +179,7 @@ def test_a_settings_folder_in_place_of_the_file_falls_back(tmp_path):
 
 # ---- projection and scene data guards -----------------------------------------------------------
 def test_projection_guards_zero_and_non_finite_distance():
-    from desktop.scene_projection import Projector, ViewPose, finite_point
+    from tools.desktop.scene_projection import Projector, ViewPose, finite_point
 
     zero = Projector(ViewPose(-60.0, 30.0, 0.0, (0.0, 0.0, 0.0)), 400, 300)
     point = zero.project((1.0, 1.0, 1.0))
@@ -195,7 +195,7 @@ def test_projection_guards_zero_and_non_finite_distance():
 
 def test_wide_short_canvas_fits_the_whole_ring():
     """QA defect 7: at 1158x434 every drone must project inside the canvas (independent re-projection)."""
-    from desktop.scene_projection import Projector, ViewPose, fit_distance, framing_camera
+    from tools.desktop.scene_projection import Projector, ViewPose, fit_distance, framing_camera
 
     run = json.loads(RUN.read_text())
     points = [tuple(agent["position_m"]) for step in run["steps"] for agent in step["agents"]]
@@ -210,7 +210,7 @@ def test_wide_short_canvas_fits_the_whole_ring():
 
 
 def test_malformed_vectors_never_reach_the_scene():
-    from desktop.scene_view import _agent_position, _heading
+    from tools.desktop.scene_view import _agent_position, _heading
 
     assert _agent_position({"position_m": [0, float("nan"), 1]}) is None
     assert _agent_position({"position_m": [1, 2]}) is None
@@ -235,7 +235,7 @@ def test_replay_session_rejects_non_finite_frame_times():
 
 # ---- honest values ----------------------------------------------------------------------------------
 def test_missing_velocity_is_not_recorded_and_never_at_rest():
-    from desktop.presentation import per_drone_records
+    from tools.desktop.presentation import per_drone_records
 
     run = json.loads(RUN.read_text())
     frame = run["steps"][3]
@@ -251,7 +251,7 @@ def test_missing_velocity_is_not_recorded_and_never_at_rest():
 
 
 def test_non_numeric_statistics_are_not_recorded_and_not_plotted():
-    from desktop.ui_viewers import timing_rows
+    from tools.desktop.ui_viewers import timing_rows
 
     bad = {"unit": "s", "min": 0.01, "p50": "oops", "p95": float("nan"), "max": 0.08, "count": 3}
     assert fmt.stat_value(bad, "p50") == fmt.NOT_RECORDED
@@ -266,7 +266,7 @@ def test_non_numeric_statistics_are_not_recorded_and_not_plotted():
 
 
 def test_timing_rows_keep_a_p95_equal_to_the_median_and_mark_single_samples():
-    from desktop.ui_viewers import timing_rows, timing_value_text
+    from tools.desktop.ui_viewers import timing_rows, timing_value_text
 
     same = {"unit": "s", "min": 0.02, "p50": 0.04, "p95": 0.04, "max": 0.08, "count": 300}
     single = {"unit": "s", "min": 0.012, "p50": 0.012, "p95": 0.012, "max": 0.012, "count": 1}
@@ -278,7 +278,7 @@ def test_timing_rows_keep_a_p95_equal_to_the_median_and_mark_single_samples():
 
 
 def test_team_rows_mark_when_the_dash_legend_is_needed():
-    from desktop.windows_preview import rows_have_missing, team_rows
+    from tools.desktop.windows_preview import rows_have_missing, team_rows
 
     waiting = ReplaySession(RUN).presentation
     rows = team_rows(waiting["groups"], waiting["per_drone"])
@@ -299,7 +299,7 @@ def test_team_rows_mark_when_the_dash_legend_is_needed():
     (lambda tmp: (tmp / "x.json", UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")), "openNotUtf8"),
 ])
 def test_open_errors_are_plain_and_name_the_file(tmp_path, make, expected):
-    from desktop.windows_preview import open_error_text
+    from tools.desktop.windows_preview import open_error_text
 
     path, exc = make(tmp_path)
     text = open_error_text(path, exc, WIN_TEXT["scenarioNoun"])
@@ -309,8 +309,8 @@ def test_open_errors_are_plain_and_name_the_file(tmp_path, make, expected):
 
 
 def test_open_errors_unwrap_decoder_causes(tmp_path):
-    from desktop.evidence import EvidenceError, load_evidence_report
-    from desktop.windows_preview import open_error_text
+    from tools.desktop.evidence import EvidenceError, load_evidence_report
+    from tools.desktop.windows_preview import open_error_text
 
     latin = tmp_path / "latin1.json"
     latin.write_bytes(b'{"name": "caf\xe9"}')
@@ -333,7 +333,7 @@ def app():
     except tk.TclError:
         pytest.skip("no desktop display in this test environment")
     root.withdraw()
-    from desktop.windows_preview import WindowsReplayApp
+    from tools.desktop.windows_preview import WindowsReplayApp
 
     application = WindowsReplayApp(root, ReplayModel.from_path(RUN), appearance="dark", persist_appearance=False)
     root.update_idletasks()
@@ -378,7 +378,7 @@ def test_filter_shows_caption_empty_state_and_clear(app):
 
 
 def test_timing_plot_labels_sit_past_the_last_grid_line(app):
-    from desktop.ui_viewers import timing_plot
+    from tools.desktop.ui_viewers import timing_plot
 
     ctx = app._viewer_context()
     top = app.tk.Toplevel(app.root)
@@ -410,7 +410,7 @@ def shown_app():
         root = tk.Tk()
     except tk.TclError:
         pytest.skip("no desktop display in this test environment")
-    from desktop.windows_preview import WindowsReplayApp
+    from tools.desktop.windows_preview import WindowsReplayApp
 
     application = WindowsReplayApp(root, ReplayModel.from_path(RUN), appearance="dark", persist_appearance=False)
     root.geometry("1440x900")
@@ -485,7 +485,7 @@ def test_no_team_label_is_cut_off(shown_app, frame):
 
 
 def test_late_and_lost_markers_use_the_shared_status_shapes(shown_app):
-    from desktop.scene_view import status_points
+    from tools.desktop.scene_view import status_points
 
     assert len(status_points("caution", 0, 0, 10)) == 6, "Late is a triangle"
     assert len(status_points("alert", 0, 0, 10)) == 8, "Lost is a square"
@@ -515,7 +515,7 @@ def test_a_deleted_event_row_clears_the_remembered_selection(shown_app):
 def test_a_tooltip_that_fails_half_built_leaves_no_window(shown_app, monkeypatch):
     import tkinter as tk
 
-    from desktop.ui_widgets import Tooltip
+    from tools.desktop.ui_widgets import Tooltip
 
     app = shown_app
     tip = Tooltip(app.play_button, "Play", lambda: app.theme, app.fonts["caption"])
@@ -532,7 +532,7 @@ def test_a_tooltip_that_fails_half_built_leaves_no_window(shown_app, monkeypatch
 
 
 def test_scale_bar_picks_a_round_length():
-    from desktop.ui_viewers import scale_bar_meters
+    from tools.desktop.ui_viewers import scale_bar_meters
 
     assert scale_bar_meters(100.0, 48) == 0.5
     assert scale_bar_meters(10.0, 48) == 5.0
@@ -550,7 +550,7 @@ def test_the_events_list_is_as_wide_as_its_longest_event(shown_app):
 
 
 def test_a_missing_run_file_is_one_plain_sentence(tmp_path, capsys, monkeypatch):
-    from desktop.windows_preview import main
+    from tools.desktop.windows_preview import main
 
     if sys.platform.startswith("win"):
         import ctypes
