@@ -25,7 +25,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from sim.missions.formation import FormationMission
-from tests.reference_e.hand_checks import first_order_loop_jitter_std
+from sim.tests.reference_e.hand_checks import first_order_loop_jitter_std
 from tools.c_common import argv_or_default, prepare_output, write_json, write_manifest
 from tools.e_common import (
     MISSION_LIMITS,

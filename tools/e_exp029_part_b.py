@@ -874,7 +874,7 @@ def run(output: Path, argv: list[str], *, pilot: bool = False,
             "Part A unnecessary-landing rates are read from the Part A table (sha256 in config) and never regenerated here.",
         ], runtime_s=runtime, n_processes=proc,
         hashed_sources=list(MISSION_SOURCES) + ["sim/missions/tag.py", "tools/e_exp029_part_a.py",
-                                                SCRIPT, "tests/reference_e/hand_checks.py"],
+                                                SCRIPT, "sim/tests/reference_e/hand_checks.py"],
     )
 
 

@@ -192,10 +192,10 @@ python tools/fit_espnow_log.py trace.json --out fit.json
 SHA-256 of both raw files. `fit_espnow_log.py` can also read the two logs
 directly with `--sender`, `--echoer` and `--status`.
 
-`tests/data/espnow_echo/` holds a synthetic example made from known settings.
+`tools/tests/data/espnow_echo/` holds a synthetic example made from known settings.
 It is not a measurement. To rebuild it:
 
 ```bash
-python tools/make_espnow_echo_fixture.py tests/data/espnow_echo --seed 20261020 \
+python tools/make_espnow_echo_fixture.py tools/tests/data/espnow_echo --seed 20261020 \
     --duplicate-probability 0.003 --sender-drift-ppm 20 --echoer-drift-ppm -15
 ```

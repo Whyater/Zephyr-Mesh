@@ -1,5 +1,5 @@
 {
-  "comment": "Shared by tests/test_release_updater.py and ReleaseUpdaterTests.swift. Both updaters must agree on every case.",
+  "comment": "Shared by tools/tests/test_release_updater.py and ReleaseUpdaterTests.swift. Both updaters must agree on every case.",
   "ordering": {
     "rule": "Dotted numeric parts compare as numbers with trailing zeros ignored (0.2 equals 0.2.0). A suffix after a hyphen marks a pre-release, which sorts below the same release (0.3.0-rc1 is older than 0.3.0) and above the previous release. Build metadata after a plus sign is ignored.",
     "compare": [

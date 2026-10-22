@@ -84,7 +84,7 @@ window is closed. A drone with no recorded speed, heading or altitude reads "Not
 a heading reads "At rest" when a speed was recorded but is too small for a heading.
 
 Colors, type sizes, spacing and layout sizes come only from the generated
-`Sources/ZephyrMeshApp/DesignSystem.swift`; `tests/test_macos_ui_hygiene.py` checks this.
+`Sources/ZephyrMeshApp/DesignSystem.swift`; `tools/tests/test_macos_ui_hygiene.py` checks this.
 
 ## Build and run
 

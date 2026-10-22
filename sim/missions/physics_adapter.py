@@ -17,7 +17,7 @@ position loop has no velocity limit, so the adapter feeds it a carrot:
   the body: the PD loop lags a moving carrot and then catches up, so the true
   speed can overshoot the carrot limit (about 21 % for the Crazyflie-class
   profile: 1.82 m/s against a 1.5 m/s carrot, measured in
-  tests/test_e_adapters_redo.py).
+  sim/tests/test_e_adapters_redo.py).
 * SLOW (weak link policy): the carrot moves at most ``slow_speed_mps * dt``
   per step from where it was, toward a point that is the next step toward
   the command held within ``slow_speed_mps * min(Kd / Kp)`` of the sensed
@@ -28,7 +28,7 @@ position loop has no velocity limit, so the adapter feeds it a carrot:
   vehicle or when an offboard fix jumps.  The rigid body state is never
   edited, so a vehicle that enters SLOW at speed slows down through its own
   dynamics.  Crazyflie-class profile, SLOW entered at 1.76 m/s after 2 s
-  toward a far goal (tests/test_e_adapters_rereview.py): the speed still
+  toward a far goal (sim/tests/test_e_adapters_rereview.py): the speed still
   rises to 1.80 m/s for 0.19 s while the body tilts back (flying on without
   SLOW peaks at 1.82 m/s), falls under 0.3 m/s 1.34 s after SLOW began, and
   stays under it.

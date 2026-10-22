@@ -34,7 +34,7 @@ COOP_FLOOR_M = 0.35
 # Run D's required buffer with dead reckoning on, keyed by (speed m/s, delay s):
 # the "envelope" rows of sim/runs/d4-separation/buffer.json, lines 70497 to 70713
 # (worst case over head-on and crossing encounters, independent loss up to 30 %
-# and 0.05 m noise, 10 Hz sharing).  tests/test_e_coop_separation.py checks this
+# and 0.05 m noise, 10 Hz sharing).  sim/tests/test_e_coop_separation.py checks this
 # copy against the file.
 COOP_BUFFER_M = {
     (0.5, 0.0): 0.05, (0.5, 0.05): 0.1, (0.5, 0.1): 0.1, (0.5, 0.2): 0.15, (0.5, 0.3): 0.15, (0.5, 0.5): 0.2,

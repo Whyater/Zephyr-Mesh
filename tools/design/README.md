@@ -21,7 +21,7 @@ Contents: [1 Principles](#1-principles) · [2 How the system works](#2-how-the-s
 
 **Show only what the run contains.** Every number on screen comes from the replay file. One shared presentation layer (`tools/desktop/presentation.py`) reads the replay values and derives the display metrics (estimate error, speed, heading, link statistics, status levels); the views only format what it returns, plus raw values the Mac fixture copies straight from the run. A value the run does not hold reads **"Not recorded"** in the secondary text color. It is never shown as 0, as a blank, or as a guess.
 
-**Say what this is, once.** Each main window has exactly one badge, **"Simulation replay"** (`honesty.badge` in `ui_text.json`), plus an **About this replay** window that states the run's status, evidence boundary, command authority and failsafe, lists what is not in the replay (`notInReplay`), and shows the command that regenerates it. Tests limit how often the word "synthetic" can appear in UI strings, so the badge text lives in one place (`tests/test_macos_ui_hygiene.py`, `tests/test_windows_ui_hygiene.py`).
+**Say what this is, once.** Each main window has exactly one badge, **"Simulation replay"** (`honesty.badge` in `ui_text.json`), plus an **About this replay** window that states the run's status, evidence boundary, command authority and failsafe, lists what is not in the replay (`notInReplay`), and shows the command that regenerates it. Tests limit how often the word "synthetic" can appear in UI strings, so the badge text lives in one place (`tools/tests/test_macos_ui_hygiene.py`, `tools/tests/test_windows_ui_hygiene.py`).
 
 **Color is never the only signal.** Every status pairs a shape, a color and a word (section 4). The 3D scene follows the same rule: a late or lost drone gets a shape above it, not just a different opacity.
 
@@ -56,7 +56,7 @@ Palette values, type sizes, spacing, radii and layout sizes, and the shared stat
 - `tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift` (`Theme`, `ScenePalette`, `TypeScale`, `Space`, `Radius`, `Motion`, `LayoutMetrics`, `UIText`)
 - `tools/desktop/design_tokens.py` (`palette()`, `scene3d()`, `TYPE`, `SPACE`, `RADIUS`, `MOTION_MS`, `LAYOUT`, `WIN_LAYOUT`, `SHORTCUTS`, `UI_TEXT`)
 
-Both start with `GENERATED FILE. Do not edit.` Run `python3 tools/generate_design.py --check` to see whether they still match the JSON; it exits 1 and names the stale file if not. `tests/test_design_system.py` runs that check and also proves a JSON edit flows into both outputs.
+Both start with `GENERATED FILE. Do not edit.` Run `python3 tools/generate_design.py --check` to see whether they still match the JSON; it exits 1 and names the stale file if not. `tools/tests/test_design_system.py` runs that check and also proves a JSON edit flows into both outputs.
 
 ### The contrast check
 
@@ -68,7 +68,7 @@ Both start with `GENERATED FILE. Do not edit.` Run `python3 tools/generate_desig
 
 ### The generated Mac fixture
 
-The Mac app does not run Python. `tools/build_native_fixture.py` reads `sim/runs/s7-swarm/run.json` (and its `manifest.json`), runs the same presentation code, and writes `tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/demo_swarm.json`, which embeds the presentation records next to the raw positions. Swift code only formats those records (`Presentation.swift`). `tools/build_presentation_golden.py` writes `tools/design/golden/s7_presentation.json`, the checked-in expected output, and `tests/test_presentation.py` and `tests/test_native_fixture.py` check that the golden file, the fixture and the code agree.
+The Mac app does not run Python. `tools/build_native_fixture.py` reads `sim/runs/s7-swarm/run.json` (and its `manifest.json`), runs the same presentation code, and writes `tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/demo_swarm.json`, which embeds the presentation records next to the raw positions. Swift code only formats those records (`Presentation.swift`). `tools/build_presentation_golden.py` writes `tools/design/golden/s7_presentation.json`, the checked-in expected output, and `tools/tests/test_presentation.py` and `tools/tests/test_native_fixture.py` check that the golden file, the fixture and the code agree.
 
 ### Changing a color or a label in 4 steps
 
@@ -357,7 +357,7 @@ Spacing rules: segments in one segmented control sit 2 pt apart (`Space.xxs`) an
 - **Target:** a ring in `target` with a thin stem down to the floor and a small foot ring.
 - **Keep-out sphere:** `keepOut` fill at 0.12 alpha in dark and 0.18 in light, with an outline ring that always faces the camera and a second ring at the equator (`updateKeepOut` in `SceneController.swift`). K shows or hides it. The Mac fixture builds the sphere from the scenario constraints (0.75 m radius); the Windows scene draws keep-out volumes only when the replay frame contains them, and the canonical run's frames have none.
 - **Floor grid:** 1 m squares with a heavier line every 5 m, on the `background` floor.
-- **Orbit camera:** drag to orbit, scroll or pinch to zoom, both eased and clamped. Pitch stays between 10 and 85 degrees, there is no roll and no panning. T switches to a straight-down top view. F focuses the selected drone, R resets. The Mac scene never uses SceneKit's free camera (`tests/test_macos_ui_hygiene.py`).
+- **Orbit camera:** drag to orbit, scroll or pinch to zoom, both eased and clamped. Pitch stays between 10 and 85 degrees, there is no roll and no panning. T switches to a straight-down top view. F focuses the selected drone, R resets. The Mac scene never uses SceneKit's free camera (`tools/tests/test_macos_ui_hygiene.py`).
 - **Zoom-out limit:** macOS stops at **3 times the swarm radius** (`OrbitCamera.maximumDistance`). Windows stops at **6 times** for both the orbit and the top view (`FAR_LIMIT_RADII` in `tools/desktop/scene_projection.py`, chosen because a wide, short canvas needs more than 3x to fit the ring). The two apps disagree; this is a pending decision (section 13).
 
 ## 7. Voice and wording
@@ -424,7 +424,7 @@ Status shapes are listed in section 4. Transport and disclosure icons are SF Sym
 | `tools/design/icon/ZephyrMesh.ico` | Windows icon: 16, 24, 32, 48, 64, 128, 256 px, PNG frames (packed by `tools/pack_ico.py`, standard library only) |
 | `tools/design/icon/ZephyrMesh-256.png`, `tools/design/icon/ZephyrMesh-1024.png` | Flat PNGs for docs and the reference page |
 
-The build is deterministic: running it twice gives identical bytes. `tests/test_app_icon.py` checks the sizes inside each file by reading their headers.
+The build is deterministic: running it twice gives identical bytes. `tools/tests/test_app_icon.py` checks the sizes inside each file by reading their headers.
 
 **Where the icon is used:**
 
@@ -457,7 +457,7 @@ The build is deterministic: running it twice gives identical bytes. `tests/test_
 | Viewer windows | `EvidenceReportView`, `ScenarioRunView`, `AboutReplayView` | `evidence_window`, `scenario_window`, `about_window` |
 | Reduced motion | `accessibilityReduceMotion` with `Motion.duration` | Windows animation setting via `system_reduced_motion` |
 | Update helper | `ReleaseUpdater.swift` (install script) | `tools/desktop/windows_updater.py`, `tools/release_updater.py` |
-| Source rules test | `tests/test_macos_ui_hygiene.py` | `tests/test_windows_ui_hygiene.py`, `tests/test_windows_polish.py` |
+| Source rules test | `tools/tests/test_macos_ui_hygiene.py` | `tools/tests/test_windows_ui_hygiene.py`, `tools/tests/test_windows_polish.py` |
 
 Differences that are deliberate or still open are called out in section 6 (strip captions, team list column order, selected drone kept in the list, Play button, zoom limit, row cap).
 

@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 
 from sim.missions.api import Scenario
 from sim.missions.tag import TagMission
-from tests.reference_e.hand_checks import tail_follow_time_s
+from sim.tests.reference_e.hand_checks import tail_follow_time_s
 from tools.c_common import argv_or_default, prepare_output, write_json, write_manifest
 from tools.e_common import (MISSION_LIMITS, MISSION_SOURCES, apply_mission_style, group_rows,
                              make_job, median_summary, processes, rate_summary, replay_command,

@@ -27,7 +27,7 @@ from sim.failsafe import FailsafeConfig
 from sim.missions.engine import COMMON_LIMITS
 from sim.missions.presets import get_preset
 from sim.missions.sweep import SweepMission
-from tests.reference_e.hand_checks import coverage_time_s
+from sim.tests.reference_e.hand_checks import coverage_time_s
 from tools.c_common import prepare_output, write_json, write_manifest
 from tools.e_common import (
     MISSION_LIMITS,

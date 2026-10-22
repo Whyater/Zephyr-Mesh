@@ -1,4 +1,4 @@
 [tool.pytest.ini_options]
 # Tests import `sim` and `tools` from the repository root.
 pythonpath = ["."]
-testpaths = ["tests"]
+testpaths = ["sim/tests", "tools/tests"]

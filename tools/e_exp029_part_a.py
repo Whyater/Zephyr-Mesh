@@ -27,7 +27,7 @@ received arming command, so the age starts at 0).  For a policy
 
 Every count is checked three ways: per-step arrays, the gap formula, and on a
 1 h slice of four cells the real FailsafeController driven step by step.
-Rates are compared with closed forms from tests/reference_e/hand_checks.py.
+Rates are compared with closed forms from sim/tests/reference_e/hand_checks.py.
 """
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ from sim import s6_recovery  # noqa: E402
 from sim.failsafe import FailsafeConfig, FailsafeController, FailsafeState, SequenceLossWindow  # noqa: E402
 from sim.missions.comms import LossProcess  # noqa: E402
 from sim.missions.presets import PRESET_NAMES, get_preset  # noqa: E402
-from tests.reference_e.hand_checks import (coarse_grid_chain, false_alarms_per_hour_markov,  # noqa: E402
+from sim.tests.reference_e.hand_checks import (coarse_grid_chain, false_alarms_per_hour_markov,  # noqa: E402
                                            heartbeat_false_alarms_per_hour_iid, misses_needed)
 from tools.c_common import argv_or_default, prepare_output, write_json, write_manifest  # noqa: E402
 from tools.horizon_mpl import apply_style  # noqa: E402
@@ -605,7 +605,7 @@ def run(output: Path, argv: list[str], *, pilot: bool = False, processes: int | 
                 "counts as one missing packet, so a packet still in flight never counts as lost."],
         runtime_s=runtime, n_processes=proc,
         hashed_sources=["tools/e_exp029_part_a.py", "sim/missions/comms.py", "sim/missions/presets.py",
-                        "sim/failsafe.py", "sim/missions/stack.py", "tests/reference_e/hand_checks.py",
+                        "sim/failsafe.py", "sim/missions/stack.py", "sim/tests/reference_e/hand_checks.py",
                         "sim/s6_recovery.py"])
 
 

@@ -26,7 +26,7 @@ from matplotlib.lines import Line2D
 
 from sim.missions.api import Scenario
 from sim.missions.relay import RelayMission
-from tests.reference_e.hand_checks import max_range_dual_slope_m
+from sim.tests.reference_e.hand_checks import max_range_dual_slope_m
 from tools.c_common import argv_or_default, prepare_output, write_json, write_manifest
 from tools.e_common import (MISSION_LIMITS, MISSION_SOURCES, group_rows, make_job,
                             apply_mission_style, median_summary, processes, replay_command,
