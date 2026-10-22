@@ -17,7 +17,7 @@ def test_registry_output_lookup_from_json_file(tmp_path: Path) -> None:
         json.dumps(
             [
                 {
-                    "run_dir": "runs/c5-heartbeat",
+                    "run_dir": "sim/runs/c5-heartbeat",
                     "outputs": {"one.csv": "a"},
                 }
             ]

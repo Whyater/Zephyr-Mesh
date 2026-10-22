@@ -2,7 +2,7 @@
 
 Usage (from the repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/make_s6_sensitivity_figure.py runs/s6-sensitivity \
+    PYTHONPATH=. ./.venv/bin/python tools/make_s6_sensitivity_figure.py sim/runs/s6-sensitivity \
         [--output-dir DIR]
 
 Reads morris.json, oat.json and ranking.json from the run folder and writes two PNGs

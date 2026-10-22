@@ -86,7 +86,7 @@ class ReplayFrame:
 
 
 class ReplayModel:
-    """A bounded, deterministic cursor over ``runs/s7-swarm/run.json``."""
+    """A bounded, deterministic cursor over ``sim/runs/s7-swarm/run.json``."""
 
     def __init__(self, document: Mapping[str, Any], *, source_path: Path | None = None) -> None:
         self.schema = _required_str(document, "schema")

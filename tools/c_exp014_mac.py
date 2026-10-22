@@ -1,6 +1,6 @@
 """EXP-014: how many simulated drones before the air gets crowded?
 
-Usage: ``PYTHONPATH=. ./.venv/bin/python tools/c_exp014_mac.py --output runs/c-exp014-mac``
+Usage: ``PYTHONPATH=. ./.venv/bin/python tools/c_exp014_mac.py --output sim/runs/c-exp014-mac``
 """
 from __future__ import annotations
 

@@ -47,7 +47,7 @@ def _git(args: list[str]) -> str | None:
 
 
 def prepare_output(output: Path) -> Path:
-    """Refuse to touch an existing results directory; runs/ directories are never edited."""
+    """Refuse to touch an existing results directory; sim/runs/ directories are never edited."""
     output = Path(output)
     if output.exists() and any(output.iterdir()):
         raise SystemExit(f"{output} already exists and is not empty; write to a new directory")

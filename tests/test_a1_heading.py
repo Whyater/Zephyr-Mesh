@@ -20,7 +20,7 @@ def _yaw_from_quaternion(quaternion):
 
 def test_none_heading_path_matches_retained_baseline_bit_for_bit():
     """The omitted heading argument keeps the retained default telemetry exact."""
-    artifact = Path(__file__).parents[1] / "runs" / "s0-baseline" / "telemetry.csv"
+    artifact = Path(__file__).parents[1] / "sim" / "runs" / "s0-baseline" / "telemetry.csv"
     retained = np.genfromtxt(artifact, delimiter=",", names=True)
     fresh = run_baseline(BaselineConfig())
     assert tuple(retained.dtype.names) == tuple(fresh)

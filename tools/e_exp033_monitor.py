@@ -1,6 +1,6 @@
 """EXP-033 simulated monitoring runner.
 
-Usage: ``PYTHONPATH=. python tools/e_exp033_monitor.py --output runs/e-exp033``
+Usage: ``PYTHONPATH=. python tools/e_exp033_monitor.py --output sim/runs/e-exp033``
 
 The scenario is simulated only. Observers hold fixed posts and alert humans
 when the estimated unknown drone is in the alert zone.

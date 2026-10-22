@@ -42,7 +42,7 @@ def make_source(tmp_path: Path) -> Path:
 
 def basic_entry(name: str, expected: str, command: str = "{python} gen.py {out}/value.txt") -> dict:
     return {
-        "run_dir": f"runs/{name}",
+        "run_dir": f"sim/runs/{name}",
         "command": command,
         "outputs": {"value.txt": expected},
     }
@@ -93,14 +93,14 @@ def test_crashing_command_reports_exit_code_and_failed(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("label", "entries", "needle"),
     [
-        ("extra key", [{"run_dir": "runs/x", "command": "echo {out}", "outputs": {}, "extra": 1}], "key"),
-        ("missing token", [{"run_dir": "runs/x", "command": "echo hello", "outputs": {}}], "{out}"),
-        ("bad hash", [{"run_dir": "runs/x", "command": "echo {out}", "outputs": {"x": "xyz"}}], "sha256"),
+        ("extra key", [{"run_dir": "sim/runs/x", "command": "echo {out}", "outputs": {}, "extra": 1}], "key"),
+        ("missing token", [{"run_dir": "sim/runs/x", "command": "echo hello", "outputs": {}}], "{out}"),
+        ("bad hash", [{"run_dir": "sim/runs/x", "command": "echo {out}", "outputs": {"x": "xyz"}}], "sha256"),
         (
             "duplicate run",
             [
-                {"run_dir": "runs/x", "command": "echo {out}", "outputs": {}},
-                {"run_dir": "runs/x", "command": "echo {out}", "outputs": {}},
+                {"run_dir": "sim/runs/x", "command": "echo {out}", "outputs": {}},
+                {"run_dir": "sim/runs/x", "command": "echo {out}", "outputs": {}},
             ],
             "duplicate",
         ),
@@ -123,14 +123,14 @@ def test_real_runs_tree_is_unchanged(tmp_path: Path) -> None:
     registry = write_registry(tmp_path, [basic_entry("isolated", expected)])
 
     before = {
-        p.relative_to(ROOT / "runs"): (p.stat().st_mtime_ns, digest(p.read_bytes()))
-        for p in (ROOT / "runs").rglob("*")
+        p.relative_to(ROOT / "sim" / "runs"): (p.stat().st_mtime_ns, digest(p.read_bytes()))
+        for p in (ROOT / "sim" / "runs").rglob("*")
         if p.is_file()
     }
     result = run_tool(source, registry)
     after = {
-        p.relative_to(ROOT / "runs"): (p.stat().st_mtime_ns, digest(p.read_bytes()))
-        for p in (ROOT / "runs").rglob("*")
+        p.relative_to(ROOT / "sim" / "runs"): (p.stat().st_mtime_ns, digest(p.read_bytes()))
+        for p in (ROOT / "sim" / "runs").rglob("*")
         if p.is_file()
     }
 
@@ -193,7 +193,7 @@ def test_real_registry_has_strict_shape() -> None:
     for entry in data:
         assert set(entry) == {"run_dir", "command", "outputs"}
         assert isinstance(entry["run_dir"], str)
-        assert entry["run_dir"].startswith("runs/")
+        assert entry["run_dir"].startswith("sim/runs/")
         assert entry["run_dir"] not in seen
         seen.add(entry["run_dir"])
         assert "{out}" in entry["command"]

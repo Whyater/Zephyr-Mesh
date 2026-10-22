@@ -2,7 +2,7 @@
 
 Usage (from the repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/make_s6_sending_figure.py runs/s6-sending \
+    PYTHONPATH=. ./.venv/bin/python tools/make_s6_sending_figure.py sim/runs/s6-sending \
         [--output-dir DIR]
 
 Question answered: for a fixed radio budget, which sending policy gives the least

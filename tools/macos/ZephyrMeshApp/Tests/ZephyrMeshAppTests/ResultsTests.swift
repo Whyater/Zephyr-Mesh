@@ -188,9 +188,9 @@ final class ResultsFormatTests: XCTestCase {
     func testFindingsDropBackticksForDisplayOnly() throws {
         let data = try loadData()
         let verbatim = data.s6.findings[0].text
-        XCTAssertTrue(verbatim.contains("(`runs/s6-recovery`)"), "the fixture keeps the write-up text verbatim")
+        XCTAssertTrue(verbatim.contains("(`sim/runs/s6-recovery`)"), "the fixture keeps the write-up text verbatim")
         let shown = ResultsFormat.displayText(verbatim)
-        XCTAssertTrue(shown.hasSuffix("(runs/s6-recovery)."), shown)
+        XCTAssertTrue(shown.hasSuffix("(sim/runs/s6-recovery)."), shown)
         XCTAssertFalse(shown.contains("`"))
     }
 

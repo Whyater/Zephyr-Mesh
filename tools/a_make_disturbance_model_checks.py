@@ -228,7 +228,7 @@ def gust_ratio_explanation(mc_n=2_000_000, mc_seed=20261014, run_seeds=range(50)
             groups.append({"profile": profile, "sigma_mps": sigma, "median_rms_about_mean_m": med,
                            "mean_offset_m": offsets, "rms_ratio": med[1.5] / med[0.0],
                            "rms_ratio_ci95": [low, high], "n_seeds": len(cells[0.0])})
-    committed = ROOT / "runs/a7-disturbance/per_run.csv"
+    committed = ROOT / "sim/runs/a7-disturbance/per_run.csv"
     checks = []
     if committed.is_file():
         with committed.open(newline="", encoding="utf-8") as handle:

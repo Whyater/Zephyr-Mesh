@@ -2,7 +2,7 @@
 
 Usage (repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/c_exp013_channel.py --output runs/c-exp013-channel
+    PYTHONPATH=. ./.venv/bin/python tools/c_exp013_channel.py --output sim/runs/c-exp013-channel
 
 Writes summary.json, curves.csv, exp013_delivery_vs_distance.png and
 manifest.json.  Everything is simulated with literature-derived parameters.

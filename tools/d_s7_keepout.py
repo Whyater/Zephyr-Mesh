@@ -2,7 +2,7 @@
 
 Runs the same configuration as tools/d_generate_s7_coop.py (4 agents, seed 23,
 20 s) with one knob changed at a time and reports keep-out ring entries.
-Nothing is written into runs/. Simulated only.
+Nothing is written into sim/runs/. Simulated only.
 
 Knobs and how they are applied:
 - max_accel_mps2 and use_avoidance are real CoopSwarmConfig fields.
@@ -226,7 +226,7 @@ def main():
     parser.add_argument("--seeds", type=int, default=10, help="extra baseline seeds (1..N) for the seed check")
     args = parser.parse_args()
     if "runs" in args.output.resolve().parts:
-        raise SystemExit("refusing to write under runs/")
+        raise SystemExit("refusing to write under sim/runs/")
     base = CoopSwarmConfig(n_agents=4, seed=23, duration_s=20.0)
     plan = [
         ("A_baseline", base, {}),

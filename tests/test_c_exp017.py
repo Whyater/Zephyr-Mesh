@@ -34,7 +34,7 @@ def test_abstract_mode_matches_s6_deliver_exactly(delay, loss, seed):
 def test_nearest_exp006_uses_the_real_summary():
     # Hand lookup in the committed EXP-006 summary: (0.11 s, 0.28 loss) is
     # nearest to the grid point (0.10 s, 0.30) for the turn motion.
-    exp006 = json.loads((REPO_ROOT / "runs/s6-recovery/summary.json").read_text())
+    exp006 = json.loads((REPO_ROOT / "sim/runs/s6-recovery/summary.json").read_text())
     got = nearest_exp006(exp006, delay_s=0.11, loss=0.28, motion="constant_turn", arm="recovery")
     want = next(c for c in exp006["cells"] if c["slice"] == "main" and c["loss_model"] == "independent"
                 and c["motion"] == "constant_turn" and c["noise_std_m"] == 0.05

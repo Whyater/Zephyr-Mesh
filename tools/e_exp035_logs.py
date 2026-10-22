@@ -2,7 +2,7 @@
 
 Usage (repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/e_exp035_logs.py --output runs/e-exp035-logs
+    PYTHONPATH=. ./.venv/bin/python tools/e_exp035_logs.py --output sim/runs/e-exp035-logs
 
 For every example scenario in sim/missions/examples/ and both adapters of its
 kind (point_mass and physics, or the offboard pair for the formation), the

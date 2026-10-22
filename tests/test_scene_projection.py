@@ -29,7 +29,7 @@ def test_camera_clamps_and_top_view():
 
 
 def test_fit_all_bounds_ring_fixture():
-    run = json.loads((ROOT / "runs/s7-swarm/run.json").read_text())
+    run = json.loads((ROOT / "sim/runs/s7-swarm/run.json").read_text())
     points = [agent["position_m"] for agent in run["steps"][0]["agents"]]
     camera = fit_all(points)
     assert camera.target[0] == 0

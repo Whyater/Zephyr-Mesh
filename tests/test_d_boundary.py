@@ -42,7 +42,7 @@ def test_boundary_rejects_invalid_inputs() -> None:
 
 
 def test_matches_three_hundred_real_atlas_series() -> None:
-    root = Path("runs/s6-atlas")
+    root = Path("sim/runs/s6-atlas")
     summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
     atlas = json.loads((root / "atlas.json").read_text(encoding="utf-8"))
     n_seeds = len(summary["seeds"])

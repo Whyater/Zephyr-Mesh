@@ -20,7 +20,7 @@ from tools.d_diagnose_ellipsoid import (
 from tools.d_run_separation import N_SEEDS, _spec
 
 ROOT = Path(__file__).resolve().parents[1]
-BUFFER = ROOT / "runs" / "d4-separation" / "buffer.json"
+BUFFER = ROOT / "sim" / "runs" / "d4-separation" / "buffer.json"
 FAILING = {"kind": "crossing", "speed_mps": 1.0, "delay_s": 0.0, "loss_probability": 0.1,
            "noise_std_m": 0.05, "dead_reckoning": False, "lateral_offset_m": 0.0}
 
@@ -123,7 +123,7 @@ def test_saved_as_run_matches_buffer_json_in_every_sampled_condition():
     # The saved rerun must reproduce buffer.json's centre and ellipsoid counts
     # at the passing radius for all 16 sampled conditions, not just one.
     entries = json.loads(BUFFER.read_text(encoding="utf-8"))["entries"]
-    saved = json.loads((ROOT / "runs" / "d4-ellipsoid-diagnosis" / "as_run.json").read_text(encoding="utf-8"))
+    saved = json.loads((ROOT / "sim" / "runs" / "d4-ellipsoid-diagnosis" / "as_run.json").read_text(encoding="utf-8"))
     assert len(saved["results"]) == 16
     keys = ("kind", "speed_mps", "delay_s", "loss_probability", "noise_std_m", "dead_reckoning", "lateral_offset_m")
     for result in saved["results"]:

@@ -356,7 +356,7 @@ def comparison_rows(reports: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--buffer", type=Path, default=Path("runs/d4-separation/buffer.json"))
+    parser.add_argument("--buffer", type=Path, default=Path("sim/runs/d4-separation/buffer.json"))
     parser.add_argument("--output", type=Path)
     parser.add_argument("--variants", default=",".join(VARIANTS))
     parser.add_argument("--per-kind", type=int, default=2)

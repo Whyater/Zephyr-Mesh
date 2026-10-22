@@ -10,7 +10,7 @@ ROOT = Path(__file__).parents[1]
 
 
 def run():
-    return json.loads((ROOT / "runs/s7-swarm/run.json").read_text())
+    return json.loads((ROOT / "sim/runs/s7-swarm/run.json").read_text())
 
 
 def test_target_loss_is_hand_counted_from_raw_events_per_frame_window():

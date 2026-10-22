@@ -4,7 +4,7 @@ The experiment asks which link, target, sensor, clock, and tuning inputs move
 the p95 tracking error. Results are simulations of a lossy delayed link and a
 simulated sensor, with nothing measured. Run it with::
 
-    PYTHONPATH=. ./.venv/bin/python tools/run_s6_sensitivity.py --output runs/s6-sensitivity
+    PYTHONPATH=. ./.venv/bin/python tools/run_s6_sensitivity.py --output sim/runs/s6-sensitivity
 
 Two outputs come from the same nine inputs:
 

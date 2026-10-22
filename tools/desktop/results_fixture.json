@@ -118189,7 +118189,7 @@
   "findings": [
    {
     "source": "docs/RESULTS.md",
-    "text": "The map: most cells are ties between trackers (39 of the 55 cells where any tracker passes). In 8 of 63 cells nothing works even at zero delay, all with 30 to 50 % bursty loss (`runs/s6-atlas`)."
+    "text": "The map: most cells are ties between trackers (39 of the 55 cells where any tracker passes). In 8 of 63 cells nothing works even at zero delay, all with 30 to 50 % bursty loss (`sim/runs/s6-atlas`)."
    }
   ],
   "limits": [
@@ -118217,7 +118217,7 @@
    "git_revision": "028a91ce97d84bec1507662236b2969c1d8b90d0",
    "git_tree_state": "dirty",
    "manifest_sha256": "671c4a5439b52049263ff3cbede1b4576bfb128037bc3dd73588b59b620e9ee5",
-   "run_dir": "runs/s6-atlas",
+   "run_dir": "sim/runs/s6-atlas",
    "schema": "1.0",
    "sha256": "8c2b7ed189fe7b432318b698f5e28771e71971fb35f818ef395355be8df2086b"
   },
@@ -118584,15 +118584,15 @@
   "findings": [
    {
     "source": "README.md",
-    "text": "A basic tracker's error grows by about speed x delay. Its p95 error (the error it stays under 95 % of the time) crosses the 0.25 m line at 200 ms of delay with no loss, for a 1 m/s target, 10 Hz measurements, 5 cm noise and 50 seeds. The 200 ms depends on the sensor noise (the filter is always told 5 cm): with 0 or 2 cm it still passes at 200 ms and first fails at 300 ms (the next delay tested), and with 10 cm it fails from 150 ms (`runs/s6-recovery`)."
+    "text": "A basic tracker's error grows by about speed x delay. Its p95 error (the error it stays under 95 % of the time) crosses the 0.25 m line at 200 ms of delay with no loss, for a 1 m/s target, 10 Hz measurements, 5 cm noise and 50 seeds. The 200 ms depends on the sensor noise (the filter is always told 5 cm): with 0 or 2 cm it still passes at 200 ms and first fails at 300 ms (the next delay tested), and with 10 cm it fails from 150 ms (`sim/runs/s6-recovery`)."
    },
    {
     "source": "README.md",
-    "text": "Stamping each measurement with the time it was taken, then predicting forward, cuts the 300 ms error with no loss from 0.36 m to 0.16 m on a straight line, and from 0.38 m to 0.29 m on a 1 m radius turn (`runs/s6-recovery`)."
+    "text": "Stamping each measurement with the time it was taken, then predicting forward, cuts the 300 ms error with no loss from 0.36 m to 0.16 m on a straight line, and from 0.38 m to 0.29 m on a 1 m radius turn (`sim/runs/s6-recovery`)."
    },
    {
     "source": "README.md",
-    "text": "On the turn, lost packets matter more than delay: at 30 % random loss the recovery tracker fails from 150 ms just like the basic one, and at 50 % both fail at every delay (`runs/s6-recovery`)."
+    "text": "On the turn, lost packets matter more than delay: at 30 % random loss the recovery tracker fails from 150 ms just like the basic one, and at 50 % both fail at every delay (`sim/runs/s6-recovery`)."
    }
   ],
   "interval_note": "distribution-free 95% order-statistic interval for medians (for 50 seeds the 18th and 33rd smallest values, coverage 96.7%; with 5 or fewer seeds it falls back to min and max) and Wilson 95% interval for failure rates",
@@ -122332,7 +122332,7 @@
    "git_revision": "a36fa2523c48203215259ec9ea04bb6bb73b94ca",
    "git_tree_state": "dirty",
    "manifest_sha256": "6dbdc1c4dc430415bb2431277a2734d5b44d6aee23add4bbad9549c8bbcaa25f",
-   "run_dir": "runs/s6-recovery",
+   "run_dir": "sim/runs/s6-recovery",
    "schema": "zephyr-s6-recovery-1",
    "sha256": "a3b04116e93e5e734f0d5f5bfd5e5ebfabb4fe2585110895019d8ff66bbe96eb"
   },

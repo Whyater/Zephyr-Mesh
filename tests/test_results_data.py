@@ -255,9 +255,9 @@ def test_split_findings_edges():
 
 def test_display_text_strips_backticks_but_the_fixture_keeps_them():
     raw = RAW["s6"]["findings"][0]["text"]
-    assert "`runs/s6-recovery`" in raw
+    assert "`sim/runs/s6-recovery`" in raw
     assert rd.display_text(raw) == raw.replace("`", "") and "`" not in rd.display_text(raw)
-    assert "(runs/s6-recovery)" in rd.display_text(raw)
+    assert "(sim/runs/s6-recovery)" in rd.display_text(raw)
     assert rd.display_text("no code here") == "no code here"
 
 
@@ -614,7 +614,7 @@ def test_formatters_match_the_swift_strings():
         (rd.panel_title(0.29), "28 % loss"), (rd.loss_key("burst", 0.3), "burst:0.3"), (rd.loss_key("independent", 0), "independent:0"),
         (rd.scale_caption(0.7), "Error axis 0 to 0.700 m for this path and loss type"),
         (rd.failure_label(0.25), "Failure line 0.250 m"),
-        (rd.display_text("see `runs/s6`"), "see runs/s6"), (rd.sentence("a cell fails"), "A cell fails"), (rd.sentence(""), ""),
+        (rd.display_text("see `sim/runs/s6`"), "see sim/runs/s6"), (rd.sentence("a cell fails"), "A cell fails"), (rd.sentence(""), ""),
         (rd.entry_cell_text({"kind": "censored", "value_s": None}), ">300 ms"),
         (rd.entry_cell_text({"kind": "fails_at_zero", "value_s": None}), "Fails at 0"),
         (rd.entry_cell_text(None), "Not computed"),
@@ -648,12 +648,12 @@ def _fake_bundle(tmp_path, *, fixture="real"):
     dist = tmp_path / "dist"
     bundle = dist / "ZephyrMeshWindows"
     (bundle / "_internal" / "tools" / "desktop").mkdir(parents=True)
-    (bundle / "_internal" / "runs" / "s7-swarm").mkdir(parents=True)
+    (bundle / "_internal" / "sim" / "runs" / "s7-swarm").mkdir(parents=True)
     (bundle / "ZephyrMeshWindows.exe").write_bytes(b"")
     (dist / "ZephyrMeshUpdater.exe").write_bytes(b"")
     (bundle / "VERSION.txt").write_text("0.0.0\n", encoding="utf-8")
     (bundle / "README-Windows.txt").write_text("Extract the complete ZIP ... startup.log\n", encoding="utf-8")
-    shutil.copy(ROOT / "runs" / "s7-swarm" / "run.json", bundle / "_internal" / "runs" / "s7-swarm" / "run.json")
+    shutil.copy(ROOT / "sim" / "runs" / "s7-swarm" / "run.json", bundle / "_internal" / "sim" / "runs" / "s7-swarm" / "run.json")
     for name in ("evidence_report_example.json", "investigation_report_example.json", "s7_report_example.json"):
         shutil.copy(ROOT / "tools" / "desktop" / name, bundle / "_internal" / "tools" / "desktop" / name)
     target = bundle / "_internal" / "tools" / "desktop" / "results_fixture.json"

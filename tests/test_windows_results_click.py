@@ -12,7 +12,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUN = ROOT / "runs/s7-swarm/run.json"
+RUN = ROOT / "sim/runs/s7-swarm/run.json"
 
 PUSH_CLASSES = {"Button", "TButton", "Checkbutton", "TCheckbutton", "Radiobutton", "TRadiobutton"}
 MENU_BUTTONS = {"Menubutton", "TMenubutton"}

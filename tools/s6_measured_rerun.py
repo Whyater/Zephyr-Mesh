@@ -54,7 +54,7 @@ MANIFEST_SCHEMA = "zephyr-s6-measured-rerun-manifest-1"
 HASHED_SOURCES = ("sim/tracker.py", "sim/s6_recovery.py", "sim/link.py", "sim/sensor.py",
                   "tools/run_s6_recovery.py", "tools/s6_measured_rerun.py")
 BRACKET_LABELS = ("pooled", "depth")
-REGISTERED_SUMMARY = Path("runs") / "s6-recovery" / "summary.json"
+REGISTERED_SUMMARY = Path("sim", "runs") / "s6-recovery" / "summary.json"
 BASE_SEED = 20261013
 CAMERA_DEPTH_AXIS = "z"
 DEPTH_AXIS_RULE = (
@@ -181,11 +181,11 @@ def _git_common_dir() -> Path | None:
 
 
 def protected_runs_dirs() -> list[Path]:
-    """The runs/ folders that hold registered outputs: this checkout's and the main checkout's."""
-    dirs = [(REPO_ROOT / "runs").resolve()]
+    """The sim/runs/ folders that hold registered outputs: this checkout's and the main checkout's."""
+    dirs = [(REPO_ROOT / "sim" / "runs").resolve()]
     common = _git_common_dir()
     if common is not None:
-        main_runs = (common.parent / "runs").resolve()
+        main_runs = (common.parent / "sim" / "runs").resolve()
         if main_runs not in dirs:
             dirs.append(main_runs)
     return dirs
@@ -450,7 +450,7 @@ def _print_summary(entries: list[dict[str, Any]], summaries: dict[str, list[dict
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("fit", type=Path, help="zephyr-vision-noise-fit-1 JSON file")
-    parser.add_argument("--output", type=Path, required=True, help="new or empty folder; never under runs/")
+    parser.add_argument("--output", type=Path, required=True, help="new or empty folder; never under sim/runs/")
     parser.add_argument("--bracket", default=",".join(BRACKET_LABELS), help="comma list from: pooled, depth")
     parser.add_argument("--depth-axis", choices=("x", "y", "z"), help="axis to use for the depth bracket")
     parser.add_argument("--seeds", type=int, default=50)

@@ -1,9 +1,9 @@
 """Diagnostic only (proposal): how many EXP-023 seeds would the windowed NEES check flag?
 
 Reruns the first ``--seeds`` seeds of every main-grid EXP-023 cell from
-runs/d2-fusion/per_seed.csv, one arm at a time, checks each rerun matches the
+sim/runs/d2-fusion/per_seed.csv, one arm at a time, checks each rerun matches the
 stored p95 error exactly, and applies sim.estimation.divergence to the
-outcome's 10-query NEES window means. Writes nothing into runs/.
+outcome's 10-query NEES window means. Writes nothing into sim/runs/.
 """
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ def main(argv=None) -> dict:
     ap.add_argument("--out", type=Path, default=None)
     args = ap.parse_args(argv)
     params = {label: (kind, extra) for label, kind, extra in TARGETS}
-    with open(ROOT / "runs/d2-fusion/per_seed.csv", encoding="utf-8") as handle:
+    with open(ROOT / "sim/runs/d2-fusion/per_seed.csv", encoding="utf-8") as handle:
         rows = [r for r in csv.DictReader(handle) if r["ci"] == "fast"]
     by_cell = collections.defaultdict(list)
     for r in rows:

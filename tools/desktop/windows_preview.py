@@ -55,7 +55,7 @@ def _resource_path(*parts: str) -> Path:
     return RESOURCE_ROOT.joinpath(*parts)
 
 
-DEFAULT_RUN = _resource_path("runs", "s7-swarm", "run.json")
+DEFAULT_RUN = _resource_path("sim", "runs", "s7-swarm", "run.json")
 
 
 def _runtime_version() -> str:

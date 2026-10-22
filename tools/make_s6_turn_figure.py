@@ -5,7 +5,7 @@ it cost on a straight line?
 
 Usage (from the repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/make_s6_turn_figure.py runs/s6-turn \
+    PYTHONPATH=. ./.venv/bin/python tools/make_s6_turn_figure.py sim/runs/s6-turn \
         [--output-dir DIR]
 
 Writes two PNGs into the output directory (default: the run directory):

@@ -3,7 +3,7 @@
 
 Usage (repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/burst_bridge_radio_table.py --output runs/burst-bridge-radio
+    PYTHONPATH=. ./.venv/bin/python tools/burst_bridge_radio_table.py --output sim/runs/burst-bridge-radio
 
 One drone sends 10 Hz, 32-byte packets to the ground station through the
 existing radio model (sim/radio), using EXP-013/EXP-017's outdoor stress-corner
@@ -134,7 +134,7 @@ def closest_to_target(rows: list[dict]) -> list[dict]:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--output", default="runs/burst-bridge-radio")
+    ap.add_argument("--output", default="sim/runs/burst-bridge-radio")
     args = ap.parse_args(argv)
     out = Path(args.output)
     out.mkdir(parents=True, exist_ok=True)

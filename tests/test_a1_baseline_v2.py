@@ -74,11 +74,11 @@ def test_scenario_time_and_s2_artifacts(tmp_path):
 
 
 def test_manifest_outputs_accept_paths_relative_to_the_working_directory(tmp_path, monkeypatch):
-    """A relative output dir such as runs/<name> must not be joined twice."""
+    """A relative output dir such as sim/runs/<name> must not be joined twice."""
     from sim.physics.run_manifest import build_manifest
 
     monkeypatch.chdir(tmp_path)
-    out = Path("runs") / "demo"
+    out = Path("sim", "runs") / "demo"
     out.mkdir(parents=True)
     (out / "data.csv").write_text("a\n1\n")
     manifest = build_manifest(

@@ -53,7 +53,7 @@ def test_isotropic_gust_force_ratio_is_reproducible_and_below_one_axis_formula()
 
 
 def test_gust_trajectory_reproduces_committed_run_rms():
-    committed = ROOT / "runs/a7-disturbance/per_run.csv"
+    committed = ROOT / "sim/runs/a7-disturbance/per_run.csv"
     if not committed.is_file():
         pytest.skip("committed run not present")
     with committed.open(newline="", encoding="utf-8") as handle:

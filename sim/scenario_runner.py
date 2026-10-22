@@ -440,7 +440,7 @@ def to_replay_document(document: Mapping[str, Any]) -> dict[str, Any]:
     The converter intentionally returns a new object. It drops the optional
     hardware-profile and link-outcome fields, so the replay stays the minimal
     original contract (``s7_run_schema`` accepts them but does not need them).
-    It does not write or mutate ``runs/s7-swarm/run.json``.
+    It does not write or mutate ``sim/runs/s7-swarm/run.json``.
     """
     _validate_run_document(document)
     allowed_profile_keys = (

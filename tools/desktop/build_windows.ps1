@@ -44,7 +44,7 @@ if (Test-Path $pngPath) {
     --hidden-import tools.desktop.results_data --hidden-import tools.desktop.ui_results_chart `
     --hidden-import tools.desktop.ui_results_atlas `
     --hidden-import tools.desktop.ui_results `
-    --add-data "runs\s7-swarm\run.json;runs\s7-swarm" `
+    --add-data "sim\runs\s7-swarm\run.json;sim\runs\s7-swarm" `
     --add-data "tools\desktop\evidence_report_example.json;tools\desktop" `
     --add-data "tools\desktop\investigation_report_example.json;tools\desktop" `
     --add-data "tools\desktop\s7_report_example.json;tools\desktop" `

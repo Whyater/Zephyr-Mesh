@@ -202,7 +202,7 @@ def test_replay_timing_and_frozen_swarm_schema():
     from sim.coop.simulator import to_replay_v1
     replay = to_replay_v1(CoopSwarmSimulator(config).run())
     assert replay["dt_s"] == config.control_dt_s * config.log_every
-    frozen = json.loads((ROOT / "runs/s7-swarm/run.json").read_text(encoding="utf-8"))
+    frozen = json.loads((ROOT / "sim/runs/s7-swarm/run.json").read_text(encoding="utf-8"))
     schema = json.loads((ROOT / "sim/s7_run_schema.json").read_text(encoding="utf-8"))
     assert list(Draft202012Validator(schema).iter_errors(frozen)) == []
 

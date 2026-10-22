@@ -17,7 +17,7 @@ from tools.desktop.replay import ReplayModel
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUN = ROOT / "runs/s7-swarm/run.json"
+RUN = ROOT / "sim/runs/s7-swarm/run.json"
 RAW = json.loads((ROOT / "tools" / "desktop" / "results_fixture.json").read_text(encoding="utf-8"))
 TEXT, ATLAS = UI_TEXT["results"], UI_TEXT["atlas"]
 

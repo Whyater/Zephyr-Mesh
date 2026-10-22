@@ -292,5 +292,5 @@ def write_baseline(output_dir: str | Path, config: BaselineConfig = BaselineConf
 
 
 if __name__ == "__main__":
-    output = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("runs/s0-baseline")
+    output = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("sim/runs/s0-baseline")
     print(write_baseline(output))

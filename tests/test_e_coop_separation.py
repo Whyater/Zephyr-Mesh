@@ -12,7 +12,7 @@ from sim.coop.avoidance import AvoidanceConfig
 from sim.missions.api import Scenario
 from sim.missions.engine import run_mission
 
-BUFFER_FILE = Path(__file__).resolve().parents[1] / "runs" / "d4-separation" / "buffer.json"
+BUFFER_FILE = Path(__file__).resolve().parents[1] / "sim" / "runs" / "d4-separation" / "buffer.json"
 
 
 def test_buffer_table_is_run_d_dead_reckoning_envelope():

@@ -56,7 +56,7 @@
   "outage_draw": "np.random.default_rng(np.random.SeedSequence([seed, 29029])).uniform(8, 18)",
   "outage_streams": null,
   "part_a": {
-    "csv": "runs/e-exp029-part-a/part_a.csv",
+    "csv": "sim/runs/e-exp029-part-a/part_a.csv",
     "h_hz": 20.0,
     "rows_used": 135,
     "sha256": "70aa17feea8e609d07d80573ab2fc45c204038dcfa259a8b11141e93e2028ec6",

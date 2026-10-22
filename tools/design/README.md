@@ -68,7 +68,7 @@ Both start with `GENERATED FILE. Do not edit.` Run `python3 tools/generate_desig
 
 ### The generated Mac fixture
 
-The Mac app does not run Python. `tools/build_native_fixture.py` reads `runs/s7-swarm/run.json` (and its `manifest.json`), runs the same presentation code, and writes `tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/demo_swarm.json`, which embeds the presentation records next to the raw positions. Swift code only formats those records (`Presentation.swift`). `tools/build_presentation_golden.py` writes `tools/design/golden/s7_presentation.json`, the checked-in expected output, and `tests/test_presentation.py` and `tests/test_native_fixture.py` check that the golden file, the fixture and the code agree.
+The Mac app does not run Python. `tools/build_native_fixture.py` reads `sim/runs/s7-swarm/run.json` (and its `manifest.json`), runs the same presentation code, and writes `tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/demo_swarm.json`, which embeds the presentation records next to the raw positions. Swift code only formats those records (`Presentation.swift`). `tools/build_presentation_golden.py` writes `tools/design/golden/s7_presentation.json`, the checked-in expected output, and `tests/test_presentation.py` and `tests/test_native_fixture.py` check that the golden file, the fixture and the code agree.
 
 ### Changing a color or a label in 4 steps
 

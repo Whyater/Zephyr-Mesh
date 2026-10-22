@@ -27,7 +27,7 @@ def _hashes(directory: Path) -> dict[str, str]:
 
 def _registered() -> dict:
     entries = json.loads((ROOT / "tools" / "reproduce_registry.json").read_text(encoding="utf-8"))
-    return next(e for e in entries if e["run_dir"] == "runs/c5-heartbeat")
+    return next(e for e in entries if e["run_dir"] == "sim/runs/c5-heartbeat")
 
 
 def test_pilot_is_byte_identical_for_one_and_three_workers(tmp_path: Path) -> None:

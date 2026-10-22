@@ -2,12 +2,12 @@
 
 Usage (repo root)::
 
-    PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .venv/bin/python tools/e_exp029_part_b.py --output runs/e-exp029-part-b --pilot
+    PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .venv/bin/python tools/e_exp029_part_b.py --output sim/runs/e-exp029-part-b --pilot
 
 Everything in this runner is simulated.  The tag mission uses synthetic link
 loss, a scripted total blackout, and literature-derived vehicle parameters.
 
-Part B needs the finished Part A table (runs/e-exp029-part-a/part_a.csv, or
+Part B needs the finished Part A table (sim/runs/e-exp029-part-a/part_a.csv, or
 --part-a PATH).  Before any mission runs, the table is checked: it must
 exist, must not be a pilot output, and must hold one 20 Hz age-rule row for
 every preset and every (T_w, T) pair.  Otherwise the runner stops.
@@ -103,7 +103,7 @@ PHYSICS_SEEDS = 20
 HAND_CHECK_PRESETS = ("burst_10_0.5s", "iid_30")
 Z_LIMIT = part_a.Z_FLAG
 MIN_EXPECTED_EVENTS = part_a.MIN_EXPECTED_FOR_Z
-DEFAULT_PART_A_CSV = REPO_ROOT / "runs" / "e-exp029-part-a" / "part_a.csv"
+DEFAULT_PART_A_CSV = REPO_ROOT / "sim" / "runs" / "e-exp029-part-a" / "part_a.csv"
 OUTPUTS = ("part_b.csv", "summary.json", "tradeoff.png")
 REQUIRED_METRICS = (
     "landings_before_outage", "first_landing_s", "airborne_at_blackout",
@@ -885,7 +885,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--pilot", action="store_true")
     parser.add_argument("--processes", type=int, default=process_count())
     parser.add_argument("--part-a", type=Path, default=None,
-                        help="Part A table (default runs/e-exp029-part-a/part_a.csv)")
+                        help="Part A table (default sim/runs/e-exp029-part-a/part_a.csv)")
     args = parser.parse_args(argv)
     run(args.output, argv, pilot=args.pilot, processes=args.processes, part_a_csv=args.part_a)
     return 0

@@ -1,6 +1,6 @@
 """EXP-032 relay range runner for the simulated relay mission.
 
-Usage: PYTHONPATH=. ./.venv/bin/python tools/e_exp032_relay.py --output runs/e-exp032 --pilot
+Usage: PYTHONPATH=. ./.venv/bin/python tools/e_exp032_relay.py --output sim/runs/e-exp032 --pilot
 
 The mission owns radio physics, retries, forwarding, and telemetry timing. This
 runner only constructs the preregistered cells, aggregates returned metrics,

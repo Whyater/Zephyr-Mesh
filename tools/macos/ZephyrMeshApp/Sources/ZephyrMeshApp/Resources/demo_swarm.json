@@ -3,7 +3,7 @@
     "command_authority": "replay only",
     "evidence_boundary": "Deterministic point-mass coordination fixture over an abstract packet link; hardware values are scenario inputs, not measured flight performance.",
     "failsafe": "synthetic constraints only; live failsafe unavailable",
-    "generation_command": "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm",
+    "generation_command": "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output sim/runs/s7-swarm",
     "scenario_id": "s7-ring-50-seed-17",
     "seed": 17,
     "status": "synthetic deterministic replay; not flight performance"
@@ -17061,7 +17061,7 @@
       "time": 0.25
     }
   ],
-  "generation_command": "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm",
+  "generation_command": "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output sim/runs/s7-swarm",
   "not_in_replay": [
     "Live radio link",
     "Camera or vision input",
@@ -17578,7 +17578,7 @@
   "source": {
     "presentation_schema": "zephyr-s7-presentation-2",
     "run_schema": "zephyr-s7-swarm-run-1",
-    "run_sha256": "73039284032d824c943972bd79c2f96f61e28582b79d8335d4d9d3e7d032585b"
+    "run_sha256": "f77c2aed318074787175a4ce3c61c96a73a7832874aeb0931981e8af001a1044"
   },
   "status": "synthetic deterministic replay; not flight performance"
 }

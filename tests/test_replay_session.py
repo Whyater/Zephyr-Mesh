@@ -7,7 +7,7 @@ from tools.desktop.replay_session import ReplaySession
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUN = ROOT / "runs/s7-swarm/run.json"
+RUN = ROOT / "sim/runs/s7-swarm/run.json"
 
 
 def test_session_transitions_and_cached_presentation():

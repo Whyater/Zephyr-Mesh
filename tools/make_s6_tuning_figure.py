@@ -2,7 +2,7 @@
 
 Usage (from the repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/make_s6_tuning_figure.py runs/s6-tuning \
+    PYTHONPATH=. ./.venv/bin/python tools/make_s6_tuning_figure.py sim/runs/s6-tuning \
         [--output-dir DIR]
 
 Questions answered: how wrong can the tuning be before the tracker fails, and does the NIS

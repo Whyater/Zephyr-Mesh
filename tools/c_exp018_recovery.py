@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """EXP-018 simulated parameter recovery and measurement design.
 
-Usage: ``PYTHONPATH=. ./.venv/bin/python tools/c_exp018_recovery.py --output runs/c-exp018-recovery``.
+Usage: ``PYTHONPATH=. ./.venv/bin/python tools/c_exp018_recovery.py --output sim/runs/c-exp018-recovery``.
 All numbers are simulated from literature-derived radio parameters.  The RSSI
 value at 1 m is reported as ``a_dbm_at_1m`` by the calibration tool.
 """

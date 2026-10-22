@@ -68,7 +68,7 @@ def generate(output_dir: Path, *, agent_count: int = 50, steps: int = 6, seed: i
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=Path("runs/s7-swarm"))
+    parser.add_argument("--output", type=Path, default=Path("sim/runs/s7-swarm"))
     parser.add_argument("--agents", type=int, default=50)
     parser.add_argument("--steps", type=int, default=6)
     parser.add_argument("--seed", type=int, default=17)

@@ -108,7 +108,7 @@ def test_n1_single_reproduces_atlas_recovery_seed(cell_key, target, delay, loss_
     cell = _cell({"link": "abstract", "target": target, "loss_model": loss_model,
                   "loss": loss, "n": 1, "delay": delay})
     result = run_seed(cell, 396089605, arms=("single",))["single"]
-    with gzip.open("runs/s6-atlas/per_seed.csv.gz", "rt", newline="", encoding="utf-8") as handle:
+    with gzip.open("sim/runs/s6-atlas/per_seed.csv.gz", "rt", newline="", encoding="utf-8") as handle:
         expected = next(row for row in csv.DictReader(handle)
                         if row["arm"] == "recovery" and row["seed"] == "396089605"
                         and row["cell_key"] == cell_key)

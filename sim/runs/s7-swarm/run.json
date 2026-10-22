@@ -189856,7 +189856,7 @@
   ],
   "scenario_id": "s7-ring-50-seed-17",
   "evidence_boundary": "Deterministic point-mass coordination fixture over an abstract packet link; hardware values are scenario inputs, not measured flight performance.",
-  "generation_command": "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm",
+  "generation_command": "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output sim/runs/s7-swarm",
   "status": "synthetic deterministic replay; not flight performance",
   "command_authority": "replay only",
   "failsafe": "synthetic constraints only; live failsafe unavailable"

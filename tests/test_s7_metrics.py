@@ -10,7 +10,7 @@ from sim.s7_metrics import _reacquisition, summarize_s7_run
 from tools.analyze_s7_run import main as analyze_s7_main
 
 ROOT = Path(__file__).parents[1]
-RUN = ROOT / "runs/s7-swarm/run.json"
+RUN = ROOT / "sim/runs/s7-swarm/run.json"
 
 
 def test_s7_summary_reports_observed_contract_without_performance_claims():

@@ -66,7 +66,7 @@ def test_time_column_labels_the_state_it_sits_beside():
 
 def test_retained_default_baseline_matches_fresh_rerun():
     """The checked-in S0 telemetry remains reproducible after code changes."""
-    artifact = Path(__file__).parents[1] / "runs" / "s0-baseline" / "telemetry.csv"
+    artifact = Path(__file__).parents[1] / "sim" / "runs" / "s0-baseline" / "telemetry.csv"
     retained = np.genfromtxt(artifact, delimiter=",", names=True)
     fresh = run_baseline(BaselineConfig())
     assert tuple(retained.dtype.names) == tuple(fresh)

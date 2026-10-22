@@ -21,7 +21,7 @@ def _hashes(directory: Path) -> dict[str, str]:
 
 def _registered() -> dict:
     entries = json.loads((ROOT / "tools" / "reproduce_registry.json").read_text(encoding="utf-8"))
-    return next(e for e in entries if e["run_dir"] == "runs/c-exp018-recovery-r2")
+    return next(e for e in entries if e["run_dir"] == "sim/runs/c-exp018-recovery-r2")
 
 
 def test_pilot_is_byte_identical_for_legacy_and_opt_in_workers(tmp_path: Path) -> None:

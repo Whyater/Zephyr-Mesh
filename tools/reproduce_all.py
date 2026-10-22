@@ -45,8 +45,8 @@ def load_registry(path: Path) -> list[dict[str, Any]]:
         command = entry["command"]
         outputs = entry["outputs"]
         if (not isinstance(run_dir, str) or not run_dir or Path(run_dir).is_absolute()
-                or not run_dir.startswith("runs/") or run_dir.endswith("/")):
-            raise RegistryError(f"entry {index} run_dir must be a runs/<name> relative path")
+                or not run_dir.startswith("sim/runs/") or run_dir.endswith("/")):
+            raise RegistryError(f"entry {index} run_dir must be a sim/runs/<name> relative path")
         if any(part == ".." for part in Path(run_dir).parts):
             raise RegistryError(f"entry {index} run_dir may not contain '..'")
         if run_dir in seen:

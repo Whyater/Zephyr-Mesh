@@ -29,7 +29,7 @@ from tools.d_common import (
 )
 
 
-THRESHOLD_PATH = Path("runs/c5-heartbeat/thresholds.json")
+THRESHOLD_PATH = Path("sim/runs/c5-heartbeat/thresholds.json")
 DROP_TIME_S = 10.0
 DURATION_S = 25.0
 HOLD_S = 1.0

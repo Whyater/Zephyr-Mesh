@@ -324,7 +324,7 @@ def write_manifest(out_dir: str | os.PathLike[str], *, outputs: Sequence[str], a
     """Write out_dir/manifest.json and return it.
 
     outputs are file names inside out_dir; each is recorded with its sha256.
-    The keys match runs/s6-recovery/manifest.json plus config_sha256, seeds and
+    The keys match sim/runs/s6-recovery/manifest.json plus config_sha256, seeds and
     limits. extra supplies the sweep-specific values (n_cells, n_runs, n_seeds,
     config_sha256, seeds, limits, and optionally replay_command or other keys);
     it cannot overwrite the keys this function fills in. Pass provenance from

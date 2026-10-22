@@ -2,7 +2,7 @@
 
 Usage (from the repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/make_s6_clocks_figure.py runs/s6-clocks \
+    PYTHONPATH=. ./.venv/bin/python tools/make_s6_clocks_figure.py sim/runs/s6-clocks \
         [--output-dir DIR]
 
 Writes two PNGs (into the run folder unless --output-dir is given):

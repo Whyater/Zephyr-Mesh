@@ -1,4 +1,4 @@
-"""Regenerate runs/s2-physics/convergence.json from the real simulator.
+"""Regenerate sim/runs/s2-physics/convergence.json from the real simulator.
 
 System integrated: ``sim.drone.SixDOFInterceptor``, the full 13-state rigid
 body (position, velocity, attitude quaternion, body rates) with gravity,
@@ -27,7 +27,7 @@ import numpy as np
 from sim.drone import SixDOFInterceptor
 from sim.environment import GRAVITY
 
-DEFAULT_OUTPUT = Path(__file__).resolve().parents[1] / "runs" / "s2-physics" / "convergence.json"
+DEFAULT_OUTPUT = Path(__file__).resolve().parents[1] / "sim" / "runs" / "s2-physics" / "convergence.json"
 DURATION_S = 1.0
 STEPS_S = (0.1, 0.05, 0.025, 0.0125)
 REFERENCE_DIVISOR = 50  # reference step = smallest step / 50

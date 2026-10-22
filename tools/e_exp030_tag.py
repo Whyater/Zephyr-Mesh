@@ -1,7 +1,7 @@
 """EXP-030: tag under latency and loss in simulated missions.
 
 Usage (repo root):
-    PYTHONPATH=. ./.venv/bin/python tools/e_exp030_tag.py --output runs/e-exp030-tag
+    PYTHONPATH=. ./.venv/bin/python tools/e_exp030_tag.py --output sim/runs/e-exp030-tag
 
 All motion, delays, and link loss are simulated. The runner writes one row per
 mission run, aggregate cell summaries, two simple figures, and a manifest.

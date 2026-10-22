@@ -166,7 +166,7 @@ def test_manifest_has_every_key_and_correct_hashes(tmp_path):
     sweep.write_json(tmp_path / "summary.json", {"k": 1})
     sweep.write_csv_gz(tmp_path / "rows.csv.gz", ROWS, COLS)
     manifest = sweep.write_manifest(
-        tmp_path, outputs=["summary.json", "rows.csv.gz"], argv=["--output", "runs/x y", "--seeds", "5"],
+        tmp_path, outputs=["summary.json", "rows.csv.gz"], argv=["--output", "sim/runs/x y", "--seeds", "5"],
         n_processes=2, runtime_s=1.5, schema="zephyr-test-manifest-1",
         extra={"n_cells": 3, "n_runs": 15, "n_seeds": 5, "config_sha256": "ab" * 32, "seeds": [1, 2, 3, 4, 5],
                "limits": ["simulation only"]})
@@ -175,8 +175,8 @@ def test_manifest_has_every_key_and_correct_hashes(tmp_path):
     assert (tmp_path / "manifest.json").read_text() == json.dumps(manifest, indent=2, sort_keys=True) + "\n"
     assert set(manifest) == S6_MANIFEST_KEYS | {"config_sha256", "seeds", "limits"}
     assert manifest["schema"] == "zephyr-test-manifest-1"
-    assert manifest["argv"] == ["--output", "runs/x y", "--seeds", "5"]
-    assert manifest["replay_command"].endswith("--output 'runs/x y' --seeds 5")
+    assert manifest["argv"] == ["--output", "sim/runs/x y", "--seeds", "5"]
+    assert manifest["replay_command"].endswith("--output 'sim/runs/x y' --seeds 5")
     assert manifest["n_processes"] == 2 and manifest["runtime_s"] == 1.5
     assert manifest["seeds"] == [1, 2, 3, 4, 5] and manifest["limits"] == ["simulation only"]
     assert manifest["numpy"] == np.__version__

@@ -27,7 +27,7 @@ def _write_output(path: Path, data: bytes, *, config_path: Path) -> None:
     resolved = path.resolve()
     if resolved == config_path.resolve():
         raise ScenarioConfigError("output must differ from config")
-    immutable_replay = Path(__file__).resolve().parents[1] / "runs" / "s7-swarm" / "run.json"
+    immutable_replay = Path(__file__).resolve().parents[1] / "sim" / "runs" / "s7-swarm" / "run.json"
     if resolved == immutable_replay:
         raise ScenarioConfigError("the checked-in S7 replay is immutable")
     if path.is_symlink() or (path.exists() and not path.is_file()):

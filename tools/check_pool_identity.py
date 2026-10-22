@@ -6,8 +6,8 @@ variant's manifest.json and fails if a variant asked for more than one worker
 but really ran on one process (for example on a two-core machine the cap can
 turn 4 into 2, which still counts, but never into 1).
 
-Full runs are slow. The registered manifests (runs/c5-heartbeat and
-runs/c-exp018-recovery-r2) record runtime_s 2324 s and 154 s, both with
+Full runs are slow. The registered manifests (sim/runs/c5-heartbeat and
+sim/runs/c-exp018-recovery-r2) record runtime_s 2324 s and 154 s, both with
 n_processes 2, so together the variants here are well over 10 CPU minutes: run
 full mode under the heavy lock. This script prints and saves the wall and CPU
 seconds of every variant it runs.
@@ -42,11 +42,11 @@ REGISTRY_PATH = ROOT / "tools" / "reproduce_registry.json"
 RUNNERS: dict[str, dict[str, str]] = {
     "exp016": {
         "script": "tools/c_exp016_heartbeat.py",
-        "run_dir": "runs/c5-heartbeat",
+        "run_dir": "sim/runs/c5-heartbeat",
     },
     "exp018": {
         "script": "tools/c_exp018_recovery.py",
-        "run_dir": "runs/c-exp018-recovery-r2",
+        "run_dir": "sim/runs/c-exp018-recovery-r2",
     },
 }
 

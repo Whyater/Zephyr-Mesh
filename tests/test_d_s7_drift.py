@@ -44,5 +44,5 @@ def test_pending_events_stay_valid_but_cannot_claim_an_outcome():
 
 def test_frozen_s7_run_still_validates():
     schema = json.loads((ROOT / "sim/s7_run_schema.json").read_text(encoding="utf-8"))
-    document = json.loads((ROOT / "runs/s7-swarm/run.json").read_text(encoding="utf-8"))
+    document = json.loads((ROOT / "sim/runs/s7-swarm/run.json").read_text(encoding="utf-8"))
     assert not list(Draft202012Validator(schema).iter_errors(document))

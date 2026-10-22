@@ -11,7 +11,7 @@ from tools.desktop.scenario_run import ScenarioFrame, ScenarioRunCursor, clamp_s
 
 
 ROOT = Path(__file__).parents[1]
-RUN = ROOT / "runs/s7-swarm/run.json"
+RUN = ROOT / "sim/runs/s7-swarm/run.json"
 # Read the counts straight from the file so regenerating the S7 run does not
 # break these tests. The JSON is parsed separately from tools.desktop.replay.
 _RAW = json.loads(RUN.read_text(encoding="utf-8"))

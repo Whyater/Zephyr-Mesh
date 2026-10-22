@@ -1,6 +1,6 @@
 """Independent comparer: every number in results_fixture.json must equal its source run file.
 
-Written only from the fixture contract and from the source files (runs/s6-recovery, runs/s6-atlas,
+Written only from the fixture contract and from the source files (sim/runs/s6-recovery, sim/runs/s6-atlas,
 README.md, docs/RESULTS.md). It does not import or read the fixture builder. A missing fixture is a
 failure with a clear message, not a skip.
 """
@@ -18,8 +18,8 @@ FIXTURE_PATHS = [
     ROOT / "tools" / "desktop" / "results_fixture.json",
     ROOT / "tools" / "macos" / "ZephyrMeshApp" / "Sources" / "ZephyrMeshApp" / "Resources" / "results_fixture.json",
 ]
-S6_DIR = ROOT / "runs" / "s6-recovery"
-ATLAS_DIR = ROOT / "runs" / "s6-atlas"
+S6_DIR = ROOT / "sim" / "runs" / "s6-recovery"
+ATLAS_DIR = ROOT / "sim" / "runs" / "s6-atlas"
 
 FAILS_SHOWN = 12
 
@@ -110,7 +110,7 @@ def test_source_hashes_and_revisions(fx, s6_src, atlas_src):
     for key, folder, fname in (("s6", S6_DIR, "summary.json"), ("atlas", ATLAS_DIR, "atlas.json")):
         src = fx[key]["source"]
         manifest = read_json(folder / "manifest.json")
-        c.eq(src.get("run_dir"), "runs/" + folder.name, f"{key}.source.run_dir")
+        c.eq(src.get("run_dir"), "sim/runs/" + folder.name, f"{key}.source.run_dir")
         c.eq(src.get("file"), fname, f"{key}.source.file")
         c.eq(src.get("sha256"), sha(folder / fname), f"{key}.source.sha256")
         c.eq(src.get("manifest_sha256"), sha(folder / "manifest.json"), f"{key}.source.manifest_sha256")

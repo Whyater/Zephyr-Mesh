@@ -1,6 +1,6 @@
 """EXP-027 airtime check: does "ground sent more bytes" survive as "ground used more air"?
 
-Reads the registered per-kind traffic from runs/d7-decisions/summary.json (read only),
+Reads the registered per-kind traffic from sim/runs/d7-decisions/summary.json (read only),
 turns each message kind into radio frames, and prices the frames with the existing
 sim/radio airtime functions (frame_bytes, data_airtime_s, ack_airtime_s, PhyConfig.difs_s).
 The timing model is not reimplemented here, except one independent hand formula that is
@@ -107,8 +107,8 @@ def ratios(g: dict, o: dict) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--summary", default="runs/d7-decisions/summary.json")
-    ap.add_argument("--out", required=True, help="output JSON path, outside runs/")
+    ap.add_argument("--summary", default="sim/runs/d7-decisions/summary.json")
+    ap.add_argument("--out", required=True, help="output JSON path, outside sim/runs/")
     args = ap.parse_args()
 
     summary = json.loads(Path(args.summary).read_text(encoding="utf-8"))

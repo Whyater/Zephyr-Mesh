@@ -41,11 +41,11 @@ README_FINDINGS = [
     "crosses the 0.25 m line at 200 ms of delay with no loss, for a 1 m/s target, 10 Hz measurements, 5 cm noise and "
     "50 seeds. The 200 ms depends on the sensor noise (the filter is always told 5 cm): with 0 or 2 cm it still passes "
     "at 200 ms and first fails at 300 ms (the next delay tested), and with 10 cm it fails from 150 ms "
-    "(`runs/s6-recovery`).",
+    "(`sim/runs/s6-recovery`).",
     "Stamping each measurement with the time it was taken, then predicting forward, cuts the 300 ms error with no loss "
-    "from 0.36 m to 0.16 m on a straight line, and from 0.38 m to 0.29 m on a 1 m radius turn (`runs/s6-recovery`).",
+    "from 0.36 m to 0.16 m on a straight line, and from 0.38 m to 0.29 m on a 1 m radius turn (`sim/runs/s6-recovery`).",
     "On the turn, lost packets matter more than delay: at 30 % random loss the recovery tracker fails from 150 ms just "
-    "like the basic one, and at 50 % both fail at every delay (`runs/s6-recovery`).",
+    "like the basic one, and at 50 % both fail at every delay (`sim/runs/s6-recovery`).",
 ]
 
 
@@ -143,7 +143,7 @@ def _build_s6(
         raise ValueError("S6 series dropped or added cell ids")
     if manifest_raw is None:
         manifest_raw = json.dumps(manifest, sort_keys=True).encode("utf-8")
-    return {"source": source_block("runs/s6-recovery", "summary.json", summary_raw, manifest_raw, manifest,
+    return {"source": source_block("sim/runs/s6-recovery", "summary.json", summary_raw, manifest_raw, manifest,
                                      summary["schema"]),
         "status": summary["status"], "criterion": summary["design"]["criterion"],
         "cell_label_rule": summary["design"]["cell_label_rule"],
@@ -282,7 +282,7 @@ def _build_atlas(
     finding = {"text": matches[0], "source": "docs/RESULTS.md"}
     if manifest_raw is None:
         manifest_raw = json.dumps(manifest, sort_keys=True).encode("utf-8")
-    return {"source": source_block("runs/s6-atlas", "atlas.json", atlas_raw, manifest_raw, manifest,
+    return {"source": source_block("sim/runs/s6-atlas", "atlas.json", atlas_raw, manifest_raw, manifest,
                                    atlas["schema"]),
         "schema_of_source": atlas["schema"],
         "n_seeds": len(atlas["seeds"]), "failure_rule": atlas["failure_rule"],
@@ -300,10 +300,10 @@ def build_atlas(*args: Any, **kwargs: Any) -> dict[str, Any]:
 
 
 def build_fixture() -> dict[str, Any]:
-    summary, summary_raw = read_json(ROOT / "runs/s6-recovery/summary.json")
-    s6_manifest, s6_manifest_raw = read_json(ROOT / "runs/s6-recovery/manifest.json")
-    atlas, atlas_raw = read_json(ROOT / "runs/s6-atlas/atlas.json")
-    atlas_manifest, atlas_manifest_raw = read_json(ROOT / "runs/s6-atlas/manifest.json")
+    summary, summary_raw = read_json(ROOT / "sim/runs/s6-recovery/summary.json")
+    s6_manifest, s6_manifest_raw = read_json(ROOT / "sim/runs/s6-recovery/manifest.json")
+    atlas, atlas_raw = read_json(ROOT / "sim/runs/s6-atlas/atlas.json")
+    atlas_manifest, atlas_manifest_raw = read_json(ROOT / "sim/runs/s6-atlas/manifest.json")
     fixture = {"schema": "zephyr-results-fixture-1", "generator": "tools/build_results_fixture.py", "simulated": True,
         "s6": build_s6(summary, summary_raw, s6_manifest,
                        (ROOT / "README.md").read_text(encoding="utf-8"), s6_manifest_raw),

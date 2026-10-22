@@ -2,7 +2,7 @@
 
 Usage (repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/e_exp029_part_a.py --output runs/e-exp029-part-a
+    PYTHONPATH=. ./.venv/bin/python tools/e_exp029_part_a.py --output sim/runs/e-exp029-part-a
 
 Simulated only.  The drone-side failsafe sees nothing but the arrival times of
 the ground station's command packets (each command is also the heartbeat), so

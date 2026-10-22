@@ -4,7 +4,7 @@ The experiment asks how delay, loss, noise, target motion, and estimator choice
 change the first failing delay. Every result is simulated link and simulated
 sensor output, and nothing is measured. Run it with::
 
-    PYTHONPATH=. ./.venv/bin/python tools/run_s6_atlas.py --output runs/s6-atlas
+    PYTHONPATH=. ./.venv/bin/python tools/run_s6_atlas.py --output sim/runs/s6-atlas
 
 The atlas uses a mean burst length of 0.5 seconds and adds optional IMM-stratum
 filtering plus a central-only speed grid; the default grid is 3969 cells and

@@ -1,8 +1,8 @@
 """Explain the EXP-028 gap between the hand value and the measured steps to 1 % agreement.
 
-Rebuilds the zero-loss, zero-delay cells of runs/d8-consensus for the ring and the line with the
+Rebuilds the zero-loss, zero-delay cells of sim/runs/d8-consensus for the ring and the line with the
 same graphs, eps, seeds and starting values as tools/d_run_consensus.py, then splits the gap between
-ln(0.01)/ln(rho) and the measured median into parts. Read only: it never writes into runs/.
+ln(0.01)/ln(rho) and the measured median into parts. Read only: it never writes into sim/runs/.
 
     PYTHONPATH=. python tools/d_exp028_gap.py --output <dir>   (run from the repo root)
 """
@@ -34,7 +34,7 @@ SLOW_MATCH = 1e-9
 
 def _registered_steps(graph: str) -> list[int]:
     """Steps to agreement at p = 0, delay 0 from the registered CSV (both loss flags agree at p = 0)."""
-    path = Path("runs/d8-consensus/loss_delay.csv")
+    path = Path("sim/runs/d8-consensus/loss_delay.csv")
     with path.open(encoding="utf-8", newline="") as handle:
         rows = [r for r in csv.DictReader(handle)
                 if r["graph"] == graph and float(r["p"]) == 0.0 and int(r["delay_steps"]) == 0

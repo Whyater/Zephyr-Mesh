@@ -141,7 +141,7 @@ def test_config_rejects_duplicate_ids_and_invalid_geometry():
 
 ROOT = Path(__file__).parents[1]
 DOCUMENTED_GENERATION_COMMAND = (
-    "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm"
+    "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output sim/runs/s7-swarm"
 )
 
 
@@ -172,8 +172,8 @@ def test_generator_output_validates_against_the_s7_schema(regenerated_default_fi
 
 def test_retained_s7_run_and_manifest_equal_a_fresh_regeneration(regenerated_default_fixture):
     run, manifest = regenerated_default_fixture
-    retained_run = json.loads((ROOT / "runs" / "s7-swarm" / "run.json").read_text(encoding="utf-8"))
-    retained_manifest = json.loads((ROOT / "runs" / "s7-swarm" / "manifest.json").read_text(encoding="utf-8"))
+    retained_run = json.loads((ROOT / "sim" / "runs" / "s7-swarm" / "run.json").read_text(encoding="utf-8"))
+    retained_manifest = json.loads((ROOT / "sim" / "runs" / "s7-swarm" / "manifest.json").read_text(encoding="utf-8"))
     # The command string embeds the output directory, so it is the only field
     # allowed to differ. The retained copy must carry the documented command.
     assert retained_run.pop("generation_command") == DOCUMENTED_GENERATION_COMMAND

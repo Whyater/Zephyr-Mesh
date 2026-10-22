@@ -27,7 +27,7 @@ from sim.physics.control_tolerance import CONTROL_DT_S, FAILED_TO_FLY_RULES, fin
 from sim.physics.run_manifest import write_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
-EXP021 = ROOT / "runs" / "a6-control-tolerance"
+EXP021 = ROOT / "sim" / "runs" / "a6-control-tolerance"
 TILT_LIMIT_DEG = 45.0
 MIN_HEIGHT_M = 0.0
 LABEL = ("DIAGNOSTIC ONLY. EXP-021 stays reported under its pre-registered rules; "
@@ -91,7 +91,7 @@ def _dcrit_compare(config: dict, committed: dict) -> list[dict]:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--output-dir", default="runs/d088-exp021-diagnostic")
+    parser.add_argument("--output-dir", default="sim/runs/d088-exp021-diagnostic")
     args = parser.parse_args(argv)
     started = time.perf_counter()
     out = Path(args.output_dir)
@@ -109,7 +109,7 @@ def main(argv: list[str] | None = None) -> None:
     }
     (out / "diagnostic.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     write_manifest(out / "manifest.json", schema="zephyr-d088-exp021-diagnostic-manifest-1", argv=sys.argv[1:] if argv is None else argv,
-                   config={"tilt_limit_deg": TILT_LIMIT_DEG, "min_height_m": MIN_HEIGHT_M, "source": "runs/a6-control-tolerance"},
+                   config={"tilt_limit_deg": TILT_LIMIT_DEG, "min_height_m": MIN_HEIGHT_M, "source": "sim/runs/a6-control-tolerance"},
                    seeds=[0], limits=["diagnostic only, does not replace EXP-021", "simulated only",
                                       "literature-derived profiles", "per-run part omits y and z growth"],
                    outputs={"diagnostic.json": out / "diagnostic.json"}, output_dir=out,

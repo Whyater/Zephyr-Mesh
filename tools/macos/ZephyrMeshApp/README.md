@@ -1,7 +1,7 @@
 # Zephyr Mesh native cockpit
 
 This directory contains the macOS replay viewer for Zephyr Mesh, a SwiftUI and SceneKit app.
-It replays the bundled fixture built from the canonical Python S7 run (`runs/s7-swarm/run.json`)
+It replays the bundled fixture built from the canonical Python S7 run (`sim/runs/s7-swarm/run.json`)
 by `tools/build_native_fixture.py`. It is a recorded simulation, not a live connection: there
 is no radio, camera, motor, or command path. Values the run does not contain read "Not
 recorded". Where the numbers come from:

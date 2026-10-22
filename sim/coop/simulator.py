@@ -270,7 +270,7 @@ class CoopSwarmSimulator:
         return covariance_intersection_many(means, covariances)
 
     def model_provenance(self) -> dict[str, Any]:
-        # runs/c5-heartbeat/thresholds.json gives h = 10 Hz, independent p = 0.1,
+        # sim/runs/c5-heartbeat/thresholds.json gives h = 10 Hz, independent p = 0.1,
         # and T = 0.5 s for fewer than one false alarm per hour.
         return {
             "model": "kinematic_point_mass",

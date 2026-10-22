@@ -117,7 +117,7 @@ final class ReplayFixtureTests: XCTestCase {
     }
 
     func testKeepOutVolumeIsTheTargetKeepOutFromTheManifest() throws {
-        // runs/s7-swarm/manifest.json: target_keepout_radius_m 0.75, target at (0, 0, 1.5).
+        // sim/runs/s7-swarm/manifest.json: target_keepout_radius_m 0.75, target at (0, 0, 1.5).
         let fixture = try loadFixture()
         for frame in fixture.frames {
             XCTAssertEqual(frame.keepOutVolumes.count, 1)

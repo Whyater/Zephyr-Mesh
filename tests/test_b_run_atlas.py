@@ -91,11 +91,11 @@ def test_summary_does_not_duplicate_per_seed_and_columns_are_fixed(tmp_path, mon
 def test_manifest_replay_command_uses_actual_argv(tmp_path, monkeypatch):
     cells = runner.build_cells(pilot=True)[:1]
     monkeypatch.setattr(runner, "build_cells", lambda *args, **kwargs: cells)
-    args = ["--output", "runs/space name", "--pilot", "--seeds", "1"]
+    args = ["--output", "sim/runs/space name", "--pilot", "--seeds", "1"]
     runner.run_sweep(tmp_path / "out", seeds_count=1, processes=1, no_checkpoint=True, argv=args)
     manifest = json.loads((tmp_path / "out" / "manifest.json").read_text())
     assert manifest["replay_command"] == (
-        "PYTHONPATH=. ./.venv/bin/python tools/run_s6_atlas.py --output 'runs/space name' --pilot --seeds 1"
+        "PYTHONPATH=. ./.venv/bin/python tools/run_s6_atlas.py --output 'sim/runs/space name' --pilot --seeds 1"
     )
 
 

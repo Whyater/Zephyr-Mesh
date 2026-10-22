@@ -45,7 +45,7 @@ def test_findings_and_central_counts():
 
 def test_source_coverage_and_shape():
     fixture = json.loads(MACOS.read_text(encoding="utf-8"))
-    atlas = json.loads((ROOT / "runs/s6-atlas/atlas.json").read_text(encoding="utf-8"))
+    atlas = json.loads((ROOT / "sim/runs/s6-atlas/atlas.json").read_text(encoding="utf-8"))
     assert len(fixture["atlas"]["entries"]) == len(atlas["entries"]) == 1883
     assert len({(e["stratum"], e["variant"], e["loss_condition"], e["arm"]) for e in fixture["atlas"]["entries"]}) == 1883
     assert all(len(series["cell_ids"]) == 7 for series in fixture["s6"]["series"])
@@ -62,8 +62,8 @@ def test_json_is_finite_and_small():
 
 
 def _sources():
-    summary_path = ROOT / "runs/s6-recovery/summary.json"
-    atlas_path = ROOT / "runs/s6-atlas/atlas.json"
+    summary_path = ROOT / "sim/runs/s6-recovery/summary.json"
+    atlas_path = ROOT / "sim/runs/s6-atlas/atlas.json"
     return (
         json.loads(summary_path.read_text(encoding="utf-8")),
         summary_path.read_bytes(),
@@ -73,12 +73,12 @@ def _sources():
 
 
 def _atlas_args(atlas):
-    manifest_path = ROOT / "runs/s6-atlas/manifest.json"
+    manifest_path = ROOT / "sim/runs/s6-atlas/manifest.json"
     return atlas, b"{}", json.loads(manifest_path.read_text(encoding="utf-8")), "- The map: most cells are ties"
 
 
 def _s6_args(summary):
-    manifest_path = ROOT / "runs/s6-recovery/manifest.json"
+    manifest_path = ROOT / "sim/runs/s6-recovery/manifest.json"
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     return summary, b"{}", json.loads(manifest_path.read_text(encoding="utf-8")), readme
 

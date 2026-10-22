@@ -69,7 +69,7 @@ def _output_hashes(outputs, output_dir: Path | None) -> dict[str, str]:
     for name, value in pairs:
         path = Path(value)
         # Callers pass either names relative to the output directory or paths
-        # that already include it (for example a relative "runs/x/data.csv").
+        # that already include it (for example a relative "sim/runs/x/data.csv").
         if not path.is_absolute() and output_dir is not None and not path.is_file():
             path = output_dir / path
         if not path.is_file():

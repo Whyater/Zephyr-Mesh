@@ -2,7 +2,7 @@
 
 Usage (repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/c_exp017_tolerance.py --output runs/c-exp017-tolerance
+    PYTHONPATH=. ./.venv/bin/python tools/c_exp017_tolerance.py --output sim/runs/c-exp017-tolerance
 
 Two scenarios turn physical settings into delay and loss:
 - A: one drone at a fixed distance from the ground station, outdoor "stress
@@ -41,7 +41,7 @@ from tools.horizon_mpl import apply_style  # noqa: E402
 
 BREAKPOINT_M = 4 * 1.5 * 1.5 / (299_792_458.0 / 2.437e9)  # same dual-slope breakpoint as EXP-013
 NOISE_STD_M = 0.05  # EXP-006 main-slice sensor noise used for the mapping
-EXP006_SUMMARY = "runs/s6-recovery/summary.json"
+EXP006_SUMMARY = "sim/runs/s6-recovery/summary.json"
 DISTANCES_M = tuple(float(d) for d in np.geomspace(250.0, 1000.0, 16))
 GYM_CONTROL_M = 30.0
 N_VALUES = (1, 4, 8, 12)

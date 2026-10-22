@@ -32,7 +32,7 @@ from tools.s6_measured_rerun import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-REGISTERED_DIR = REPO_ROOT / "runs" / "s6-recovery"
+REGISTERED_DIR = REPO_ROOT / "sim" / "runs" / "s6-recovery"
 HAVE_REGISTERED = (REGISTERED_DIR / "summary.json").is_file() and (REGISTERED_DIR / "per_seed.csv").is_file()
 ONE_CELL = "main/constant_velocity/d0.100/l0.30/n0.050/independent/j0.000/r0.050"
 TRUE_NOISE = 0.05  # the --noise-std given to the fixture generator below
@@ -138,7 +138,7 @@ def test_world_frame_needs_depth_axis(fit_file, tmp_path):
 
 def test_refuses_output_under_runs(tmp_path):
     fit = _hand_fit(tmp_path)
-    target = REPO_ROOT / "runs" / "zz-rerun-should-not-exist"
+    target = REPO_ROOT / "sim" / "runs" / "zz-rerun-should-not-exist"
     with pytest.raises(RerunError, match="runs"):
         run_rerun(fit, target, seeds_count=1, processes=1)
     assert not target.exists()
@@ -193,7 +193,7 @@ def test_cells_match_registered_grid():
     assert len(cells) == 56
     registered = json.loads((REGISTERED_DIR / "summary.json").read_text()) if HAVE_REGISTERED else None
     if registered is None:
-        pytest.skip("runs/s6-recovery is not present")
+        pytest.skip("sim/runs/s6-recovery is not present")
     expected = [{key: value for key, value in cell.items() if key not in {"arms", "paired"}}
                 for cell in registered["cells"] if cell["slice"] == "main" and cell["noise_std_m"] == 0.05]
     assert [cell["cell_id"] for cell in cells] == [cell["cell_id"] for cell in expected]
@@ -206,7 +206,7 @@ def test_cells_match_registered_grid():
     assert {cell["noise_std_m"] for cell in build_rerun_cells(0.0123)} == {0.0123}
 
 
-@pytest.mark.skipif(not HAVE_REGISTERED, reason="runs/s6-recovery is not present")
+@pytest.mark.skipif(not HAVE_REGISTERED, reason="sim/runs/s6-recovery is not present")
 def test_one_cell_matches_registered_bytes(tmp_path):
     fit = _hand_fit(tmp_path, noise=0.05, axis_std=0.05)
     out = tmp_path / "out"
@@ -365,14 +365,14 @@ def test_second_runs_root_is_refused(tmp_path, monkeypatch):
     fit = _hand_fit(tmp_path)
     main_checkout = tmp_path / "main-checkout"
     monkeypatch.setattr(rerun_module, "_git_common_dir", lambda: main_checkout / ".git")
-    assert (main_checkout / "runs").resolve() in protected_runs_dirs()
-    target = main_checkout / "runs" / "zz-rerun"
+    assert (main_checkout / "sim" / "runs").resolve() in protected_runs_dirs()
+    target = main_checkout / "sim" / "runs" / "zz-rerun"
     with pytest.raises(RerunError, match="runs"):
         run_rerun(fit, target, seeds_count=1, processes=1)
     assert not main_checkout.exists()
-    # Without git only this checkout's runs/ is protected.
+    # Without git only this checkout's sim/runs/ is protected.
     monkeypatch.setattr(rerun_module, "_git_common_dir", lambda: None)
-    assert protected_runs_dirs() == [(REPO_ROOT / "runs").resolve()]
+    assert protected_runs_dirs() == [(REPO_ROOT / "sim" / "runs").resolve()]
 
 
 @pytest.mark.skipif(shutil.which("git") is None, reason="git is not installed")
@@ -382,7 +382,7 @@ def test_real_main_checkout_runs_is_protected():
                                          text=True, stderr=subprocess.DEVNULL, cwd=REPO_ROOT).strip()
     except (OSError, subprocess.CalledProcessError):
         pytest.skip("git cannot read this checkout")
-    assert (Path(common).parent / "runs").resolve() in protected_runs_dirs()
+    assert (Path(common).parent / "sim" / "runs").resolve() in protected_runs_dirs()
 
 
 def test_off_grid_noise_gets_its_own_cell_id():

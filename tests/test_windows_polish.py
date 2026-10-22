@@ -21,7 +21,7 @@ from tools.desktop.replay_session import ReplaySession
 from tools.desktop.ui_settings import load_appearance, settings_path
 
 ROOT = Path(__file__).resolve().parents[1]
-RUN = ROOT / "runs/s7-swarm/run.json"
+RUN = ROOT / "sim/runs/s7-swarm/run.json"
 WIN_TEXT = UI_TEXT["windowsText"]
 
 

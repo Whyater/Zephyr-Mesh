@@ -1,6 +1,6 @@
 """EXP-015 network topology simulation.
 
-Usage: ``PYTHONPATH=. ./.venv/bin/python tools/c_exp015_network.py --output runs/c-exp015-network``
+Usage: ``PYTHONPATH=. ./.venv/bin/python tools/c_exp015_network.py --output sim/runs/c-exp015-network``
 """
 from __future__ import annotations
 import argparse, csv, time

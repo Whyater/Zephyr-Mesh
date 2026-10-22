@@ -344,13 +344,13 @@ def test_data_file_columns_and_row_order_are_fixed(tmp_path):
 
 def test_manifest_replay_command_uses_the_real_argv(tmp_path, monkeypatch):
     out = tmp_path / "out"
-    argv = ["--output", "runs/s6 sensitivity", "--seeds", "10"]
+    argv = ["--output", "sim/runs/s6 sensitivity", "--seeds", "10"]
     _synthetic_run(out, argv=argv)
     manifest = _read(out / "manifest.json")
     assert manifest["argv"] == argv
     assert manifest["replay_command"] == ("PYTHONPATH=. ./.venv/bin/python tools/run_s6_sensitivity.py "
                                           + shlex.join(argv))
-    assert "'runs/s6 sensitivity'" in manifest["replay_command"]
+    assert "'sim/runs/s6 sensitivity'" in manifest["replay_command"]
     # With argv=None the process arguments are used.
     monkeypatch.setattr(sys, "argv", ["run_s6_sensitivity.py", "--pilot", "--seeds", "3"])
     other = tmp_path / "other"

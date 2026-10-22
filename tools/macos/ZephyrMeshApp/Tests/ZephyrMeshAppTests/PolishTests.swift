@@ -199,7 +199,7 @@ final class RoundTwoTests: XCTestCase {
     }
 
     func testTheCommandWrapsOnlyAtSpaces() {
-        let command = "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm"
+        let command = "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output sim/runs/s7-swarm"
         let display = CommandText.display(command)
         XCTAssertEqual(display.replacingOccurrences(of: CommandText.joiner, with: ""), command, "only invisible joiners are added")
         XCTAssertEqual(display.split(separator: " ").count, command.split(separator: " ").count)

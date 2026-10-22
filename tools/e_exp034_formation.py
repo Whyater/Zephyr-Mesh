@@ -1,7 +1,7 @@
 """EXP-034 gym formation demo for simulated missions.
 
 Usage (repo root):
-    PYTHONPATH=. ./.venv/bin/python tools/e_exp034_formation.py --output runs/e-exp034-formation --pilot
+    PYTHONPATH=. ./.venv/bin/python tools/e_exp034_formation.py --output sim/runs/e-exp034-formation --pilot
 
 All motion, camera fixes, delays, and link loss are simulated.
 """

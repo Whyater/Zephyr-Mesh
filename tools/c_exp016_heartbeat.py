@@ -1,6 +1,6 @@
 """EXP-016: simulated heartbeat timeout and degraded-link thresholds.
 
-Usage: ``PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output runs/c5-heartbeat``
+Usage: ``PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output sim/runs/c5-heartbeat``
 """
 from __future__ import annotations
 

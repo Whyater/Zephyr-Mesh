@@ -330,7 +330,7 @@ def test_tilt_torque_points_the_right_way_in_the_ground_frame(yaw_rad):
 
 
 def test_s2_convergence_artifact_regenerates_from_real_integrator():
-    """runs/s2-physics/convergence.json must come from tools/make_s2_convergence.py.
+    """sim/runs/s2-physics/convergence.json must come from tools/make_s2_convergence.py.
 
     The script integrates sim.drone itself.  As a control, the same system is
     stepped here with forward Euler (one slope per step, written separately
@@ -340,7 +340,7 @@ def test_s2_convergence_artifact_regenerates_from_real_integrator():
     from pathlib import Path
     from tools import make_s2_convergence as gen
 
-    committed = json.loads((Path(__file__).parents[1] / "runs" / "s2-physics" / "convergence.json").read_text())
+    committed = json.loads((Path(__file__).parents[1] / "sim" / "runs" / "s2-physics" / "convergence.json").read_text())
     fresh = gen.build_convergence()
     assert committed["fixture"].startswith("sim.drone.SixDOFInterceptor")
     assert [row["dt_s"] for row in committed["results"]] == [row["dt_s"] for row in fresh["results"]]

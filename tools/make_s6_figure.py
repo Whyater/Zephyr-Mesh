@@ -1,9 +1,9 @@
-"""Draw the S6 recovery figures from runs/s6-recovery/summary.json.
+"""Draw the S6 recovery figures from sim/runs/s6-recovery/summary.json.
 
 Usage (from the repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/make_s6_figure.py runs/s6-recovery/summary.json \
-        --output-dir runs/s6-recovery
+    PYTHONPATH=. ./.venv/bin/python tools/make_s6_figure.py sim/runs/s6-recovery/summary.json \
+        --output-dir sim/runs/s6-recovery
 
 Writes two PNGs into the output directory:
 

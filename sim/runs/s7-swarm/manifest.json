@@ -2546,7 +2546,7 @@
   ],
   "evidence_boundary": "Coordination and hardware-parameter fixture only; numeric motor and propeller values are scenario inputs, not measured flight performance. Known limits of this run: 0 agent-steps where an agent changed position and 0 constraint flags (the target is stationary and agents start on their slots, so this is a bookkeeping fixture, not evidence of coordination); run.json is 4.7 MB; agents are point masses with no actuator, energy or 6-DOF model; the link is a synthetic abstract packet model, not a measured radio.",
   "reproducibility": {
-    "command": "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output runs/s7-swarm",
+    "command": "PYTHONPATH=. ./.venv/bin/python tools/generate_s7_fixture.py --output sim/runs/s7-swarm",
     "module": "sim.scenarios.make_ring_swarm_config + sim.swarm.SwarmSimulator",
     "steps": 6
   },

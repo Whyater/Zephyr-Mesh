@@ -76,7 +76,7 @@ def test_bad_input_gives_a_clear_error(tmp_path):
 
 # ---------------------------------------------------------------- Morris labels
 
-FULL = ROOT / "runs" / "s6-sensitivity"
+FULL = ROOT / "sim" / "runs" / "s6-sensitivity"
 
 
 def test_morris_labels_sit_on_their_own_points_in_the_full_run(tmp_path):

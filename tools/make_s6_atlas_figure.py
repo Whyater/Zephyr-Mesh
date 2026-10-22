@@ -2,7 +2,7 @@
 
 Usage (from the repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/make_s6_atlas_figure.py runs/s6-atlas \
+    PYTHONPATH=. ./.venv/bin/python tools/make_s6_atlas_figure.py sim/runs/s6-atlas \
         [--output-dir DIR]
 
 The run directory must hold atlas.json and summary.json. The output directory

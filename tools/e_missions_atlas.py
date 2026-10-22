@@ -2,7 +2,7 @@
 
 Usage (repo root):
 
-    PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. ./.venv/bin/python tools/e_missions_atlas.py --output runs/missions-atlas
+    PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. ./.venv/bin/python tools/e_missions_atlas.py --output sim/runs/missions-atlas
 
 Everything summarised here is simulated.  Link loss patterns are synthetic
 presets (sim/missions/presets.py) and vehicle parameters are literature-derived.
@@ -821,7 +821,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--output", type=Path, required=True, help="new directory for missions_atlas.json")
     parser.add_argument("--inputs", type=Path, default=DEFAULT_INPUTS,
-                        help="directory holding the experiment output folders (default runs/)")
+                        help="directory holding the experiment output folders (default sim/runs/)")
     for key, folder, _, experiment in INPUT_SPECS:
         option = "--" + key.replace("_", "-")
         parser.add_argument(option, type=Path, default=None, dest=key,

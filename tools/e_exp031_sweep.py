@@ -1,7 +1,7 @@
 """EXP-031 area sweep with lossy coverage sharing.
 
 Usage (repo root):
-    PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. ./.venv/bin/python tools/e_exp031_sweep.py --output runs/e-exp031-sweep --pilot --processes 1
+    PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. ./.venv/bin/python tools/e_exp031_sweep.py --output sim/runs/e-exp031-sweep --pilot --processes 1
 
 All scenarios and figures are simulated.  The mission models three volunteer
 search drones sweeping a field and sharing coverage over synthetic links.

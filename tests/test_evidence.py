@@ -21,7 +21,7 @@ ROOT = Path(__file__).parents[1]
         ("hardware", "sim/hardware_profile_example.json"),
         ("bench", "sim/bench_trace_example.json"),
         ("investigation", "sim/investigation_example.json"),
-        ("swarm", "runs/s7-swarm/run.json"),
+        ("swarm", "sim/runs/s7-swarm/run.json"),
     ],
 )
 def test_report_round_trip_preserves_fixture_boundary(tmp_path: Path, kind: str, source: str):
@@ -115,7 +115,7 @@ def test_report_schema_accepts_emitted_investigation_envelope():
 
 
 def test_swarm_report_retains_route_and_recovery_metrics():
-    report = build_evidence_report(ROOT / "runs/s7-swarm/run.json", "swarm")
+    report = build_evidence_report(ROOT / "sim/runs/s7-swarm/run.json", "swarm")
     assert report["status"] == "synthetic"
     assert report["summary"]["link_events"]["attempted"] == 15000
     assert report["summary"]["estimation"]["fused_target_present"] == 196

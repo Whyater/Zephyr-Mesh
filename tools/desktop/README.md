@@ -1,7 +1,7 @@
 # Cross-platform desktop preview
 
 `windows_preview.py` is the Windows replay window. It is a native Tkinter app
-that replays the canonical S7 event log (`runs/s7-swarm/run.json`). It reads a
+that replays the canonical S7 event log (`sim/runs/s7-swarm/run.json`). It reads a
 file; it is not connected to a radio, camera, motor, or drone, and the one
 badge in the title row ("Simulation replay") says so.
 
@@ -122,7 +122,7 @@ from a raw trace or hardware profile with:
 ```bash
 PYTHONPATH=. python tools/build_evidence_report.py vision sim/vision_trace_example.json --output /tmp/zephyr-vision-report.json
 PYTHONPATH=. python tools/build_investigation_report.py sim/investigation_example.json --output /tmp/zephyr-s6-report.json
-PYTHONPATH=. python tools/build_evidence_report.py swarm runs/s7-swarm/run.json --output /tmp/zephyr-s7-report.json
+PYTHONPATH=. python tools/build_evidence_report.py swarm sim/runs/s7-swarm/run.json --output /tmp/zephyr-s7-report.json
 ```
 
 Choose **Open Evidence Report...** in the File menu, Control-O on Windows, or

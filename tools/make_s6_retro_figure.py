@@ -1,8 +1,8 @@
-"""Draw the late-packet re-filtering figures from a runs/s6-retro/ output folder.
+"""Draw the late-packet re-filtering figures from a sim/runs/s6-retro/ output folder.
 
 Usage (from the repo root):
 
-    PYTHONPATH=. ./.venv/bin/python tools/make_s6_retro_figure.py runs/s6-retro \
+    PYTHONPATH=. ./.venv/bin/python tools/make_s6_retro_figure.py sim/runs/s6-retro \
         [--output-dir DIR]
 
 Writes two PNGs (default: into the run folder):
