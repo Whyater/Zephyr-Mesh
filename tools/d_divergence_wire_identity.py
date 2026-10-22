@@ -32,7 +32,10 @@ import json
 import os
 import random
 import re
-import resource
+try:
+    import resource
+except ImportError:  # Windows has no resource module; child CPU falls back to wall time there
+    resource = None
 import shlex
 import subprocess
 import sys
@@ -46,7 +49,7 @@ REGISTRY = "tools/reproduce_registry.json"
 SEED = 20261020
 
 # Files that are listed but never counted for reachability.
-IGNORED_PREFIXES = ("tests/", "tools/d_divergence_")
+IGNORED_PREFIXES = ("sim/tests/", "tools/tests/", "tools/d_divergence_")
 
 # Runner scripts that have a dynamic check in Part B.
 RUNNERS = {
@@ -351,7 +354,7 @@ def part_a(repo: Path, base: str) -> dict:
     scans = {}
     problems = []
     if changes["relevant_other"]:
-        problems.append("changed non-Python files outside tests/ and tools/d_divergence_*: "
+        problems.append("changed non-Python files outside sim/tests/, tools/tests/ and tools/d_divergence_*: "
                         + ", ".join(changes["relevant_other"]))
     if not registry_unchanged:
         problems.append(f"{REGISTRY} differs from the base")
@@ -504,11 +507,15 @@ def run_worker(python: str, tree: Path, request: dict, workdir: Path) -> tuple[d
     env.update({"PYTHONPATH": str(tree), "TMPDIR": "/tmp", "PYTHONDONTWRITEBYTECODE": "1",
                 "OMP_NUM_THREADS": "1", "OPENBLAS_NUM_THREADS": "1", "MKL_NUM_THREADS": "1",
                 "VECLIB_MAXIMUM_THREADS": "1"})
-    before = resource.getrusage(resource.RUSAGE_CHILDREN)
+    before = resource.getrusage(resource.RUSAGE_CHILDREN) if resource else None
+    wall_start = time.perf_counter()
     proc = subprocess.run([python, "-c", WORKER_SOURCE, str(req_path), str(out_path)],
                           cwd=tree, env=env, capture_output=True, text=True, check=False)
-    after = resource.getrusage(resource.RUSAGE_CHILDREN)
-    cpu = (after.ru_utime - before.ru_utime) + (after.ru_stime - before.ru_stime)
+    if before is not None:
+        after = resource.getrusage(resource.RUSAGE_CHILDREN)
+        cpu = (after.ru_utime - before.ru_utime) + (after.ru_stime - before.ru_stime)
+    else:
+        cpu = time.perf_counter() - wall_start
     if proc.returncode or not out_path.is_file():
         raise RuntimeError(f"worker failed in {tree} (exit {proc.returncode}):\n"
                            + proc.stderr[-2000:])
