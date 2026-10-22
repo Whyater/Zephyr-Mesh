@@ -22,7 +22,7 @@ Writes two PNGs (into the run folder unless --output-dir is given):
 Every plotted number is read from summary.json (and per_seed.csv.gz for the paired
 differences in the second figure). The script only converts seconds to
 milliseconds and meters to centimeters for labels. Colors come from
-design/horizon_tokens.json through tools/horizon_mpl.py. The same files always
+tools/design/horizon_tokens.json through tools/horizon_mpl.py. The same files always
 produce the same PNG bytes. When the output folder has a manifest.json, the PNG
 hashes are added to its "outputs" map.
 """

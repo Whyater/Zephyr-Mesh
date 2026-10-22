@@ -9,7 +9,7 @@ param(
 # self-contained GUI executable and a small detached updater beside it.
 $repoRoot = (Get-Location).Path
 if ([string]::IsNullOrWhiteSpace($Version)) {
-    # Local builds are <VERSION>-dev, the same rule as macos/build_app.py.
+    # Local builds are <VERSION>-dev, the same rule as tools/macos/build_app.py.
     # VERSION is the only source; without it the build stops instead of guessing.
     $versionFile = Join-Path $repoRoot "VERSION"
     if (-not (Test-Path $versionFile)) {
@@ -21,16 +21,16 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
 & $Python -m pip install --requirement requirements-windows.txt
 New-Item -ItemType Directory -Force -Path $Output | Out-Null
 $iconArgs = @()
-$iconPath = Join-Path $repoRoot "design\icon\ZephyrMesh.ico"
+$iconPath = Join-Path $repoRoot "tools\design\icon\ZephyrMesh.ico"
 if (Test-Path $iconPath) {
     $iconArgs = @("--icon", $iconPath)
 } else {
     Write-Warning "Windows icon is missing; continuing without --icon"
 }
 $pngArgs = @()
-$pngPath = Join-Path $repoRoot "design\icon\ZephyrMesh-256.png"
+$pngPath = Join-Path $repoRoot "tools\design\icon\ZephyrMesh-256.png"
 if (Test-Path $pngPath) {
-    $pngArgs = @("--add-data", "$pngPath;design\icon")
+    $pngArgs = @("--add-data", "$pngPath;tools\design\icon")
 } else {
     Write-Warning "Windows icon PNG is missing; continuing without bundled PNG"
 }

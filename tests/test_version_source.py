@@ -13,7 +13,7 @@ def test_version_file_is_one_plain_release_number():
 def test_fallback_versions_match_the_version_file():
     # Used only when no bundle version is available (`swift run`, a source checkout).
     expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip() + "-dev"
-    swift = (ROOT / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/ReleaseUpdater.swift").read_text(encoding="utf-8")
+    swift = (ROOT / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/ReleaseUpdater.swift").read_text(encoding="utf-8")
     assert f'?? "{expected}"' in swift
     windows = (ROOT / "desktop/windows_preview.py").read_text(encoding="utf-8")
     assert f'else "{expected}"' in windows
@@ -21,7 +21,7 @@ def test_fallback_versions_match_the_version_file():
 
 def test_local_build_defaults_to_the_dev_version():
     import importlib.util
-    spec = importlib.util.spec_from_file_location("build_app", ROOT / "macos" / "build_app.py")
+    spec = importlib.util.spec_from_file_location("build_app", ROOT / "tools" / "macos" / "build_app.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     assert module.development_version() == (ROOT / "VERSION").read_text(encoding="utf-8").strip() + "-dev"
@@ -38,16 +38,16 @@ def test_windows_build_reads_the_version_file_and_has_no_fallback_number():
 def test_watch_loop_opens_the_bundle_the_builder_writes():
     import importlib.util
     import sys
-    sys.path.insert(0, str(ROOT / "macos"))
+    sys.path.insert(0, str(ROOT / "tools" / "macos"))
     try:
-        spec = importlib.util.spec_from_file_location("watch_app", ROOT / "macos" / "watch_app.py")
+        spec = importlib.util.spec_from_file_location("watch_app", ROOT / "tools" / "macos" / "watch_app.py")
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
     finally:
-        sys.path.remove(str(ROOT / "macos"))
+        sys.path.remove(str(ROOT / "tools" / "macos"))
     assert module.BUNDLE == ROOT / "Zephyr Mesh.app"
 
 
 def test_docs_do_not_point_at_the_old_bundle_path():
-    for doc in ("README.md", "desktop/README.md", "macos/ZephyrMeshApp/README.md"):
-        assert "macos/ZephyrMesh.app" not in (ROOT / doc).read_text(encoding="utf-8"), doc
+    for doc in ("README.md", "desktop/README.md", "tools/macos/ZephyrMeshApp/README.md"):
+        assert "tools/macos/ZephyrMesh.app" not in (ROOT / doc).read_text(encoding="utf-8"), doc

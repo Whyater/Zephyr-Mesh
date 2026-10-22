@@ -11,7 +11,7 @@ from typing import Any, Mapping
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT = ROOT / "runs" / "s7-swarm" / "run.json"
-DEFAULT_OUTPUT = ROOT / "macos" / "ZephyrMeshApp" / "Sources" / "ZephyrMeshApp" / "Resources" / "demo_swarm.json"
+DEFAULT_OUTPUT = ROOT / "tools" / "macos" / "ZephyrMeshApp" / "Sources" / "ZephyrMeshApp" / "Resources" / "demo_swarm.json"
 sys.path.insert(0, str(ROOT))
 from desktop.presentation import present_run
 

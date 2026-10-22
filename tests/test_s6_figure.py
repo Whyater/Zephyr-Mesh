@@ -10,7 +10,7 @@ from tools import horizon_mpl
 
 ROOT = Path(__file__).parents[1]
 SCRIPT = ROOT / "tools" / "make_s6_figure.py"
-TOKENS = ROOT / "design" / "horizon_tokens.json"
+TOKENS = ROOT / "tools" / "design" / "horizon_tokens.json"
 
 DELAYS = (0.0, 0.05, 0.15, 0.30)
 LOSSES = (0.0, 0.10, 0.30, 0.50)

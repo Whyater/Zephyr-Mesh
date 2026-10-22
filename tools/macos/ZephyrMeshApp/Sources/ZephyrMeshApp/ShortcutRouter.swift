@@ -49,7 +49,7 @@ struct ShortcutRouter {
 
 extension ShortcutRouter {
     /// The SwiftUI key equivalent for a generated shortcut, so menus show and handle exactly
-    /// the keys listed in design/ui_text.json.
+    /// the keys listed in tools/design/ui_text.json.
     static func keyboardShortcut(for actionID: String, shortcuts: [UIText.Shortcut] = UIText.shortcuts) -> KeyboardShortcut? {
         guard let shortcut = shortcuts.first(where: { $0.actionID == actionID }),
               let key = keyEquivalent(shortcut.key) else { return nil }

@@ -12,7 +12,7 @@ import pytest
 from tools.build_results_fixture import build_atlas, build_s6
 
 ROOT = Path(__file__).parents[1]
-MACOS = ROOT / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/results_fixture.json"
+MACOS = ROOT / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/results_fixture.json"
 DESKTOP = ROOT / "desktop/results_fixture.json"
 
 

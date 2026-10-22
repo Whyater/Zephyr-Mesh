@@ -4,7 +4,7 @@
 This is the check that would have caught the v0.2.2 launch crash: SwiftPM's
 ``Bundle.module`` fell back to the absolute ``.build`` path of the machine that
 compiled the app, so a local build "worked" only because that folder existed.
-Here the app runs from a temporary copy while ``macos/ZephyrMeshApp/.build`` is
+Here the app runs from a temporary copy while ``tools/macos/ZephyrMeshApp/.build`` is
 renamed away, and the folder is put back afterwards even if the check fails or
 is interrupted with Ctrl-C.
 
@@ -23,7 +23,7 @@ import time
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE = ROOT / "macos" / "ZephyrMeshApp"
+PACKAGE = ROOT / "tools" / "macos" / "ZephyrMeshApp"
 APP = ROOT / "Zephyr Mesh.app"
 BUILD_DIR = PACKAGE / ".build"
 HIDDEN_DIR = PACKAGE / ".build-smoke-hidden"
@@ -86,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
 
     restore_leftover_build_dir()
     if not args.skip_build:
-        subprocess.run([sys.executable, str(ROOT / "macos" / "build_app.py")], cwd=ROOT, check=True)
+        subprocess.run([sys.executable, str(ROOT / "tools" / "macos" / "build_app.py")], cwd=ROOT, check=True)
     with tempfile.TemporaryDirectory(prefix="zephyr-app-smoke-") as temporary:
         copied_app = Path(temporary) / APP.name
         shutil.copytree(APP, copied_app, symlinks=True)

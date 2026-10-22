@@ -26,7 +26,7 @@ figure. Red is used only for the failure line and for rings around cells that fa
 
 Every plotted number is read from the run files (summary.json). The script only
 converts seconds to milliseconds, meters to centimeters and fractions to
-percent for labels. Colors come from design/horizon_tokens.json through
+percent for labels. Colors come from tools/design/horizon_tokens.json through
 tools/horizon_mpl.py. The same input files always give the same PNG bytes.
 When the output folder has a manifest.json, the PNG hashes are added to its
 "outputs" map.

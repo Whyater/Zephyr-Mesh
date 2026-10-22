@@ -1,10 +1,10 @@
 // Draws the Zephyr Mesh app icon with CoreGraphics and writes PNG frames.
 //
-// Usage: swift tools/make_icon.swift <outdir> [--tokens design/horizon_tokens.json]
+// Usage: swift tools/make_icon.swift <outdir> [--tokens tools/design/horizon_tokens.json]
 //
 // Writes <outdir>/ZephyrMesh.iconset/ (the ten macOS iconset PNGs) and
 // <outdir>/windows/ZephyrMesh-<size>.png for the Windows .ico frames.
-// Every color is read from the dark palette in design/horizon_tokens.json.
+// Every color is read from the dark palette in tools/design/horizon_tokens.json.
 // tools/build_icon.py runs this, then iconutil and tools/pack_ico.py.
 import AppKit
 import Foundation
@@ -365,7 +365,7 @@ func writePNG(_ image: CGImage, to url: URL) {
 
 var arguments = Array(CommandLine.arguments.dropFirst())
 let repoRoot = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-var tokensURL = repoRoot.appendingPathComponent("design/horizon_tokens.json")
+var tokensURL = repoRoot.appendingPathComponent("tools/design/horizon_tokens.json")
 if let flag = arguments.firstIndex(of: "--tokens"), flag + 1 < arguments.count {
     tokensURL = URL(fileURLWithPath: arguments[flag + 1])
     arguments.removeSubrange(flag...(flag + 1))

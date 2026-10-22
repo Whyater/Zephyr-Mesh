@@ -25,7 +25,7 @@ a red outline.
 
 Every plotted number is read from atlas.json (summary.json supplies the tested delays and
 the tracker settings quoted in the footnote). The script only converts seconds to
-milliseconds and fractions to percent for labels. Colors come from design/horizon_tokens.json through
+milliseconds and fractions to percent for labels. Colors come from tools/design/horizon_tokens.json through
 tools/horizon_mpl.py. The same input files always produce the same PNG bytes.
 """
 

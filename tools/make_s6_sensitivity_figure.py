@@ -22,7 +22,7 @@ Every plotted number is read from the run files. The script only converts second
 milliseconds, meters to centimeters and fractions to percent for labels. Arm colors and
 markers come from horizon_mpl.arm_style and are the same in every S6 figure. Red and amber
 are not used here because no failure line is drawn.
-Colors come from design/horizon_tokens.json through tools/horizon_mpl.py. The same input
+Colors come from tools/design/horizon_tokens.json through tools/horizon_mpl.py. The same input
 files always give the same PNG bytes. When the output folder has a manifest.json, the PNG
 hashes are added to its "outputs" map.
 """

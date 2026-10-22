@@ -27,7 +27,7 @@ from tools.make_s6_atlas_figure import (  # noqa: E402
     variant_title,
 )
 
-OUT_MACOS = ROOT / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/results_fixture.json"
+OUT_MACOS = ROOT / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/results_fixture.json"
 OUT_DESKTOP = ROOT / "desktop/results_fixture.json"
 S6_DELAYS = [0, 0.025, 0.05, 0.1, 0.15, 0.2, 0.3]
 STRATUM_ORDER = ["central", "noise0", "noise2", "noise10", "rate5", "rate20", "rate50", "jitter", "student_t"]
@@ -39,7 +39,9 @@ STRATUM_TITLES = {
 README_FINDINGS = [
     "A basic tracker's error grows by about speed x delay. Its p95 error (the error it stays under 95 % of the time) "
     "crosses the 0.25 m line at 200 ms of delay with no loss, for a 1 m/s target, 10 Hz measurements, 5 cm noise and "
-    "50 seeds (`runs/s6-recovery`).",
+    "50 seeds. The 200 ms depends on the sensor noise (the filter is always told 5 cm): with 0 or 2 cm it still passes "
+    "at 200 ms and first fails at 300 ms (the next delay tested), and with 10 cm it fails from 150 ms "
+    "(`runs/s6-recovery`).",
     "Stamping each measurement with the time it was taken, then predicting forward, cuts the 300 ms error with no loss "
     "from 0.36 m to 0.16 m on a straight line, and from 0.38 m to 0.29 m on a 1 m radius turn (`runs/s6-recovery`).",
     "On the turn, lost packets matter more than delay: at 30 % random loss the recovery tracker fails from 150 ms just "

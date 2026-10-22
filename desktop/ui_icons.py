@@ -170,8 +170,8 @@ def set_window_icon(window: object, resource_root: Path | None = None) -> None:
     try:
         root = Path(resource_root) if resource_root is not None else Path(__file__).resolve().parents[1]
         candidates = (
-            root / "design" / "icon" / "ZephyrMesh-256.png",
-            root / "_internal" / "design" / "icon" / "ZephyrMesh-256.png",
+            root / "tools" / "design" / "icon" / "ZephyrMesh-256.png",
+            root / "_internal" / "tools" / "design" / "icon" / "ZephyrMesh-256.png",
         )
         source = next((path for path in candidates if path.is_file()), None)
         if source is None:

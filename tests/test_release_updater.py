@@ -226,7 +226,7 @@ def test_offline_manifest_refuses_nonempty_staging_directory(tmp_path):
 # Shared cross-language cases. ReleaseUpdaterTests.swift reads the same file, so
 # the Python and Swift updaters cannot quietly disagree again.
 # ---------------------------------------------------------------------------
-CASES = json.loads((Path(__file__).parents[1] / "macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/updater-cases.json").read_text(encoding="utf-8"))
+CASES = json.loads((Path(__file__).parents[1] / "tools/macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/updater-cases.json").read_text(encoding="utf-8"))
 
 
 def _sign(a: str, b: str) -> str:

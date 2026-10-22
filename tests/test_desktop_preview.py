@@ -102,7 +102,7 @@ def test_desktop_scenario_decoder_rejects_payload_and_link_mutations(tmp_path):
     import json
     from desktop.scenario_run import ScenarioRunFormatError, load_scenario_run
 
-    source = ROOT / "macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-scenario-run-1.json"
+    source = ROOT / "tools/macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-scenario-run-1.json"
     document = json.loads(source.read_text(encoding="utf-8"))
     document["payload_sha256"] = "0" * 64
     payload_path = tmp_path / "payload.json"
@@ -122,7 +122,7 @@ def test_desktop_decoder_rejects_rehashed_frame_time_sequence(tmp_path):
     import json
     from desktop.scenario_run import ScenarioRunFormatError
 
-    source = ROOT / "macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
+    source = ROOT / "tools/macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
     document = json.loads(source.read_text(encoding="utf-8"))
     document["frames"][1]["time_s"] = 0.07
     payload = {key: document[key] for key in ("frames", "link_events", "profiles")}
@@ -140,7 +140,7 @@ def test_desktop_decoder_rejects_rehashed_step_reorder_and_epsilon_boundary(tmp_
     import json
     from desktop.scenario_run import ScenarioRunFormatError
 
-    source = ROOT / "macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
+    source = ROOT / "tools/macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
     base = json.loads(source.read_text(encoding="utf-8"))
 
     def write_rehashed(document, name):
@@ -211,7 +211,7 @@ def test_selected_frame_summary_changes_after_cursor_selection(tmp_path):
 
 
 def test_desktop_decoder_preserves_moving_keep_out_snapshots():
-    fixture = ROOT / "macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
+    fixture = ROOT / "tools/macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
     run = load_scenario_run(fixture)
     cursor = ScenarioRunCursor(len(run.frames))
     assert run.frames[0].keep_out_spheres[0]["center_m"] == [2.0, 0.0, 1.5]
@@ -221,7 +221,7 @@ def test_desktop_decoder_preserves_moving_keep_out_snapshots():
 
 
 def test_scenario_geometry_is_bounded_and_follows_selected_frame():
-    fixture = ROOT / "macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
+    fixture = ROOT / "tools/macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/zephyr-s7-moving-scenario-run-1.json"
     run = load_scenario_run(fixture)
     first = scenario_frame_geometry(run.frames[0])
     second = scenario_frame_geometry(run.frames[1])
@@ -893,7 +893,7 @@ def test_every_golden_event_renders_a_word_and_known_glyph():
     from desktop.ui_icons import STATUS_SHAPES, status_png
     from desktop.ui_theme import Theme, status_shape
 
-    golden = json.loads((ROOT / "design" / "golden" / "s7_presentation.json").read_text(encoding="utf-8"))
+    golden = json.loads((ROOT / "tools" / "design" / "golden" / "s7_presentation.json").read_text(encoding="utf-8"))
     events = [event for frame in golden["frames"] for event in frame["events"]]
     assert {event["level"] for event in events} >= {"info", "ok", "caution"}
     for theme in (Theme("dark"), Theme("light")):

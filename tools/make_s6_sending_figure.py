@@ -20,7 +20,7 @@ positions, open markers are int16 positions.
 
 Every plotted number is read from summary.json. The script only converts meters
 to centimeters and fractions to percent for labels. Colors come from
-design/horizon_tokens.json through tools/horizon_mpl.py. The same input files
+tools/design/horizon_tokens.json through tools/horizon_mpl.py. The same input files
 always produce the same PNG bytes. If the output directory has a manifest.json,
 the PNG hashes are added to its "outputs" map.
 """

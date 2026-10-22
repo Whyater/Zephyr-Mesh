@@ -270,11 +270,11 @@ def test_drone_names_use_integer_suffixes():
 
 def test_golden_is_current():
     expected = json.dumps(present_run(run()), indent=2, sort_keys=True) + "\n"
-    assert expected == (ROOT / "design/golden/s7_presentation.json").read_text()
+    assert expected == (ROOT / "tools/design/golden/s7_presentation.json").read_text()
 
 
 def _golden_events():
-    golden = json.loads((ROOT / "design/golden/s7_presentation.json").read_text())
+    golden = json.loads((ROOT / "tools/design/golden/s7_presentation.json").read_text())
     return [event for frame in golden["frames"] for event in frame["events"]]
 
 

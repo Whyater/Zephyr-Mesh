@@ -14,8 +14,8 @@ import sys
 import time
 
 
-ROOT = Path(__file__).resolve().parents[1]
-PACKAGE = ROOT / "macos" / "ZephyrMeshApp"
+ROOT = Path(__file__).resolve().parents[2]
+PACKAGE = ROOT / "tools" / "macos" / "ZephyrMeshApp"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_app import DEFAULT_OUTPUT  # noqa: E402  (one source for where the bundle is built)
 
@@ -23,12 +23,12 @@ BUNDLE = DEFAULT_OUTPUT
 
 
 def snapshot() -> dict[Path, int]:
-    files = list((PACKAGE / "Sources").rglob("*.swift")) + list((PACKAGE / "Resources").rglob("*")) + [ROOT / "macos" / "build_app.py"]
+    files = list((PACKAGE / "Sources").rglob("*.swift")) + list((PACKAGE / "Resources").rglob("*")) + [ROOT / "tools" / "macos" / "build_app.py"]
     return {path: path.stat().st_mtime_ns for path in files if path.is_file()}
 
 
 def rebuild() -> None:
-    subprocess.run([sys.executable, str(ROOT / "macos" / "build_app.py")], cwd=ROOT, check=True)
+    subprocess.run([sys.executable, str(ROOT / "tools" / "macos" / "build_app.py")], cwd=ROOT, check=True)
     subprocess.run(["open", "-n", str(BUNDLE)], cwd=ROOT, check=True)
 
 

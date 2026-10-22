@@ -18,7 +18,7 @@ Writes two PNGs into the output directory (default: the run directory):
 
 Every plotted number is read from summary.json. The script only converts seconds to
 milliseconds and fractions to percent for labels. Colors come from
-design/horizon_tokens.json through tools/horizon_mpl.py. If the output directory has a
+tools/design/horizon_tokens.json through tools/horizon_mpl.py. If the output directory has a
 manifest.json, the PNG hashes are added to its "outputs" map. The same input always
 produces the same PNG bytes.
 """

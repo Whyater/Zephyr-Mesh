@@ -32,7 +32,7 @@ def test_generated_files_are_current() -> None:
 
 def test_shortcut_bindings_are_exact() -> None:
     """Every JSON shortcut has the intended Tk spelling."""
-    ui = json.loads((ROOT / "design/ui_text.json").read_text(encoding="utf-8"))
+    ui = json.loads((ROOT / "tools/design/ui_text.json").read_text(encoding="utf-8"))
     expected = {
         "playPause": "<space>",
         "stepForward": "<Right>",
@@ -57,13 +57,13 @@ def test_shortcut_bindings_are_exact() -> None:
 
 def test_changing_type_size_and_scene_color_changes_both_outputs(tmp_path: Path) -> None:
     """A temporary JSON edit must flow into both generated modules."""
-    tokens = json.loads((ROOT / "design/horizon_tokens.json").read_text(encoding="utf-8"))
+    tokens = json.loads((ROOT / "tools/design/horizon_tokens.json").read_text(encoding="utf-8"))
     tokens["typeScale"]["body"]["size"] = 17
     tokens["scene3D"]["dark"]["droneBody"] = "accent"
     token_path = tmp_path / "horizon_tokens.json"
     token_path.write_text(json.dumps(tokens))
     ui_path = tmp_path / "ui_text.json"
-    ui_path.write_text((ROOT / "design/ui_text.json").read_text(encoding="utf-8"), encoding="utf-8")
+    ui_path.write_text((ROOT / "tools/design/ui_text.json").read_text(encoding="utf-8"), encoding="utf-8")
     output_root = tmp_path / "out"
     output_root.mkdir()
 
@@ -76,7 +76,7 @@ def test_changing_type_size_and_scene_color_changes_both_outputs(tmp_path: Path)
         str(output_root),
     )
     assert result.returncode == 0, result.stderr
-    swift = (output_root / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
+    swift = (output_root / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
     python = (output_root / "desktop/design_tokens.py").read_text(encoding="utf-8")
     assert "Font.system(size: 17" in swift
     assert "'body': ('Segoe UI Variable Text', -17)" in python
@@ -123,7 +123,7 @@ def test_contrast_checker_covers_each_required_pair_once_per_theme() -> None:
 
 def test_unmarked_failing_pair_exits_one(tmp_path: Path) -> None:
     """An unmarked failing contrast pair fails the checker."""
-    document = json.loads((ROOT / "design/horizon_tokens.json").read_text(encoding="utf-8"))
+    document = json.loads((ROOT / "tools/design/horizon_tokens.json").read_text(encoding="utf-8"))
     document["colors"]["light"]["lineStrong"] = "#FFFFFF"
     token_path = tmp_path / "horizon_tokens.json"
     token_path.write_text(json.dumps(document))
@@ -136,7 +136,7 @@ def test_unmarked_failing_pair_exits_one(tmp_path: Path) -> None:
 
 def test_passing_needs_approval_is_stale(tmp_path: Path) -> None:
     """A needs-approval mark on a passing pair is rejected as stale."""
-    document = json.loads((ROOT / "design/horizon_tokens.json").read_text(encoding="utf-8"))
+    document = json.loads((ROOT / "tools/design/horizon_tokens.json").read_text(encoding="utf-8"))
     document["contrast"]["needs-approval"].append(
         {"theme": "dark", "foreground": "text", "background": "background"}
     )
@@ -151,24 +151,24 @@ def test_passing_needs_approval_is_stale(tmp_path: Path) -> None:
 
 def test_status_levels_are_complete_and_json_has_no_em_dash() -> None:
     """Status records are complete and source text follows the punctuation rule."""
-    ui = json.loads((ROOT / "design/ui_text.json").read_text(encoding="utf-8"))
+    ui = json.loads((ROOT / "tools/design/ui_text.json").read_text(encoding="utf-8"))
     for level in ("ok", "caution", "alert", "waiting", "unavailable", "info"):
         assert {"word", "shape", "color"} <= ui["statusLevels"][level].keys()
-    for path in (ROOT / "design/horizon_tokens.json", ROOT / "design/ui_text.json"):
+    for path in (ROOT / "tools/design/horizon_tokens.json", ROOT / "tools/design/ui_text.json"):
         assert "\u2014" not in path.read_text(encoding="utf-8")
 
 
 def test_body_size_and_generated_swift_line_length() -> None:
     """The body size remains readable and generated Swift stays bounded."""
-    tokens = json.loads((ROOT / "design/horizon_tokens.json").read_text(encoding="utf-8"))
+    tokens = json.loads((ROOT / "tools/design/horizon_tokens.json").read_text(encoding="utf-8"))
     assert tokens["typeScale"]["body"]["size"] >= 13
-    lines = (ROOT / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8").splitlines()
+    lines = (ROOT / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8").splitlines()
     assert max(map(len, lines), default=0) <= 160
 
 
 def test_generated_swift_identifiers_and_braces_are_valid() -> None:
     """Generated Swift declarations use identifiers and balanced braces."""
-    source = (ROOT / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
+    source = (ROOT / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
     declarations = re.findall(r"\b(?:enum|struct|class|func|let|var|case)\s+([^\s:{(=,]+)", source)
     assert all(re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name) for name in declarations)
     without_strings = re.sub(r'"(?:\\.|[^"\\])*"', '""', source)
@@ -189,7 +189,7 @@ def test_shared_copy_sections_are_emitted_and_transport_reuses_shortcut_labels()
     from desktop.design_tokens import TRANSPORT, UI_TEXT
     from tools.generate_design import transport_rows, validate_ui
 
-    ui = json.loads((ROOT / "design" / "ui_text.json").read_text(encoding="utf-8"))
+    ui = json.loads((ROOT / "tools" / "design" / "ui_text.json").read_text(encoding="utf-8"))
     assert TRANSPORT == transport_rows(ui)
     assert TRANSPORT["restart"]["label"] == ui["shortcuts"]["restart"]["label"]
     assert TRANSPORT["stepBack"]["label"] == ui["shortcuts"]["stepBack"]["label"]
@@ -197,7 +197,7 @@ def test_shared_copy_sections_are_emitted_and_transport_reuses_shortcut_labels()
     assert "label" not in ui["transport"]["restart"]
     assert all(row["help"] for row in TRANSPORT.values())
     assert UI_TEXT["notRecorded"] == UI_TEXT["statusLevels"]["unavailable"]["word"] == "Not recorded"
-    swift = (ROOT / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
+    swift = (ROOT / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
     for line in (
         'static let notRecorded = "Not recorded"',
         "enum Menus {",
@@ -225,7 +225,7 @@ def test_results_fills_are_derived_and_atlas_stops_step_up() -> None:
     """Each Results fill is an accent blend over surface, and the atlas stops get stronger and stay distinct."""
     from tools.check_contrast import blend, contrast, unwrap
 
-    tokens = json.loads((ROOT / "design/horizon_tokens.json").read_text(encoding="utf-8"))
+    tokens = json.loads((ROOT / "tools/design/horizon_tokens.json").read_text(encoding="utf-8"))
     for theme, colors in tokens["colors"].items():
         for name in RESULT_FILLS:
             fill = colors[name]
@@ -242,7 +242,7 @@ def test_results_tokens_and_strings_reach_both_outputs() -> None:
     """Layout, Windows layout, palette fields and the two copy sections are emitted to Swift and Python."""
     from desktop.design_tokens import DARK, LAYOUT, LIGHT, UI_TEXT, WIN_LAYOUT
 
-    swift = (ROOT / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
+    swift = (ROOT / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift").read_text(encoding="utf-8")
     assert LAYOUT["chartPanelHeight"] == 220 and LAYOUT["chartLineWidth"] == 1.5
     assert WIN_LAYOUT["resultsWindow"] == {"width": 1440, "height": 840, "minWidth": 980, "minHeight": 680}
     assert WIN_LAYOUT["dashPattern"] == [4, 3]

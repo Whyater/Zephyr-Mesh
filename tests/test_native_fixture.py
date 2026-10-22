@@ -7,8 +7,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
-FIXTURE = ROOT / "macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/demo_swarm.json"
-GOLDEN = ROOT / "design/golden/s7_presentation.json"
+FIXTURE = ROOT / "tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/demo_swarm.json"
+GOLDEN = ROOT / "tools/design/golden/s7_presentation.json"
 
 
 def test_native_fixture_regenerates_byte_identically(tmp_path):

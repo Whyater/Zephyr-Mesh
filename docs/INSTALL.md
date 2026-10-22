@@ -14,7 +14,7 @@ If you downloaded v0.2.2: that Mac build crashes at launch on any Mac other than
 Unzip the download and open `Zephyr Mesh.app`. SHA-256 sidecars are attached to the release. The package is ad hoc signed and may require a one-time confirmation in macOS Privacy & Security. To build the local bundle instead, install the Xcode Command Line Tools and run:
 
 ```bash
-python3 macos/build_app.py
+python3 tools/macos/build_app.py
 open "Zephyr Mesh.app"
 ```
 

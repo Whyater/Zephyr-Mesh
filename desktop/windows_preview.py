@@ -64,7 +64,7 @@ def _runtime_version() -> str:
     ``build_windows.ps1`` writes ``VERSION.txt`` beside the exe. In PyInstaller 6
     ``_MEIPASS`` is the ``_internal`` folder below it, so the exe folder is checked
     first. A source checkout uses the repository ``VERSION`` plus ``-dev``, the
-    same rule as ``macos/build_app.py``.
+    same rule as ``tools/macos/build_app.py``.
     """
     candidates: list[Path] = []
     if getattr(sys, "frozen", False):

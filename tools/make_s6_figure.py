@@ -12,7 +12,7 @@ Writes two PNGs into the output directory:
 
 Every plotted number is read from summary.json. The script only converts
 seconds to milliseconds, meters to centimeters, and fractions to percent for
-labels. Colors come from design/horizon_tokens.json through tools/horizon_mpl.py.
+labels. Colors come from tools/design/horizon_tokens.json through tools/horizon_mpl.py.
 The same JSON always produces the same PNG bytes.
 """
 

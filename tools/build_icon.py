@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Rebuild the Zephyr Mesh app icon files in design/icon/.
+"""Rebuild the Zephyr Mesh app icon files in tools/design/icon/.
 
 Runs tools/make_icon.swift (CoreGraphics drawing, colors from
-design/horizon_tokens.json), then macOS iconutil for the .icns and
+tools/design/horizon_tokens.json), then macOS iconutil for the .icns and
 tools/pack_ico.py for the Windows .ico. Needs macOS with Swift and iconutil.
 
 Writes exactly:
-  design/icon/ZephyrMesh.icns   macOS app icon, 16 to 1024 px
-  design/icon/ZephyrMesh.ico    Windows icon, 16, 24, 32, 48, 64, 128, 256 px
-  design/icon/ZephyrMesh-256.png
-  design/icon/ZephyrMesh-1024.png
+  tools/design/icon/ZephyrMesh.icns   macOS app icon, 16 to 1024 px
+  tools/design/icon/ZephyrMesh.ico    Windows icon, 16, 24, 32, 48, 64, 128, 256 px
+  tools/design/icon/ZephyrMesh-256.png
+  tools/design/icon/ZephyrMesh-1024.png
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ sys.path.insert(0, str(ROOT))
 
 from tools.pack_ico import pack_ico  # noqa: E402
 
-ICON_DIR = ROOT / "design" / "icon"
+ICON_DIR = ROOT / "tools" / "design" / "icon"
 ICO_SIZES = (16, 24, 32, 48, 64, 128, 256)
 
 

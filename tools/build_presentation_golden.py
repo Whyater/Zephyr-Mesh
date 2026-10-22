@@ -17,7 +17,7 @@ def main(argv: list[str] | None = None) -> int:
     """Write or check the canonical presentation output."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, default=ROOT / "runs/s7-swarm/run.json")
-    parser.add_argument("--output", type=Path, default=ROOT / "design/golden/s7_presentation.json")
+    parser.add_argument("--output", type=Path, default=ROOT / "tools/design/golden/s7_presentation.json")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args(argv)
     run = json.loads(args.input.read_text(encoding="utf-8"))

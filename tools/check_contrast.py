@@ -109,7 +109,7 @@ def print_pair(
 
 def main() -> int:
     """Run all palette contrast and derived-fill checks."""
-    path = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "design" / "horizon_tokens.json"
+    path = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "tools" / "design" / "horizon_tokens.json"
     document = json.loads(path.read_text(encoding="utf-8"))
     marked = approval_pairs(document)
     failures = []

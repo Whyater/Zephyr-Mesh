@@ -21,7 +21,7 @@ kinds of mis-tuning share one axis and the twins line up. If the output director
 manifest.json, the sha256 of each PNG is added to its "outputs" map.
 
 Every plotted number is read from the run files. The script only converts meters to
-centimeters and fractions to percent for labels. Colors come from design/horizon_tokens.json
+centimeters and fractions to percent for labels. Colors come from tools/design/horizon_tokens.json
 through tools/horizon_mpl.py. The same input files always produce the same PNG bytes.
 """
 

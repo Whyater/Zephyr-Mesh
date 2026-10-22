@@ -323,7 +323,7 @@ def _jobs(ns, noises, targets, losses, seeds, ci, nees_divergence=False):
 
 def _source_paths() -> list[str]:
     """Return imported repository Python modules plus the Horizon token file."""
-    paths = {"design/horizon_tokens.json"}
+    paths = {"tools/design/horizon_tokens.json"}
     for module in sys.modules.values():
         path = getattr(module, "__file__", None)
         if not path:

@@ -54,12 +54,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run native tests
-        working-directory: macos/ZephyrMeshApp
+        working-directory: tools/macos/ZephyrMeshApp
         run: swift test
       - name: Build the local macOS bundle
         env:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
-        run: python3 macos/build_app.py --version "$RELEASE_VERSION"
+        run: python3 tools/macos/build_app.py --version "$RELEASE_VERSION"
       - name: Package the macOS asset
         timeout-minutes: 10
         env:
@@ -76,9 +76,9 @@ jobs:
           unzip -t "$archive"
           smoke_dir="$(mktemp -d)"
           unzip -q "$archive" -d "$smoke_dir"
-          if [ -d macos/ZephyrMeshApp/.build ]; then
-            mv macos/ZephyrMeshApp/.build "${smoke_dir}/swift-build-hidden"
-            trap 'mv "${smoke_dir}/swift-build-hidden" macos/ZephyrMeshApp/.build' EXIT
+          if [ -d tools/macos/ZephyrMeshApp/.build ]; then
+            mv tools/macos/ZephyrMeshApp/.build "${smoke_dir}/swift-build-hidden"
+            trap 'mv "${smoke_dir}/swift-build-hidden" tools/macos/ZephyrMeshApp/.build' EXIT
           fi
           # The same two checks the in-app updater runs before installing a release:
           # a release that fails either one could never be installed by it.

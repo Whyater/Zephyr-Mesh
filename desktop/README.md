@@ -57,7 +57,7 @@ What the window shows, top to bottom:
   Play/Pause in the accent color, step forward) with tooltips, a slider with
   tick marks at event frames, the time label, and playback speed (0.1x, 0.25x,
   1x; 0.25x by default). The controls in the title row and the timeline are
-  styled to one height (`layout.controlHeight` in `design/horizon_tokens.json`)
+  styled to one height (`layout.controlHeight` in `tools/design/horizon_tokens.json`)
   with rounded corners drawn from `RADIUS.small`; that was measured on macOS
   Tk 9 only, not yet on Windows or at 125% or 150% scaling. The event list below
   uses the shared presentation rules, newest at the bottom; events from the
@@ -69,7 +69,7 @@ What the window shows, top to bottom:
 
 Every number comes from `desktop/presentation.py` through `ReplaySession`, and
 every color, font size, and label comes from the generated
-`desktop/design_tokens.py` (built from `design/*.json`). The theme is ttk's
+`desktop/design_tokens.py` (built from `tools/design/*.json`). The theme is ttk's
 `clam` restyled for the dark and light palettes; choose **View > Appearance**
 (System, Dark, or Light; Dark is the default). The choice is saved in
 `~/.zephyr-mesh/settings.json`, and System follows the Windows app theme
@@ -80,7 +80,7 @@ turned off, the camera moves without easing.
 Two token blocks are Windows-only, and the generator writes them to the Python
 module only (the Swift output never sees them):
 
-- `windowsLayout` in `design/horizon_tokens.json` becomes `WIN_LAYOUT`. It holds
+- `windowsLayout` in `tools/design/horizon_tokens.json` becomes `WIN_LAYOUT`. It holds
   the fixed sizes the Tk window needs: icon, glyph, and marker sizes, the
   sidebar and label column widths, viewer window sizes, stroke widths, the
   scenario plot and scale bar sizes, and three timings (tooltip delay, the
@@ -88,7 +88,7 @@ module only (the Swift output never sees them):
   from `spacing`, and the shared control height from `layout.controlHeight`.
   `layout.sidebarWidthWindows` is no longer read by this app; it stays because
   the generated Swift file includes it.
-- `windowsText` in `design/ui_text.json` holds copy only this app shows: the
+- `windowsText` in `tools/design/ui_text.json` holds copy only this app shows: the
   group and drone row labels, the list column headings, the dash legend, the
   Events hint, the open-file error sentences, and the scenario legend. Wording
   shared with the Mac app stays in the shared sections.
@@ -105,7 +105,7 @@ Menus: **File** (Open Evidence Report..., Open Scenario Run..., Exit),
 **View** (3D View, Top View, Show Keep-out Volume, Show Inspector, Focus
 Selected Drone, Reset Camera, Appearance), **Playback** (Play/Pause, Step
 Forward, Step Back, Restart, Speed), and **Help** (About This Replay, Check for
-Updates). Keyboard shortcuts match `design/ui_text.json`: Space play or pause,
+Updates). Keyboard shortcuts match `tools/design/ui_text.json`: Space play or pause,
 Left and Right step, Home restart, F focus, R reset camera, T 3D or Top, K
 keep-out volume, I inspector, Control-L team filter, Control-O evidence report,
 Control-Shift-O scenario run, Control-I about (on a Mac, Command works too).
@@ -174,7 +174,7 @@ digest, stages a safe ZIP extraction, and applies it only after the running
 process exits. Version tags compare as numbers (`0.2` equals `v0.2.0`), and a
 pre-release such as `v0.3.0-rc1` is older than `v0.3.0`; the macOS updater
 follows the same rules and both are tested against one shared case list
-(`macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/updater-cases.json`).
+(`tools/macos/ZephyrMeshApp/Tests/ZephyrMeshAppTests/Fixtures/updater-cases.json`).
 Packaged Windows builds start the sibling or embedded `ZephyrMeshUpdater.exe`
 when a newer release is available; embedded helpers are copied to a temporary
 path before swapping their own application directory. If the swap fails, the
@@ -203,7 +203,7 @@ The local packaging commands are useful when checking an artifact before a
 tagged build:
 
 ```bash
-python3 macos/build_app.py --version 0.1.5
+python3 tools/macos/build_app.py --version 0.1.5
 python3 tools/package_release.py \
   --source "Zephyr Mesh.app" \
   --output release \

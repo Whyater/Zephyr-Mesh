@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_ROOT = ROOT / "macos" / "ZephyrMeshApp" / "Sources"
+SOURCE_ROOT = ROOT / "tools" / "macos" / "ZephyrMeshApp" / "Sources"
 # Empty since the macOS rebuild deleted LegacyViews.swift and LegacyDesignShim.swift;
 # every UI source is now covered by every rule below.
 TEMPORARY_ALLOWLIST: set[str] = set()

@@ -6,7 +6,7 @@ Plots in the repo should use this module instead of picking their own colors:
     horizon_mpl.apply_style("light")
     colors = horizon_mpl.palette("light")
 
-Every color is read from design/horizon_tokens.json at runtime, so the plots
+Every color is read from tools/design/horizon_tokens.json at runtime, so the plots
 follow the same palette as the apps. Red (`alert`) and amber (`caution`) are
 status colors. Use them for alerts only, for example a failure line, never to
 tell data series apart. The style adds no shadows and no gradients.
@@ -23,7 +23,7 @@ from pathlib import Path
 
 import matplotlib as mpl
 
-TOKENS_PATH = Path(__file__).resolve().parents[1] / "design" / "horizon_tokens.json"
+TOKENS_PATH = Path(__file__).resolve().parents[1] / "tools" / "design" / "horizon_tokens.json"
 THEMES = ("light", "dark")
 FONT_FAMILY = "DejaVu Sans"
 

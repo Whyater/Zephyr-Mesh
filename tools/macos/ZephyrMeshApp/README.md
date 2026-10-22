@@ -62,7 +62,7 @@ recorded". Where the numbers come from:
 Menus follow the usual places: Check for Updates in the app menu; Open Evidence Report and Open
 Scenario Run in File; view and camera commands in View; a Playback menu; and About This Replay
 in Help. Settings has an Appearance choice (System, Dark, Light; Dark by default). Keyboard
-shortcuts come from `design/ui_text.json`. Single-key shortcuts are disabled while the team
+shortcuts come from `tools/design/ui_text.json`. Single-key shortcuts are disabled while the team
 filter is being edited, so typing there never moves the replay.
 
 Evidence reports and scenario runs open in their own windows after the same strict validation
@@ -91,7 +91,7 @@ Colors, type sizes, spacing and layout sizes come only from the generated
 On macOS 14 or newer with Xcode 27 or Swift 6:
 
 ```bash
-cd macos/ZephyrMeshApp
+cd tools/macos/ZephyrMeshApp
 swift build
 swift run
 ```
@@ -99,7 +99,7 @@ swift run
 To assemble a Finder-launchable application bundle in the repository root, run this from the repository root:
 
 ```bash
-python3 macos/build_app.py
+python3 tools/macos/build_app.py
 open "Zephyr Mesh.app"
 ```
 
@@ -113,7 +113,7 @@ pass an explicit version. Add `--install` to copy the finished bundle into
 `~/Applications`.
 
 For a development loop that rebuilds and opens a fresh bundle when SwiftUI or
-fixture files change, run `python3 macos/watch_app.py` from the repository
+fixture files change, run `python3 tools/macos/watch_app.py` from the repository
 root. Stop the watcher with `Ctrl-C`; the release bundle remains ignored.
 
 Alternatively, open `Package.swift` in Xcode and run the `ZephyrMeshApp` scheme. `swift test` runs the strict fixture decoder tests (unknown or missing keys fail with a named message), the presentation formatting, team grouping and filter rules, playback and shortcut gating, the orbit camera limits and smoothing, a rendered hit test for hover and click, the release-selector tests (exact asset name, no cross-platform matches), the version-ordering and download-URL cases shared with the Python updater, the SHA-256 `verify` checks, and the generated install script in temporary folders (good update, bad signature, hostile paths, symlink, two roots, and a failed final move that must restore the old app). The package has no third-party or network dependency. SceneKit is an Apple platform framework selected for the no-SVG, offline desktop surface documented in the private Decision Log.

@@ -13,7 +13,7 @@ import pytest
 from tools.pack_ico import pack_ico, png_size
 
 ROOT = Path(__file__).parents[1]
-ICON = ROOT / "design" / "icon"
+ICON = ROOT / "tools" / "design" / "icon"
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 # Apple's icns element types and their pixel sizes. iconutil stores 16 and 32 px

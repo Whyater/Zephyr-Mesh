@@ -2,18 +2,18 @@
 
 This folder is the single design source for the two desktop replay apps:
 
-- the macOS app (SwiftUI and SceneKit) in `macos/ZephyrMeshApp/`
+- the macOS app (SwiftUI and SceneKit) in `tools/macos/ZephyrMeshApp/`
 - the Windows app (Tkinter) in `desktop/`
 
 Both apps replay a recorded simulation. Neither one talks to a radio, camera, motor, or drone. The design system keeps them looking and wording things the same way, and keeps them honest about what the data contains.
 
 The Windows descriptions here come from the source and from running the Windows app on macOS (Tk 9; a few regression tests also on Tk 8.6, see `desktop/README.md`). It has not yet been run on a Windows machine, so treat Windows fonts, scaling and exact rendering as unverified.
 
-A visual version of the tokens (swatches, contrast ratios, type, spacing, status levels, icon) is in `design/reference.html`. Open it in any browser; it needs no network.
+A visual version of the tokens (swatches, contrast ratios, type, spacing, status levels, icon) is in `tools/design/reference.html`. Open it in any browser; it needs no network.
 
 Contents: [1 Principles](#1-principles) · [2 How the system works](#2-how-the-system-works) · [3 Color](#3-color) · [4 Status language](#4-status-language) · [5 Type, spacing, radii, motion, layout](#5-type-spacing-radii-motion-layout) · [6 Components](#6-components) · [7 Voice and wording](#7-voice-and-wording) · [8 Iconography and the app icon](#8-iconography-and-the-app-icon) · [9 Platform mapping](#9-platform-mapping) · [10 Updates and the self-test](#10-updates-and-the-self-test) · [11 Keyboard shortcuts](#11-keyboard-shortcuts) · [12 Checklist for a new screen](#12-checklist-for-a-new-screen) · [13 Open decisions](#13-open-decisions)
 
-> Keeping this file current: sections 3, 4, 5 and 11 restate values from `design/horizon_tokens.json` and `design/ui_text.json`. When those files change, regenerate `design/reference.html` (it is always exact) and update the matching tables here. Section 6 describes the views as they are in the source files it cites; re-read those files when a view changes.
+> Keeping this file current: sections 3, 4, 5 and 11 restate values from `tools/design/horizon_tokens.json` and `tools/design/ui_text.json`. When those files change, regenerate `tools/design/reference.html` (it is always exact) and update the matching tables here. Section 6 describes the views as they are in the source files it cites; re-read those files when a view changes.
 
 ## 1. Principles
 
@@ -35,8 +35,8 @@ Contents: [1 Principles](#1-principles) · [2 How the system works](#2-how-the-s
 
 | File | Holds |
 |---|---|
-| `design/horizon_tokens.json` | Colors for dark and light, 3D scene colors, type scale, spacing, radii, motion, layout sizes (shared `layout`, Windows-only `windowsLayout`), and the contrast rules |
-| `design/ui_text.json` | The honesty badge, status strip labels, status levels (word, shape, color), shape names per platform, display thresholds, field labels, drone naming, keyboard shortcuts, event sentence templates, and the shared sections listed below |
+| `tools/design/horizon_tokens.json` | Colors for dark and light, 3D scene colors, type scale, spacing, radii, motion, layout sizes (shared `layout`, Windows-only `windowsLayout`), and the contrast rules |
+| `tools/design/ui_text.json` | The honesty badge, status strip labels, status levels (word, shape, color), shape names per platform, display thresholds, field labels, drone naming, keyboard shortcuts, event sentence templates, and the shared sections listed below |
 
 Shared sections in `ui_text.json` (both apps read them): `update`, `honesty`, `statusStrip`, `statusLevels`, `statusShapes`, `displayThresholds`, `fieldLabels` (including `at_rest` and `heading_vertical`), `droneNaming`, `shortcuts`, `eventTemplates`, `eventDroneList`, `notRecorded`, `runName`, `teamSummary`, `notInReplay`, `teamFilter`, `transport`, `menus`, `inspector`, `results` and `atlas`.
 
@@ -53,7 +53,7 @@ Palette values, type sizes, spacing, radii and layout sizes, and the shared stat
 
 `tools/generate_design.py` reads both JSON files and writes two generated modules:
 
-- `macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift` (`Theme`, `ScenePalette`, `TypeScale`, `Space`, `Radius`, `Motion`, `LayoutMetrics`, `UIText`)
+- `tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/DesignSystem.swift` (`Theme`, `ScenePalette`, `TypeScale`, `Space`, `Radius`, `Motion`, `LayoutMetrics`, `UIText`)
 - `desktop/design_tokens.py` (`palette()`, `scene3d()`, `TYPE`, `SPACE`, `RADIUS`, `MOTION_MS`, `LAYOUT`, `WIN_LAYOUT`, `SHORTCUTS`, `UI_TEXT`)
 
 Both start with `GENERATED FILE. Do not edit.` Run `python3 tools/generate_design.py --check` to see whether they still match the JSON; it exits 1 and names the stale file if not. `tests/test_design_system.py` runs that check and also proves a JSON edit flows into both outputs.
@@ -68,18 +68,18 @@ Both start with `GENERATED FILE. Do not edit.` Run `python3 tools/generate_desig
 
 ### The generated Mac fixture
 
-The Mac app does not run Python. `tools/build_native_fixture.py` reads `runs/s7-swarm/run.json` (and its `manifest.json`), runs the same presentation code, and writes `macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/demo_swarm.json`, which embeds the presentation records next to the raw positions. Swift code only formats those records (`Presentation.swift`). `tools/build_presentation_golden.py` writes `design/golden/s7_presentation.json`, the checked-in expected output, and `tests/test_presentation.py` and `tests/test_native_fixture.py` check that the golden file, the fixture and the code agree.
+The Mac app does not run Python. `tools/build_native_fixture.py` reads `runs/s7-swarm/run.json` (and its `manifest.json`), runs the same presentation code, and writes `tools/macos/ZephyrMeshApp/Sources/ZephyrMeshApp/Resources/demo_swarm.json`, which embeds the presentation records next to the raw positions. Swift code only formats those records (`Presentation.swift`). `tools/build_presentation_golden.py` writes `tools/design/golden/s7_presentation.json`, the checked-in expected output, and `tests/test_presentation.py` and `tests/test_native_fixture.py` check that the golden file, the fixture and the code agree.
 
 ### Changing a color or a label in 4 steps
 
-1. **Edit the source.** A color goes in `design/horizon_tokens.json`; a label, word, threshold or template goes in `design/ui_text.json`. If you change a color that a fill is derived from, update the fill's `hex` too (step 3 tells you the right value).
+1. **Edit the source.** A color goes in `tools/design/horizon_tokens.json`; a label, word, threshold or template goes in `tools/design/ui_text.json`. If you change a color that a fill is derived from, update the fill's `hex` too (step 3 tells you the right value).
 2. **Regenerate the modules.** `python3 tools/generate_design.py`
 3. **Check contrast.** `python3 tools/check_contrast.py` must exit 0. If a pair drops below 4.5:1, pick a different value; adding a `needs-approval` entry is a decision for the project owner, not a fix.
 4. **Rebuild what depends on it, then test.** If presentation wording changed, run `python3 tools/build_presentation_golden.py` and `python3 tools/build_native_fixture.py`. Always run `python3 tools/build_design_reference.py`. If you changed a dark color the icon uses (background, surface, lineStrong, text, accent, keepOut), run `python3 tools/build_icon.py` on a Mac. Then run `python3 -m pytest -q`.
 
 ## 3. Color
 
-The palette is called Horizon: a night-sky navy with a light sky blue accent. Dark is the default theme. Light exists for bright rooms. Values below are from `design/horizon_tokens.json`.
+The palette is called Horizon: a night-sky navy with a light sky blue accent. Dark is the default theme. Light exists for bright rooms. Values below are from `tools/design/horizon_tokens.json`.
 
 | Token | Dark | Light | Job |
 |---|---|---|---|
@@ -206,7 +206,7 @@ With Reduce Motion on (macOS) or animations turned off in Windows settings (`sys
 
 ### Layout sizes
 
-From the shared `layout` block (points on macOS; Windows scales the same numbers by DPI). Only the tokens a contributor is likely to need are listed; the full set is in `design/reference.html`.
+From the shared `layout` block (points on macOS; Windows scales the same numbers by DPI). Only the tokens a contributor is likely to need are listed; the full set is in `tools/design/reference.html`.
 
 | Token | Value | Used for |
 |---|---|---|
@@ -420,15 +420,15 @@ Status shapes are listed in section 4. Transport and disclosure icons are SF Sym
 
 | File | Contents |
 |---|---|
-| `design/icon/ZephyrMesh.icns` | macOS icon: 16, 32, 64, 128, 256, 512 and 1024 px |
-| `design/icon/ZephyrMesh.ico` | Windows icon: 16, 24, 32, 48, 64, 128, 256 px, PNG frames (packed by `tools/pack_ico.py`, standard library only) |
-| `design/icon/ZephyrMesh-256.png`, `design/icon/ZephyrMesh-1024.png` | Flat PNGs for docs and the reference page |
+| `tools/design/icon/ZephyrMesh.icns` | macOS icon: 16, 32, 64, 128, 256, 512 and 1024 px |
+| `tools/design/icon/ZephyrMesh.ico` | Windows icon: 16, 24, 32, 48, 64, 128, 256 px, PNG frames (packed by `tools/pack_ico.py`, standard library only) |
+| `tools/design/icon/ZephyrMesh-256.png`, `tools/design/icon/ZephyrMesh-1024.png` | Flat PNGs for docs and the reference page |
 
 The build is deterministic: running it twice gives identical bytes. `tests/test_app_icon.py` checks the sizes inside each file by reading their headers.
 
 **Where the icon is used:**
 
-- **macOS bundle:** `macos/build_app.py` copies `ZephyrMesh.icns` into the app's Resources and sets `CFBundleIconFile` in `Info.plist`. If the file is missing it prints a warning and builds without an icon.
+- **macOS bundle:** `tools/macos/build_app.py` copies `ZephyrMesh.icns` into the app's Resources and sets `CFBundleIconFile` in `Info.plist`. If the file is missing it prints a warning and builds without an icon.
 - **Windows executable:** `desktop/build_windows.ps1` passes `--icon design\icon\ZephyrMesh.ico` to PyInstaller and bundles the 256 px PNG under `design\icon`.
 - **Windows window:** the app sets the Tk window icon from the 256 px PNG at start-up (`set_window_icon` in `desktop/ui_icons.py`, called from `desktop/windows_preview.py`).
 

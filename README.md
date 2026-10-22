@@ -19,7 +19,7 @@ flowchart LR
         W["Swarm scenarios<br/>sim/swarm.py, sim/scenario_runner.py"]
     end
     R[("Run results<br/>runs/")]
-    A["Desktop apps<br/>macos/ZephyrMeshApp, desktop/"]
+    A["Desktop apps<br/>tools/macos/ZephyrMeshApp, desktop/"]
     T --> R
     D --> R
     W --> R
@@ -118,8 +118,8 @@ Full list: [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
 | `runs/` | Saved run outputs and their manifests |
 | `tools/` | Scripts that build and reproduce runs, reports, and releases |
 | `desktop/` | The Windows replay app and shared replay code |
-| `macos/` | The macOS replay app |
-| `design/` | Design source for both apps |
+| `tools/macos/` | The macOS replay app |
+| `tools/design/` | Design source for both apps |
 | `docs/` | Install steps, roadmap, features, limitations, and results |
 | `firmware/` | Flight controller firmware (Planned) |
 | `hardware/` | Flight controller hardware (Planned) |

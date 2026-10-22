@@ -16,8 +16,8 @@ import subprocess
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
-PACKAGE = ROOT / "macos" / "ZephyrMeshApp"
+ROOT = Path(__file__).resolve().parents[2]
+PACKAGE = ROOT / "tools" / "macos" / "ZephyrMeshApp"
 DEFAULT_OUTPUT = ROOT / "Zephyr Mesh.app"
 VERSION_FILE = ROOT / "VERSION"
 
@@ -53,7 +53,7 @@ def build_bundle(output: Path, *, version: str | None = None) -> Path:
     resources_dir.mkdir(parents=True)
     shutil.copy2(executable, macos_dir / "ZephyrMeshApp")
     shutil.copytree(resource_bundle, resources_dir / resource_bundle.name)
-    icon_source = ROOT / "design" / "icon" / "ZephyrMesh.icns"
+    icon_source = ROOT / "tools" / "design" / "icon" / "ZephyrMesh.icns"
     icon_installed = False
     if icon_source.is_file():
         shutil.copy2(icon_source, resources_dir / icon_source.name)
