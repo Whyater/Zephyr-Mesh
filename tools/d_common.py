@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import os
 import platform
-from pathlib import Path
+from pathlib import Path, PurePath
 
 import numpy as np
 
@@ -75,7 +75,7 @@ def write_manifest(output: Path, *, schema: str, argv: list[str], command: str, 
         "config_sha256": sha256_json(config),
         "seeds": [int(s) for s in seeds],
         "limits": list(SIMULATED_LIMITS) + list(limits),
-        "code_sha256": {p: sha256_file(REPO_ROOT / p) for p in hashed_sources},
+        "code_sha256": {PurePath(p).as_posix(): sha256_file(REPO_ROOT / p) for p in hashed_sources},
         "git_revision": _git(["rev-parse", "HEAD"]),
         "git_tree_state": "unknown" if porcelain is None else ("dirty" if porcelain else "clean"),
         "python": platform.python_version(),

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -31,8 +32,9 @@ def app(monkeypatch):
         pytest.skip("no desktop display in this test environment")
     root.withdraw()
     # On macOS an outside "quit" request (another process asking the Python app to quit) makes Tk exit the whole test run
-    # quietly. Ignore it here; nothing in these tests needs the application quit handler.
-    root.tk.eval("proc ::tk::mac::Quit {args} {}")
+    # quietly. Ignore it here (macOS only; the ::tk::mac namespace does not exist elsewhere); nothing in these tests needs the application quit handler.
+    if sys.platform == "darwin":
+        root.tk.eval("proc ::tk::mac::Quit {args} {}")
     from tools.desktop import ui_results
 
     real_init = ui_results.ResultsWindow.__init__

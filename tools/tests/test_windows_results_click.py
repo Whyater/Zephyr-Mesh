@@ -5,6 +5,7 @@ delivers them to a user, and spies on the chart, the grid and the wheel routing 
 """
 from __future__ import annotations
 
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -28,8 +29,9 @@ def app(monkeypatch):
         pytest.skip("no desktop display in this test environment")
     root.withdraw()
     # On macOS an outside "quit" request (another process asking the Python app to quit) makes Tk exit the whole test run
-    # quietly. Ignore it here; nothing in these tests needs the application quit handler.
-    root.tk.eval("proc ::tk::mac::Quit {args} {}")
+    # quietly. Ignore it here (macOS only; the ::tk::mac namespace does not exist elsewhere); nothing in these tests needs the application quit handler.
+    if sys.platform == "darwin":
+        root.tk.eval("proc ::tk::mac::Quit {args} {}")
     # A transient window is only viewable while its parent is, so the parent is shown too, but fully transparent.
     try:
         root.attributes("-alpha", 0.0)

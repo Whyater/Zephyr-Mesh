@@ -422,7 +422,7 @@ def _source_paths():
             continue
         if relative.parts and relative.parts[0] in {"sim", "tools"}:
             paths.add(relative)
-    return sorted(str(path) for path in paths)
+    return sorted(path.as_posix() for path in paths)
 
 
 def run(output: Path, *, pilot=False, processes=None, argv=None):

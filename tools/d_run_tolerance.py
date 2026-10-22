@@ -471,7 +471,7 @@ def main(argv=None):
         command += " --checkpoint {checkpoint}"
     source_paths = _source_paths()
     repo_root = Path(__file__).resolve().parents[1]
-    hashed_sources = [str(path.relative_to(repo_root)) for path in source_paths]
+    hashed_sources = [path.relative_to(repo_root).as_posix() for path in source_paths]
     outputs = ["per_seed.csv.gz", "cells.csv", "boundaries.json", "best_n.json", "gaps.json",
                "channel_use.json", "tolerance_vs_n.png"]
     write_manifest(output, schema="zephyr-d-tolerance-manifest-1", argv=argv_or_default(argv),

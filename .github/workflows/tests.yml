@@ -26,7 +26,8 @@ jobs:
       - name: Install simulator test dependencies
         run: python -m pip install --requirement requirements.txt
       - name: Run the Python suite
-        # faulthandler prints every thread's stack if one test runs longer than 5 minutes.
-        # The Run D pilot tests start many processes, which is slow on Windows, so the full suite needs over an hour there.
+        # faulthandler prints every thread's stack if one test runs longer than 20 minutes.
+        # The Run D pilot tests start many processes, which is slow on Windows: some take over 5 minutes there,
+        # and a dump in the middle of one crashed the run, so the limit is well above them. The full suite needs over an hour.
         timeout-minutes: 150
-        run: python -m pytest -q -rfE -o faulthandler_timeout=300
+        run: python -m pytest -q -rfE -o faulthandler_timeout=1200

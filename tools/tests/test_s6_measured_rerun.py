@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 import tools.s6_measured_rerun as rerun_module
+from sim.tests.platform_compare import EXACT, same_tree
 from tools.fit_vision_noise import main as fit_cli
 from tools.make_detection_fixture import main as fixture_cli
 from tools.run_s6_recovery import build_cells
@@ -36,6 +37,27 @@ REGISTERED_DIR = REPO_ROOT / "sim" / "runs" / "s6-recovery"
 HAVE_REGISTERED = (REGISTERED_DIR / "summary.json").is_file() and (REGISTERED_DIR / "per_seed.csv").is_file()
 ONE_CELL = "main/constant_velocity/d0.100/l0.30/n0.050/independent/j0.000/r0.050"
 TRUE_NOISE = 0.05  # the --noise-std given to the fixture generator below
+
+
+def same_csv_row(actual: str, expected: str) -> bool:
+    """Exact on macOS, which produced the registered bytes; elsewhere text and integers must match
+    exactly and floats within 1e-12 relative (last-bit differences from another NumPy/BLAS)."""
+    if EXACT:
+        return actual == expected
+    a, b = actual.rstrip("\r\n").split(","), expected.rstrip("\r\n").split(",")
+    if len(a) != len(b):
+        return False
+    for x, y in zip(a, b):
+        if x == y:
+            continue
+        if not ("." in x or "e" in x.lower()) or not ("." in y or "e" in y.lower()):
+            return False  # integer or text field that differs
+        try:
+            if not math.isclose(float(x), float(y), rel_tol=1e-12, abs_tol=1e-15):
+                return False
+        except ValueError:
+            return False
+    return True
 
 
 def _only_cell(motion: str, delay: float, loss: float):
@@ -218,18 +240,19 @@ def test_one_cell_matches_registered_bytes(tmp_path):
     registered = [line for line in (REGISTERED_DIR / "per_seed.csv").read_text().splitlines(keepends=True)
                   if line.startswith(prefix)]
     assert len(registered) == 100
-    assert ours == registered
+    assert len(ours) == len(registered) and all(same_csv_row(a, b) for a, b in zip(ours, registered))
     new_entry = next(c for c in json.loads((out / "pooled" / "summary.json").read_text())["cells"]
                      if c["cell_id"] == ONE_CELL)
     old_entry = next(c for c in json.loads((REGISTERED_DIR / "summary.json").read_text())["cells"]
                      if c["cell_id"] == ONE_CELL)
-    assert json.dumps(new_entry, indent=2, sort_keys=True) == json.dumps(old_entry, indent=2, sort_keys=True)
+    assert same_tree(new_entry, old_entry)
     # The comparison file carries the same cell's registered value at noise 0.05.
     header, *rows = (out / "comparison.csv").read_text().splitlines()
     columns = header.split(",")
     row = next(r.split(",") for r in rows if r.startswith("constant_velocity,0.1,0.3,"))
-    assert row[columns.index("registered_n0.050_recovery_p95_median_m")] == repr(old_entry["arms"]["recovery"]["p95_median_m"])
-    assert row[columns.index("pooled_recovery_p95_median_m")] == repr(old_entry["arms"]["recovery"]["p95_median_m"])
+    expected_p95 = old_entry["arms"]["recovery"]["p95_median_m"]
+    for name in ("registered_n0.050_recovery_p95_median_m", "pooled_recovery_p95_median_m"):
+        assert same_tree(float(row[columns.index(name)]), expected_p95)
 
 
 def test_bad_options(tmp_path):

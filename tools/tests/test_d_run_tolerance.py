@@ -2,6 +2,7 @@ import csv
 import gzip
 import hashlib
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -14,6 +15,7 @@ from sim.coop.observers import CoopCell, run_seed
 from tools.d_make_tolerance_figure import make_figure
 from tools.d_run_tolerance import _cell, _cpu_per_job_by_n, main
 from sim.coop.boundary import tolerated
+from sim.tests.platform_compare import same_tree
 
 
 def _digest(path):
@@ -84,7 +86,7 @@ def test_mismatched_checkpoint_fails_loudly(tmp_path):
     checkpoint = tmp_path / "checkpoint"
     checkpoint.mkdir()
     (checkpoint / "stale.json").write_text(json.dumps({"fingerprint": "stale"}), encoding="utf-8", newline="\n")
-    with pytest.raises(ValueError, match=str(checkpoint)):
+    with pytest.raises(ValueError, match=re.escape(str(checkpoint))):
         main(["--pilot", "--processes", "1", "--checkpoint", str(checkpoint),
               "--output", str(tmp_path / "output")])
 
@@ -112,7 +114,7 @@ def test_n1_single_reproduces_atlas_recovery_seed(cell_key, target, delay, loss_
         expected = next(row for row in csv.DictReader(handle)
                         if row["arm"] == "recovery" and row["seed"] == "396089605"
                         and row["cell_key"] == cell_key)
-    assert result.p95_error_m == float(expected["p95_error_m"])
+    assert same_tree(result.p95_error_m, float(expected["p95_error_m"]))
 
 
 def test_radio_gym_peer_delivery_with_random_phases():
