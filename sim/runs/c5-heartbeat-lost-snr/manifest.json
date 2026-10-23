@@ -1,16 +1,16 @@
 {
   "argv": [
     "--full",
-    "--processes",
-    "1",
+    "--workers",
+    "2",
     "--detector",
     "lost-as-low-snr"
   ],
   "code_sha256": {
     "sim/radio/channel.py": "e095a023fc3c9c3a11844ec27be608f0d283fe0966e86eb954f2a7d31d68e6b1",
     "sim/radio/heartbeat.py": "e321e2618da4b936f9ba8fd8cbd4648f6c8928f0023b0521a4d53b74781e37f8",
-    "sim/radio/interference.py": "751626666aa2cc6fbe4e083962d54d25e2a7ca57bae99c2d2bf8972dc9be1afa",
-    "tools/c_exp016_heartbeat.py": "bf89793386715c5ff11321899280d8716f60e8485ea7dca6edd3de3d1c00a954"
+    "sim/radio/interference.py": "1671f5cef9030de0a22343dee7a2b3ca95f70738fe4ffb6a664528fb9885346c",
+    "tools/c_exp016_heartbeat.py": "fa02cb58c452ad7555406b0924e48e025d05069a998d5f1a1a7d4d61164a1641"
   },
   "config": {
     "detector": "lost-as-low-snr",
@@ -31,8 +31,8 @@
     ]
   },
   "config_sha256": "de28ab7e09ff8cc90c8be538c76ccc0549609bac6d54d45e73f29b9be41cc310",
-  "git_revision": "17692162944401bdfdb6b83ce936b896a087e3da",
-  "git_tree_state": "dirty",
+  "git_revision": "06b71f1956aa0b84530627517ab5138303d62675",
+  "git_tree_state": "clean",
   "limits": [
     "Simulated only: no ESP32 or drone hardware was used.",
     "Radio parameters are literature-derived (sim/radio/params.py), with ranges; none are measured.",
@@ -41,7 +41,7 @@
     "The 1 per 100 hours threshold uses the closed form only: 10 simulated hours cannot resolve it.",
     "When burst duration x heartbeat rate < 1 (e.g. 0.05 s or 0.2 s at 5 Hz) a burst is a single packet, so those cases coincide."
   ],
-  "n_processes": 1,
+  "n_processes": 2,
   "numpy": "2.5.1",
   "outputs": {
     "detection_delay.csv": "0ebf878c8fd376ae28fa9d875c7dd232ad5b67645093f9946080bc29bf592e1c",
@@ -55,7 +55,7 @@
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
   "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output {out} --detector lost-as-low-snr",
-  "runtime_s": 2917.3623228330107,
+  "runtime_s": 199.0387295000255,
   "schema": "zephyr-run-c-manifest-1",
   "seeds": [
     20261016
