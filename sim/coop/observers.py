@@ -25,6 +25,7 @@ import numpy as np
 from sim.estimation.base import EstimatorSettings
 from sim.estimation.consistency import nis_band
 from sim.estimation.factory import make_estimator
+from sim.estimation.kinematics import position_update
 from sim.estimation.targets import make_target
 from sim.s6_recovery import RecoveryConfig
 from sim.sensor import SensorConfig, SensorModel
@@ -37,6 +38,8 @@ _I3 = np.eye(3)
 _I6 = np.eye(6)
 BURN_IN_TOLERANCE_S = 1e-9
 ARMS = ("single", "central", "star_avg", "peer_ci", "peer_naive")
+ESTIMATORS = ("cv", "ct")
+CT_ARMS = ("single", "central")
 _COVARIANCE_FLOOR = 1e-16
 @lru_cache(maxsize=256)
 def _predict_matrices(dt: float, q: float):
@@ -61,7 +64,9 @@ class CoopCell:
     information fusion to expose its feedback overconfidence. The ground
     station averages the uninformed initial state until each observer's first
     arrival in ``star_avg``. In ``peer_naive``, it predicts the last fused gs
-    track between arrivals.
+    track between arrivals. ``estimator`` is the filter of the ``single`` and
+    ``central`` arms: ``cv`` (default, the registered Run D setting) or the
+    turn-aware ``ct`` filter of the S6 atlas. The other arms are CV only.
     """
 
     target: str = "cv"
@@ -74,6 +79,7 @@ class CoopCell:
                                                             loss_probability=0.0))
     phase: str = "random"
     ci: str = "fast"
+    estimator: str = "cv"
 
     def __post_init__(self) -> None:
         if self.target not in ("cv", "ct", "jink"):
@@ -90,6 +96,8 @@ class CoopCell:
             raise ValueError("phase must be random, sync, or staggered")
         if self.ci not in ("fast", "exact"):
             raise ValueError("ci must be fast or exact")
+        if self.estimator not in ESTIMATORS:
+            raise ValueError("estimator must be cv or ct")
         params = self.target_params.items() if isinstance(self.target_params, dict) else self.target_params
         try:
             params = tuple(sorted((str(k), v) for k, v in params))
@@ -198,8 +206,8 @@ def _truth_and_measurements(cell: CoopCell, seed: int, config: RecoveryConfig,
     return target, names, captures, measurements
 
 
-def _new_estimator(target, settings: EstimatorSettings, r_std_m: float | None = None):
-    return make_estimator("cv", settings, np.asarray(target.start_position, dtype=float), r_std_m=r_std_m)
+def _new_estimator(target, settings: EstimatorSettings, r_std_m: float | None = None, model: str = "cv"):
+    return make_estimator(model, settings, np.asarray(target.start_position, dtype=float), r_std_m=r_std_m)
 
 
 def _initial_state(target, settings: EstimatorSettings):
@@ -255,6 +263,19 @@ def _direct_equal_update(est, z: np.ndarray, stamp: float) -> None:
     tr.P = (tr.P + tr.P.T) / 2.0
     tr.update_count += 1
     tr.timestamp_s = float(stamp)
+
+
+def _equal_time_update(est, z: np.ndarray, stamp: float, model: str) -> None:
+    """Fuse a second measurement taken at the filter's current time."""
+    if model == "cv":
+        _direct_equal_update(est, z, stamp)
+        return
+    if model != "ct":
+        raise ValueError(f"no equal-time update for estimator {model!r}")
+    # CT: the time has not moved, so the update is the plain position update.
+    est.x, est.P = position_update(est.x, est.P, np.asarray(z, dtype=float), est.measurement_cov())
+    est.update_count += 1
+    est.timestamp_s = max(float(est.timestamp_s), float(stamp))
 
 
 def _outcome(errors, covariances, config: RecoveryConfig, fused_count: int, extras: dict):
@@ -365,7 +386,7 @@ def _score_from_states(query_times, truth, state_fn, config, fused_count, extras
 
 def _single_or_central(cell, config, target, names, captures, measurements, table, central=False):
     settings = EstimatorSettings()
-    est = _new_estimator(target, settings, cell.r_std_m)
+    est = _new_estimator(target, settings, cell.r_std_m, cell.estimator)
     queries = _query_times(config)
     truth = np.asarray(target.position(queries), dtype=float)
     deliveries = []
@@ -399,7 +420,7 @@ def _single_or_central(cell, config, target, names, captures, measurements, tabl
             if est.update_count == 0:
                 est.update(z, stamp)
             elif abs(stamp - est.timestamp_s) <= TIME_TOLERANCE_S:
-                _direct_equal_update(est, z, stamp)
+                _equal_time_update(est, z, stamp, cell.estimator)
             else:
                 est.update(z, stamp)
             last_stamp = max(last_stamp, stamp)
@@ -676,6 +697,8 @@ def run_seed(cell: CoopCell, seed: int, arms=ARMS, config: RecoveryConfig = Reco
     unknown = sorted(set(arms) - set(ARMS))
     if unknown:
         raise ValueError(f"unknown arm(s): {unknown}")
+    if cell.estimator != "cv" and set(arms) - set(CT_ARMS):
+        raise ValueError(f"estimator {cell.estimator} supports only the arms {CT_ARMS}")
     names = tuple(f"o{i + 1}" for i in range(cell.n_observers))
     phases = _phase_offsets(cell, names, int(seed))
     target, names, captures, measurements = _truth_and_measurements(cell, int(seed), config, phases)

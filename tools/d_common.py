@@ -38,6 +38,7 @@ EXPERIMENT_OFFSETS = {
     "decisions": 27,
     "consensus": 28,
     "s7-coop": 29,
+    "coop-ct": 36,
 }
 
 SIMULATED_LIMITS = ("Simulated only: no drone, camera or radio hardware was used, and nothing here is measured.",)
