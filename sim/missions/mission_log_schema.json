@@ -394,6 +394,17 @@
             "age",
             "age_or_loss"
           ]
+        },
+        "lost_link_action": {
+          "type": "string",
+          "enum": [
+            "land",
+            "hold"
+          ]
+        },
+        "hold_land_after_s": {
+          "type": "number",
+          "minimum": 0
         }
       }
     },
@@ -530,6 +541,12 @@
             },
             "weak_rule": {
               "$ref": "#/$defs/policy/properties/weak_rule"
+            },
+            "lost_link_action": {
+              "$ref": "#/$defs/policy/properties/lost_link_action"
+            },
+            "hold_land_after_s": {
+              "$ref": "#/$defs/policy/properties/hold_land_after_s"
             }
           }
         },

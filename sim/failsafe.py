@@ -7,9 +7,9 @@ them later without changing the state-transition logic.
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from enum import Enum
-import math
 from typing import Any
 
 from sim.authority import ControlCommand
@@ -50,6 +50,14 @@ class FailsafeConfig:
     latched landing state.  The defaults mirror the product note's rough
     300 ms indoor-link example, but are scenario assumptions rather than a
     field specification.
+
+    ``lost_link_action`` is an opt-in policy.  The
+    default ``"land"`` latches a landing once the link has been silent for
+    ``land_after_s``.  ``"hold"`` instead keeps the vehicle hovering in place
+    (state DEGRADED, action HOLD) and recovers to nominal when packets
+    return; it lands only if the silence reaches ``hold_land_after_s`` or the
+    battery is low.  The two hold fields appear in :meth:`as_dict` only when
+    hold is chosen, so logged default policies are unchanged.
     """
 
     degraded_after_s: float = 0.15
@@ -60,6 +68,8 @@ class FailsafeConfig:
     weak_loss_fraction: float = 0.3
     degraded_action: str = "hold"
     slow_speed_mps: float = 0.3
+    lost_link_action: str = "land"
+    hold_land_after_s: float = 5.0
 
     def __post_init__(self) -> None:
         degraded = _finite_nonnegative("degraded_after_s", self.degraded_after_s)
@@ -81,6 +91,12 @@ class FailsafeConfig:
         slow_speed = float(self.slow_speed_mps)
         if not math.isfinite(slow_speed) or slow_speed <= 0.0:
             raise ValueError("slow_speed_mps must be finite and positive")
+        if not isinstance(self.lost_link_action, str) or self.lost_link_action not in {"land", "hold"}:
+            raise ValueError("lost_link_action must be 'land' or 'hold'")
+        hold_land = _finite_nonnegative("hold_land_after_s", self.hold_land_after_s)
+        if self.lost_link_action == "hold" and hold_land < land:
+            raise ValueError("hold_land_after_s must be at least land_after_s")
+        object.__setattr__(self, "hold_land_after_s", hold_land)
         object.__setattr__(self, "degraded_after_s", degraded)
         object.__setattr__(self, "land_after_s", land)
         object.__setattr__(self, "low_battery_pct", battery)
@@ -89,17 +105,19 @@ class FailsafeConfig:
         object.__setattr__(self, "slow_speed_mps", slow_speed)
 
     def as_dict(self) -> dict[str, Any]:
-        return {key: getattr(self, key) for key in sorted((
-            "degraded_action", "degraded_after_s", "land_after_s", "loss_window_packets",
-            "low_battery_pct", "slow_speed_mps", "weak_loss_fraction", "weak_rule",
-        ))}
+        keys = ["degraded_action", "degraded_after_s", "land_after_s", "loss_window_packets",
+                "low_battery_pct", "slow_speed_mps", "weak_loss_fraction", "weak_rule"]
+        if self.lost_link_action != "land":
+            keys += ["hold_land_after_s", "lost_link_action"]
+        return {key: getattr(self, key) for key in sorted(keys)}
 
     @classmethod
-    def from_dict(cls, value: dict[str, Any]) -> "FailsafeConfig":
+    def from_dict(cls, value: dict[str, Any]) -> FailsafeConfig:
         if not isinstance(value, dict):
-            raise ValueError("failsafe config must be a mapping")
+            raise ValueError("failsafe config must be a mapping")  # noqa: TRY004
         allowed = {"degraded_after_s", "land_after_s", "low_battery_pct", "weak_rule",
-                   "loss_window_packets", "weak_loss_fraction", "degraded_action", "slow_speed_mps"}
+                   "loss_window_packets", "weak_loss_fraction", "degraded_action", "slow_speed_mps",
+                   "lost_link_action", "hold_land_after_s"}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown failsafe config fields: {sorted(unknown)}")
@@ -208,7 +226,8 @@ class FailsafeController:
             FailsafeState.LANDED: FailsafeAction.NONE,
             FailsafeState.KILLED: FailsafeAction.KILL,
         }[self.state]
-        if self.state is FailsafeState.DEGRADED and self.config.degraded_action == "slow":
+        if (self.state is FailsafeState.DEGRADED and self.config.degraded_action == "slow"
+                and reason != "link_lost_hold"):
             action = FailsafeAction.SLOW
         decision = FailsafeDecision(
             state=self.state,
@@ -290,6 +309,13 @@ class FailsafeController:
         if battery <= self.config.low_battery_pct:
             self.state = FailsafeState.LANDING
             reason = "low_battery"
+        elif stale_age >= self.config.land_after_s and self.config.lost_link_action == "hold":
+            if stale_age >= self.config.hold_land_after_s:
+                self.state = FailsafeState.LANDING
+                reason = "hold_timeout"
+            else:
+                self.state = FailsafeState.DEGRADED
+                reason = "link_lost_hold"
         elif stale_age >= self.config.land_after_s:
             self.state = FailsafeState.LANDING
             reason = "link_timeout"
