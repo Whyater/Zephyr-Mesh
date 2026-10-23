@@ -95,6 +95,7 @@ class LinkSpec:
     positions: dict[str, tuple[float, float, float]] | None = None
     background: tuple = ()
     immediate_access: bool = True
+    loss_correlation: str = "independent"
 
     def __post_init__(self) -> None:
         if self.mode not in {"abstract", "radio"}:
@@ -109,6 +110,10 @@ class LinkSpec:
             raise ValueError("loss_model must be independent or burst")
         if not isinstance(self.immediate_access, (bool, np.bool_)):
             raise ValueError("immediate_access must be boolean")
+        if self.loss_correlation not in {"independent", "shared"}:
+            raise ValueError("loss_correlation must be independent or shared")
+        if self.loss_correlation == "shared" and (self.mode != "abstract" or self.jitter_s > 0):
+            raise ValueError("shared loss needs the abstract link with no jitter")
         if self.mode == "radio" and self.positions is None:
             raise ValueError("radio mode requires positions")
         if self.mode == "radio" and self.jitter_s > 0:
@@ -188,33 +193,56 @@ def _capture_times(traffic: TrafficSpec, observer_index: int) -> list[float]:
     return [float(t) for t in raw if t <= traffic.duration_s + _TIME_TOLERANCE_S]
 
 
+def _abstract_link_config(link: LinkSpec) -> LinkConfig:
+    if link.loss_model == "burst":
+        # Keep burst transitions aligned with sim/link.py's Gilbert-Elliott logic.
+        burst_end = 1.0 / 5.0
+        return LinkConfig(delay_s=link.delay_s, delay_jitter_s=link.jitter_s, loss_model="burst",
+                          burst_start_probability=_burst_start_probability(link.loss_probability, burst_end),
+                          burst_end_probability=burst_end)
+    return LinkConfig(delay_s=link.delay_s, delay_jitter_s=link.jitter_s, loss_model="independent",
+                      loss_probability=link.loss_probability)
+
+
+def _shared_fade_slots(traffic: TrafficSpec, link: LinkSpec, seed: int) -> list[bool]:
+    """Faded capture slots for ``loss_correlation="shared"``.
+
+    One loss chain runs on the capture slots of length 1 / rate_hz. It is the
+    chain a lone observer gets (same seed and send times as the one-observer
+    star), so the shared and one-observer runs fade at the same moments. Every
+    observer captures exactly once per slot, so the packet with sequence k of
+    every route is lost when slot k is faded.
+    """
+    model = SimulatedLink(_abstract_link_config(link), seed=int(np.random.SeedSequence(seed).generate_state(2)[0]))
+    period = 1.0 / float(traffic.rate_hz)
+    count = round(float(traffic.duration_s) / period)
+    return [model.send("fade", "fade", seq, seq * period).receive_time is None for seq in range(count + 1)]
+
+
 def _abstract_table(traffic: TrafficSpec, link: LinkSpec, seed: int) -> DeliveryTable:
     route_list = _routes(traffic)
     out: dict[tuple[str, str], tuple[Delivery, ...]] = {}
     one_agent_star = traffic.pattern == "star" and len(traffic.observers) == 1
     observer_index = {name: i for i, name in enumerate(traffic.observers)}
     end = float(traffic.duration_s)
+    faded = (_shared_fade_slots(traffic, link, seed)
+             if link.loss_correlation == "shared" and not one_agent_star else None)
     for sender, receiver in route_list:
         if one_agent_star:
             route_seed = int(np.random.SeedSequence(seed).generate_state(2)[0])
         else:
             route_seed = _route_seed(seed, sender, receiver, 1000)
-        if link.loss_model == "burst":
-            # Keep burst transitions aligned with sim/link.py's Gilbert-Elliott logic.
-            burst_end = 1.0 / 5.0
-            config = LinkConfig(delay_s=link.delay_s, delay_jitter_s=link.jitter_s, loss_model="burst",
-                                burst_start_probability=_burst_start_probability(link.loss_probability, burst_end),
-                                burst_end_probability=burst_end)
-        else:
-            config = LinkConfig(delay_s=link.delay_s, delay_jitter_s=link.jitter_s, loss_model="independent",
-                                loss_probability=link.loss_probability)
+        config = _abstract_link_config(link)
+        if faded is not None:
+            # The shared chain decides the losses; this route only adds the fixed delay.
+            config = LinkConfig(delay_s=link.delay_s, loss_model="none")
         model = SimulatedLink(config, seed=route_seed)
         times = _capture_times(traffic, observer_index[sender])
         events = [model.send(sender, receiver, seq, t) for seq, t in enumerate(times)]
         model.deliver_all()
         deliveries = []
         for event in events:
-            if event.receive_time is None:
+            if event.receive_time is None or (faded is not None and faded[event.seq]):
                 deliveries.append(Delivery(sender, receiver, event.seq, float(event.send_time), None, "link"))
             elif event.receive_time > end + _TIME_TOLERANCE_S:
                 deliveries.append(Delivery(sender, receiver, event.seq, float(event.send_time), None, "late_end"))
