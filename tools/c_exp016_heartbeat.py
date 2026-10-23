@@ -1,32 +1,51 @@
 """EXP-016: simulated heartbeat timeout and degraded-link thresholds.
 
 Usage: ``PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output sim/runs/c5-heartbeat``
+
+``--detector`` picks the degraded-link detector for the interference cells.
+``legacy`` (the default, so the registered run command still reproduces)
+takes the SNR median over received packets only.
+``lost-as-low-snr`` is the fixed detector: a lost packet counts as low SNR,
+so a total blackout is caught once half the window is lost.
 """
 from __future__ import annotations
 
 import argparse
 import csv
 import json
+import math
 import os
 import tempfile
-import math
 import time
 from pathlib import Path
 
-import numpy as np
 import jsonschema
+import numpy as np
 
 from sim.ordered_pool import effective_workers, ordered_map
-from sim.radio.channel import GilbertElliott, packet_error_rate, mean_rssi_dbm
-from sim.radio.heartbeat import (detection_delay_bounds, detection_delay_samples,
-                                  false_alarm_rate_ge_per_hour, false_alarm_rate_iid_per_hour,
-                                  simulate_heartbeats)
-from sim.radio.interference import (DegradedLinkDetector, InterferenceConfig,
-                                    evaluate_detector, simulate_link_with_interference)
+from sim.radio.channel import GilbertElliott, mean_rssi_dbm, packet_error_rate
+from sim.radio.heartbeat import (
+    detection_delay_bounds,
+    detection_delay_samples,
+    false_alarm_rate_ge_per_hour,
+    false_alarm_rate_iid_per_hour,
+    simulate_heartbeats,
+)
+from sim.radio.interference import (
+    DegradedLinkDetector,
+    InterferenceConfig,
+    evaluate_detector,
+    simulate_link_with_interference,
+)
 from sim.radio.mac import frame_bytes
 from sim.radio.params import channel_preset, default_phy
-from tools.c_common import (argv_or_default, default_processes, prepare_output, seeds_from,
-                            write_json, write_manifest)
+from tools.c_common import (
+    argv_or_default,
+    default_processes,
+    prepare_output,
+    write_json,
+    write_manifest,
+)
 
 BASE_SEED = 20261016
 HOURS = 10.0
@@ -34,6 +53,7 @@ RATES = (5, 10, 20, 50)
 TIMEOUTS = (0.1, 0.2, 0.3, 0.5, 1.0, 2.0)
 LOSSES = (0.01, 0.05, 0.1, 0.2, 0.3)
 DURATIONS = (0.05, 0.2, 0.5)
+DETECTORS = ("legacy", "lost-as-low-snr")
 
 
 def expected_rate(condition: dict | str, rate_hz: float, timeout_s: float, *, p: float | None = None,
@@ -114,7 +134,7 @@ def select_threshold(rows: list[dict], metric: str = "below_1_per_hour", thresho
 
 def simulate_false_alarm_cell(*, h: float, timeout_s: float, condition: str, p: float,
                               duration_hours: float, seed: int, duration_s: float = 0.5) -> dict:
-    n = int(round(duration_hours * 3600.0 * h))
+    n = round(duration_hours * 3600.0 * h)
     rng = np.random.default_rng(np.random.SeedSequence(seed))
     lost = _loss_sequence({"kind": condition, "p": p, "duration_s": duration_s}, n, rng, h)
     result = simulate_heartbeats(lost, h, timeout_s)
@@ -172,6 +192,7 @@ def _write_figures(out: Path, rows: list[dict], rule_rows: list[dict]) -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+
     from tools.horizon_mpl import apply_style
     colors = apply_style("light")
     floor, top = 1e-3, 3e4
@@ -233,7 +254,7 @@ def _false_alarm_job(job: dict) -> dict:
     """One (loss condition, heartbeat rate) cell: false-alarm and detection-delay rows for every timeout."""
     ci, cond, hi, h, pilot = int(job["ci"]), job["cond"], int(job["hi"]), job["h"], bool(job["pilot"])
     false_rows, delay_rows = [], []
-    n = int(round(HOURS * 3600 * h * (0.2 / 10 if pilot else 1.0)))
+    n = round(HOURS * 3600 * h * (0.2 / 10 if pilot else 1.0))
     seq = _loss_sequence(cond, n, _rng(1, ci, hi), h)
     for ti, T in enumerate(job["timeouts"]):
         sim = simulate_heartbeats(seq, h, T)
@@ -268,13 +289,14 @@ def _plain(value):
 def _interference_job(job: dict) -> dict:
     """One C6 interference cell: margin, mean episode duration and noise rise."""
     margin, dur, rise, pilot = job["margin"], job["dur"], job["rise"], bool(job["pilot"])
+    fixed = bool(job.get("fixed", False))
     frame_b = frame_bytes(32, default_phy()); cfg = channel_preset("indoor_gym")
     dist = _margin_distance(cfg, margin, frame_b)
     ic = InterferenceConfig(6, dur, rise)
     # Same episode timeline for both margins (common random numbers).
     run_seed = int(np.random.SeedSequence([BASE_SEED, 3, dur, rise]).generate_state(1)[0])
     run_i = simulate_link_with_interference(cfg, dist, 10, 3600 * (0.2 if pilot else 10), frame_b, ic, seed=run_seed)
-    ev = evaluate_detector(run_i["times"], run_i["received"], run_i["snr_db"], run_i["episodes"], DegradedLinkDetector(20, .3, 6, 3), grace_s=2.0)
+    ev = evaluate_detector(run_i["times"], run_i["received"], run_i["snr_db"], run_i["episodes"], DegradedLinkDetector(20, .3, 6, 3, lost_packets_count_as_low_snr=fixed), grace_s=2.0)
     delays = ev["trigger_delays_s"]
     return _plain({"margin_db": margin, "distance_m": dist, "mean_duration_s": dur, "noise_rise_db": rise,
         "mean_trigger_s": float(np.mean(delays)) if delays else None, "p95_trigger_s": float(np.percentile(delays, 95)) if delays else None,
@@ -283,7 +305,10 @@ def _interference_job(job: dict) -> dict:
         "mean_clear_after_episode_s": (float(np.mean(cl)) if (cl := _clear_delays(run_i["episodes"], ev["transitions"])) else None)})
 
 
-def run(output: Path, argv: list[str], pilot: bool = False, processes: int | None = None, workers: int = 1) -> dict:
+def run(output: Path, argv: list[str], pilot: bool = False, processes: int | None = None, workers: int = 1, detector: str = "legacy") -> dict:
+    if detector not in DETECTORS:
+        raise ValueError(f"detector must be one of {DETECTORS}")
+    fixed = detector != "legacy"
     start = time.perf_counter(); output = prepare_output(output)
     rates = (10,) if pilot else RATES; timeouts = (0.3, 1.0) if pilot else TIMEOUTS
     conditions = _conditions(pilot)
@@ -312,7 +337,7 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
     int_rows = []; margins = (20, 30); durations = (1, 5, 30); rises = (10, 20, 30)
     if pilot: durations, rises, margins = (1,), (10,), (20,)
     frame_b = frame_bytes(32, default_phy()); cfg = channel_preset("indoor_gym")
-    int_jobs = [{"margin": margin, "dur": dur, "rise": rise, "pilot": pilot}
+    int_jobs = [{"margin": margin, "dur": dur, "rise": rise, "pilot": pilot, "fixed": fixed}
                 for margin in margins for dur in durations for rise in rises]
     int_rows = ordered_map("tools.c_exp016_heartbeat:_interference_job", int_jobs, workers=workers)
     rule_rows = [r for r in false_rows if r["timeout_s"] == 0.3 and r["h_hz"] in (10, 20)]
@@ -323,7 +348,7 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
     with open(output / "interference.csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=INTERFERENCE_COLUMNS); w.writeheader(); w.writerows(int_rows)
     threshold_doc = {"status": "simulated", "parameters_basis": "literature-derived",
-                     "generating_command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output {out}",
+                     "generating_command": "PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output {out}" + (f" --detector {detector}" if fixed else ""),
                      "records": thresholds}
     schema_path = Path("sim/radio/thresholds_schema.json")
     if schema_path.exists(): jsonschema.validate(threshold_doc, json.loads(schema_path.read_text(encoding="utf-8")))
@@ -336,13 +361,14 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
     write_json(output / "summary.json", {"experiment": "EXP-016", "status": "simulated", "hours_per_cell": HOURS if not pilot else .2,
         "false_alarm_cells": len(false_rows), "z_abs_gt_4": sum(abs(r["z"]) > 4 for r in false_rows), "thresholds": thresholds,
         "product_rule_300ms": rule_summary,
-        "interference_method": "link margin set by distance in the indoor_gym preset: mean SNR = (SNR where a 75 B frame on air is lost half the time) + margin; detector window 20 packets, loss threshold 0.3, SNR threshold 6 dB, at least 3 packets, grace 2 s after an episode ends",
+        "interference_method": "link margin set by distance in the indoor_gym preset: mean SNR = (SNR where a 75 B frame on air is lost half the time) + margin; detector window 20 packets, loss threshold 0.3, SNR threshold 6 dB, at least 3 packets, grace 2 s after an episode ends" + ("; a lost packet counts as minus infinity dB in the SNR median (lost-as-low-snr detector)" if fixed else ""),
         "snr_at_half_loss_db": _snr_at_half_loss(cfg, frame_b)})
     _write_figures(output, false_rows, rule_rows)
     outputs = ["summary.json", "false_alarms.csv", "detection_delay.csv", "interference.csv", "thresholds.json", "exp016_false_alarms.png", "exp016_rule_300ms.png"]
-    stable_argv = ["--pilot" if pilot else "--full", "--workers", str(workers)]
+    stable_argv = ["--pilot" if pilot else "--full", "--workers", str(workers)] + (["--detector", detector] if fixed else [])
+    config = {"pilot": pilot, "rates": rates, "timeouts": timeouts} | ({"detector": detector} if fixed else {})
     return write_manifest(output, schema="zephyr-run-c-manifest-1", argv=stable_argv,
-        command="PYTHONPATH=. ./.venv/bin/python tools/c_exp016_heartbeat.py --output {out}", config={"pilot": pilot, "rates": rates, "timeouts": timeouts},
+        command=threshold_doc["generating_command"], config=config,
         seeds=[BASE_SEED], outputs=outputs, limits=["All values are simulated; radio parameters are literature-derived.",
         "Heartbeats have zero jitter; bursts are classic Gilbert chains with burst length set in seconds (r = 1 / (duration x h)).",
         "The 1 per 100 hours threshold uses the closed form only: 10 simulated hours cannot resolve it.",
@@ -352,7 +378,7 @@ def run(output: Path, argv: list[str], pilot: bool = False, processes: int | Non
 
 
 def main(argv=None):
-    argv = argv_or_default(argv); p = argparse.ArgumentParser(description=__doc__.splitlines()[0]); p.add_argument("--output", type=Path, required=True); p.add_argument("--pilot", action="store_true"); p.add_argument("--processes", type=int, default=default_processes(), help="kept for old commands; ignored"); p.add_argument("--workers", type=int, default=1, help="worker processes for the independent cells (default 1 = serial, at most 4); outputs matched at 1 and 4 workers in tests"); a = p.parse_args(argv); run(a.output, argv, a.pilot, a.processes, a.workers); return 0
+    argv = argv_or_default(argv); p = argparse.ArgumentParser(description=__doc__.splitlines()[0]); p.add_argument("--output", type=Path, required=True); p.add_argument("--pilot", action="store_true"); p.add_argument("--processes", type=int, default=default_processes(), help="kept for old commands; ignored"); p.add_argument("--workers", type=int, default=1, help="worker processes for the independent cells (default 1 = serial, at most 4); outputs matched at 1 and 4 workers in tests"); p.add_argument("--detector", choices=DETECTORS, default="legacy"); a = p.parse_args(argv); run(a.output, argv, a.pilot, a.processes, a.workers, a.detector); return 0
 
 
 if __name__ == "__main__": raise SystemExit(main())

@@ -17,7 +17,6 @@ from jsonschema import Draft202012Validator, ValidationError
 from sim.radio.channel import GilbertElliott
 from sim.radio.heartbeat import (
     false_alarm_rate_ge_per_hour,
-    false_alarm_rate_iid_per_hour,
 )
 from tools import c_exp016_heartbeat as runner
 
@@ -107,3 +106,29 @@ def test_pilot_is_byte_identical(tmp_path: Path):
             assert ma == mb
             continue
         assert hashlib.sha256((first / rel).read_bytes()).digest() == hashlib.sha256((second / rel).read_bytes()).digest()
+
+
+def test_fixed_detector_pilot_changes_only_the_detector_outputs(tmp_path: Path):
+    # --detector lost-as-low-snr must leave every heartbeat output (they
+    # never use the detector) byte-identical to the legacy run, and record the
+    # detector choice in the summary and manifest.
+    legacy, fixed = tmp_path / "legacy", tmp_path / "fixed"
+    runner.main(["--output", str(legacy), "--pilot", "--processes", "1"])
+    runner.main(["--output", str(fixed), "--pilot", "--processes", "1", "--detector", "lost-as-low-snr"])
+    for name in ("false_alarms.csv", "detection_delay.csv", "exp016_false_alarms.png", "exp016_rule_300ms.png"):
+        assert (legacy / name).read_bytes() == (fixed / name).read_bytes(), name
+    # thresholds.json differs only in its replay command, which names the detector.
+    t_legacy, t_fixed = (json.loads((d / "thresholds.json").read_text(encoding="utf-8")) for d in (legacy, fixed))
+    assert t_fixed["generating_command"].endswith("--output {out} --detector lost-as-low-snr")
+    assert "--detector" not in t_legacy["generating_command"]
+    t_fixed["generating_command"] = t_legacy["generating_command"]
+    assert t_fixed == t_legacy
+    summary = json.loads((fixed / "summary.json").read_text(encoding="utf-8"))
+    assert "lost-as-low-snr" in summary["interference_method"]
+    assert "lost-as-low-snr" not in json.loads((legacy / "summary.json").read_text(encoding="utf-8"))["interference_method"]
+    manifest = json.loads((fixed / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["argv"][-2:] == ["--detector", "lost-as-low-snr"]
+    assert manifest["config"]["detector"] == "lost-as-low-snr"
+    assert manifest["replay_command"].endswith("--detector lost-as-low-snr")
+    with pytest.raises(SystemExit):
+        runner.main(["--output", str(tmp_path / "bad"), "--pilot", "--detector", "median"])

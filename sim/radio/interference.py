@@ -11,11 +11,13 @@ are measured in EXP-016.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
+from fractions import Fraction
+
 import numpy as np
 
-from .channel import Channel, ChannelConfig, packet_error_rate
+from .channel import Channel, ChannelConfig
 
 
 @dataclass(frozen=True)
@@ -61,15 +63,34 @@ def noise_floor_at(t: float, base_dbm: float, episodes, cfg: InterferenceConfig)
 
 
 class DegradedLinkDetector:
-    def __init__(self, window_packets: int, loss_threshold: float, snr_threshold_db: float, min_packets: int):
+    """Declare the link degraded when loss >= loss_threshold AND the median SNR
+    over the last window_packets packets is <= snr_threshold_db.
+
+    A lost packet counts as minus infinity dB in the median, so a total
+    blackout triggers once half the window is lost instead of waiting for the
+    healthy readings to slide out.  Side effect: any window
+    with at least half its packets lost passes the SNR test.
+    ``lost_packets_count_as_low_snr=False`` keeps the old median over received
+    packets only; it exists so runs made before the fix (runs/c5-heartbeat)
+    still reproduce byte for byte.
+
+    Loss is compared as whole packet counts against the threshold as written
+    (0.3 is 3/10), so an exact tie such as 1 lost of 5 at 0.2 counts as 20 %.
+    The old ``1 - mean(received)`` form rounded that to 0.19999999999999996.
+    """
+
+    def __init__(self, window_packets: int, loss_threshold: float, snr_threshold_db: float, min_packets: int,
+                 *, lost_packets_count_as_low_snr: bool = True):
         if int(window_packets) != window_packets or window_packets < 1 or int(min_packets) != min_packets or min_packets < 1:
             raise ValueError("window_packets and min_packets must be positive integers")
         if not 0 < loss_threshold <= 1 or not math.isfinite(snr_threshold_db):
             raise ValueError("invalid detector thresholds")
         self.window_packets = int(window_packets)
         self.loss_threshold = float(loss_threshold)
+        self._loss_num, self._loss_den = Fraction(repr(self.loss_threshold)).as_integer_ratio()
         self.snr_threshold_db = float(snr_threshold_db)
         self.min_packets = int(min_packets)
+        self.lost_packets_count_as_low_snr = bool(lost_packets_count_as_low_snr)
         self.state = "ok"
         self._items: list[tuple[float, bool, float]] = []
         self.transitions: list[tuple[float, str]] = []
@@ -81,18 +102,29 @@ class DegradedLinkDetector:
         self._items = self._items[-self.window_packets:]
         if len(self._items) < self.min_packets:
             return self.state
-        rec = np.array([x[1] for x in self._items], dtype=bool)
-        loss_rate = 1.0 - float(np.mean(rec))
-        vals = np.array([x[2] for x in self._items if x[1] and math.isfinite(x[2])])
+        n = len(self._items)
+        lost = sum(1 for x in self._items if not x[1])
+        if self.lost_packets_count_as_low_snr:
+            vals = np.array([x[2] if x[1] else -math.inf for x in self._items if not x[1] or math.isfinite(x[2])])
+        else:
+            vals = np.array([x[2] for x in self._items if x[1] and math.isfinite(x[2])])
         bad_snr = vals.size == 0 or float(np.median(vals)) <= self.snr_threshold_db
-        want = loss_rate >= self.loss_threshold and bad_snr
+        want = self.loss_meets_trigger(lost, n) and bad_snr
         if self.state == "ok" and want:
             self.state = "degraded"
             self.transitions.append((float(time_s), self.state))
-        elif self.state == "degraded" and loss_rate < self.loss_threshold / 2.0:
+        elif self.state == "degraded" and self.loss_below_clear(lost, n):
             self.state = "ok"
             self.transitions.append((float(time_s), self.state))
         return self.state
+
+    def loss_meets_trigger(self, lost: int, n: int) -> bool:
+        """lost / n >= loss_threshold, exactly: lost * den >= num * n."""
+        return lost * self._loss_den >= self._loss_num * n
+
+    def loss_below_clear(self, lost: int, n: int) -> bool:
+        """lost / n < loss_threshold / 2, exactly: 2 * lost * den < num * n."""
+        return 2 * lost * self._loss_den < self._loss_num * n
 
     def process(self, times, received, snr):
         for t, r, s in zip(times, received, snr):
@@ -128,7 +160,8 @@ def evaluate_detector(times, received, snr_db, episodes, detector=None, *, grace
     react, so a trigger just after a short episode is a late detection, not a
     false alarm.  An episode that starts while the detector is already in the
     degraded state counts as detected with delay 0.  Every other trigger is a
-    false trigger.
+    false trigger.  The default detector counts a lost packet as low
+    SNR.
     """
     if grace_s < 0 or not math.isfinite(grace_s):
         raise ValueError("grace_s must be finite and nonnegative")

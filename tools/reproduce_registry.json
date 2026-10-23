@@ -403,5 +403,18 @@
    "formation_rms_latency.png": "8731d6d522a34bd22b59dea11d7114394ce0c13dfbabcd29f328ca26cfadaec0",
    "summary.json": "a35ed8aa862beea2cdae70c64ecd82916688bd56b82dc6e5f14a4912982d0da8"
   }
+ },
+ {
+  "run_dir": "sim/runs/c5-heartbeat-lost-snr",
+  "command": "PYTHONPATH=. {python} tools/c_exp016_heartbeat.py --output {out} --detector lost-as-low-snr",
+  "outputs": {
+   "detection_delay.csv": "0ebf878c8fd376ae28fa9d875c7dd232ad5b67645093f9946080bc29bf592e1c",
+   "exp016_false_alarms.png": "6bc600b506852a60d84287b68ee6e12f54ef71537a0f354e557a4a460ed1affb",
+   "exp016_rule_300ms.png": "4cba578f788ddbe934d02156f7056e15c23f88d76ef8e51f03f67f988af4dbab",
+   "false_alarms.csv": "ca0a21e47868eba7e2fc338d29af8f526b78875f6e5ebcfd1812b7b6f5f070ce",
+   "interference.csv": "0c237552f76e020fe7af24aa2a3804c336cf2b00a7333b57b77dd26587a0e6c7",
+   "summary.json": "334b621e5e14113c87a92f28297bb61d93dea483a28490eb310b0b5f457da71c",
+   "thresholds.json": "b191b4c1073f45870409f0b19f87c2c363354057fdfb6d8c2adb2c8594aa8ad1"
+  }
  }
 ]
