@@ -364,16 +364,6 @@ def test_run_b_every_sample_matches_the_event_log_reference(run_b, rows_b):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(
-    raises=ValueError,
-    strict=True,
-    reason=(
-        "The drone's capture clock is built by adding 0.1 s over and over, so rounding "
-        "error piles up; near t = 54.2 s a capture is stamped a hair later than the "
-        "state packet sent in the same step, and the link refuses packets whose send "
-        "times go backwards (sim/link.py:166). A 60 s run should finish."
-    ),
-)
 def test_sixty_second_loss_run_finishes_without_link_time_error():
     """A 60 s run with the Run B settings should complete, not crash at about 54.2 s."""
     run = CoopSwarmSimulator(_run_b_config(60.0)).run().as_dict()

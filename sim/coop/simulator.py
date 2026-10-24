@@ -567,7 +567,7 @@ class CoopSwarmSimulator:
             truth, _ = self._truth(t)
             for agent in self.agents.values():
                 while agent.active and agent.next_capture_s <= t + 1e-12:
-                    capture = round(agent.next_capture_s, 12)
+                    capture = min(round(agent.next_capture_s, 12), t)
                     sample = agent.sensor.sample(self._truth(capture)[0], capture)
                     if sample.available:
                         agent.estimator.update(sample.measurement_m, capture)
