@@ -1,0 +1,409 @@
+{
+  "arms": {
+    "naive": {
+      "log_p95": {
+        "bootstrap_95": {
+          "interaction:delay_s*loss_probability": [
+            0.0027985822834433022,
+            0.003558821021162702
+          ],
+          "interaction:delay_s*noise_std_m": [
+            0.2134496175382926,
+            0.2180082110010895
+          ],
+          "interaction:loss_probability*noise_std_m": [
+            0.00015452050159397713,
+            0.0003369139209590954
+          ],
+          "interaction:motion*delay_s": [
+            0.08084568462811192,
+            0.08281752244886828
+          ],
+          "interaction:motion*loss_probability": [
+            0.003988041316102064,
+            0.005501478358229868
+          ],
+          "interaction:motion*noise_std_m": [
+            0.06007012458047037,
+            0.06222987154351958
+          ],
+          "main:delay_s": [
+            0.21265485377056365,
+            0.22020142672710433
+          ],
+          "main:loss_probability": [
+            0.014201048467474962,
+            0.01877591601281814
+          ],
+          "main:motion": [
+            0.06623676209414406,
+            0.07224312229691485
+          ],
+          "main:noise_std_m": [
+            0.12822538816105233,
+            0.13277460787449363
+          ],
+          "residual": [
+            0.1991505667233735,
+            0.2018340431825407
+          ]
+        },
+        "levels": {
+          "delay_s": [
+            "0.0",
+            "0.025",
+            "0.05",
+            "0.1",
+            "0.15",
+            "0.2",
+            "0.3"
+          ],
+          "loss_probability": [
+            "0.0",
+            "0.1",
+            "0.3",
+            "0.5"
+          ],
+          "motion": [
+            "constant_turn",
+            "constant_velocity"
+          ],
+          "noise_std_m": [
+            "0.0",
+            "0.02",
+            "0.05",
+            "0.1"
+          ]
+        },
+        "n_rows": 11200,
+        "n_seeds": 50,
+        "shares": {
+          "interaction:delay_s*loss_probability": 0.0031590499601800194,
+          "interaction:delay_s*noise_std_m": 0.21576283314627026,
+          "interaction:loss_probability*noise_std_m": 0.0002277157667065336,
+          "interaction:motion*delay_s": 0.08181269434501143,
+          "interaction:motion*loss_probability": 0.004684586286342738,
+          "interaction:motion*noise_std_m": 0.06112528547312394,
+          "main:delay_s": 0.21658685212741302,
+          "main:loss_probability": 0.01629447010926364,
+          "main:motion": 0.0693600845514715,
+          "main:noise_std_m": 0.13041328709531333,
+          "residual": 0.2005731411389036
+        }
+      },
+      "p95": {
+        "bootstrap_95": {
+          "interaction:delay_s*loss_probability": [
+            0.0006122545184704905,
+            0.001053473976317322
+          ],
+          "interaction:delay_s*noise_std_m": [
+            0.002697543234656977,
+            0.0036467103728477
+          ],
+          "interaction:loss_probability*noise_std_m": [
+            0.0014683290044625733,
+            0.004259474378415791
+          ],
+          "interaction:motion*delay_s": [
+            0.00044884799059793435,
+            0.0008369844372950202
+          ],
+          "interaction:motion*loss_probability": [
+            0.050443497730714555,
+            0.07007443376567087
+          ],
+          "interaction:motion*noise_std_m": [
+            0.005018316651074141,
+            0.007806081401619669
+          ],
+          "main:delay_s": [
+            0.3881478500145437,
+            0.4508929857295527
+          ],
+          "main:loss_probability": [
+            0.10510764942523132,
+            0.13981852696813066
+          ],
+          "main:motion": [
+            0.10420595710815017,
+            0.12456872030608639
+          ],
+          "main:noise_std_m": [
+            0.19123252912108743,
+            0.21890479981846633
+          ],
+          "residual": [
+            0.05081716656114376,
+            0.08624294045622924
+          ]
+        },
+        "levels": {
+          "delay_s": [
+            "0.0",
+            "0.025",
+            "0.05",
+            "0.1",
+            "0.15",
+            "0.2",
+            "0.3"
+          ],
+          "loss_probability": [
+            "0.0",
+            "0.1",
+            "0.3",
+            "0.5"
+          ],
+          "motion": [
+            "constant_turn",
+            "constant_velocity"
+          ],
+          "noise_std_m": [
+            "0.0",
+            "0.02",
+            "0.05",
+            "0.1"
+          ]
+        },
+        "n_rows": 11200,
+        "n_seeds": 50,
+        "shares": {
+          "interaction:delay_s*loss_probability": 0.0008040989623807528,
+          "interaction:delay_s*noise_std_m": 0.003139029411642756,
+          "interaction:loss_probability*noise_std_m": 0.0026057312427426853,
+          "interaction:motion*delay_s": 0.0006184833563597674,
+          "interaction:motion*loss_probability": 0.059830521444811983,
+          "interaction:motion*noise_std_m": 0.006305405098040787,
+          "main:delay_s": 0.4176864711059074,
+          "main:loss_probability": 0.12145447784806118,
+          "main:motion": 0.1143345545658125,
+          "main:noise_std_m": 0.20501171722896236,
+          "residual": 0.06820950973527785
+        }
+      }
+    },
+    "recovery": {
+      "log_p95": {
+        "bootstrap_95": {
+          "interaction:delay_s*loss_probability": [
+            6.426511255874312e-05,
+            0.00010635076683343952
+          ],
+          "interaction:delay_s*noise_std_m": [
+            0.0005928264884436822,
+            0.000783976814423963
+          ],
+          "interaction:loss_probability*noise_std_m": [
+            0.0011396915021182714,
+            0.0021021426561103427
+          ],
+          "interaction:motion*delay_s": [
+            3.398290945137094e-05,
+            6.244172614615821e-05
+          ],
+          "interaction:motion*loss_probability": [
+            0.00015406961068955562,
+            0.0004330337196298111
+          ],
+          "interaction:motion*noise_std_m": [
+            0.3485138932899752,
+            0.35286342145649524
+          ],
+          "main:delay_s": [
+            0.0059040949726977725,
+            0.00638317127568226
+          ],
+          "main:loss_probability": [
+            0.008033631705610954,
+            0.01059575935241722
+          ],
+          "main:motion": [
+            0.20250228557349909,
+            0.20746415742874452
+          ],
+          "main:noise_std_m": [
+            0.4177638679937725,
+            0.4238407640330911
+          ],
+          "residual": [
+            0.004013973258990846,
+            0.007243630795802891
+          ]
+        },
+        "levels": {
+          "delay_s": [
+            "0.0",
+            "0.025",
+            "0.05",
+            "0.1",
+            "0.15",
+            "0.2",
+            "0.3"
+          ],
+          "loss_probability": [
+            "0.0",
+            "0.1",
+            "0.3",
+            "0.5"
+          ],
+          "motion": [
+            "constant_turn",
+            "constant_velocity"
+          ],
+          "noise_std_m": [
+            "0.0",
+            "0.02",
+            "0.05",
+            "0.1"
+          ]
+        },
+        "n_rows": 11200,
+        "n_seeds": 50,
+        "shares": {
+          "interaction:delay_s*loss_probability": 8.37387447069319e-05,
+          "interaction:delay_s*noise_std_m": 0.0006754207063785164,
+          "interaction:loss_probability*noise_std_m": 0.0015648563212393557,
+          "interaction:motion*delay_s": 4.748799698264846e-05,
+          "interaction:motion*loss_probability": 0.00027147206244685837,
+          "interaction:motion*noise_std_m": 0.3506212310020207,
+          "main:delay_s": 0.006130683942459736,
+          "main:loss_probability": 0.009239375327290307,
+          "main:motion": 0.20502941647061543,
+          "main:noise_std_m": 0.420749673517431,
+          "residual": 0.005586643908428536
+        }
+      },
+      "p95": {
+        "bootstrap_95": {
+          "interaction:delay_s*loss_probability": [
+            0.0011724000788577572,
+            0.0015865544489076023
+          ],
+          "interaction:delay_s*noise_std_m": [
+            0.004840430634070443,
+            0.005886002493731087
+          ],
+          "interaction:loss_probability*noise_std_m": [
+            0.0010233305167442095,
+            0.003801373482250707
+          ],
+          "interaction:motion*delay_s": [
+            0.026526190128579475,
+            0.030212137960788234
+          ],
+          "interaction:motion*loss_probability": [
+            0.05604215860251349,
+            0.07460366874546034
+          ],
+          "interaction:motion*noise_std_m": [
+            0.022047864203715375,
+            0.027074288023791852
+          ],
+          "main:delay_s": [
+            0.07706509881862977,
+            0.08771665088075634
+          ],
+          "main:loss_probability": [
+            0.12912054328460199,
+            0.16054002227569877
+          ],
+          "main:motion": [
+            0.24696697094462242,
+            0.2697215590635585
+          ],
+          "main:noise_std_m": [
+            0.2938225974129981,
+            0.340942267488303
+          ],
+          "residual": [
+            0.055540359464240144,
+            0.08753850940714036
+          ]
+        },
+        "levels": {
+          "delay_s": [
+            "0.0",
+            "0.025",
+            "0.05",
+            "0.1",
+            "0.15",
+            "0.2",
+            "0.3"
+          ],
+          "loss_probability": [
+            "0.0",
+            "0.1",
+            "0.3",
+            "0.5"
+          ],
+          "motion": [
+            "constant_turn",
+            "constant_velocity"
+          ],
+          "noise_std_m": [
+            "0.0",
+            "0.02",
+            "0.05",
+            "0.1"
+          ]
+        },
+        "n_rows": 11200,
+        "n_seeds": 50,
+        "shares": {
+          "interaction:delay_s*loss_probability": 0.0013799457945070778,
+          "interaction:delay_s*noise_std_m": 0.005332518678850358,
+          "interaction:loss_probability*noise_std_m": 0.002146584796183736,
+          "interaction:motion*delay_s": 0.028305818798061367,
+          "interaction:motion*loss_probability": 0.06498891835624371,
+          "interaction:motion*noise_std_m": 0.024399866689848504,
+          "main:delay_s": 0.08229038337331336,
+          "main:loss_probability": 0.1442252726620408,
+          "main:motion": 0.2584196341751915,
+          "main:noise_std_m": 0.31634247221727446,
+          "residual": 0.07216858445848519
+        }
+      }
+    }
+  },
+  "bootstrap_samples": 2000,
+  "bootstrap_seed": 20261024,
+  "factors": [
+    "motion",
+    "delay_s",
+    "loss_probability",
+    "noise_std_m"
+  ],
+  "input": {
+    "path": "sim/runs/s6-recovery/per_seed.csv",
+    "rows": 22400,
+    "sha256": "ef45a41b8263be67de4b16f8e58d1295f877cead9d8c595d30fbb944534c426a"
+  },
+  "pair_terms": [
+    [
+      "motion",
+      "delay_s"
+    ],
+    [
+      "motion",
+      "loss_probability"
+    ],
+    [
+      "motion",
+      "noise_std_m"
+    ],
+    [
+      "delay_s",
+      "loss_probability"
+    ],
+    [
+      "delay_s",
+      "noise_std_m"
+    ],
+    [
+      "loss_probability",
+      "noise_std_m"
+    ]
+  ],
+  "residual_definition": "Residual combines within-cell seed variance plus all 3-way and 4-way interactions.",
+  "schema": "zephyr-s6-interaction-1"
+}
