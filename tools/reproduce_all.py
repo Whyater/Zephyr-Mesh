@@ -3,21 +3,28 @@
 from __future__ import annotations
 
 import argparse
+import atexit
 import concurrent.futures
 import hashlib
 import json
 import os
-from pathlib import Path
 import re
-import shutil
-import subprocess
 import shlex
+import shutil
+import signal
+import subprocess
 import sys
 import tarfile
 import tempfile
+import threading
+import time
+from pathlib import Path
 from typing import Any
 
 _SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
+_ACTIVE_PROCESSES: dict[int, tuple[subprocess.Popen[str], int | None]] = {}
+_ACTIVE_LOCK = threading.Lock()
+_STOPPING = threading.Event()
 
 
 class RegistryError(ValueError):
@@ -128,14 +135,91 @@ def shell_command(command: str) -> list[str]:
     return [bash, "-c", command]
 
 
+def _terminate_process_group(proc: subprocess.Popen[str], process_group: int | None) -> None:
+    """Stop a runner and every process it started in its private group."""
+    if process_group is None:
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/PID", str(proc.pid), "/T", "/F"],
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait()
+        return
+    try:
+        os.killpg(process_group, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    deadline = time.monotonic() + 1.0
+    while time.monotonic() < deadline:
+        try:
+            os.killpg(process_group, 0)
+        except ProcessLookupError:
+            return
+        time.sleep(0.02)
+    try:
+        os.killpg(process_group, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    try:
+        proc.wait(timeout=1.0)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+
+
+def _unregister_process(proc: subprocess.Popen[str]) -> None:
+    with _ACTIVE_LOCK:
+        _ACTIVE_PROCESSES.pop(id(proc), None)
+
+
+def _terminate_active_processes() -> None:
+    with _ACTIVE_LOCK:
+        active = list(_ACTIVE_PROCESSES.values())
+    for proc, process_group in active:
+        _terminate_process_group(proc, process_group)
+
+
+def _install_signal_cleanup() -> dict[int, Any]:
+    previous: dict[int, Any] = {}
+    _STOPPING.clear()
+
+    def handle(signum: int, _frame: Any) -> None:
+        _STOPPING.set()
+        _terminate_active_processes()
+        if signum == signal.SIGINT:
+            raise KeyboardInterrupt
+        raise SystemExit(128 + signum)
+
+    for signum in (signal.SIGINT, signal.SIGTERM):
+        previous[signum] = signal.getsignal(signum)
+        signal.signal(signum, handle)
+    return previous
+
+
+def _restore_signal_cleanup(previous: dict[int, Any]) -> None:
+    for signum, handler in previous.items():
+        signal.signal(signum, handler)
+
+
+atexit.register(_terminate_active_processes)
+
+
 def run_entry(
     entry: dict[str, Any], repo_root: Path, revision: str, source_dir: Path | None,
     python_executable: str, timeout: float, keep_temp: bool,
 ) -> dict[str, Any]:
     run_dir = entry["run_dir"]
     command = entry["command"].replace("{python}", shlex.quote(python_executable))
+    if _STOPPING.is_set():
+        return {"run_dir": run_dir, "command": entry["command"], "status": "cancelled"}
     temp = Path(tempfile.mkdtemp(prefix="reproduce-"))
     result: dict[str, Any] = {"run_dir": run_dir, "command": entry["command"]}
+    proc: subprocess.Popen[str] | None = None
+    process_group: int | None = None
     try:
         clean = temp / "tree"
         make_clean_copy(repo_root, clean, revision, source_dir)
@@ -144,16 +228,41 @@ def run_entry(
         command = command.replace("{out}", shlex.quote(str(out.resolve())))
         env = os.environ.copy()
         env["PYTHONPATH"] = str(clean)
+        popen_kwargs: dict[str, Any] = {
+            "cwd": clean,
+            "env": env,
+            "text": True,
+            # Runner stdout is intentionally discarded. Keeping it out of a
+            # pipe lets us notice the runner's exit even if a leftover child
+            # inherited its file descriptors.
+            "stdout": subprocess.DEVNULL,
+            "stderr": subprocess.PIPE,
+        }
+        if os.name != "nt":
+            popen_kwargs["start_new_session"] = True
+        else:
+            popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+        with _ACTIVE_LOCK:
+            if _STOPPING.is_set():
+                return {"run_dir": run_dir, "command": entry["command"], "status": "cancelled"}
+            proc = subprocess.Popen(shell_command(command), **popen_kwargs)
+            if os.name != "nt":
+                process_group = os.getpgid(proc.pid)
+            _ACTIVE_PROCESSES[id(proc)] = (proc, process_group)
+        timed_out = False
         try:
-            proc = subprocess.run(
-                shell_command(command), cwd=clean, env=env, text=True,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout,
-            )
-        except subprocess.TimeoutExpired as exc:
-            result.update({"status": "failed", "error": f"timeout after {timeout:g} seconds", "stderr_tail": str(exc.stderr or "").splitlines()[-20:]})
+            _stdout, stderr = proc.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            _terminate_process_group(proc, process_group)
+            _stdout, stderr = proc.communicate()
+        else:
+            _terminate_process_group(proc, process_group)
+        if timed_out:
+            result.update({"status": "failed", "error": f"timeout after {timeout:g} seconds", "stderr_tail": stderr.splitlines()[-20:]})
             return result
         if proc.returncode != 0:
-            result.update({"status": "failed", "exit_code": proc.returncode, "stderr_tail": proc.stderr.splitlines()[-20:]})
+            result.update({"status": "failed", "exit_code": proc.returncode, "stderr_tail": stderr.splitlines()[-20:]})
             return result
         differences: dict[str, dict[str, str | None]] = {}
         missing: list[str] = []
@@ -176,6 +285,9 @@ def run_entry(
         result.update({"status": "failed", "error": str(exc)})
         return result
     finally:
+        if proc is not None:
+            _terminate_process_group(proc, process_group)
+            _unregister_process(proc)
         if not keep_temp:
             shutil.rmtree(temp, ignore_errors=True)
         else:
@@ -250,10 +362,20 @@ def main(argv: list[str] | None = None) -> int:
     selected = [e for e in entries if (only is None or Path(e["run_dir"]).name in only) and (skip is None or Path(e["run_dir"]).name not in skip)]
     source_dir = args.source_dir.resolve() if args.source_dir else None
     results: list[dict[str, Any]] = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as pool:
+    previous_signals = _install_signal_cleanup()
+    pool = concurrent.futures.ThreadPoolExecutor(max_workers=args.workers)
+    try:
         futures = [pool.submit(run_entry, e, repo_root, args.rev, source_dir, args.python, args.timeout, args.keep_temp) for e in selected]
         for future in futures:
             results.append(future.result())
+    except BaseException:
+        _STOPPING.set()
+        pool.shutdown(wait=True, cancel_futures=True)
+        raise
+    else:
+        pool.shutdown(wait=True)
+    finally:
+        _restore_signal_cleanup(previous_signals)
     for result in results:
         print_result(result)
     report = {"results": results, "selected": len(selected), "workers": args.workers}
