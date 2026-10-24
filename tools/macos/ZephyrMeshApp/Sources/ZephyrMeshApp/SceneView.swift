@@ -129,8 +129,10 @@ private struct SceneRepresentable: NSViewRepresentable {
         view.allowsCameraControl = false
         view.antialiasingMode = .multisampling4X
         view.preferredFramesPerSecond = 60
-        view.rendersContinuously = true
-        view.isPlaying = true
+        // Drawing is on demand: continuous only while the camera eases or a propeller spins,
+        // and stopped while the window cannot be seen. See InteractiveSceneView.updateDrawing.
+        view.rendersContinuously = false
+        view.isPlaying = false
         view.showsStatistics = ProcessInfo.processInfo.environment["ZEPHYR_SCENE_STATS"] == "1"
         view.setAccessibilityLabel("3D view of the replay. Drag to orbit, scroll or pinch to zoom.")
         context.coordinator.attach(view)
@@ -168,6 +170,17 @@ private struct SceneRepresentable: NSViewRepresentable {
         }
 
         func attach(_ view: InteractiveSceneView) {
+            let controller = controller
+            view.needsContinuousFrames = { [weak controller] in controller?.hasSpinningPropellers ?? true }
+            view.onRequestFrames = { [weak controller] resuming in
+                controller?.driver.requestSettleNotice(resumingFromIdle: resuming)
+            }
+            controller.onNeedsFrames = { [weak view] in view?.requestFrames() }
+            controller.driver.onSettle { [weak view, weak controller] in
+                // A request that arrived after this notice was queued still needs its frames.
+                guard controller?.driver.isSettleNoticePending == false else { return }
+                view?.cameraDidSettle()
+            }
             view.onDrag = { [weak self] dx, dy in self?.controller.orbit(deltaX: dx, deltaY: dy) }
             view.onZoom = { [weak self] factor in self?.controller.zoom(factor: factor) }
             view.onResize = { [weak self] size in self?.controller.viewDidResize(size) }
@@ -208,13 +221,79 @@ final class InteractiveSceneView: SCNView {
     private var trackingArea: NSTrackingArea?
     private static let dragThreshold: CGFloat = 3
 
+    // MARK: Drawing on demand
+
+    /// True while the scene changes every frame on its own (a propeller spin).
+    var needsContinuousFrames: () -> Bool = { true }
+    /// Asks the camera driver to report when it settles, which ends the request. The flag is
+    /// true when the view was not drawing before this request.
+    var onRequestFrames: (_ resumingFromIdle: Bool) -> Void = { _ in }
+    private var isFollowingCamera = false
+    private(set) var isWindowVisible = true
+    private var occlusionObserver: NSObjectProtocol?
+
+    /// Draws every frame until `cameraDidSettle()`: the camera eases toward its goal on the
+    /// render loop, and scene changes from the model must reach the screen.
+    func requestFrames() {
+        onRequestFrames(!rendersContinuously)
+        isFollowingCamera = true
+        updateDrawing()
+    }
+
+    func cameraDidSettle() {
+        isFollowingCamera = false
+        updateDrawing()
+    }
+
+    /// A hidden, minimised or fully covered window draws nothing and pauses the scene.
+    func windowVisibilityDidChange(_ visible: Bool) {
+        guard visible != isWindowVisible else { return }
+        isWindowVisible = visible
+        // Draw the current state on return, in case the model moved while hidden.
+        if visible { requestFrames() } else { updateDrawing() }
+    }
+
+    /// While anything moves, the view plays and draws every frame exactly as it always did.
+    /// Otherwise it neither plays nor draws continuously, so SceneKit draws nothing until the
+    /// next request. An unseen window also pauses the scene, because a running action (the
+    /// propeller spin) makes SceneKit draw every frame even when the view is not playing.
+    private func updateDrawing() {
+        let moving = isWindowVisible && (isFollowingCamera || needsContinuousFrames())
+        let paused = !isWindowVisible
+        if let scene, scene.isPaused != paused { scene.isPaused = paused }
+        if isPlaying != moving { isPlaying = moving }
+        if rendersContinuously != moving { rendersContinuously = moving }
+    }
+
     override var acceptsFirstResponder: Bool { true }
+
+    override func viewWillMove(toWindow newWindow: NSWindow?) {
+        super.viewWillMove(toWindow: newWindow)
+        if let occlusionObserver { NotificationCenter.default.removeObserver(occlusionObserver) }
+        occlusionObserver = nil
+        guard let newWindow else { return }
+        occlusionObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didChangeOcclusionStateNotification, object: newWindow, queue: .main
+        ) { [weak self] notification in
+            MainActor.assumeIsolated {
+                guard let window = notification.object as? NSWindow else { return }
+                self?.windowVisibilityDidChange(window.occlusionState.contains(.visible))
+            }
+        }
+    }
+
+    /// Moving to a display with another scale needs a fresh frame even when nothing moves.
+    override func viewDidChangeBackingProperties() {
+        super.viewDidChangeBackingProperties()
+        requestFrames()
+    }
 
     /// The scene, not the team filter, starts as first responder so the generated single-key
     /// shortcuts work from launch. SwiftUI would otherwise focus the first text field.
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         guard let window else { return }
+        windowVisibilityDidChange(window.occlusionState.contains(.visible))
         DispatchQueue.main.async { [weak self, weak window] in
             guard let self, let window, window.firstResponder is NSText || window.firstResponder === window else { return }
             window.makeFirstResponder(self)
