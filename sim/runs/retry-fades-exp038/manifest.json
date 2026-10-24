@@ -1,0 +1,155 @@
+{
+  "argv": [
+    "--output",
+    "/tmp/exp038-regen",
+    "--processes",
+    "1"
+  ],
+  "code_sha256": {
+    "sim/radio/channel.py": "e095a023fc3c9c3a11844ec27be608f0d283fe0966e86eb954f2a7d31d68e6b1",
+    "sim/radio/mac.py": "5ccdb58940f8d75466e84081fbc4f566e95b37e23124820d7b3aa9e36f257be9",
+    "sim/radio/model.py": "23cf6b08bba24059dda3e3b7ed8bfdcd024605c109977fc5f93669b6cbf013e6",
+    "sim/radio/params.py": "bfc1d4a794818399581e0d5b6330ea98356ac30e0006622118e09996ae4370d1",
+    "sim/radio/seq.py": "79d43687304ac29b7998043c0483b141919d92b29c49edae5627c83576b0ab1d",
+    "sim/runs/c-exp017-tolerance-r2/cells.csv": "2ef63f91381e0c26870b8de4f46bdbbd6fe06bec1722f6262c71e11d58348dc2",
+    "sim/runs/c-exp017-tolerance-r2/per_seed.csv": "e290967e2583f8152175ae100cb609e546533d45e0e100d87d8e1082f5151b03",
+    "sim/runs/s6-recovery/summary.json": "a3b04116e93e5e734f0d5f5bfd5e5ebfabb4fe2585110895019d8ff66bbe96eb",
+    "sim/s6_recovery.py": "bc0c8b1363d85d4c9f6f6f73900b29f6e9553f01471c7e46a053eaf3cd1ab63d",
+    "sim/sensor.py": "ca028be92da927d9d7e8e8b3b2b0e9d0b8dd18543b87c22b0bbb6ced73dc4a95",
+    "sim/tracker.py": "741e17c76d23f009629bbf990156b99ebf93f7465169bb150f17fe4cee09e12f",
+    "tools/c_exp017_tolerance.py": "ca9e2ba6de098bb9faa3d525bfdc01162b31f3cb83cfd4cbec46d2ce3e079544",
+    "tools/retry_fades.py": "055aa709b55c3df8e1867b48412c1d7f60482947978dcd57b39859cb8755f083",
+    "tools/retry_fades_hand.py": "23e334ee088d2fe591f70d185bdcc90e1efde6c20d04bd18d32410536e390146"
+  },
+  "config": {
+    "distances_m": [
+      250.0,
+      274.2062449236565,
+      300.75625902052906,
+      329.87697769322364,
+      361.8173093600944,
+      396.8502629920499,
+      435.27528164806193,
+      477.42080195520833,
+      523.6470614103132,
+      574.3491774985175,
+      629.9605249474363,
+      690.9564399838881,
+      757.8582832551987,
+      831.2378961427878,
+      911.7224885582173,
+      1000.0
+    ],
+    "fadings": [
+      [
+        "iid",
+        "iid",
+        null
+      ],
+      [
+        "static",
+        "static",
+        null
+      ],
+      [
+        "tau_0.1s",
+        "time_correlated",
+        0.1
+      ],
+      [
+        "tau_0.5s",
+        "time_correlated",
+        0.5
+      ],
+      [
+        "tau_2s",
+        "time_correlated",
+        2.0
+      ]
+    ],
+    "modes": [
+      "unicast",
+      "broadcast"
+    ],
+    "n_cells": 160,
+    "n_seeds": 50,
+    "processing_s": 0.0,
+    "registered_dir": "sim/runs/c-exp017-tolerance-r2"
+  },
+  "config_sha256": "995630526fd2bbc4cf419cf16e8c00201fcd57a7cf6f5a3de728d341b6f7b6da",
+  "git_revision": "6827c46409b032cef0c9372fac9b9a01478d1d3a",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no ESP32 or drone hardware was used.",
+    "Radio parameters are literature-derived (sim/radio/params.py), with ranges; none are measured.",
+    "Proposal (EXP-038), not Adopted; simulated only, radio parameters literature-derived.",
+    "Correlation times 0.1, 0.5 and 2 s are assumptions; no ESP-NOW log has measured one.",
+    "One drone at a fixed distance, outdoor stress corner (sigma 4 dB, 6 dB orientation loss).",
+    "The EXP-006 cell rule (50 % of seeds) is still a proposal, not an adopted rule."
+  ],
+  "n_processes": 1,
+  "numpy": "2.5.1",
+  "outputs": {
+    "cells.csv": "2681a6a0886930f2e9dbd724ac5dfafe9a2c5f884750ba612d2b21fa465536a5",
+    "exp038_retry_fades.png": "289beba1dfc6968de99670126f45612441b65781cf11d95f0fd36bdd3effb5e0",
+    "per_seed.csv": "10be478bfc5a57b717ea807c42c94417dcab7d36ea88d6af5bced5c6f9b2687d",
+    "summary.json": "82dab458fd33ea052ede4179d39120152854eaaa8b71af7fcaadc197fbd29f50"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/retry_fades.py --output {out}",
+  "runtime_s": 1240.9358938750229,
+  "schema": "zephyr-run-c-manifest-1",
+  "seeds": [
+    475358220,
+    396089605,
+    2136615580,
+    3779945640,
+    2509691599,
+    1599255996,
+    955383047,
+    4168395281,
+    3059479106,
+    2330081308,
+    2548420355,
+    3041728360,
+    3547376745,
+    3355276595,
+    387623948,
+    2040990466,
+    2453760408,
+    1660017199,
+    4221023121,
+    394141339,
+    1001661805,
+    1295811602,
+    1257219801,
+    4174567095,
+    315509079,
+    1227242520,
+    959687189,
+    3218797055,
+    4293530995,
+    174199916,
+    3677287032,
+    943978214,
+    24258091,
+    3713717060,
+    931573184,
+    304613837,
+    3091759633,
+    3688069053,
+    323399984,
+    1512071749,
+    2506332794,
+    2737381719,
+    2685877617,
+    2497948870,
+    1719372898,
+    3052450238,
+    4210629999,
+    2558200030,
+    3536509971,
+    3794483829
+  ]
+}
