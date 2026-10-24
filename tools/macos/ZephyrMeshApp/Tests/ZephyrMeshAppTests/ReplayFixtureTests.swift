@@ -467,13 +467,134 @@ final class RepairRoundTests: XCTestCase {
 
 @MainActor
 final class SceneGeometryTests: XCTestCase {
-    private func state(_ fixture: Fixture, frame: Int, selected: String?, command: CameraCommand? = nil) -> SceneState {
+    private func state(_ fixture: Fixture, frame: Int, selected: String?, command: CameraCommand? = nil,
+                       reduceMotion: Bool = true) -> SceneState {
         let presentation = fixture.frames[frame].presentation
         return SceneState(
             frame: fixture.frames[frame],
             styles: Dictionary(uniqueKeysWithValues: presentation.perDrone.map { ($0.droneID, StatusStyle(drone: $0)) }),
             headings: [:], selectedID: selected, hoveredID: nil, showKeepOut: true, viewMode: .threeD,
-            palette: Theme.dark, scenePalette: Theme.darkScene3D, isDark: true, reduceMotion: true, cameraCommand: command)
+            palette: Theme.dark, scenePalette: Theme.darkScene3D, isDark: true, reduceMotion: reduceMotion, cameraCommand: command)
+    }
+
+    func testPropellersSpinOnlyWhenMotionIsAllowed() throws {
+        // Every drone in the golden fixture is active, so without Reduce Motion they all spin
+        // and the view must keep drawing every frame.
+        let fixture = try loadFixture()
+        XCTAssertTrue(fixture.frames[3].drones.allSatisfy(\.active))
+        let controller = SceneController(fixture: fixture)
+        controller.apply(state(fixture, frame: 3, selected: nil, reduceMotion: false))
+        XCTAssertTrue(controller.hasSpinningPropellers)
+        controller.apply(state(fixture, frame: 3, selected: nil, reduceMotion: true))
+        XCTAssertFalse(controller.hasSpinningPropellers)
+    }
+
+    func testEveryChangeAsksTheViewForFrames() throws {
+        let fixture = try loadFixture()
+        let controller = SceneController(fixture: fixture)
+        var requests = 0
+        controller.onNeedsFrames = { requests += 1 }
+        controller.apply(state(fixture, frame: 3, selected: "drone-009"))
+        let afterApply = requests
+        XCTAssertGreaterThan(afterApply, 0, "a model change must reach the screen")
+        controller.orbit(deltaX: 10, deltaY: 0)
+        XCTAssertGreaterThan(requests, afterApply, "an orbit must start the camera ease")
+        let afterOrbit = requests
+        controller.zoom(factor: 1.2)
+        XCTAssertGreaterThan(requests, afterOrbit)
+        let afterZoom = requests
+        controller.viewDidResize(CGSize(width: 900, height: 600))
+        XCTAssertGreaterThan(requests, afterZoom, "a resize can move the home framing")
+    }
+
+    func testDriverReportsSettledOnlyAfterSeveralRestingFrames() throws {
+        let fixture = try loadFixture()
+        let controller = SceneController(fixture: fixture)
+        let device = try XCTUnwrap(MTLCreateSystemDefaultDevice())
+        let renderer = SCNRenderer(device: device, options: nil)
+        renderer.scene = controller.scene
+        renderer.pointOfView = controller.cameraNode
+        renderer.delegate = controller.driver
+        let size = CGSize(width: 160, height: 100)
+        var time = 0.0
+        func drawFrame() {
+            time += 1.0 / 60
+            _ = renderer.snapshot(atTime: time, with: size, antialiasingMode: .none)
+        }
+        drawFrame()
+        let settled = expectation(description: "settle notice")
+        controller.driver.onSettle { settled.fulfill() }
+        controller.driver.requestSettleNotice()
+        for _ in 1..<CameraDriver.settledFramesBeforeNotice { drawFrame() }
+        XCTAssertTrue(controller.driver.isSettleNoticePending, "one resting frame short of the notice")
+        drawFrame()
+        XCTAssertFalse(controller.driver.isSettleNoticePending)
+        wait(for: [settled], timeout: 2)
+
+        // A camera that is still easing restarts the count, so drawing never stops mid-move.
+        controller.driver.requestSettleNotice()
+        controller.orbit(deltaX: 200, deltaY: 0)
+        for _ in 0..<CameraDriver.settledFramesBeforeNotice { drawFrame() }
+        XCTAssertTrue(controller.driver.isSettleNoticePending)
+    }
+
+    func testCameraEasesFromRestAfterAnIdleGap() throws {
+        // Drawing used to run every frame, so an ease always began with a one-frame step.
+        // After the view sat idle, the first frame must not take a long step toward the goal.
+        let fixture = try loadFixture()
+        let controller = SceneController(fixture: fixture)
+        let device = try XCTUnwrap(MTLCreateSystemDefaultDevice())
+        let renderer = SCNRenderer(device: device, options: nil)
+        renderer.scene = controller.scene
+        renderer.pointOfView = controller.cameraNode
+        renderer.delegate = controller.driver
+        let size = CGSize(width: 160, height: 100)
+        for frame in 0..<5 { _ = renderer.snapshot(atTime: Double(frame) / 60, with: size, antialiasingMode: .none) }
+        let start = controller.cameraNode.simdPosition
+        controller.orbit(deltaX: 200, deltaY: 0)
+        controller.driver.requestSettleNotice(resumingFromIdle: true)
+        let goal = controller.driver.goal.sceneEye
+        _ = renderer.snapshot(atTime: 5 + 4.0 / 60, with: size, antialiasingMode: .none)
+        let step = simd_distance(start, controller.cameraNode.simdPosition) / simd_distance(start, goal)
+        // One 1/60 s step with the 0.09 s time constant covers 1 - exp(-0.185), about 17%.
+        XCTAssertGreaterThan(step, 0.05)
+        XCTAssertLessThan(step, 0.3, "the first frame after idle eased \(step) of the way")
+    }
+
+    func testViewDrawsWhileMovingAndStopsWhenIdleOrUnseen() {
+        let view = InteractiveSceneView(frame: NSRect(x: 0, y: 0, width: 160, height: 100))
+        let scene = SCNScene()
+        view.scene = scene
+        var spinning = false
+        var requests = 0
+        view.needsContinuousFrames = { spinning }
+        var resumes: [Bool] = []
+        view.onRequestFrames = { resuming in
+            requests += 1
+            resumes.append(resuming)
+        }
+
+        view.requestFrames()
+        XCTAssertEqual(requests, 1)
+        XCTAssertTrue(view.isPlaying && view.rendersContinuously, "an easing camera draws every frame")
+        view.cameraDidSettle()
+        XCTAssertFalse(view.isPlaying || view.rendersContinuously, "nothing moves, so nothing is drawn")
+
+        spinning = true
+        view.cameraDidSettle()
+        XCTAssertTrue(view.isPlaying && view.rendersContinuously, "spinning propellers draw every frame, as before")
+
+        view.windowVisibilityDidChange(false)
+        XCTAssertFalse(view.isPlaying || view.rendersContinuously)
+        XCTAssertTrue(scene.isPaused, "a running action would otherwise keep an unseen view drawing")
+
+        view.windowVisibilityDidChange(true)
+        XCTAssertFalse(scene.isPaused)
+        XCTAssertTrue(view.rendersContinuously)
+        XCTAssertEqual(requests, 2, "returning to view draws the current state")
+        XCTAssertEqual(resumes, [true, true], "both requests restart drawing from idle")
+        view.requestFrames()
+        XCTAssertEqual(resumes.last, false, "a request while drawing keeps the camera clock")
     }
 
     func testEachDroneIsSizedFromItsOwnProfile() throws {

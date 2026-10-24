@@ -28,6 +28,9 @@ final class CameraDriver: NSObject, SCNSceneRendererDelegate, @unchecked Sendabl
     private var lastTime: TimeInterval?
     private var snapNext = true
     private var reducedMotion = false
+    private var settleCountdown: Int?
+    private var resumeClock = false
+    private var settleHandler: (@MainActor () -> Void)?
     let cameraNode: SCNNode
 
     init(camera: OrbitCamera, cameraNode: SCNNode) {
@@ -51,6 +54,31 @@ final class CameraDriver: NSObject, SCNSceneRendererDelegate, @unchecked Sendabl
         lock.unlock()
     }
 
+    /// Settled frames to draw after a request before `settleHandler` runs. More than one, so
+    /// scene changes committed just after the request are on screen before drawing stops.
+    static let settledFramesBeforeNotice = 3
+
+    /// Runs `handler` on the main queue once the camera has rested at its goal for a few drawn
+    /// frames, so the view can stop drawing. One call per `requestSettleNotice()`.
+    func onSettle(_ handler: @escaping @MainActor () -> Void) {
+        lock.lock(); settleHandler = handler; lock.unlock()
+    }
+
+    /// `resumingFromIdle` marks the first frame after the view stopped drawing: its clock gap
+    /// is idle time, not motion, so the camera takes one display frame's step, as it did when
+    /// the view drew every frame.
+    func requestSettleNotice(resumingFromIdle: Bool = false) {
+        lock.lock()
+        settleCountdown = Self.settledFramesBeforeNotice
+        if resumingFromIdle { resumeClock = true }
+        lock.unlock()
+    }
+
+    var isSettleNoticePending: Bool {
+        lock.lock(); defer { lock.unlock() }
+        return settleCountdown != nil
+    }
+
     func setReducedMotion(_ value: Bool) {
         lock.lock()
         reducedMotion = value
@@ -60,13 +88,25 @@ final class CameraDriver: NSObject, SCNSceneRendererDelegate, @unchecked Sendabl
 
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         lock.lock()
+        if resumeClock, lastTime != nil { lastTime = time - 1.0 / 60 }
+        resumeClock = false
         let elapsed = Float(lastTime.map { min(max(time - $0, 0), 0.1) } ?? 0)
         lastTime = time
         currentCamera = snapNext ? goalCamera : currentCamera.smoothed(toward: goalCamera, elapsed: elapsed)
         snapNext = false
         let pose = currentCamera
+        var handler: (@MainActor () -> Void)?
+        if let countdown = settleCountdown {
+            // A frame where the camera still moves restarts the count.
+            let next = currentCamera == goalCamera ? countdown - 1 : Self.settledFramesBeforeNotice
+            settleCountdown = next > 0 ? next : nil
+            if next <= 0 { handler = settleHandler }
+        }
         lock.unlock()
         apply(pose)
+        if let handler {
+            DispatchQueue.main.async { MainActor.assumeIsolated { handler() } }
+        }
     }
 
     private func apply(_ camera: OrbitCamera) {
@@ -186,6 +226,12 @@ final class SceneController {
     private var reduceMotion = false
     private let gridHalfExtent: Int
     private var didFrameInitially = false
+    /// Set by the view: keep drawing frames until the camera settles. Called after every
+    /// change the view must show, because the view otherwise draws only while something moves.
+    var onNeedsFrames: (() -> Void)?
+    /// True while any propeller spins. Its action moves the scene every frame, so the view must
+    /// draw continuously at the display rate, exactly as before.
+    private(set) var hasSpinningPropellers = false
 
     init(fixture: Fixture) {
         self.fixture = fixture
@@ -232,6 +278,7 @@ final class SceneController {
     /// Keeps the home framing matched to the view until the user orbits, zooms or focuses.
     func viewDidResize(_ size: CGSize) {
         guard size.width > 1, size.height > 1 else { return }
+        onNeedsFrames?()
         viewSize = SIMD2(Float(size.width), Float(size.height))
         sizer.viewHeight = Float(size.height)
         updateRingVisibility()
@@ -245,6 +292,7 @@ final class SceneController {
         driver.update(change)
         updateFog(for: driver.goal)
         updateRingVisibility()
+        onNeedsFrames?()
     }
 
     /// Linear fog that starts just past the far side of the swarm and is nearly opaque at the
@@ -567,6 +615,7 @@ final class SceneController {
         updateSelectionRing(state)
         handleViewMode(state.viewMode)
         handle(state.cameraCommand, state: state)
+        onNeedsFrames?()
     }
 
     private func updateDrones(_ state: SceneState) {
@@ -612,6 +661,7 @@ final class SceneController {
                 }
             }
         }
+        hasSpinningPropellers = drones.values.contains { $0.spinning }
     }
 
     private func updateTarget(_ position: SIMD3<Float>?) {
