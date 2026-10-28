@@ -420,7 +420,115 @@
   "pass_rule": "Rule 1, landings: in every cell hold landings are no more than default, and pooled hold landings are at most 10 % of pooled default landings. Rule 2, success: pooled tags with hold are at least the default count, and pooled completed sweeps with hold are at least the default count. Rule 3, safety: pooled separation-violation steps with hold are no more than default, and in every tag cell the hold arm's minimum separation is no more than 0.05 m below the default arm's. The run passes only if all three rules pass; the sweep has no separation metric, so safety is judged on the tag cells only.",
   "pilot": false,
   "prediction": "Landings: default lands about once per run in every burst cell; hold has 0 landings everywhere. Rule 1 passes. Tag success: hold at least default; about 18 to 20 of 20 on burst_10 and 12 to 18 of 20 on burst_30. Sweeps: default 0 of 20 in all four cells; hold at least 15 of 20 per cell, t100 about 40 to 60 s without dropout and 60 to 90 s with one. Rule 2 passes. Safety: rule 3 fails (more violation steps with hold, mostly on jink, and at least one tag cell's minimum separation more than 0.05 m below default). Overall predicted verdict: FAIL on safety, with large gains on landings and completion.",
-  "prediction_source": "pre-registered before the full run (EXP-042 section of the private pre-registration); written after a disclosed 2-seed pilot",
+  "prediction_check": [
+    {
+      "held": true,
+      "observed": {
+        "default_landings_per_drone_per_run": {
+          "sweep dropout none burst_10_0.5s": 1.0,
+          "sweep dropout none burst_30_0.5s": 1.0,
+          "sweep dropout one burst_10_0.5s": 0.9500000000000001,
+          "sweep dropout one burst_30_0.5s": 1.0,
+          "tag figure8 burst_10_0.5s": 1.0,
+          "tag figure8 burst_30_0.5s": 1.0,
+          "tag jink burst_10_0.5s": 1.0,
+          "tag jink burst_30_0.5s": 1.0,
+          "tag turn burst_10_0.5s": 1.0,
+          "tag turn burst_30_0.5s": 1.0
+        }
+      },
+      "prediction": "Default lands about once per run in every burst cell (read as once per drone per run)."
+    },
+    {
+      "held": true,
+      "observed": {
+        "hold_landings": 0
+      },
+      "prediction": "Hold has 0 landings everywhere."
+    },
+    {
+      "held": true,
+      "observed": {
+        "rule_1": true
+      },
+      "prediction": "Rule 1 passes."
+    },
+    {
+      "held": false,
+      "observed": {
+        "hold_tagged_of_20": {
+          "tag figure8 burst_10_0.5s": 20,
+          "tag figure8 burst_30_0.5s": 20,
+          "tag jink burst_10_0.5s": 20,
+          "tag jink burst_30_0.5s": 20,
+          "tag turn burst_10_0.5s": 20,
+          "tag turn burst_30_0.5s": 20
+        }
+      },
+      "prediction": "Tag success with hold: about 18 to 20 of 20 on burst_10 and 12 to 18 of 20 on burst_30."
+    },
+    {
+      "held": true,
+      "observed": {
+        "default_completed": {
+          "sweep dropout none burst_10_0.5s": 0,
+          "sweep dropout none burst_30_0.5s": 0,
+          "sweep dropout one burst_10_0.5s": 0,
+          "sweep dropout one burst_30_0.5s": 0
+        }
+      },
+      "prediction": "Sweeps: default completes 0 of 20 in all four cells."
+    },
+    {
+      "held": true,
+      "observed": {
+        "hold_completed": {
+          "sweep dropout none burst_10_0.5s": 20,
+          "sweep dropout none burst_30_0.5s": 20,
+          "sweep dropout one burst_10_0.5s": 20,
+          "sweep dropout one burst_30_0.5s": 16
+        }
+      },
+      "prediction": "Sweeps: hold completes at least 15 of 20 per cell."
+    },
+    {
+      "held": true,
+      "observed": {
+        "hold_t100_s_median_of_completed": {
+          "sweep dropout none burst_10_0.5s": 40.26,
+          "sweep dropout none burst_30_0.5s": 49.4,
+          "sweep dropout one burst_10_0.5s": 61.84,
+          "sweep dropout one burst_30_0.5s": 76.87
+        }
+      },
+      "prediction": "Hold t100 about 40 to 60 s without dropout and 60 to 90 s with one."
+    },
+    {
+      "held": true,
+      "observed": {
+        "rule_2": true
+      },
+      "prediction": "Rule 2 passes."
+    },
+    {
+      "held": true,
+      "observed": {
+        "cells_more_than_0.05_m_below": 4,
+        "hold_steps_on_jink": 2066,
+        "violation_steps_default": 0,
+        "violation_steps_hold": 2066
+      },
+      "prediction": "Rule 3 fails: more violation steps with hold, mostly on jink, and at least one tag cell's minimum separation more than 0.05 m below default."
+    },
+    {
+      "held": true,
+      "observed": {
+        "status": "FAIL"
+      },
+      "prediction": "Overall verdict FAIL."
+    }
+  ],
+  "prediction_source": "written in the project's experiment notes (kept outside this repository) before the full run, after a 2-seed pilot of this grid; the repository alone cannot show the order",
   "simulated": true,
   "validity": {
     "cells_present": 10,
