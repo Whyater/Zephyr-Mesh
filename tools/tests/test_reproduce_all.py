@@ -186,6 +186,13 @@ def test_workers_cap_and_filters(tmp_path: Path) -> None:
     assert "one" not in skipped.stdout.lower()
 
 
+POSIX_ONLY = pytest.mark.skipif(
+    os.name == "nt",
+    reason="POSIX process-group check: uses ps, SIGKILL and SIGINT, which Windows lacks (the tool kills with taskkill there)",
+)
+
+
+@POSIX_ONLY
 def test_timeout_kills_runner_and_grandchild(tmp_path: Path) -> None:
     source = make_source(tmp_path)
     pid_file = tmp_path / "pids"
@@ -279,6 +286,7 @@ def test_large_stderr_does_not_trigger_false_timeout(tmp_path: Path) -> None:
     assert elapsed < 2.0
 
 
+@POSIX_ONLY
 def test_sigint_stops_queued_entries_and_descendants(tmp_path: Path) -> None:
     source = make_source(tmp_path)
     launch_log = tmp_path / "launches"

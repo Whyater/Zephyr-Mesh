@@ -115,6 +115,11 @@ def _csv_text(row: dict, fields: list[str]) -> str:
     return buf.getvalue()
 
 
+def _same_text(ours: str, registered: str) -> bool:
+    """How the gate compares a value with the registered text: character for character."""
+    return ours == registered
+
+
 def sanity_gate(cells: list[dict], rows: list[dict], registered_dir: Path) -> dict:
     """Every iid and static row must match the registered EXP-017 row for the same cell, seed, motion and arm."""
     with open(registered_dir / "cells.csv", newline="") as handle:
@@ -137,7 +142,7 @@ def sanity_gate(cells: list[dict], rows: list[dict], registered_dir: Path) -> di
         key = (reg_cell, str(r["seed"]), r["motion"], r["arm"])
         seen.add(key)
         reg = reg_rows.get(key)
-        ok = reg is not None and _csv_text(r, fields) == _csv_text(reg, fields)
+        ok = reg is not None and _same_text(_csv_text(r, fields), _csv_text(reg, fields))
         compared += 1
         if not ok:
             mismatched += 1

@@ -17,6 +17,7 @@ from pathlib import Path
 import pytest
 
 from sim.s6_recovery import RecoveryConfig, seed_list
+from sim.tests.platform_compare import same_text
 from tools import s6_combined_rerun as tool
 
 REGISTERED_CSV = Path(__file__).resolve().parents[2] / "sim" / "runs" / "s6-recovery" / "per_seed.csv"
@@ -79,7 +80,10 @@ def test_combining_rule_by_hand(tmp_path):
 
 
 def _assert_matches_registered(out: Path, registered_suffix: str, n_seeds: int) -> None:
-    """Every per-seed metric equals the registered sweep's row for the same motion, arm and seed."""
+    """Every per-seed metric equals the registered sweep's row for the same motion, arm and seed.
+
+    The registered rows were saved on macOS: exact text there, the shared float tolerance elsewhere.
+    """
     with (out / "per_seed.csv").open(newline="") as handle:
         ours = list(csv.DictReader(handle))
     with REGISTERED_CSV.open(newline="") as handle:
@@ -93,7 +97,8 @@ def _assert_matches_registered(out: Path, registered_suffix: str, n_seeds: int) 
 
     for mine, theirs in zip(sorted(ours, key=key), sorted(registered, key=key)):
         assert key(mine) == key(theirs)
-        assert {m: mine[m] for m in METRICS} == {m: theirs[m] for m in METRICS}
+        ours_m, theirs_m = {m: mine[m] for m in METRICS}, {m: theirs[m] for m in METRICS}
+        assert all(same_text(ours_m[m], theirs_m[m]) for m in METRICS), (ours_m, theirs_m)
 
 
 needs_registered = pytest.mark.skipif(not REGISTERED_CSV.is_file(),

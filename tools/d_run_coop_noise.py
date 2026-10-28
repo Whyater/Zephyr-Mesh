@@ -225,6 +225,11 @@ def _boundaries(grouped, seeds, delays) -> dict:
     return out
 
 
+def _same_text(ours: str, registered: str) -> bool:
+    """How the gate compares a value with the registered text: character for character."""
+    return ours == registered
+
+
 def _gate(rows, registered_seeds, delays, registered_boundaries, n_conditions: int) -> dict:
     """Compare the 5 cm, told 5 cm rows with the registered EXP-024 rows.
 
@@ -256,7 +261,7 @@ def _gate(rows, registered_seeds, delays, registered_boundaries, n_conditions: i
             duplicates += key in seen
             seen.add(key)
             for field in GATE_FIELDS:
-                if csv_text(wanted[key][field]) != reg[field]:
+                if not _same_text(csv_text(wanted[key][field]), reg[field]):
                     mismatches.append({"key": list(key), "field": field})
     boundary_checks = 0
     boundary_mismatches = []
