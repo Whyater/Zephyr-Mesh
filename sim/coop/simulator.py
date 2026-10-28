@@ -815,12 +815,7 @@ class CoopSwarmSimulator:
                             "coverage_largest_gap_deg": coverage,
                             "flags": sorted(flags),
                             "target_source_time_s": source_time,
-                            "target_age_s": (
-                                None if source_time is None else min(
-                                    c.heartbeat_timeout_s,
-                                    max(0.0, t - source_time),
-                                )
-                            ),
+                            "target_age_s": None if source_time is None else max(0.0, t - source_time),
                         }
                     )
                 for aid, agent in sorted(self.agents.items()):

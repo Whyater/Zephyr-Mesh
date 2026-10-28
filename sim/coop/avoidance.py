@@ -219,8 +219,9 @@ def _tie_break_preference(
     Only the preference changes; the half-spaces are untouched, so this cannot
     permit an unsafe velocity. It fires only for a neighbor whose half-space the
     unbiased preference violates and whose relative preferred velocity points
-    straight at it (sideways part below 1e-9 of its length). Without it two
-    observers meeting exactly head-on stop facing each other and never pass.
+    straight at it (sideways part below 1e-9 of its length). Exact closing ties
+    already take the cone-side plane, so this nudge only biases which way the
+    pair turns.
     """
     speed = float(np.linalg.norm(preferred))
     if not config.sidestep_right or speed <= _EPS:
