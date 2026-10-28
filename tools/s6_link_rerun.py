@@ -4,6 +4,11 @@ The input is either a fit JSON produced by ``fit_espnow_log.py`` (using its
 ``s6_deliver`` block) or a small JSON object with ``delay_s``, ``jitter_s``
 and ``loss_probability``. Results are always written to a new folder outside
 ``sim/runs``.
+
+The summary label follows the input's declared status (``source_trace.status``
+in a fit, ``status`` in a small JSON). Only ``measured`` gives a measured link
+label; ``synthetic`` and ``fixture`` stay synthetic, and a missing or other
+value is labelled unknown. The sensor is always simulated.
 """
 from __future__ import annotations
 
@@ -30,6 +35,9 @@ SCHEMA = "zephyr-s6-link-rerun-1"
 MANIFEST_SCHEMA = "zephyr-s6-link-rerun-manifest-1"
 FIT_SCHEMA = "zephyr-espnow-fit-1"
 NOISES = (0.0, 0.02, 0.05, 0.10)
+KNOWN_STATUSES = ("measured", "synthetic", "fixture")
+SYNTHETIC_STATUS = "synthetic investigation: simulated link and sensor"
+SYNTHETIC_LIMITS = ["simulated link and sensor", "main slice only", "no hardware data"]
 
 
 class LinkRerunError(ValueError):
@@ -76,6 +84,35 @@ def parse_link(data: Any) -> dict[str, Any]:
             raise LinkRerunError("burst_mean_length_packets must be positive")
         result["burst_mean_length_packets"] = mean
     return result
+
+
+def describe_input(data: Any, raw: bytes, input_file: str) -> dict[str, Any]:
+    """Record where the link settings came from: kind, declared status, trace id and input hash."""
+    if isinstance(data, dict) and data.get("schema") == FIT_SCHEMA:
+        kind = "espnow-fit"
+        source = data.get("source_trace")
+        source = source if isinstance(source, dict) else {}
+    else:
+        kind = "link-json"
+        source = data if isinstance(data, dict) else {}
+    status = source.get("status")
+    trace_id = source.get("trace_id")
+    return {"input_kind": kind, "input_status": status if status in KNOWN_STATUSES else "unknown",
+            "trace_id": trace_id if isinstance(trace_id, str) else None,
+            "input_file": input_file, "input_sha256": hashlib.sha256(raw).hexdigest()}
+
+
+def status_label(provenance: dict[str, Any]) -> tuple[str, list[str]]:
+    """Return the summary status text and limits for one input description."""
+    status = provenance["input_status"]
+    if status == "measured":
+        what = "a measured fit" if provenance["input_kind"] == "espnow-fit" else "measured input"
+        return (f"investigation: link from {what}, sensor simulated",
+                [f"link from {what}", "sensor simulated", "main slice only"])
+    if status in ("synthetic", "fixture"):
+        return SYNTHETIC_STATUS, list(SYNTHETIC_LIMITS)
+    return ("investigation: link input status unknown, sensor simulated",
+            ["link input status unknown, not shown to be measured", "sensor simulated", "main slice only"])
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -134,17 +171,20 @@ def run_rerun(input_path: Path, output: Path, *, pilot: bool = False, seeds_coun
         raise LinkRerunError("seeds must be positive")
     resolved_output = _check_output(output)
     raw = input_path.read_bytes()
-    link = parse_link(json.loads(raw.decode("utf-8")))
+    data = json.loads(raw.decode("utf-8"))
+    link = parse_link(data)
+    provenance = describe_input(data, raw, input_path.name)
+    status, limits = status_label(provenance)
     cells = build_cells(link, pilot=pilot)
     seeds = seed_list(seeds_count, base_seed=base_seed)
     config = RecoveryConfig()
     results = [_run_cell_link(cell, seeds, config) for cell in cells]
     summaries = [_cell_summary(cell, result) for cell, result in zip(cells, results)]
-    summary = {"schema": SCHEMA, "status": "synthetic investigation: simulated link and sensor",
+    summary = {"schema": SCHEMA, "status": status, "provenance": provenance,
                "generator": "tools/s6_link_rerun.py", "link": link,
                "config": {"duration_s": config.duration_s, "observation_period_s": config.observation_period_s},
                "design": {"pilot": pilot, "n_seeds": seeds_count, "base_seed": base_seed, "seeds": seeds},
-               "cells": summaries, "limits": ["simulated link and sensor", "main slice only", "no hardware data"]}
+               "cells": summaries, "limits": limits}
     resolved_output.mkdir(parents=True, exist_ok=True)
     summary_path = resolved_output / "summary.json"
     summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
@@ -159,7 +199,7 @@ def run_rerun(input_path: Path, output: Path, *, pilot: bool = False, seeds_coun
                     row.update({key: getattr(arm, key) for key in fields[12:]})
                     writer.writerow({key: _csv_value(row.get(key)) for key in fields})
     manifest = {"schema": MANIFEST_SCHEMA, "input_file": input_path.name,
-                "input_sha256": hashlib.sha256(raw).hexdigest(),
+                "input_sha256": provenance["input_sha256"], "provenance": provenance,
                 "link": link, "pilot": pilot, "seeds_count": seeds_count, "base_seed": base_seed,
                 "n_cells": len(cells), "argv": argv or [],
                 "replay_command": "PYTHONPATH=. .venv/bin/python tools/s6_link_rerun.py " + shlex.join(argv or []),
