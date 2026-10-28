@@ -207,7 +207,7 @@ def extract(data: bytes, name: str, *, split: bool = False) -> tuple[list[str], 
 
 
 def _write_text(path: Path, text: str) -> None:
-    with path.open("w", encoding="utf-8", newline="\n") as handle:
+    with path.open("x", encoding="utf-8", newline="\n") as handle:
         handle.write(text)
 
 
@@ -250,11 +250,24 @@ def extract_file(raw_path: str | Path, *, out: str | Path | None = None, out_dir
     for block, target, text in zip(audit["blocks"], targets, texts):
         block["output"] = target.name
         block["output_sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    made_folder = split and not Path(out_dir).exists()
     if split:
         Path(out_dir).mkdir(parents=True, exist_ok=True)
-    for target, text in zip(targets, texts):
-        _write_text(target, text)
-    _write_text(audit_target, json.dumps(audit, indent=2, allow_nan=False) + "\n")
+    created: list[Path] = []
+    try:
+        # Exclusive create: on a disk that ignores case, Case.csv and case.csv are one file, and
+        # the second write must fail instead of replacing the first.
+        for target, text in zip(targets, texts):
+            _write_text(target, text)
+            created.append(target)
+        _write_text(audit_target, json.dumps(audit, indent=2, allow_nan=False) + "\n")
+    except FileExistsError as exc:
+        for path in created:
+            path.unlink(missing_ok=True)
+        if made_folder:
+            Path(out_dir).rmdir()
+        raise ExtractError("two outputs are the same file, or one already exists; "
+                           "give --audit a different name") from exc
     return audit
 
 

@@ -287,3 +287,46 @@ def test_a_bad_audit_path_leaves_no_log_behind(tmp_path):
     with pytest.raises(ex.ExtractError, match="folder"):
         ex.extract_file(raw, out=out, audit_path=tmp_path / "missing" / "a.json")
     assert sorted(p.name for p in tmp_path.iterdir()) == ["raw.txt"]
+
+
+def _disk_ignores_case(folder):
+    probe = folder / "CaseProbe"
+    probe.write_bytes(b"")
+    try:
+        return (folder / "caseprobe").exists()
+    finally:
+        probe.unlink()
+
+
+def test_case_variant_names_cannot_overwrite_the_log(tmp_path):
+    # On a case-insensitive disk (default macOS, Windows) Case.csv and case.csv are one file.
+    if not _disk_ignores_case(tmp_path):
+        pytest.skip("this disk tells Case.csv and case.csv apart, so the collision cannot happen")
+    raw = _write(tmp_path / "raw.txt", _crlf(_lines(_small_logs(10).sender_text)))
+    with pytest.raises(ex.ExtractError, match="same file"):
+        ex.extract_file(raw, out=tmp_path / "Case.csv", audit_path=tmp_path / "case.csv")
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["raw.txt"]
+
+
+def test_case_variant_audit_name_in_split_folder_leaves_nothing_behind(tmp_path):
+    if not _disk_ignores_case(tmp_path):
+        pytest.skip("this disk tells block-1.csv and BLOCK-1.csv apart, so the collision cannot happen")
+    raw = _write(tmp_path / "raw.txt", _crlf(_lines(_small_logs(11).sender_text)))
+    folder = tmp_path / "d"
+    with pytest.raises(ex.ExtractError, match="same file"):
+        ex.extract_file(raw, out_dir=folder, split=True, audit_path=folder / "BLOCK-1.csv")
+    assert not folder.exists() or list(folder.iterdir()) == []
+
+
+def test_a_write_that_finds_an_existing_file_removes_what_it_created(tmp_path, monkeypatch):
+    # Disk-independent: the audit write loses a race (file appears after the pre-checks).
+    raw = _write(tmp_path / "raw.txt", _crlf(_lines(_small_logs(12).sender_text)))
+    real = ex._write_text
+    def racing(path, text):
+        if path.name == "a.json":
+            raise FileExistsError(path)
+        real(path, text)
+    monkeypatch.setattr(ex, "_write_text", racing)
+    with pytest.raises(ex.ExtractError, match="same file|already exists"):
+        ex.extract_file(raw, out=tmp_path / "s.csv", audit_path=tmp_path / "a.json")
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["raw.txt"]
