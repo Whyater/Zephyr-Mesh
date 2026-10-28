@@ -360,3 +360,41 @@ def test_an_io_error_while_writing_leaves_no_partial_output(tmp_path, monkeypatc
         else:
             ex.extract_file(raw, out=tmp_path / "s.csv")
     assert sorted(p.name for p in tmp_path.iterdir()) == ["raw.txt"]
+
+
+def test_a_file_that_blocked_the_write_is_left_alone_and_a_ctrl_c_is_cleaned_up(tmp_path, monkeypatch):
+    raw = _write(tmp_path / "raw.txt", _crlf(_lines(_small_logs(15).sender_text)))
+    real = ex._write_text
+    blocker = tmp_path / "a.json"
+    def blocked(path, text):
+        if path == blocker:
+            blocker.write_bytes(b"not ours\n")  # it appears after the pre-checks, as in a race
+            raise FileExistsError(path)
+        real(path, text)
+    monkeypatch.setattr(ex, "_write_text", blocked)
+    with pytest.raises(ex.ExtractError, match="a.json already exists"):
+        ex.extract_file(raw, out=tmp_path / "s.csv", audit_path=blocker)
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["a.json", "raw.txt"]
+    assert blocker.read_bytes() == b"not ours\n"
+
+    def interrupted(path, text):
+        real(path, text)
+        raise KeyboardInterrupt
+    monkeypatch.setattr(ex, "_write_text", interrupted)
+    with pytest.raises(KeyboardInterrupt):
+        ex.extract_file(raw, out=tmp_path / "t.csv", audit_path=tmp_path / "t.json")
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["a.json", "raw.txt"]
+
+
+def test_an_existing_empty_out_dir_survives_a_failed_split_write(tmp_path, monkeypatch):
+    raw = _write(tmp_path / "raw.txt", _crlf(_lines(_small_logs(16).sender_text)))
+    folder = tmp_path / "d"
+    folder.mkdir()
+    real = ex._write_text
+    def failing(path, text):
+        real(path, text)
+        raise OSError("disk full")
+    monkeypatch.setattr(ex, "_write_text", failing)
+    with pytest.raises(OSError, match="disk full"):
+        ex.extract_file(raw, out_dir=folder, split=True)
+    assert folder.is_dir() and list(folder.iterdir()) == []

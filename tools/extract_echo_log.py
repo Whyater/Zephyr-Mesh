@@ -258,9 +258,10 @@ def extract_file(raw_path: str | Path, *, out: str | Path | None = None, out_dir
             if ancestor.exists():
                 break
             new_folders.append(ancestor)
-        folder.mkdir(parents=True, exist_ok=True)
     created: list[Path] = []
     try:
+        if split:
+            folder.mkdir(parents=True, exist_ok=True)
         # Exclusive create: on a disk that ignores case, Case.csv and case.csv are one file, and
         # the second write must fail instead of replacing the first.
         for target, text in [*zip(targets, texts), (audit_target, audit_text)]:
@@ -268,14 +269,14 @@ def extract_file(raw_path: str | Path, *, out: str | Path | None = None, out_dir
             _write_text(target, text)
     except BaseException as exc:
         # Leave nothing half-written. The file that raised FileExistsError is not ours to delete.
-        for path in created[:-1] if isinstance(exc, FileExistsError) else created:
+        for path in created[:-1] if isinstance(exc, FileExistsError) and created else created:
             path.unlink(missing_ok=True)
         for path in new_folders:
             try:
                 path.rmdir()
             except OSError:
                 break
-        if isinstance(exc, FileExistsError):
+        if isinstance(exc, FileExistsError) and created:
             raise ExtractError(f"{created[-1].name} already exists, or two outputs are the same file; "
                                "pick new names") from exc
         raise
