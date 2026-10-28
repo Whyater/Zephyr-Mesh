@@ -274,11 +274,11 @@ def test_d_lost_leaving_detection_uses_last_state_receipt():
     # A receiver drops drone-001 from believed_alive at the earlier of two
     # moments (sim/coop/simulator.py):
     # 1. Leaving received: _deliver pops drone-001 from the receiver's latest
-    #    table (line 379) at the first step whose time is >= the leaving
+    #    table at the first step whose time is >= the leaving
     #    receive time (SimulatedLink.advance delivers receive_time <= now,
     #    sim/link.py:187).
     # 2. Heartbeat timeout: _alive_view keeps a peer while
-    #    t - last_receive <= heartbeat_timeout_s + 1e-12 (line 450), so the
+    #    t - last_receive <= heartbeat_timeout_s + 1e-12, so the
     #    peer is gone at the first step with t > last + timeout + 1e-12.
     # With 50 percent loss, drone-001 can also flicker out of the view before
     # its last state receipt, so the search starts at that last receipt.
