@@ -76,11 +76,14 @@ def label_failure(original: float, medians: dict[str, float | None], cell: dict)
 
     ``medians`` holds the counterfactual median p95 for ``delay``, ``loss``,
     ``noise`` and ``all``; a removal that does not change the cell is None.
-    D_x = original - median_x for the removals that apply. The label is the
-    removal with the largest D_x (ties: delay, loss, noise), unless removing
-    everything is at least as good as the best single removal, which is
-    "model-mismatch". When no removal applies (the cell is already clean in
-    delay, loss and noise) and it still fails, that is also "model-mismatch".
+    D_x = original - median_x is the drop in p95 from removing x, for the
+    removals that apply. The label is the removal with the largest D_x (ties:
+    delay, loss, noise), unless the p95 still left with everything removed
+    (``medians["all"]``) is at least as large as that largest drop. Then even a
+    perfect link and sensor would leave more error than any one cause explains,
+    and the label is "model-mismatch". When no removal applies (the cell is
+    already clean in delay, loss and noise) and it still fails, that is also
+    "model-mismatch".
     """
     all_removed = medians.get("all")
     if not _finite(all_removed):
