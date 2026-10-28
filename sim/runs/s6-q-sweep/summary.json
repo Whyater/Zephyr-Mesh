@@ -7460,7 +7460,7 @@
     "sim/s6_recovery.py": "bc0c8b1363d85d4c9f6f6f73900b29f6e9553f01471c7e46a053eaf3cd1ab63d",
     "sim/sensor.py": "ca028be92da927d9d7e8e8b3b2b0e9d0b8dd18543b87c22b0bbb6ced73dc4a95",
     "sim/tracker.py": "741e17c76d23f009629bbf990156b99ebf93f7465169bb150f17fe4cee09e12f",
-    "tools/run_s6_q_sweep.py": "312d39ead75f450e13987e3eca52d93e07ac2f6fe8a9bbca9245255c1f4a2918"
+    "tools/run_s6_q_sweep.py": "3bda61600b1e1f6bc27ef5111ae8d537ee96e9fbdf93111ee777b53143fb4e28"
   },
   "config": {
     "burn_in_s": 2.0,
@@ -7492,7 +7492,7 @@
       "H1_q_is_the_knob": "Straight line, no loss, 0.3 s: (a) at true noise 0.02 m and 0.10 m, the best grid q told 5 cm has a median p95 at or below the q = 0.1 told_truth median p95; (b) at 0.10 m that best-q cell passes.",
       "H2_one_fixed_q": "Some single grid q, told 5 cm, (a) never turns a cell that passes at q = 0.1 into a fail (all 36 conditions) and (b) in every no-loss condition (18) has a median p95 within 0.02 m of the best grid q for that condition.",
       "H3_schedule_worth_a_later_proposal": "Oracle schedule: on straight conditions the grid q with the smallest worst-case regret over straight no-loss conditions, on turn conditions the same for turns (told 5 cm). Single q: smallest worst-case regret over all 18 no-loss conditions. Passes if the schedule beats the single q by at least 0.02 m median p95 in at least 3 no-loss conditions, or turns at least one of the 36 conditions from fails to passes. Upper bound: the schedule knows the motion with no lag.",
-      "R0_reproduction": "At q = 0.1, told_5cm equals the registered runs/s6-recovery recovery arm per seed (p95 and max, exact) wherever that cell exists, told_truth at 0.10 m with no loss equals its oracle slice, and every q = 0.1 cell equals runs/s6-adaptive-r told_5cm and told_truth. If R0 fails the run is void.",
+      "R0_reproduction": "At q = 0.1, told_5cm equals the registered sim/runs/s6-recovery recovery arm per seed (p95 and max, exact) wherever that cell exists, told_truth at 0.10 m with no loss equals its oracle slice, and every q = 0.1 cell equals sim/runs/s6-adaptive-r told_5cm and told_truth. If R0 fails the run is void.",
       "cell_label": "a cell fails when at least half of its 50 seeds fail (p95 > 0.25 m or max > 0.50 m)",
       "regret": "median p95 at that q minus the smallest median p95 over the grid, same condition, told 5 cm",
       "ties": "added after the critic review, matching the code as first written: on a tie the smaller grid q wins"
@@ -7771,10 +7771,10 @@
     }
   },
   "schema": "zephyr-s6-q-sweep-1",
-  "status": "EXP-040 proposal: synthetic link and sensor, not flight performance, not registered",
+  "status": "EXP-040 proposal: synthetic link and sensor, not flight performance",
   "stored_inputs_sha256": {
-    "runs/s6-adaptive-r/per_seed.csv": "8d3ac72f60c9e690dbf4810025f01b17eb9f95f2d968767ab0eeafeaf1b6d58f",
-    "runs/s6-recovery/per_seed.csv": "ef45a41b8263be67de4b16f8e58d1295f877cead9d8c595d30fbb944534c426a"
+    "sim/runs/s6-adaptive-r/per_seed.csv": "8d3ac72f60c9e690dbf4810025f01b17eb9f95f2d968767ab0eeafeaf1b6d58f",
+    "sim/runs/s6-recovery/per_seed.csv": "ef45a41b8263be67de4b16f8e58d1295f877cead9d8c595d30fbb944534c426a"
   },
   "tolerance": [
     {
