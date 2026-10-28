@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from sim.missions.api import Scenario
+from sim.tests.platform_compare import EXACT, same_text
 from tools import e_exp042_hold as exp
 from tools.e_common import seeds_for
 from tools.e_exp029_part_b import scenario_for as part_b_scenario
@@ -168,7 +169,10 @@ def test_a_row_without_a_registered_twin_fails_reproduction():
                       "reproduced": False}
 
 
-def test_small_run_writes_hashed_outputs_and_is_void(tmp_path: Path):
+def test_small_run_writes_hashed_outputs_and_is_void(tmp_path: Path, monkeypatch):
+    # The registered rows were saved on macOS: exact text there, the shared float tolerance elsewhere.
+    if not EXACT:
+        monkeypatch.setattr(exp, "_same_text", same_text)
     jobs = [j for j in exp.build_jobs(pilot=True)
             if j["labels"]["part"] == "tag" and j["labels"]["target_class"] == "turn"
             and j["labels"]["preset"] == "burst_10_0.5s" and j["labels"]["seed_index"] == 0]
@@ -176,7 +180,8 @@ def test_small_run_writes_hashed_outputs_and_is_void(tmp_path: Path):
     first = exp.run_experiment(tmp_path / "a", jobs=jobs, argv=["--output", "x"])
     exp.run_experiment(tmp_path / "b", jobs=jobs, argv=["--output", "x"])
     assert first["verdict"]["status"] == "void"
-    assert first["default_arm_reproduces_registered_rows"]["reproduced"] is True
+    reproduction = first["default_arm_reproduces_registered_rows"]
+    assert reproduction["reproduced"] is True, reproduction["examples"]
     manifest = json.loads((tmp_path / "a" / "manifest.json").read_text(encoding="utf-8"))
     for name in exp.OUTPUTS:
         data = (tmp_path / "a" / name).read_bytes()

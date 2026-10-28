@@ -20,6 +20,7 @@ from sim.adaptive_r import (
     simulate_condition,
 )
 from sim.s6_recovery import RecoveryConfig, deliver, run_arms, seed_list
+from sim.tests.platform_compare import same_tree
 from sim.tracker import ConstantVelocityTracker
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -244,7 +245,7 @@ def test_told_arm_is_bit_identical_to_the_s6_recovery_arm(motion, delay, loss, n
 
 
 def test_told_arms_reproduce_the_registered_per_seed_rows():
-    """Tie to the registered run: the told-5 cm and told-10 cm arms give the stored S6 numbers exactly."""
+    """Tie to the registered run: the told-5 cm and told-10 cm arms give the stored S6 numbers (exactly on macOS)."""
     wanted = {
         "main/constant_velocity/d0.300/l0.00/n0.100/independent/j0.000/r0.050": 0.05,
         "oracle/constant_velocity/d0.300/l0.00/n0.100/independent/j0.000/r0.100": 0.10,
@@ -261,7 +262,7 @@ def test_told_arms_reproduce_the_registered_per_seed_rows():
         result = simulate_condition("constant_velocity", delay_s=0.3, loss_probability=0.0, noise_std_m=0.10,
                                     loss_model="independent", seed=seeds[index], config=config,
                                     arms={"told": ("told", wanted[cell_id])})
-        assert repr(result["told"].arm.p95_error_m) == repr(p95)
+        assert same_tree(float(result["told"].arm.p95_error_m), p95)
 
 
 def test_adaptive_arm_records_its_noise_estimate():

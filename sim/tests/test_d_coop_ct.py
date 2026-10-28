@@ -23,6 +23,7 @@ from sim.coop.observers import (
 from sim.estimation.base import EstimatorSettings
 from sim.estimation.factory import make_estimator
 from sim.s6_recovery import RecoveryConfig
+from sim.tests.platform_compare import same_tree
 
 BURST = {"mode": "abstract", "loss_probability": 0.3, "loss_model": "burst"}
 
@@ -61,7 +62,7 @@ def test_default_cv_rows_still_match_the_registered_d3_run(arm, n):
         cell = CoopCell(target="ct", n_observers=n,
                         link=LinkSpec(delay_s=float(row["delay"]), **BURST))
         got = run_seed(cell, int(row["seed"]), arms=(arm,))[arm]
-        assert repr(float(got.p95_error_m)) == repr(float(row["p95"]))
+        assert same_tree(float(got.p95_error_m), float(row["p95"]))
 
 
 # ---------------------------------------------------------------- shared fading

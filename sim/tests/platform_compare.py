@@ -7,6 +7,8 @@ error of 1e-12 near zero), far below anything the simulator reports.
 """
 from __future__ import annotations
 
+import csv
+import io
 import math
 import sys
 
@@ -38,3 +40,31 @@ def same_tree(actual, expected) -> bool:
             return actual == expected
         return math.isclose(actual, expected, rel_tol=RTOL, abs_tol=ATOL)
     return type(actual) is type(expected) and actual == expected
+
+
+def same_text(actual: str, expected: str) -> bool:
+    """True when two saved value texts match: exactly on macOS.
+
+    Elsewhere two number texts also match when the numbers agree within the float tolerance.
+    Non-number texts (labels, booleans, empty cells) must always match exactly.
+    """
+    if actual == expected:
+        return True
+    if EXACT:
+        return False
+    try:
+        a, b = float(actual), float(expected)
+    except ValueError:
+        return False
+    return math.isclose(a, b, rel_tol=RTOL, abs_tol=ATOL)
+
+
+def same_csv_row(actual: str, expected: str) -> bool:
+    """True when two CSV row texts match cell by cell under the same_text rule."""
+    if actual == expected:
+        return True
+    if EXACT:
+        return False
+    a = next(csv.reader(io.StringIO(actual)), [])
+    b = next(csv.reader(io.StringIO(expected)), [])
+    return len(a) == len(b) and all(same_text(x, y) for x, y in zip(a, b))

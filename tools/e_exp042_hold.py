@@ -189,6 +189,11 @@ def registered_rows(repo: Path = REPO_ROOT) -> dict[tuple, dict]:
     return out
 
 
+def _same_text(ours: str, registered: str) -> bool:
+    """How the gate compares a value with the registered text: character for character."""
+    return ours == registered
+
+
 def default_reproduction(rows: list[dict], reference: dict[tuple, dict]) -> dict:
     """Check every default-arm row against the registered row: same metric columns, same values.
 
@@ -210,10 +215,10 @@ def default_reproduction(rows: list[dict], reference: dict[tuple, dict]) -> dict
         ref_metrics = set(ref) - REGISTERED_LABELS[part]
         problems = sorted(f"missing:{k}" for k in ref_metrics - run_metrics)
         problems += sorted(f"extra:{k}" for k in run_metrics - ref_metrics)
-        problems += sorted(k for k in run_metrics & ref_metrics if _text(row[k]) != ref[k])
+        problems += sorted(k for k in run_metrics & ref_metrics if not _same_text(_text(row[k]), ref[k]))
         if _text(row["adapter"]) != ref["adapter"]:
             problems.append("adapter")
-        if part == "tag" and _text(draw_outage_start(int(row["seed"]))) != ref["blackout_start_s"]:
+        if part == "tag" and not _same_text(_text(draw_outage_start(int(row["seed"]))), ref["blackout_start_s"]):
             problems.append("blackout_start_s")
         if problems:
             mismatched += 1
