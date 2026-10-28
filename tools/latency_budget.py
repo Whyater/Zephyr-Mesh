@@ -6,7 +6,10 @@ file (``tools/vision_latency.py analyze``). The processing median comes from
 a ``zephyr-processing-time-1`` file or is typed in by hand. The radio term is
 the upper end of the one-way mean delay interval in a ``zephyr-espnow-fit-1``
 file when one is given; otherwise it is a 40 ms default that is assumed and
-simulated, not measured.
+simulated, not measured. The two radio terms are different statistics: the
+default is a tail value (the worst simulated seed's p95 delay), while the fit
+term bounds the MEAN one-way delay and leaves out jitter and the tail, so
+giving a fit usually lowers D. The result records this under ``limits``.
 
 D is rounded UP to the next S6 grid delay, and that row's pass or fail per
 arm is read from the registered S6 summary, which this tool only reads. A D
@@ -45,6 +48,8 @@ GRID_TOLERANCE_S = 1e-9
 
 MOTIONS = ("constant_velocity", "constant_turn")
 SYNTHETIC_STATUSES = ("synthetic", "fixture")
+RADIO_FIT_NOTE = ("the fit term bounds the mean one-way delay and leaves out jitter and the tail, while the "
+                  "40 ms default is a tail value (worst simulated seed's p95), so the two are not like for like")
 PASS_RULE = "a cell passes when fewer than half of its seeds fail (the cell rule in the S6 summary)"
 
 
@@ -74,6 +79,9 @@ def camera_term(latency: Any) -> dict[str, Any]:
     camera = data.get("camera_latency_s")
     if not isinstance(camera, dict) or "high" not in camera:
         raise LatencyBudgetError("latency input has no camera_latency_s.high")
+    if isinstance(camera["high"], (int, float)) and not isinstance(camera["high"], bool) and camera["high"] < 0:
+        raise LatencyBudgetError("camera_latency_s.high is below zero: the apparent latency is smaller than the "
+                                 "smallest assumed display lag, so check the display lag range or the run")
     high = _seconds(camera["high"], "camera_latency_s.high")
     apparent = data.get("apparent_latency_s") if isinstance(data.get("apparent_latency_s"), dict) else {}
     settings = data.get("settings") if isinstance(data.get("settings"), dict) else {}
@@ -135,8 +143,11 @@ def radio_term(fit: Any = None) -> dict[str, Any]:
         rule = "fit's one-way mean delay (the fit gave no interval)"
     trace = data.get("source_trace") if isinstance(data.get("source_trace"), dict) else {}
     status = str(trace.get("status", "unknown"))
+    jitter = delay["one_way_estimate"].get("delay_jitter_s")
     return {"value_s": term, "label": f"from a {status} ESP-NOW fit", "status": status, "rule": rule,
-            "one_way_mean_s": value, "one_way_mean_ci_s": ci, "trace_id": trace.get("trace_id")}
+            "one_way_mean_s": value, "one_way_mean_ci_s": ci,
+            "one_way_jitter_s": jitter.get("value") if isinstance(jitter, dict) else None,
+            "note": RADIO_FIT_NOTE, "trace_id": trace.get("trace_id")}
 
 
 def overall_status(statuses: list[str]) -> str:
@@ -152,15 +163,21 @@ def load_summary(path: Path) -> dict[str, Any]:
 
 
 def _row_cells(summary: dict[str, Any], noise_std_m: float) -> list[dict[str, Any]]:
-    return [c for c in summary.get("cells", [])
-            if c.get("slice") == "main" and c.get("loss_model") == "independent"
+    cells = summary.get("cells")
+    if not isinstance(cells, list):
+        raise LatencyBudgetError("S6 summary has no cells list")
+    return [c for c in cells
+            if isinstance(c, dict) and c.get("slice") == "main" and c.get("loss_model") == "independent"
             and c.get("loss_probability") == 0.0 and c.get("jitter_s") == 0.0
             and math.isclose(c.get("noise_std_m", -1.0), noise_std_m, abs_tol=1e-12)]
 
 
 def delay_grid(summary: dict[str, Any], noise_std_m: float) -> tuple[float, ...]:
     """The S6 delays run for this noise level with no loss and no jitter."""
-    return tuple(sorted({float(c["delay_s"]) for c in _row_cells(summary, noise_std_m)}))
+    try:
+        return tuple(sorted({float(c["delay_s"]) for c in _row_cells(summary, noise_std_m)}))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise LatencyBudgetError(f"S6 summary has a cell without a usable delay_s: {exc}") from exc
 
 
 def round_up_to_grid(delay_s: float, grid: tuple[float, ...]) -> float | None:
@@ -179,10 +196,13 @@ def read_rows(summary: dict[str, Any], delay_s: float, noise_std_m: float) -> li
         if len(match) != 1:
             raise LatencyBudgetError(f"expected one S6 cell for {motion} at {delay_s} s, found {len(match)}")
         cell = match[0]
-        row = {"motion": motion, "cell_id": cell["cell_id"]}
-        for arm in ("naive", "recovery"):
-            a = cell["arms"][arm]
-            row[arm] = {"label": a["label"], "fail_count": a["fail_count"], "n_seeds": a["n_seeds"]}
+        try:
+            row = {"motion": motion, "cell_id": cell["cell_id"]}
+            for arm in ("naive", "recovery"):
+                a = cell["arms"][arm]
+                row[arm] = {"label": a["label"], "fail_count": a["fail_count"], "n_seeds": a["n_seeds"]}
+        except (KeyError, TypeError) as exc:
+            raise LatencyBudgetError(f"S6 cell {cell.get('cell_id')!r} is missing {exc}") from exc
         rows.append(row)
     return rows
 
@@ -211,6 +231,10 @@ def budget(latency: Any, processing: Any = None, fit: Any = None, *, summary: di
     else:
         rows = read_rows(summary, point, noise_std_m)
         verdict = f"D = {1000 * total:.1f} ms rounds up to the {1000 * point:.0f} ms S6 row."
+    limits = ["the S6 rows are simulated link and sensor, not flight performance",
+              "the camera bound assumes the display lag range recorded in the latency file"]
+    if fit is not None:
+        limits.append(RADIO_FIT_NOTE)
     return {
         "schema": SCHEMA,
         "status": overall_status([camera["status"], proc["status"], radio["status"]]),
@@ -225,8 +249,7 @@ def budget(latency: Any, processing: Any = None, fit: Any = None, *, summary: di
         "verdict": verdict,
         "pass_rule": PASS_RULE,
         "summary": {"schema": summary.get("schema"), "status": summary.get("status"), "sha256": summary_sha256},
-        "limits": ["the S6 rows are simulated link and sensor, not flight performance",
-                   "the camera bound assumes the display lag range recorded in the latency file"],
+        "limits": limits,
     }
 
 
@@ -295,7 +318,11 @@ def _run(args: argparse.Namespace) -> int:
         processing, override = None, typed_processing_term(args.processing_median_ms / 1000.0)
     fit = _load_json(args.fit, "fit file") if args.fit is not None else None
     summary_bytes = Path(args.summary).read_bytes()
-    result = budget(latency, processing, fit, summary=json.loads(summary_bytes),
+    try:
+        summary = json.loads(summary_bytes)
+    except json.JSONDecodeError as exc:
+        raise LatencyBudgetError(f"cannot read S6 summary {args.summary}: {exc}") from exc
+    result = budget(latency, processing, fit, summary=summary,
                     summary_sha256=hashlib.sha256(summary_bytes).hexdigest(), noise_std_m=args.noise_std_m,
                     processing_term_override=override)
     print(format_report(result))

@@ -110,6 +110,9 @@ def test_float_rounding_does_not_push_a_grid_point_up():
     assert lb.round_up_to_grid(0.1 + 1e-6, GRID) == 0.15
     assert lb.round_up_to_grid(0.0, GRID) == 0.0
     assert lb.round_up_to_grid(0.3000001, GRID) is None
+    total = 0.1 + 0.2  # a float sum that lands just above 0.3
+    assert total > 0.3
+    assert lb.round_up_to_grid(total, GRID) == 0.3
 
 
 def test_default_radio_term_is_labelled_assumed_simulated():
@@ -126,6 +129,7 @@ def test_radio_label_and_value_change_when_a_fit_is_given():
     radio = result["components"]["radio"]
     assert radio["value_s"] == pytest.approx(0.004)
     assert radio["label"] == "from a synthetic ESP-NOW fit"
+    assert lb.RADIO_FIT_NOTE in result["limits"]
     assert result["total_delay_s"] == pytest.approx(0.064)
     assert result["grid_point_s"] == 0.1
     measured = lb.budget(_latency(0.050), _processing(0.010), fit=_fit(0.003, 0.004, "measured"))
@@ -149,14 +153,9 @@ def test_ten_cm_noise_row_uses_the_10_cm_cells():
     result = lb.budget(_latency(0.100), _processing(0.010), noise_std_m=0.10)
     assert result["grid_point_s"] == 0.15
     assert result["noise_std_m"] == 0.10
-    cells = _cells(result)
-    summary = lb.load_summary(lb.DEFAULT_SUMMARY)
-    for row in summary["cells"]:
-        if (row["slice"] == "main" and row["noise_std_m"] == 0.1 and row["loss_probability"] == 0.0
-                and row["delay_s"] == 0.15):
-            arms = row["arms"]
-            assert cells[row["motion"]] == (arms["naive"]["label"], arms["naive"]["fail_count"],
-                                            arms["recovery"]["label"], arms["recovery"]["fail_count"])
+    # truth from the registered summary, 10 cm row at 150 ms
+    assert _cells(result) == {"constant_velocity": ("fails", 50, "fails", 28),
+                              "constant_turn": ("fails", 50, "fails", 50)}
 
 
 @pytest.mark.parametrize("bad", [
@@ -227,9 +226,13 @@ def test_synthetic_latency_run_end_to_end(tmp_path, capsys):
     assert lb.main(["--latency", str(run / "latency.json"), "--processing", str(proc), "--out", str(out)]) == 0
     result = json.loads(out.read_text())
     high = latency["camera_latency_s"]["high"]
+    # truth: the synth run's injected mean latency (120 ms plus exposure effects) sits inside the camera range
+    true_mean_s = latency["run_meta"]["injected"]["true_mean_latency_ms"] / 1000.0
+    assert latency["camera_latency_s"]["low"] <= true_mean_s <= high
+    assert high == pytest.approx(true_mean_s, abs=0.005)
     assert result["components"]["camera"]["value_s"] == high
     assert result["total_delay_s"] == pytest.approx(high + 0.010 + 0.040)
-    assert result["grid_point_s"] == lb.round_up_to_grid(high + 0.050, GRID)
+    assert result["grid_point_s"] == 0.2  # about 127 + 10 + 40 ms rounds up to 200 ms
     assert result["status"] == "synthetic"
     assert result["summary"]["sha256"] == hashlib.sha256(summary_bytes).hexdigest()
     assert lb.DEFAULT_SUMMARY.read_bytes() == summary_bytes  # registered summary untouched
@@ -255,3 +258,15 @@ def test_output_inside_sim_runs_is_refused(tmp_path):
     assert not target.exists()
     with pytest.raises(lb.LatencyBudgetError):
         lb._check_output(target)
+
+
+@pytest.mark.parametrize("text", ['{"schema": "zephyr-s6-recovery-1", "cells": [', 
+                                  '{"schema": "zephyr-s6-recovery-1", "cells": [{"slice": "main", "motion": '
+                                  '"constant_velocity", "loss_model": "independent", "loss_probability": 0.0, '
+                                  '"jitter_s": 0.0, "noise_std_m": 0.05, "delay_s": 0.1}]}'])
+def test_broken_summary_is_an_error_not_a_traceback(tmp_path, text):
+    lat = tmp_path / "latency.json"
+    lat.write_text(json.dumps(_latency(0.050)))
+    bad = tmp_path / "summary.json"
+    bad.write_text(text)
+    assert lb.main(["--latency", str(lat), "--processing-median-ms", "10", "--summary", str(bad)]) == 2
