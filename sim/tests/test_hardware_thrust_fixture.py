@@ -10,7 +10,8 @@ the code:
 * shaft torque      Q = P / (2 pi n) = Cp * rho * n^2 * D^5 / (2 pi)
 
 At the prop limit, n = 36000 / 60 = 600 rev/s, the prop needs about
-0.0072 N m and 27 W per motor, four times the declared torque. The motor
+0.0072 N m per motor (four times the declared 0.0018 N m) and 27 W (1.5
+times the declared 18 W). The motor
 cannot reach that speed under load. Torque binds first, near 300 rev/s.
 """
 from __future__ import annotations
