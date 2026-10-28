@@ -378,3 +378,58 @@ def test_real_registry_has_strict_shape() -> None:
             assert isinstance(filename, str)
             assert isinstance(checksum, str) and len(checksum) == 64
             int(checksum, 16)
+
+
+def _load_tool_module():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("reproduce_all_under_test", TOOL)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+OLD_TIME = 1577836800  # 2020-01-01, far past any temp-folder cleaner's age limit
+
+
+def _assert_all_fresh(tree: Path, started: float) -> None:
+    files = [p for p in tree.rglob("*") if p.is_file()]
+    assert files
+    for path in files:
+        info = path.stat()
+        # macOS deletes files in the temp folder whose times are more than 3 days old,
+        # so a clean copy that keeps old commit times can lose files mid-run.
+        assert info.st_mtime >= started - 60, path
+        assert info.st_atime >= started - 60, path
+
+
+def test_clean_copy_from_git_archive_has_fresh_file_times(tmp_path: Path) -> None:
+    module = _load_tool_module()
+    repo = tmp_path / "repo"
+    (repo / "sim" / "data").mkdir(parents=True)
+    (repo / "sim" / "data" / "profile.json").write_text("{}\n", encoding="utf-8")
+    env = {**os.environ, "GIT_AUTHOR_DATE": "2020-01-01T00:00:00", "GIT_COMMITTER_DATE": "2020-01-01T00:00:00",
+           "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@example.com",
+           "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@example.com"}
+    for args in (["init", "-q"], ["add", "."], ["-c", "commit.gpgsign=false", "-c", "core.hooksPath=", "commit", "-q", "-m", "old"]):
+        subprocess.run(["git", *args], cwd=repo, env=env, check=True, capture_output=True)
+    started = time.time()
+
+    module.make_clean_copy(repo, tmp_path / "clean", "HEAD", None)
+
+    _assert_all_fresh(tmp_path / "clean", started)
+
+
+def test_clean_copy_from_source_dir_has_fresh_file_times(tmp_path: Path) -> None:
+    module = _load_tool_module()
+    source = tmp_path / "source"
+    (source / "sim").mkdir(parents=True)
+    old_file = source / "sim" / "profile.json"
+    old_file.write_text("{}\n", encoding="utf-8")
+    os.utime(old_file, (OLD_TIME, OLD_TIME))
+    started = time.time()
+
+    module.make_clean_copy(tmp_path, tmp_path / "clean", "HEAD", source)
+
+    _assert_all_fresh(tmp_path / "clean", started)
+    assert old_file.stat().st_mtime == OLD_TIME  # the source tree itself is left alone
