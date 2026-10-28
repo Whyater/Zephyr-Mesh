@@ -91,11 +91,26 @@ def safe_extract_archive(archive: bytes, destination: Path) -> None:
         tar.extractall(destination)
 
 
+def refresh_file_times(tree: Path) -> None:
+    """Stamp every copied file and folder with the current time.
+
+    git archive and copytree keep old file times. macOS deletes files in the
+    temp folder whose times are more than 3 days old, so without this a long
+    run on an older commit can lose source files halfway through. The stamp
+    happens once, right after the copy, so it does not cover a single entry
+    that runs for more than 3 days.
+    """
+    for path in tree.rglob("*"):
+        if not path.is_symlink():
+            os.utime(path, None)
+
+
 def make_clean_copy(repo_root: Path, destination: Path, revision: str, source_dir: Path | None) -> None:
     destination.mkdir(parents=True, exist_ok=True)
     if source_dir is not None:
         source_dir = source_dir.resolve()
         shutil.copytree(source_dir, destination, dirs_exist_ok=True)
+        refresh_file_times(destination)
         return
     proc = subprocess.run(
         ["git", "archive", "--format=tar", revision],
@@ -108,6 +123,7 @@ def make_clean_copy(repo_root: Path, destination: Path, revision: str, source_di
         message = proc.stderr.decode(errors="replace").strip()
         raise RuntimeError(f"git archive failed ({proc.returncode}): {message}")
     safe_extract_archive(proc.stdout, destination)
+    refresh_file_times(destination)
 
 
 def clear_directory(path: Path) -> None:
