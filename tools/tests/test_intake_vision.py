@@ -463,3 +463,14 @@ def test_intake_md_says_the_pilot_is_not_a_result_and_the_interval_is_approximat
     text = (pilot["out"] / "INTAKE.md").read_text()
     assert "It is not a result." in text
     assert "approximate interval" in text
+
+
+@pytest.mark.parametrize("seeds, subset, expected", [
+    (1, True, "one-seed medians on a subset of cells"),
+    (3, True, "3-seed medians on a subset of cells"),
+    (1, False, "one-seed medians on the full main slice"),
+])
+def test_pilot_note_matches_the_real_seeds_and_cells(seeds, subset, expected):
+    note = tool._pilot_note(seeds, subset)
+    assert expected in note
+    assert "not a result" in note

@@ -84,8 +84,14 @@ RERUN_NOTE = ("Only the fitted noise is applied. Fitted bias, dropout and latenc
 VOLATILE_NOTE = ("manifest.json and README.txt inside each S6 rerun folder are volatile (they hold paths and "
                  "runtime), so they are not hashed here. INTAKE.md does not hash itself. comparison.csv copies "
                  "registered columns from sim/runs when that file exists, so its hash depends on the checkout.")
-PILOT_NOTE = ("Pilot: the range below spans one-seed medians on a subset of cells. It shows that the chain "
-              "runs. It is not a result.")
+
+
+def _pilot_note(seeds_count: int, subset: bool) -> str:
+    seeds = "one-seed" if seeds_count == 1 else f"{seeds_count}-seed"
+    cells = "a subset of cells" if subset else "the full main slice"
+    return f"Pilot: the range below spans {seeds} medians on {cells}. It shows that the chain runs. It is not a result."
+
+
 INTERVAL_NOTE = "(the +/- is an approximate interval)"
 
 
@@ -317,7 +323,7 @@ def _rerun_section(name: str, manifest: dict[str, Any], output: Path) -> list[st
              + (" (pilot subset)" if manifest["cell_filter_used"] else " (full main slice)"),
              ""]
     if manifest["cell_filter_used"] or manifest["seeds_count"] == 1:
-        lines += [PILOT_NOTE, ""]
+        lines += [_pilot_note(manifest["seeds_count"], manifest["cell_filter_used"]), ""]
     lines += ["| Bracket | Noise used (m) | Source | Recovery median p95 error, min to max (m) |",
               "|---|---|---|---|"]
     for entry in manifest["bracket"]:
