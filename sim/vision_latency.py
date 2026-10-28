@@ -214,7 +214,7 @@ def decode_cells(means: np.ndarray, n_bits: int, *, mirror: str = "auto",
         pair = (ca, cb)
     elif (ca - cb) % modulus == 1:
         pair = (cb, ca)
-    else:  # cannot happen for a single flipped Gray bit, kept as a guard
+    else:  # a grey cell that is not the bit that changed (noise, blur) gives codes that are not neighbours
         return Decoded((), mirrored, contrast, "grey cell does not give neighbouring codes")
     return Decoded(pair, mirrored, contrast)
 
@@ -309,10 +309,12 @@ def match_frame(decoded: Decoded, t_read_s: float, log: DisplayLog, *,
     t_read - s[j+1] and t_read - s[j]. The midpoint is the best guess.
 
     A clean frame can still have up to ``ambiguous_margin`` of its exposure in a
-    neighbouring event (that cell is not grey enough to count), so the middle
-    of the exposure can sit up to margin x exposure outside event j. ``widen_s``
-    widens the clean bounds by that much on each side. The midpoint is not
-    moved, because the overhang is equally likely on either side.
+    neighbouring event (that cell is not grey enough to count). Its exposure
+    middle still lies inside event j: with less than a quarter of the exposure
+    outside, the middle sits at least a quarter exposure inside. ``widen_s``
+    widens the clean bounds by margin x exposure on each side anyway, as spare
+    room; it makes the bounds (and the locking guard built from them) wider
+    than they need to be, never narrower. The midpoint is not moved.
 
     A straddling frame shows k and k+1: the exposure caught the change at
     s[j+1], so the best guess is t_read - s[j+1] and the bounds widen to
@@ -360,6 +362,7 @@ class Settings:
     seed: int = 0
     ambiguous_margin: float = DEFAULT_AMBIGUOUS_MARGIN
     min_contrast: float = DEFAULT_MIN_CONTRAST
+    display_refresh_hz: float | None = None   # screen refresh rate; None = no refresh-phase term
 
 
 CONFIDENCE_NOTE = ("approximate; on synthetic runs the stated error covered the truth in 97% of runs "
@@ -402,11 +405,29 @@ def analyze(frames: np.ndarray, t_read_s: np.ndarray, log: DisplayLog, settings:
       it covered the injected latency in 292 (97%), or 178 of the 186 runs
       without the locking guard (96%), and the worst miss was 1.6 times the
       stated error (2.8 ms). No bias was found (mean signed error
-      -0.02 +/- 0.04 ms over 80 runs);
+      -0.02 +/- 0.04 ms over 80 runs). All of those recordings used a screen
+      that changes instantly, with no refresh grid, so the honest figure for
+      a real screen is "about 96% in synthetic checks without vsync" plus the
+      refresh-phase term below;
     * locking guard: if the hold times barely vary compared with the camera
       frame period, camera and display can lock in step and the midpoint errors
       stop cancelling. Then the mean half-width of the per-frame bounds is
-      added as a worst case.
+      added as a worst case;
+    * refresh phase (only when ``display_refresh_hz`` is given): a real screen
+      only changes on its refresh grid, one step g = 1 / refresh apart. A
+      camera whose frame period is a whole number of steps (30 fps on a 60 Hz
+      screen) takes every exposure at the same offset after a refresh, so the
+      midpoint errors no longer cancel even when the holds are random. The
+      expected leftover offset is the camera's position inside a refresh step
+      minus half a step, so it lies between -g/2 and +g/2, and recording
+      longer does not shrink it. g/2 is added as a worst case. A camera that
+      drifts against the grid averages it out, so this is conservative for
+      it. Limits: the scatter around that expected offset (which frames of an
+      event survive as clean) is only covered by the statistical part, so
+      very short recordings can exceed it; and the synthetic checks
+      (tools/vision_latency_calibration.py vsync, and a phase sweep in the
+      tests) use exposures up to 33 ms and holds of 40 to 70 ms, so exposures
+      longer than two refresh steps or holds shorter than one are untested.
     The display lag range is a separate one-sided correction: camera latency =
     apparent latency minus display lag.
 
@@ -427,6 +448,8 @@ def analyze(frames: np.ndarray, t_read_s: np.ndarray, log: DisplayLog, settings:
     lag_min, lag_max = settings.display_lag_s
     if not (0 <= lag_min <= lag_max):
         raise ValueError("display_lag_s must be (min, max) with 0 <= min <= max")
+    if settings.display_refresh_hz is not None and not settings.display_refresh_hz > 0:
+        raise ValueError("display_refresh_hz must be positive")
     if log.n_bits != settings.n_bits:
         raise ValueError(f"display log uses {log.n_bits} bits but settings say {settings.n_bits}")
     period = 1 << log.n_bits
@@ -467,6 +490,8 @@ def analyze(frames: np.ndarray, t_read_s: np.ndarray, log: DisplayLog, settings:
         "mirrored_fraction": (mirrored_votes / len(samples)) if samples else None,
         "warnings": [],
     }
+    if settings.display_refresh_hz is not None:   # only when set, so older outputs stay byte-identical
+        result["settings"]["display_refresh_hz"] = settings.display_refresh_hz
     if settings.roi is None and len(log.seq) <= period // 2:
         result["warnings"].append(f"only {len(log.seq)} display changes, so the top bit never changed and the "
                                   "automatic strip box may miss it. Record longer or pass --roi.")
@@ -493,6 +518,10 @@ def analyze(frames: np.ndarray, t_read_s: np.ndarray, log: DisplayLog, settings:
     statistical = 0.5 * (mean_hi - mean_lo)
     locking_guard = 0.0 if random_holds else float(np.mean(half))
     stated = statistical + locking_guard
+    stated_parts = {"statistical": statistical, "locking_guard": locking_guard}
+    if settings.display_refresh_hz is not None:
+        stated_parts["refresh_phase"] = 0.5 / settings.display_refresh_hz
+        stated += stated_parts["refresh_phase"]
     # Straddle frames caught a display change mid-exposure, so their midpoint is
     # off by at most a quarter of the exposure. Their spread is therefore close to
     # the real frame-to-frame jitter, unlike clean frames whose midpoints scatter
@@ -523,7 +552,7 @@ def analyze(frames: np.ndarray, t_read_s: np.ndarray, log: DisplayLog, settings:
             "mean": mean,
             "mean_ci": [mean_lo, mean_hi],
             "stated_error": stated,
-            "stated_error_parts": {"statistical": statistical, "locking_guard": locking_guard},
+            "stated_error_parts": stated_parts,
             "median": float(np.median(mid)),
             "p05": float(np.quantile(mid, 0.05)),
             "p95": float(np.quantile(mid, 0.95)),
@@ -555,6 +584,10 @@ class SynthConfig:
 
     latency_s is the true camera latency (middle of exposure to read()).
     display_lag_s is the true delay between logging a code and the pixels changing.
+    vsync_hz, if set, makes the screen refresh on a fixed grid like a real
+    display: a change only shows at the next refresh after logged time plus
+    display_lag_s, so each event gets an extra lag between 0 and one refresh
+    step. None (the default) is a screen that changes the instant it is told to.
     """
     latency_s: float = 0.120
     latency_jitter_s: float = 0.0
@@ -572,6 +605,7 @@ class SynthConfig:
     noise_std: float = 4.0
     mirrored: bool = False
     camera_phase_s: float = 0.0
+    vsync_hz: float | None = None
     seed: int = 1
 
 
@@ -604,6 +638,8 @@ def synth_recording(cfg: SynthConfig) -> SynthRecording:
     rng = np.random.default_rng(cfg.seed)
     log = synth_display_log(cfg, rng)
     on_screen = log.t_shown_s + cfg.display_lag_s       # when the pixels really change
+    if cfg.vsync_hz is not None:
+        on_screen = np.ceil(on_screen * cfg.vsync_hz) / cfg.vsync_hz   # next refresh
     period = 1.0 / cfg.fps
     first = 0.5 + cfg.camera_phase_s                    # skip the first half second
     centres = np.arange(first, cfg.duration_s, period)

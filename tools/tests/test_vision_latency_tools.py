@@ -37,6 +37,22 @@ def test_synth_then_analyze_round_trip(tmp_path, capsys):
     assert "upper bound on camera latency" in out
 
 
+def test_synth_and_analyze_with_a_refreshing_screen(tmp_path, capsys):
+    run_dir = tmp_path / "run"
+    assert cli.main(["synth", str(run_dir), "--latency-ms", "90", "--vsync-hz", "60",
+                     "--duration-s", "12", "--seed", "4"]) == 0
+    assert cli.main(["analyze", str(run_dir), "--display-lag-ms", "0,20", "--refresh-hz", "60"]) == 0
+    result = json.loads((run_dir / "latency.json").read_text())
+    meta = json.loads((run_dir / "run_meta.json").read_text())
+    assert meta["injected"]["vsync_hz"] == 60.0
+    assert result["settings"]["display_refresh_hz"] == 60.0
+    assert result["apparent_latency_s"]["stated_error_parts"]["refresh_phase"] == pytest.approx(1 / 120)
+    # The refresh delay (0 to 16.7 ms) is display lag, inside the assumed 0 to 20 ms.
+    camera = meta["injected"]["true_mean_latency_ms"] / 1000
+    assert result["camera_latency_s"]["low"] <= camera <= result["camera_latency_s"]["high"]
+    assert "60 Hz screen refresh" in capsys.readouterr().out
+
+
 def test_preview_writes_a_png(tmp_path):
     run_dir = tmp_path / "run"
     cli.main(["synth", str(run_dir), "--duration-s", "12"])

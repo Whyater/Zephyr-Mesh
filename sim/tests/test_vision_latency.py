@@ -90,6 +90,16 @@ def test_two_grey_cells_are_rejected():
     assert decoded.codes == () and "grey cells" in decoded.reason
 
 
+def test_grey_cell_that_is_not_the_changing_bit_is_rejected():
+    # Code 7 is Gray 0b00000100. Greying the cell for that set bit reads as Gray 0
+    # or Gray 4, which are codes 0 and 7: not neighbours, so not a real change.
+    n = 8
+    cells = np.concatenate(([200.0, 30.0], 30 + 170 * code_bits(7, n), [30.0, 30.0]))
+    cells[2 + 5] = 115.0
+    decoded = decode_cells(cells, n)
+    assert decoded.codes == () and "not give neighbouring codes" in decoded.reason
+
+
 def test_flat_frame_is_rejected_for_no_contrast():
     decoded = decode_cells(np.full(12, 100.0), 8)
     assert decoded.codes == () and "contrast" in decoded.reason
@@ -338,3 +348,55 @@ def test_jitter_estimate_is_none_with_fewer_than_ten_straddle_frames():
     a = result["apparent_latency_s"]
     assert a["straddle_frames"] < 10
     assert a["jitter_std_from_straddles"] is None
+
+
+# --- a screen that refreshes on a fixed grid (vsync) ---------------------------------------
+
+def refresh_lag_per_sample(result, log, hz, extra_lag_s):
+    """Answer key for the display lag each used frame saw, built from the log alone.
+
+    With vsync a code logged at s shows at the next refresh, ceil(s * hz) / hz,
+    so its lag is that minus s. A clean frame's estimate uses the middle of the
+    logged interval of event j, so its lag is the mean of the lags of events j
+    and j + 1 (the middle of the on-screen interval minus the middle of the
+    logged one). A straddling frame's estimate uses the change to event j + 1.
+    """
+    s = log.t_shown_s + extra_lag_s
+    lag = np.ceil(s * hz) / hz - log.t_shown_s
+    seq = np.array([x["seq"] for x in result["samples"]])
+    straddle = np.array([x["straddle"] for x in result["samples"]])
+    return np.where(straddle, lag[seq + 1], 0.5 * (lag[seq] + lag[seq + 1]))
+
+
+@pytest.mark.parametrize("exposure_s, seed", [(0.010, 3), (0.030, 8)])
+@pytest.mark.parametrize("phase_ms", [0.0, 1.5, 2.6, 4.0, 6.0, 8.3, 10.5, 12.5, 14.0, 15.2, 16.0])
+def test_vsync_camera_phase_stays_inside_stated_error(phase_ms, exposure_s, seed):
+    # A 30 fps camera and a 60 Hz screen: every exposure middle sits at the same
+    # offset after a refresh, so the midpoint errors no longer average out. The
+    # size and sign of the leftover offset depend on the camera phase, which no
+    # amount of recording time removes. The stated error must cover it once the
+    # analysis is told the refresh rate.
+    hz = 60.0
+    cfg = SynthConfig(latency_s=0.120, fps=30.0, exposure_s=exposure_s, duration_s=12.0,
+                      camera_phase_s=phase_ms / 1000, vsync_hz=hz, seed=seed)
+    rec, result = run(cfg, roi=cfg.strip_box, display_refresh_hz=hz)
+    a = result["apparent_latency_s"]
+    used = np.array([x["frame"] for x in result["samples"]])
+    camera = float(np.mean(rec.true_latency_s[used]))
+    mean_lag = float(np.mean(refresh_lag_per_sample(result, rec.log, hz, cfg.display_lag_s)))
+    assert abs(a["mean"] - camera - mean_lag) <= a["stated_error"]
+
+
+def test_refresh_phase_term_is_half_a_refresh_step_and_absent_by_default():
+    cfg = SynthConfig(latency_s=0.100, duration_s=12.0, seed=66)
+    _, plain = run(cfg, roi=cfg.strip_box)
+    _, told = run(cfg, roi=cfg.strip_box, display_refresh_hz=60.0)
+    assert "refresh_phase" not in plain["apparent_latency_s"]["stated_error_parts"]
+    assert "display_refresh_hz" not in plain["settings"]
+    parts = told["apparent_latency_s"]["stated_error_parts"]
+    assert parts["refresh_phase"] == pytest.approx(1 / 120)
+    assert told["apparent_latency_s"]["stated_error"] == pytest.approx(
+        plain["apparent_latency_s"]["stated_error"] + 1 / 120)
+    assert told["settings"]["display_refresh_hz"] == 60.0
+    with pytest.raises(ValueError, match="display_refresh_hz"):
+        run(cfg, roi=cfg.strip_box, display_refresh_hz=0.0)

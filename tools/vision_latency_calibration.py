@@ -4,6 +4,7 @@ Regenerates the coverage and bias numbers quoted in sim/vision_latency.py:
 
     PYTHONPATH=. .venv/bin/python tools/vision_latency_calibration.py coverage --runs 300
     PYTHONPATH=. .venv/bin/python tools/vision_latency_calibration.py bias --runs 80
+    PYTHONPATH=. .venv/bin/python tools/vision_latency_calibration.py vsync --runs 200
 
 coverage: random setups (latency 0 to 300 ms, 15/30/60 fps, exposure 2 to 33 ms,
 jitter 0/10/30 ms, 10 s each). Counts how often the stated error covers the
@@ -14,6 +15,12 @@ that varies during a run, and the default 2000 bootstrap resamples (coverage
 uses 1000, bias uses 200).
 
 bias: the average signed error over random 30/60 fps setups, with no jitter.
+
+vsync: like coverage, but the screen only changes on a 60 Hz refresh grid,
+with a fixed display lag of 0 to 10 ms on top, 15/25/30/60 fps (25 fps drifts
+against the grid, the others lock to it), and the analysis told the refresh
+rate. The truth is camera latency plus the display lag each frame really saw,
+worked out from the display log. About 4 minutes for 200 runs on one core.
 """
 from __future__ import annotations
 
@@ -70,12 +77,46 @@ def bias(runs: int) -> None:
           f"error std {1000 * e.std():.3f} ms, mean stated error {1000 * np.mean(stated):.3f} ms")
 
 
+def vsync(runs: int) -> None:
+    hz = 60.0
+    rng = np.random.default_rng(60)
+    misses, ratios, errors = 0, [], []
+    for i in range(runs):
+        cfg = SynthConfig(latency_s=float(rng.uniform(0, 0.3)), fps=float(rng.choice([15, 25, 30, 60])),
+                          exposure_s=float(rng.uniform(0.002, 0.033)),
+                          latency_jitter_s=float(rng.choice([0, 0, 0.01, 0.03])),
+                          display_lag_s=float(rng.uniform(0, 0.010)),
+                          noise_std=float(rng.uniform(2, 10)), duration_s=10.0, seed=9000 + i,
+                          camera_phase_s=float(rng.uniform(0, 1 / hz)), vsync_hz=hz)
+        rec = synth_recording(cfg)
+        result = analyze(rec.frames, rec.t_read_s, rec.log,
+                         Settings(display_lag_s=(0, 0), bootstrap=1000, roi=cfg.strip_box, seed=i,
+                                  display_refresh_hz=hz))
+        a = result["apparent_latency_s"]
+        # Lag of each event: next refresh after logged time plus the fixed lag, minus the logged time.
+        lag = np.ceil((rec.log.t_shown_s + cfg.display_lag_s) * hz) / hz - rec.log.t_shown_s
+        seq = np.array([x["seq"] for x in result["samples"]])
+        straddle = np.array([x["straddle"] for x in result["samples"]])
+        used = np.array([x["frame"] for x in result["samples"]])
+        # A clean frame's estimate uses the middle of event seq; a straddle uses the change to seq + 1.
+        seen = np.where(straddle, lag[seq + 1], 0.5 * (lag[seq] + lag[seq + 1]))
+        error = a["mean"] - float(np.mean(rec.true_latency_s[used])) - float(np.mean(seen))
+        errors.append(error)
+        ratios.append(abs(error) / a["stated_error"])
+        if abs(error) > a["stated_error"]:
+            misses += 1
+            print(f"miss: run {i}, {cfg.fps:.0f} fps, exposure {1000 * cfg.exposure_s:.0f} ms, "
+                  f"error {1000 * error:+.2f} ms, stated {1000 * a['stated_error']:.2f} ms")
+    print(f"runs {runs}, covered {runs - misses} ({100 * (runs - misses) / runs:.1f}%), "
+          f"worst |error|/stated {max(ratios):.2f}, worst |error| {1000 * max(map(abs, errors)):.2f} ms")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("check", choices=["coverage", "bias"])
+    parser.add_argument("check", choices=["coverage", "bias", "vsync"])
     parser.add_argument("--runs", type=int, default=300)
     args = parser.parse_args(argv)
-    (coverage if args.check == "coverage" else bias)(args.runs)
+    {"coverage": coverage, "bias": bias, "vsync": vsync}[args.check](args.runs)
     return 0
 
 
