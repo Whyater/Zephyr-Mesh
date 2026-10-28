@@ -1,11 +1,9 @@
 {
   "argv": [
     "--output",
-    "/tmp/cn-port/full",
+    "/tmp/cn-port/regen-4ec00e1",
     "--processes",
-    "1",
-    "--checkpoint",
-    "/tmp/cn-port/ckpt"
+    "1"
   ],
   "code_sha256": {
     "sim/__init__.py": "b5c4e06e700bf9268baefbdd45fd6ee3a779b89d785cc304f23b8971cb584793",
@@ -39,7 +37,7 @@
     "tools/coop_noise_hand.py": "496159615bb97882cb01cb3ad645df49c7d519690d679b15e3c6174dea587cd8",
     "tools/d_common.py": "711a0999abde10854d7641960ce645d0e71496f65d8148d71a16f446120c1998",
     "tools/d_make_tolerance_figure.py": "6af1cc71b13bcaccf7f533f820856c31eb5e6217f08a7754d2ac6d29aead3b09",
-    "tools/d_run_coop_noise.py": "46aa48f814d3631b7370deff4dd2ecc72e8513e3080bef9a402dc39ee0630cfe",
+    "tools/d_run_coop_noise.py": "0deb449a543cc21dd226f54770f279c3cb39f95fe3dd67dc25bca23aa9a7b96c",
     "tools/d_run_tolerance.py": "486f2a3de0d9abb122c7bf8124034ff8345b90239ac584aa276eca5d545bf140",
     "tools/horizon_mpl.py": "1fb2870d6a7f2f2aa2ca4db6ff7d4e854ffb53750cd79b08167b225689b26e6e"
   },
@@ -199,8 +197,8 @@
     "told5_means": "r_std_m=None (filter default 0.05 m), as registered"
   },
   "config_sha256": "da2e44a08d17e59fd7d0a9140463b34dc9b185462ef241bddfba7632b54d0dca",
-  "git_revision": "81e2560f08761ef0f61709a44d16b8b9e1d55738",
-  "git_tree_state": "dirty",
+  "git_revision": "4ec00e13dd56146f75e6bfb5b2780bac51a76798",
+  "git_tree_state": "clean",
   "limits": [
     "Simulated only: no drone, camera or radio hardware was used, and nothing here is measured.",
     "Proposal (EXP-039), not Adopted.",
@@ -226,7 +224,7 @@
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
   "replay_command": "PYTHONPATH=. {python} tools/d_run_coop_noise.py --output {out} --processes 1",
-  "runtime_s": 1486.862630291027,
+  "runtime_s": 1762.1638549580239,
   "schema": "zephyr-d-coop-noise-manifest-1",
   "seeds": [
     2716946712,
