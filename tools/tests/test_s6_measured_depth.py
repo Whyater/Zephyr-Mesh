@@ -120,7 +120,7 @@ def test_equal_axis_values_match_the_single_value_path():
     assert [o.as_dict() for o in per_axis.observations] == [o.as_dict() for o in single.observations]
 
 
-def test_cli_records_axis_noise_and_rejects_bad_values(tmp_path):
+def test_cli_records_axis_noise_and_rejects_bad_values(tmp_path, capsys):
     output = tmp_path / "fixture.jsonl"
     base = ["--frames", "12", "--rate", "30", "--bias", "0", "0", "0", "--dropout", "0",
             "--latency-mean", "0.03", "--latency-std", "0.0", "--seed", "7"]
@@ -136,16 +136,18 @@ def test_cli_records_axis_noise_and_rejects_bad_values(tmp_path):
     fixture_cli([str(old), "--noise-std", "0.04", *base])
     assert "noise_std_axis_m" not in json.loads(old.with_suffix(".params.json").read_text(encoding="utf-8"))
 
-    with pytest.raises(SystemExit):
-        fixture_cli([str(tmp_path / "both.jsonl"), "--noise-std", "0.04",
-                     "--noise-std-axis", "0.02", "0.02", "0.06", *base])
-    with pytest.raises(SystemExit):
-        fixture_cli([str(tmp_path / "neither.jsonl"), *base])
-    with pytest.raises(SystemExit):
-        fixture_cli([str(tmp_path / "negative.jsonl"), "--noise-std-axis", "0.02", "-0.02", "0.06", *base])
-    with pytest.raises(SystemExit):
-        fixture_cli([str(tmp_path / "nan.jsonl"), "--noise-std-axis", "0.02", "nan", "0.06", *base])
-    with pytest.raises(ValueError):
+    # Each bad command must fail for its own reason, so the argparse message is checked too.
+    bad_commands = [
+        (["--noise-std", "0.04", "--noise-std-axis", "0.02", "0.02", "0.06"], "not allowed with argument"),
+        ([], "one of the arguments --noise-std --noise-std-axis is required"),
+        (["--noise-std-axis", "0.02", "-0.02", "0.06"], "noise_std_axis_m must be three finite values"),
+        (["--noise-std-axis", "0.02", "nan", "0.06"], "noise_std_axis_m must be three finite values"),
+    ]
+    for index, (noise_args, message) in enumerate(bad_commands):
+        with pytest.raises(SystemExit):
+            fixture_cli([str(tmp_path / f"bad{index}.jsonl"), *noise_args, *base])
+        assert message in capsys.readouterr().err
+    with pytest.raises(ValueError, match="not both"):
         make_fixture(n_frames=5, frame_rate_hz=30, sensor_config=SensorConfig(noise_std_m=0.04), seed=1,
                      latency_mean_s=0.03, latency_std_s=0.0, noise_std_axis_m=(0.02, 0.02, 0.06))
 
