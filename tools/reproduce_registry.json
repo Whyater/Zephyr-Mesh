@@ -416,5 +416,23 @@
    "summary.json": "334b621e5e14113c87a92f28297bb61d93dea483a28490eb310b0b5f457da71c",
    "thresholds.json": "b191b4c1073f45870409f0b19f87c2c363354057fdfb6d8c2adb2c8594aa8ad1"
   }
+ },
+ {
+  "run_dir": "sim/runs/s6-adaptive-r",
+  "command": "PYTHONPATH=. {python} tools/run_s6_adaptive_r.py --output {out} --seeds 50 --processes 1 && PYTHONPATH=. {python} tools/make_s6_adaptive_r_figure.py --run {out}",
+  "outputs": {
+   "per_seed.csv": "8d3ac72f60c9e690dbf4810025f01b17eb9f95f2d968767ab0eeafeaf1b6d58f",
+   "summary.json": "c17a94f8bd85d90d1cb05bd2d8ca6a56303f15d84edeb957111467012de29049",
+   "s6_adaptive_r.png": "bcd8bf7fb02e116a28ce0c91aecb70178dc16d9340b6bb8e07bfb22ea15ef8b2"
+  }
+ },
+ {
+  "run_dir": "sim/runs/s6-q-sweep",
+  "command": "PYTHONPATH=. {python} tools/run_s6_q_sweep.py --output {out} --seeds 50 --processes 1 && PYTHONPATH=. {python} tools/make_s6_q_sweep_figure.py --summary {out}/summary.json --output {out}/s6_q_sweep.png",
+  "outputs": {
+   "per_seed.csv": "43506309dddbcb09844c40e08d49314c6510aad478e8209af44cf58f45555a34",
+   "summary.json": "2640baa101f069c79d76576c6ae9a74e3cc66adebde32cab90bd4dbb07986f28",
+   "s6_q_sweep.png": "95f7c13629b363b0880034e6e329884872e651ecfccf037ce58f5457b73b463f"
+  }
  }
 ]
