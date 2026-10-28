@@ -181,8 +181,15 @@ def summarize(rows: list[dict]) -> dict:
 
 
 def verdict(cells: list[dict]) -> dict:
-    """The pre-registered pass rule (written before any full run)."""
+    """The pre-registered pass rule (written before any full run).
+
+    Raises ``ValueError`` when the tag or sweep part has no cell with both
+    arms, because every rule would then compare zero with zero and pass.
+    """
     complete = [c for c in cells if c["default"] and c["hold"]]
+    for part in ("tag", "sweep"):
+        if not any(c["part"] == part for c in complete):
+            raise ValueError(f"no complete {part} cells (both arms run): the verdict would pass on nothing")
     land_d = sum(c["default"]["landings"] for c in complete)
     land_h = sum(c["hold"]["landings"] for c in complete)
     rule1 = all(c["hold"]["landings"] <= c["default"]["landings"] for c in complete) and (
@@ -225,7 +232,10 @@ def main(argv: list[str] | None = None) -> None:
     for row in rows:
         row.pop("policy_name", None)
     write_rows(args.output / "rows.csv", rows, ("part", "arm", "target_class", "preset", "dropout", "seed"))
-    summary = summarize(rows)
+    try:
+        summary = summarize(rows)
+    except ValueError as error:
+        raise SystemExit(f"EXP-042 verdict not computed: {error}") from error
     summary["default_arm_reproduces_registered_rows"] = default_reproduction(rows, repo)
     summary["simulated"] = True
     summary["label"] = "EXP-042, simulated comparison; not registered"
