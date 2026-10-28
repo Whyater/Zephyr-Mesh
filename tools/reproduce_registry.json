@@ -455,5 +455,14 @@
    "tolerance_vs_noise.png": "b1e824a793c38c54df3a7889ca2068cd0ccfeae9d4e73cb777e66d4781f08d27",
    "verdict.json": "d8d306b0f94cacaec33e54872ee05826fea37bf2697ab40d3a8d97dea4c9d57a"
   }
+ },
+ {
+  "run_dir": "sim/runs/e-exp042-hold",
+  "command": "PYTHONPATH=. {python} tools/e_exp042_hold.py --output {out} --processes 1",
+  "outputs": {
+   "exp042.csv": "9e37122d0cd60bcdb5f3a02973dd4445dcab9f1189e7530c8015bc105a41dda3",
+   "exp042_hold_simulated.png": "8496fb2c02f1c63e6f83c1e07c2ada6fda4aabf508364771928a89a3d32ceaf8",
+   "summary.json": "9c22a47a536c53d225393ad0c8c7bc97a400288ebd1e0e694eac783338d8535d"
+  }
  }
 ]

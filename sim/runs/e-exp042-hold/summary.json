@@ -1,0 +1,592 @@
+{
+  "cells": [
+    {
+      "default": {
+        "completed": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "duplicated_fraction_mean": 0.00275,
+        "false_loss_declarations": 42,
+        "landings": 60,
+        "landings_per_drone_hour": 30.0,
+        "landings_per_run": 3.0,
+        "runs": 20,
+        "t100_s_median_of_completed": null
+      },
+      "dropout": "none",
+      "hold": {
+        "completed": {
+          "count": 20,
+          "n": 20,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.8388748419471806
+        },
+        "duplicated_fraction_mean": 0.0298125,
+        "false_loss_declarations": 18,
+        "landings": 0,
+        "landings_per_drone_hour": 0.0,
+        "landings_per_run": 0.0,
+        "runs": 20,
+        "t100_s_median_of_completed": 40.26
+      },
+      "part": "sweep",
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "default": {
+        "completed": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "duplicated_fraction_mean": 0.0,
+        "false_loss_declarations": 114,
+        "landings": 60,
+        "landings_per_drone_hour": 30.0,
+        "landings_per_run": 3.0,
+        "runs": 20,
+        "t100_s_median_of_completed": null
+      },
+      "dropout": "none",
+      "hold": {
+        "completed": {
+          "count": 20,
+          "n": 20,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.8388748419471806
+        },
+        "duplicated_fraction_mean": 0.033125,
+        "false_loss_declarations": 78,
+        "landings": 0,
+        "landings_per_drone_hour": 0.0,
+        "landings_per_run": 0.0,
+        "runs": 20,
+        "t100_s_median_of_completed": 49.4
+      },
+      "part": "sweep",
+      "preset": "burst_30_0.5s"
+    },
+    {
+      "default": {
+        "completed": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "duplicated_fraction_mean": 0.002,
+        "false_loss_declarations": 14,
+        "landings": 57,
+        "landings_per_drone_hour": 28.5,
+        "landings_per_run": 2.85,
+        "runs": 20,
+        "t100_s_median_of_completed": null
+      },
+      "dropout": "one",
+      "hold": {
+        "completed": {
+          "count": 20,
+          "n": 20,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.8388748419471806
+        },
+        "duplicated_fraction_mean": 0.0455,
+        "false_loss_declarations": 8,
+        "landings": 0,
+        "landings_per_drone_hour": 0.0,
+        "landings_per_run": 0.0,
+        "runs": 20,
+        "t100_s_median_of_completed": 61.84
+      },
+      "part": "sweep",
+      "preset": "burst_10_0.5s"
+    },
+    {
+      "default": {
+        "completed": {
+          "count": 0,
+          "n": 20,
+          "rate": 0.0,
+          "wilson_high": 0.16112515805281938,
+          "wilson_low": 0.0
+        },
+        "duplicated_fraction_mean": 0.0,
+        "false_loss_declarations": 58,
+        "landings": 60,
+        "landings_per_drone_hour": 30.0,
+        "landings_per_run": 3.0,
+        "runs": 20,
+        "t100_s_median_of_completed": null
+      },
+      "dropout": "one",
+      "hold": {
+        "completed": {
+          "count": 16,
+          "n": 20,
+          "rate": 0.8,
+          "wilson_high": 0.919342337420202,
+          "wilson_low": 0.5839825677481064
+        },
+        "duplicated_fraction_mean": 0.18925,
+        "false_loss_declarations": 54,
+        "landings": 0,
+        "landings_per_drone_hour": 0.0,
+        "landings_per_run": 0.0,
+        "runs": 20,
+        "t100_s_median_of_completed": 76.87
+      },
+      "part": "sweep",
+      "preset": "burst_30_0.5s"
+    },
+    {
+      "default": {
+        "landings": 20,
+        "landings_before_outage": 13,
+        "landings_per_drone_hour": 120.0,
+        "landings_per_run": 1.0,
+        "min_separation_m": 0.5355283265564688,
+        "runs": 20,
+        "runs_with_violation": 0,
+        "separation_violation_steps": 0,
+        "tagged": {
+          "count": 13,
+          "n": 20,
+          "rate": 0.65,
+          "wilson_high": 0.818808175898918,
+          "wilson_low": 0.43285427668523624
+        },
+        "time_degraded_s_mean": 0.18750000000000003
+      },
+      "hold": {
+        "landings": 0,
+        "landings_before_outage": 0,
+        "landings_per_drone_hour": 0.0,
+        "landings_per_run": 0.0,
+        "min_separation_m": 0.5143107306997259,
+        "runs": 20,
+        "runs_with_violation": 0,
+        "separation_violation_steps": 0,
+        "tagged": {
+          "count": 20,
+          "n": 20,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.8388748419471806
+        },
+        "time_degraded_s_mean": 4.128999999999956
+      },
+      "part": "tag",
+      "preset": "burst_10_0.5s",
+      "target_class": "figure8"
+    },
+    {
+      "default": {
+        "landings": 20,
+        "landings_before_outage": 20,
+        "landings_per_drone_hour": 120.0,
+        "landings_per_run": 1.0,
+        "min_separation_m": 0.6061631791648222,
+        "runs": 20,
+        "runs_with_violation": 0,
+        "separation_violation_steps": 0,
+        "tagged": {
+          "count": 6,
+          "n": 20,
+          "rate": 0.3,
+          "wilson_high": 0.5189728183535235,
+          "wilson_low": 0.1454772448676043
+        },
+        "time_degraded_s_mean": 0.19050000000000003
+      },
+      "hold": {
+        "landings": 0,
+        "landings_before_outage": 0,
+        "landings_per_drone_hour": 0.0,
+        "landings_per_run": 0.0,
+        "min_separation_m": 0.5312910386612318,
+        "runs": 20,
+        "runs_with_violation": 0,
+        "separation_violation_steps": 0,
+        "tagged": {
+          "count": 20,
+          "n": 20,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.8388748419471806
+        },
+        "time_degraded_s_mean": 8.972999999999853
+      },
+      "part": "tag",
+      "preset": "burst_30_0.5s",
+      "target_class": "figure8"
+    },
+    {
+      "default": {
+        "landings": 20,
+        "landings_before_outage": 13,
+        "landings_per_drone_hour": 120.0,
+        "landings_per_run": 1.0,
+        "min_separation_m": 0.5234698569183266,
+        "runs": 20,
+        "runs_with_violation": 0,
+        "separation_violation_steps": 0,
+        "tagged": {
+          "count": 13,
+          "n": 20,
+          "rate": 0.65,
+          "wilson_high": 0.818808175898918,
+          "wilson_low": 0.43285427668523624
+        },
+        "time_degraded_s_mean": 0.18750000000000003
+      },
+      "hold": {
+        "landings": 0,
+        "landings_before_outage": 0,
+        "landings_per_drone_hour": 0.0,
+        "landings_per_run": 0.0,
+        "min_separation_m": 0.11530321227954016,
+        "runs": 20,
+        "runs_with_violation": 8,
+        "separation_violation_steps": 643,
+        "tagged": {
+          "count": 20,
+          "n": 20,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.8388748419471806
+        },
+        "time_degraded_s_mean": 4.128999999999956
+      },
+      "part": "tag",
+      "preset": "burst_10_0.5s",
+      "target_class": "jink"
+    },
+    {
+      "default": {
+        "landings": 20,
+        "landings_before_outage": 20,
+        "landings_per_drone_hour": 120.0,
+        "landings_per_run": 1.0,
+        "min_separation_m": 0.5360431345278922,
+        "runs": 20,
+        "runs_with_violation": 0,
+        "separation_violation_steps": 0,
+        "tagged": {
+          "count": 7,
+          "n": 20,
+          "rate": 0.35,
+          "wilson_high": 0.5671457233147638,
+          "wilson_low": 0.18119182410108206
+        },
+        "time_degraded_s_mean": 0.19050000000000003
+      },
+      "hold": {
+        "landings": 0,
+        "landings_before_outage": 0,
+        "landings_per_drone_hour": 0.0,
+        "landings_per_run": 0.0,
+        "min_separation_m": 0.1375478982571164,
+        "runs": 20,
+        "runs_with_violation": 14,
+        "separation_violation_steps": 1423,
+        "tagged": {
+          "count": 20,
+          "n": 20,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.8388748419471806
+        },
+        "time_degraded_s_mean": 8.972999999999853
+      },
+      "part": "tag",
+      "preset": "burst_30_0.5s",
+      "target_class": "jink"
+    },
+    {
+      "default": {
+        "landings": 20,
+        "landings_before_outage": 13,
+        "landings_per_drone_hour": 120.0,
+        "landings_per_run": 1.0,
+        "min_separation_m": 0.5234524572491672,
+        "runs": 20,
+        "runs_with_violation": 0,
+        "separation_violation_steps": 0,
+        "tagged": {
+          "count": 13,
+          "n": 20,
+          "rate": 0.65,
+          "wilson_high": 0.818808175898918,
+          "wilson_low": 0.43285427668523624
+        },
+        "time_degraded_s_mean": 0.18750000000000003
+      },
+      "hold": {
+        "landings": 0,
+        "landings_before_outage": 0,
+        "landings_per_drone_hour": 0.0,
+        "landings_per_run": 0.0,
+        "min_separation_m": 0.5181904808820198,
+        "runs": 20,
+        "runs_with_violation": 0,
+        "separation_violation_steps": 0,
+        "tagged": {
+          "count": 20,
+          "n": 20,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.8388748419471806
+        },
+        "time_degraded_s_mean": 4.128999999999956
+      },
+      "part": "tag",
+      "preset": "burst_10_0.5s",
+      "target_class": "turn"
+    },
+    {
+      "default": {
+        "landings": 20,
+        "landings_before_outage": 20,
+        "landings_per_drone_hour": 120.0,
+        "landings_per_run": 1.0,
+        "min_separation_m": 0.6157798847873849,
+        "runs": 20,
+        "runs_with_violation": 0,
+        "separation_violation_steps": 0,
+        "tagged": {
+          "count": 7,
+          "n": 20,
+          "rate": 0.35,
+          "wilson_high": 0.5671457233147638,
+          "wilson_low": 0.18119182410108206
+        },
+        "time_degraded_s_mean": 0.19050000000000003
+      },
+      "hold": {
+        "landings": 0,
+        "landings_before_outage": 0,
+        "landings_per_drone_hour": 0.0,
+        "landings_per_run": 0.0,
+        "min_separation_m": 0.5098449733087441,
+        "runs": 20,
+        "runs_with_violation": 0,
+        "separation_violation_steps": 0,
+        "tagged": {
+          "count": 20,
+          "n": 20,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.8388748419471806
+        },
+        "time_degraded_s_mean": 8.972999999999853
+      },
+      "part": "tag",
+      "preset": "burst_30_0.5s",
+      "target_class": "turn"
+    }
+  ],
+  "default_arm_reproduces_registered_rows": {
+    "examples": [],
+    "reproduced": true,
+    "rows_checked": 200,
+    "rows_mismatched": 0,
+    "rows_without_reference": 0
+  },
+  "experiment": "EXP-042",
+  "hold_policy_fields": {
+    "hold_land_after_s": 5.0,
+    "lost_link_action": "hold"
+  },
+  "jobs": 400,
+  "label": "EXP-042, simulated comparison of two lost-link policies",
+  "limits": [
+    "Simulated only: no drone or radio hardware was used.",
+    "Link loss patterns are synthetic (named presets in sim/missions/presets.py), never measured.",
+    "Vehicle parameters are literature-derived (point mass, or the crazyflie-class physics profile).",
+    "Point-mass adapter only; the physics adapter and the monitor mission were not run.",
+    "Each tag run has one follower and one scripted 2.0 s total outage; the 5.0 s hold ceiling is a test value, not a measured burst length.",
+    "Comparison of two policies on synthetic burst presets; it does not show the hold rule is safe on real links."
+  ],
+  "pass_rule": "Rule 1, landings: in every cell hold landings are no more than default, and pooled hold landings are at most 10 % of pooled default landings. Rule 2, success: pooled tags with hold are at least the default count, and pooled completed sweeps with hold are at least the default count. Rule 3, safety: pooled separation-violation steps with hold are no more than default, and in every tag cell the hold arm's minimum separation is no more than 0.05 m below the default arm's. The run passes only if all three rules pass; the sweep has no separation metric, so safety is judged on the tag cells only.",
+  "pilot": false,
+  "prediction": "Landings: default lands about once per run in every burst cell; hold has 0 landings everywhere. Rule 1 passes. Tag success: hold at least default; about 18 to 20 of 20 on burst_10 and 12 to 18 of 20 on burst_30. Sweeps: default 0 of 20 in all four cells; hold at least 15 of 20 per cell, t100 about 40 to 60 s without dropout and 60 to 90 s with one. Rule 2 passes. Safety: rule 3 fails (more violation steps with hold, mostly on jink, and at least one tag cell's minimum separation more than 0.05 m below default). Overall predicted verdict: FAIL on safety, with large gains on landings and completion.",
+  "prediction_check": [
+    {
+      "held": true,
+      "observed": {
+        "default_landings_per_drone_per_run": {
+          "sweep dropout none burst_10_0.5s": 1.0,
+          "sweep dropout none burst_30_0.5s": 1.0,
+          "sweep dropout one burst_10_0.5s": 0.9500000000000001,
+          "sweep dropout one burst_30_0.5s": 1.0,
+          "tag figure8 burst_10_0.5s": 1.0,
+          "tag figure8 burst_30_0.5s": 1.0,
+          "tag jink burst_10_0.5s": 1.0,
+          "tag jink burst_30_0.5s": 1.0,
+          "tag turn burst_10_0.5s": 1.0,
+          "tag turn burst_30_0.5s": 1.0
+        }
+      },
+      "prediction": "Default lands about once per run in every burst cell (read as once per drone per run)."
+    },
+    {
+      "held": true,
+      "observed": {
+        "hold_landings": 0
+      },
+      "prediction": "Hold has 0 landings everywhere."
+    },
+    {
+      "held": true,
+      "observed": {
+        "rule_1": true
+      },
+      "prediction": "Rule 1 passes."
+    },
+    {
+      "held": false,
+      "observed": {
+        "hold_tagged_of_20": {
+          "tag figure8 burst_10_0.5s": 20,
+          "tag figure8 burst_30_0.5s": 20,
+          "tag jink burst_10_0.5s": 20,
+          "tag jink burst_30_0.5s": 20,
+          "tag turn burst_10_0.5s": 20,
+          "tag turn burst_30_0.5s": 20
+        }
+      },
+      "prediction": "Tag success with hold: about 18 to 20 of 20 on burst_10 and 12 to 18 of 20 on burst_30."
+    },
+    {
+      "held": true,
+      "observed": {
+        "default_completed": {
+          "sweep dropout none burst_10_0.5s": 0,
+          "sweep dropout none burst_30_0.5s": 0,
+          "sweep dropout one burst_10_0.5s": 0,
+          "sweep dropout one burst_30_0.5s": 0
+        }
+      },
+      "prediction": "Sweeps: default completes 0 of 20 in all four cells."
+    },
+    {
+      "held": true,
+      "observed": {
+        "hold_completed": {
+          "sweep dropout none burst_10_0.5s": 20,
+          "sweep dropout none burst_30_0.5s": 20,
+          "sweep dropout one burst_10_0.5s": 20,
+          "sweep dropout one burst_30_0.5s": 16
+        }
+      },
+      "prediction": "Sweeps: hold completes at least 15 of 20 per cell."
+    },
+    {
+      "held": true,
+      "observed": {
+        "hold_t100_s_median_of_completed": {
+          "sweep dropout none burst_10_0.5s": 40.26,
+          "sweep dropout none burst_30_0.5s": 49.4,
+          "sweep dropout one burst_10_0.5s": 61.84,
+          "sweep dropout one burst_30_0.5s": 76.87
+        }
+      },
+      "prediction": "Hold t100 about 40 to 60 s without dropout and 60 to 90 s with one."
+    },
+    {
+      "held": true,
+      "observed": {
+        "rule_2": true
+      },
+      "prediction": "Rule 2 passes."
+    },
+    {
+      "held": true,
+      "observed": {
+        "cells_more_than_0.05_m_below": 4,
+        "hold_steps_on_jink": 2066,
+        "violation_steps_default": 0,
+        "violation_steps_hold": 2066
+      },
+      "prediction": "Rule 3 fails: more violation steps with hold, mostly on jink, and at least one tag cell's minimum separation more than 0.05 m below default."
+    },
+    {
+      "held": true,
+      "observed": {
+        "status": "FAIL"
+      },
+      "prediction": "Overall verdict FAIL."
+    }
+  ],
+  "prediction_source": "written in the project's experiment notes (kept outside this repository) before the full run, after a 2-seed pilot of this grid; the repository alone cannot show the order",
+  "simulated": true,
+  "validity": {
+    "cells_present": 10,
+    "expected_cells": 10,
+    "missing_cells": [],
+    "reasons": [],
+    "runs_per_arm": 20,
+    "short_cells": [],
+    "unexpected_cells": [],
+    "valid": true
+  },
+  "verdict": {
+    "pass": false,
+    "rule_1_landings": {
+      "every_cell_hold_at_most_default": true,
+      "pass": true,
+      "pooled_default": 357,
+      "pooled_hold": 0,
+      "pooled_hold_limit": 35.7
+    },
+    "rule_2_success": {
+      "pass": true,
+      "sweeps_completed_default": 0,
+      "sweeps_completed_hold": 76,
+      "tagged_default": 59,
+      "tagged_hold": 120
+    },
+    "rule_3_safety": {
+      "pass": false,
+      "tag_cells_min_separation_more_than_0.05_m_below_default": [
+        {
+          "default_min_separation_m": 0.6061631791648222,
+          "hold_min_separation_m": 0.5312910386612318,
+          "preset": "burst_30_0.5s",
+          "target_class": "figure8"
+        },
+        {
+          "default_min_separation_m": 0.5234698569183266,
+          "hold_min_separation_m": 0.11530321227954016,
+          "preset": "burst_10_0.5s",
+          "target_class": "jink"
+        },
+        {
+          "default_min_separation_m": 0.5360431345278922,
+          "hold_min_separation_m": 0.1375478982571164,
+          "preset": "burst_30_0.5s",
+          "target_class": "jink"
+        },
+        {
+          "default_min_separation_m": 0.6157798847873849,
+          "hold_min_separation_m": 0.5098449733087441,
+          "preset": "burst_30_0.5s",
+          "target_class": "turn"
+        }
+      ],
+      "violation_steps_default": 0,
+      "violation_steps_hold": 2066
+    },
+    "status": "FAIL"
+  }
+}
