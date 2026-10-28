@@ -87,18 +87,36 @@ def _num(value):
 
 
 def _atlas_rows(run: Path) -> list[dict]:
+    """Return per-flight atlas rows, one set per atlas group.
+
+    An atlas group is one stratum, motion variant, loss model, loss rate and method
+    arm.  The per-seed export drops the leading stratum from the cell key, and a cell
+    shared by two strata is written once per stratum with the same seeds.  Each row is
+    therefore attached to every (stratum, variant) that owns the cell, kept only for
+    the arms that stratum ran, and counted once.
+    """
     summary = json.loads((run / "summary.json").read_text())
-    cells = {c["key"]: c["cell"] for c in summary["cells"]}
-    # The per-seed export drops the leading stratum (for example ``central/``).
-    cells.update({c["key"].split("/", 1)[1]: c["cell"]
-                  for c in summary["cells"] if "/" in c["key"]})
+    owners: dict[str, list[tuple[dict, dict]]] = defaultdict(list)
+    for entry in summary["cells"]:
+        key = entry["key"]
+        if key.split("/", 1)[0] == entry["stratum"]:
+            key = key.split("/", 1)[1]
+        owners[key].append((entry, entry["cell"]))
     rows = []
+    seen = set()
     for row in _read_csv(run / "per_seed.csv.gz"):
-        cell = cells[row["cell_key"]]
-        rows.append({**row, "delay_s": cell["delay_s"],
-                     "loss_probability": cell["loss_probability"],
-                     "noise_std_m": cell["noise_std_m"], "rate_hz": cell["rate_hz"],
-                     "p95_error_m": row["p95_error_m"]})
+        for entry, cell in owners[row["cell_key"]]:
+            if row["arm"] not in entry["arms"]:
+                continue
+            signature = (entry["stratum"], entry["variant"], row["cell_key"], row["arm"],
+                         row["seed"])
+            if signature in seen:
+                continue
+            seen.add(signature)
+            rows.append({**row, "stratum": entry["stratum"], "variant": entry["variant"],
+                         "delay_s": cell["delay_s"], "loss_model": cell["loss_model"],
+                         "loss_probability": cell["loss_probability"],
+                         "noise_std_m": cell["noise_std_m"], "rate_hz": cell["rate_hz"]})
     return rows
 
 
