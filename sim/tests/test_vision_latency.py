@@ -368,16 +368,17 @@ def refresh_lag_per_sample(result, log, hz, extra_lag_s):
     return np.where(straddle, lag[seq + 1], 0.5 * (lag[seq] + lag[seq + 1]))
 
 
+@pytest.mark.parametrize("exposure_s, seed", [(0.010, 3), (0.030, 8)])
 @pytest.mark.parametrize("phase_ms", [0.0, 1.5, 2.6, 4.0, 6.0, 8.3, 10.5, 12.5, 14.0, 15.2, 16.0])
-def test_vsync_camera_phase_stays_inside_stated_error(phase_ms):
+def test_vsync_camera_phase_stays_inside_stated_error(phase_ms, exposure_s, seed):
     # A 30 fps camera and a 60 Hz screen: every exposure middle sits at the same
     # offset after a refresh, so the midpoint errors no longer average out. The
     # size and sign of the leftover offset depend on the camera phase, which no
     # amount of recording time removes. The stated error must cover it once the
     # analysis is told the refresh rate.
     hz = 60.0
-    cfg = SynthConfig(latency_s=0.120, fps=30.0, exposure_s=0.010, duration_s=12.0,
-                      camera_phase_s=phase_ms / 1000, vsync_hz=hz, seed=3)
+    cfg = SynthConfig(latency_s=0.120, fps=30.0, exposure_s=exposure_s, duration_s=12.0,
+                      camera_phase_s=phase_ms / 1000, vsync_hz=hz, seed=seed)
     rec, result = run(cfg, roi=cfg.strip_box, display_refresh_hz=hz)
     a = result["apparent_latency_s"]
     used = np.array([x["frame"] for x in result["samples"]])

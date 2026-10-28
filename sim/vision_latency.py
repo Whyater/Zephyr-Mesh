@@ -418,10 +418,16 @@ def analyze(frames: np.ndarray, t_read_s: np.ndarray, log: DisplayLog, settings:
       camera whose frame period is a whole number of steps (30 fps on a 60 Hz
       screen) takes every exposure at the same offset after a refresh, so the
       midpoint errors no longer cancel even when the holds are random. The
-      leftover offset is the camera's position inside a refresh step minus
-      half a step, so it lies between -g/2 and +g/2, and recording longer does
-      not shrink it. g/2 is added as a worst case. A camera that drifts
-      against the grid averages it out, so this is conservative for it.
+      expected leftover offset is the camera's position inside a refresh step
+      minus half a step, so it lies between -g/2 and +g/2, and recording
+      longer does not shrink it. g/2 is added as a worst case. A camera that
+      drifts against the grid averages it out, so this is conservative for
+      it. Limits: the scatter around that expected offset (which frames of an
+      event survive as clean) is only covered by the statistical part, so
+      very short recordings can exceed it; and the synthetic checks
+      (tools/vision_latency_calibration.py vsync, and a phase sweep in the
+      tests) use exposures up to 33 ms and holds of 40 to 70 ms, so exposures
+      longer than two refresh steps or holds shorter than one are untested.
     The display lag range is a separate one-sided correction: camera latency =
     apparent latency minus display lag.
 
