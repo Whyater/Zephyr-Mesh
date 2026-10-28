@@ -309,7 +309,7 @@ def test_weakly_bursty_chain_logs_split_the_tools_only_inside_the_band():
         if f != b:
             disagree += 1
             assert fit_cut < z < BRIDGE_CUTOFF and f == "bursty"
-    assert disagree >= 5  # about 14 % of such logs in a 1000-seed scratch sweep
+    assert disagree >= 5  # a floor, well below the share these seeds give
 
 
 def test_independent_logs_the_fit_calls_bursty_get_a_near_independent_chain():
@@ -325,5 +325,5 @@ def test_independent_logs_the_fit_calls_bursty_get_a_near_independent_chain():
         fit, _ = run_both(doc_from_lost((rng.random(2000) < 0.2).astype(int).tolist()))
         if fit["model_choice"]["loss_model"] == "burst":
             ends.append(fit["burst_chain"]["burst_end_probability"]["value"])
-    assert len(ends) >= 6  # about 3 % of 600; a 4000-log scratch sweep gave 132
+    assert len(ends) >= 6  # a floor, well below the share these seeds give
     assert min(ends) > 0.85
