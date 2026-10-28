@@ -84,3 +84,21 @@ def test_raw_command_cannot_fly_the_vehicle_out(kind):
         state = adapter.step(0.01, link_age_s=0.0)
         assert FENCE.contains(state.position), f"left the fence at {state.position}"
     assert not adapter.geofence_latched
+
+
+@pytest.mark.parametrize("kind", ["point_mass", "physics"])
+def test_point_between_clip_box_and_wall_is_clipped_to_the_margin(kind):
+    # x = 15.8 is inside the wall (16.0) but past the clip box edge (15.5).
+    adapter = make(kind)
+    decision = adapter.request_command(ControlCommand.position((15.8, 5.0, 2.0)), source=CommandSource.MISSION)
+    assert np.allclose(decision.command.position_m, (15.5, 5.0, 2.0))
+    assert len(clip_events(adapter)) == 1
+
+
+@pytest.mark.parametrize("kind", ["point_mass", "physics"])
+def test_disconnected_adapter_raises_without_logging_a_clip(kind):
+    adapter = make(kind)
+    adapter.disconnect()
+    with pytest.raises(RuntimeError):
+        adapter.send_setpoint(OUTSIDE)
+    assert clip_events(adapter) == []
