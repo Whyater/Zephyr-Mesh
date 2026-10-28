@@ -100,6 +100,13 @@
   }
  },
  {
+  "run_dir": "sim/runs/d088-exp021-diagnostic",
+  "command": "PYTHONPATH=. {python} tools/d088_exp021_diagnostic.py --output-dir {out}",
+  "outputs": {
+   "diagnostic.json": "cf816597a268416ef1f9500bb85a8b52078a271bdf0b0a7733892f03305bf4d2"
+  }
+ },
+ {
   "run_dir": "sim/runs/c-exp013-channel",
   "command": "PYTHONPATH=. {python} tools/c_exp013_channel.py --output {out}",
   "outputs": {

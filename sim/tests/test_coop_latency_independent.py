@@ -360,7 +360,7 @@ def test_run_b_every_sample_matches_the_event_log_reference(run_b, rows_b):
 
 
 # ---------------------------------------------------------------------------
-# A real bug the checks above had to stop short of
+# Regression: a 60 s loss run must finish (capture stamps used to drift past the step time)
 # ---------------------------------------------------------------------------
 
 
