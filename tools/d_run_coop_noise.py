@@ -159,7 +159,11 @@ def condition_key(target, loss_model, loss, noise, told, n) -> str:
 
 
 def step_index(boundary: dict) -> int:
-    """fails at 0 = 0; tolerates grid delay number i (0 ms is 1, 300 ms is 7) = i; never fails = 8."""
+    """fails at 0 = 0; tolerates grid delay number i (0 ms is 1, 200 ms is 6) = i; never fails = 8.
+
+    There is no 7: tolerating 300 ms (the last grid delay) and never failing are the same
+    observation, so both score 8.
+    """
     if boundary["fails_at_zero"]:
         return 0
     if boundary["censored"]:
