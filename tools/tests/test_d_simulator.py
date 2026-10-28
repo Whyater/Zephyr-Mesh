@@ -419,13 +419,28 @@ def test_g_central_fallback_during_gs_outage():
     config = CoopSwarmConfig(
         fusion="central", decision="onboard", duration_s=18.0,
         gs_outage=((10.0, 15.0),), dropouts=(), log_every=1,
+        link=CoopLinkConfig(delay_s=0.05, loss_probability=0.0, loss_model="none"),
     )
     run = CoopSwarmSimulator(config).run().as_dict()
-    rows = [
-        row for step in run["steps"] if 10.0 <= step["time_s"] <= 15.0
-        for row in step["agents"] if row["active"]
-    ]
-    assert max(row["target_age_s"] for row in rows) < 0.6
+    steps = [step for step in run["steps"] if 10.0 <= step["time_s"] <= 15.0]
+    rows = [row for step in steps for row in step["agents"] if row["active"]]
+    # The log must give the true age of the data in use, not a value capped
+    # at the heartbeat timeout, or the bound below could never be reached.
+    for step in steps:
+        for row in step["agents"]:
+            if row["active"] and row["target_source_time_s"] is not None:
+                true_age = max(0.0, step["time_s"] - row["target_source_time_s"])
+                assert math.isclose(row["target_age_s"], true_age, rel_tol=0.0, abs_tol=1e-12)
+    # Worst case age of the target data an agent still uses: the last ground
+    # track is kept for one heartbeat timeout after it arrives, it arrived one
+    # link delay after it was sent, its source stamp is one link delay older
+    # (the raw measurement travelled to the ground station), plus up to one
+    # sensor period between that capture and the track going out.
+    bound = (
+        config.heartbeat_timeout_s + 2 * config.link.delay_s
+        + 1.0 / config.sensor_rate_hz + 1e-9
+    )
+    assert max(row["target_age_s"] for row in rows) < bound
     assert max(row["truth_error_m"] for row in rows) < 0.2
 
 
@@ -464,10 +479,8 @@ def test_i_traffic_counts_and_bytes_after_leaving():
     run = CoopSwarmSimulator(config).run().as_dict()
     traffic = run["summary"]["traffic"]
 
-    # Message sizes in bytes, written out by hand. They match the table in
-    # sim/coop/simulator.py (_traffic_by_kind, lines 244-250). The old check
-    # compared bytes with the simulator's own message_bytes, so a wrong size
-    # could never fail it.
+    # Message sizes in bytes, written out by hand so a wrong size in the
+    # simulator's table (sim/coop/simulator.py, _traffic_by_kind) fails here.
     SIZE = {"state": 240, "raw": 56, "track": 216, "command": 24, "leaving": 1}
 
     # Raw count, worked out by hand from the capture phases. Each agent takes a
