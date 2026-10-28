@@ -315,7 +315,7 @@ def test_case_variant_audit_name_in_split_folder_leaves_nothing_behind(tmp_path)
     folder = tmp_path / "d"
     with pytest.raises(ex.ExtractError, match="same file"):
         ex.extract_file(raw, out_dir=folder, split=True, audit_path=folder / "BLOCK-1.csv")
-    assert not folder.exists() or list(folder.iterdir()) == []
+    assert not folder.exists()
 
 
 def test_a_write_that_finds_an_existing_file_removes_what_it_created(tmp_path, monkeypatch):
@@ -327,6 +327,36 @@ def test_a_write_that_finds_an_existing_file_removes_what_it_created(tmp_path, m
             raise FileExistsError(path)
         real(path, text)
     monkeypatch.setattr(ex, "_write_text", racing)
-    with pytest.raises(ex.ExtractError, match="same file|already exists"):
+    with pytest.raises(ex.ExtractError, match="a.json already exists"):
         ex.extract_file(raw, out=tmp_path / "s.csv", audit_path=tmp_path / "a.json")
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["raw.txt"]
+
+
+def test_a_failed_split_write_removes_the_folders_it_made(tmp_path, monkeypatch):
+    raw = _write(tmp_path / "raw.txt", _crlf(_lines(_small_logs(13).sender_text)))
+    real = ex._write_text
+    def racing(path, text):
+        if path.name == "audit.json":
+            raise FileExistsError(path)
+        real(path, text)
+    monkeypatch.setattr(ex, "_write_text", racing)
+    with pytest.raises(ex.ExtractError, match="audit.json already exists"):
+        ex.extract_file(raw, out_dir=tmp_path / "p" / "q", split=True)
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["raw.txt"]
+
+
+@pytest.mark.parametrize("split", [False, True])
+def test_an_io_error_while_writing_leaves_no_partial_output(tmp_path, monkeypatch, split):
+    raw = _write(tmp_path / "raw.txt", _crlf(_lines(_small_logs(14).sender_text)))
+    real = ex._write_text
+    def failing(path, text):
+        real(path, text)
+        if path.suffix == ".json":
+            raise OSError("disk full")
+    monkeypatch.setattr(ex, "_write_text", failing)
+    with pytest.raises(OSError, match="disk full"):
+        if split:
+            ex.extract_file(raw, out_dir=tmp_path / "d", split=True)
+        else:
+            ex.extract_file(raw, out=tmp_path / "s.csv")
     assert sorted(p.name for p in tmp_path.iterdir()) == ["raw.txt"]

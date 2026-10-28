@@ -250,24 +250,35 @@ def extract_file(raw_path: str | Path, *, out: str | Path | None = None, out_dir
     for block, target, text in zip(audit["blocks"], targets, texts):
         block["output"] = target.name
         block["output_sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
-    made_folder = split and not Path(out_dir).exists()
+    audit_text = json.dumps(audit, indent=2, allow_nan=False) + "\n"
+    new_folders: list[Path] = []
     if split:
-        Path(out_dir).mkdir(parents=True, exist_ok=True)
+        folder = Path(out_dir)
+        for ancestor in [folder, *folder.parents]:
+            if ancestor.exists():
+                break
+            new_folders.append(ancestor)
+        folder.mkdir(parents=True, exist_ok=True)
     created: list[Path] = []
     try:
         # Exclusive create: on a disk that ignores case, Case.csv and case.csv are one file, and
         # the second write must fail instead of replacing the first.
-        for target, text in zip(targets, texts):
-            _write_text(target, text)
+        for target, text in [*zip(targets, texts), (audit_target, audit_text)]:
             created.append(target)
-        _write_text(audit_target, json.dumps(audit, indent=2, allow_nan=False) + "\n")
-    except FileExistsError as exc:
-        for path in created:
+            _write_text(target, text)
+    except BaseException as exc:
+        # Leave nothing half-written. The file that raised FileExistsError is not ours to delete.
+        for path in created[:-1] if isinstance(exc, FileExistsError) else created:
             path.unlink(missing_ok=True)
-        if made_folder:
-            Path(out_dir).rmdir()
-        raise ExtractError("two outputs are the same file, or one already exists; "
-                           "give --audit a different name") from exc
+        for path in new_folders:
+            try:
+                path.rmdir()
+            except OSError:
+                break
+        if isinstance(exc, FileExistsError):
+            raise ExtractError(f"{created[-1].name} already exists, or two outputs are the same file; "
+                               "pick new names") from exc
+        raise
     return audit
 
 
