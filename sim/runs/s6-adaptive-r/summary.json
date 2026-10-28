@@ -1,0 +1,2251 @@
+{
+  "cells": [
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.017626767914669963,
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.0652941263020426,
+          "p95_ci_low_m": 0.058885433192832175,
+          "p95_median_m": 0.061607228933017594
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.039228222748566945,
+          "p95_ci_low_m": 0.036365750244131516,
+          "p95_median_m": 0.03740674119856492
+        },
+        "told_truth": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.049345520301924864,
+          "p95_ci_low_m": 0.04567368015449684,
+          "p95_median_m": 0.047912067250673526
+        }
+      },
+      "condition_id": "constant_velocity/n0.02/d0.0/none",
+      "delay_s": 0.0,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.02,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.028282908289025105,
+        "ci_low_m": 0.019966504073810017,
+        "median_m": 0.023837273359392706
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.019092935619036674,
+        "ci_low_m": 0.01010797801567645,
+        "median_m": 0.014229012960372656
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.02096822123224459,
+          "fail_count": 26,
+          "fail_rate_ci": [
+            0.38511744890044614,
+            0.6520286471342196
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2953635042086474,
+          "p95_ci_low_m": 0.2012684599314005,
+          "p95_median_m": 0.26381011421280043
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.07637790014088139,
+          "p95_ci_low_m": 0.05261641560078938,
+          "p95_median_m": 0.0696603015278556
+        },
+        "told_truth": {
+          "fail_count": 2,
+          "fail_rate_ci": [
+            0.011038884327619805,
+            0.1346009068750702
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.1295960240871479,
+          "p95_ci_low_m": 0.08632131262953616,
+          "p95_median_m": 0.09896829895869498
+        }
+      },
+      "condition_id": "constant_velocity/n0.02/d0.0/burst30",
+      "delay_s": 0.0,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.02,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.22357819569409904,
+        "ci_low_m": 0.12450631242125182,
+        "median_m": 0.17674086411705997
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.15712621629364806,
+        "ci_low_m": 0.08721171601523589,
+        "median_m": 0.12599975684846665
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.01757748169576759,
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.16488120573218143,
+          "p95_ci_low_m": 0.1458605367971172,
+          "p95_median_m": 0.1558711761504838
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.056635919332842656,
+          "p95_ci_low_m": 0.052412114718973155,
+          "p95_median_m": 0.05453292372861049
+        },
+        "told_truth": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.08350803779086287,
+          "p95_ci_low_m": 0.07911252521429542,
+          "p95_median_m": 0.08202315266782886
+        }
+      },
+      "condition_id": "constant_velocity/n0.02/d0.2/none",
+      "delay_s": 0.2,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.02,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.11205718148007578,
+        "ci_low_m": 0.09196216125143339,
+        "median_m": 0.10196572348872006
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.0841927923363862,
+        "ci_low_m": 0.06087785109970403,
+        "median_m": 0.07325926575855472
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.02096822123224459,
+          "fail_count": 38,
+          "fail_rate_ci": [
+            0.6258731624205708,
+            0.8570260860300828
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.4340575732825008,
+          "p95_ci_low_m": 0.28613351257846037,
+          "p95_median_m": 0.3423813878909957
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.08771870723391147,
+          "p95_ci_low_m": 0.068526266763669,
+          "p95_median_m": 0.08295082453563311
+        },
+        "told_truth": {
+          "fail_count": 2,
+          "fail_rate_ci": [
+            0.011038884327619805,
+            0.1346009068750702
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.15243411460827336,
+          "p95_ci_low_m": 0.11113673496904819,
+          "p95_median_m": 0.13005867463941945
+        }
+      },
+      "condition_id": "constant_velocity/n0.02/d0.2/burst30",
+      "delay_s": 0.2,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.02,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.35080802827714397,
+        "ci_low_m": 0.19637135014437768,
+        "median_m": 0.2484473839392004
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.2691257414687925,
+        "ci_low_m": 0.1485938810500943,
+        "median_m": 0.18696788478771875
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.017570846923335347,
+          "fail_count": 7,
+          "fail_rate_ci": [
+            0.06950833427016294,
+            0.2618619371058554
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.21928271678970312,
+          "p95_ci_low_m": 0.1966377392603285,
+          "p95_median_m": 0.20849857553972415
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.06633826050699106,
+          "p95_ci_low_m": 0.060978149025548975,
+          "p95_median_m": 0.06319543018806795
+        },
+        "told_truth": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.10170569794932291,
+          "p95_ci_low_m": 0.09593447385213802,
+          "p95_median_m": 0.10067426858067513
+        }
+      },
+      "condition_id": "constant_velocity/n0.02/d0.3/none",
+      "delay_s": 0.3,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.02,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.15619964794214602,
+        "ci_low_m": 0.13176653888209028,
+        "median_m": 0.14623948940454334
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.12070434629045954,
+        "ci_low_m": 0.09610674001773997,
+        "median_m": 0.10854851301749252
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.02096822123224459,
+          "fail_count": 45,
+          "fail_rate_ci": [
+            0.7863976856252035,
+            0.9565242350681096
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.500570792491555,
+          "p95_ci_low_m": 0.35318127297912405,
+          "p95_median_m": 0.39102243998565406
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.09473057506587669,
+          "p95_ci_low_m": 0.07671768481229353,
+          "p95_median_m": 0.08999057426068499
+        },
+        "told_truth": {
+          "fail_count": 3,
+          "fail_rate_ci": [
+            0.02061497034897397,
+            0.16217091688838173
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.16785965228021332,
+          "p95_ci_low_m": 0.13054350806520498,
+          "p95_median_m": 0.14920867748219316
+        }
+      },
+      "condition_id": "constant_velocity/n0.02/d0.3/burst30",
+      "delay_s": 0.3,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.02,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.41443424496364567,
+        "ci_low_m": 0.2495362420714874,
+        "median_m": 0.29684304018904156
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.3053263871377528,
+        "ci_low_m": 0.18392489190503544,
+        "median_m": 0.2276700804251115
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.045447856847909515,
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.10092151349512969,
+          "p95_ci_low_m": 0.0940908357575892,
+          "p95_median_m": 0.0973431212102834
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.0980705568714189,
+          "p95_ci_low_m": 0.09091437281370106,
+          "p95_median_m": 0.09351685058121809
+        },
+        "told_truth": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.0980705568714189,
+          "p95_ci_low_m": 0.09091437281370106,
+          "p95_median_m": 0.09351685058121809
+        }
+      },
+      "condition_id": "constant_velocity/n0.05/d0.0/none",
+      "delay_s": 0.0,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.05,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.004034200269614346,
+        "ci_low_m": 0.001735928038799614,
+        "median_m": 0.0027955109160405084
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.004034200269614346,
+        "ci_low_m": 0.001735928038799614,
+        "median_m": 0.0027955109160405084
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.04737807175460523,
+          "fail_count": 32,
+          "fail_rate_ci": [
+            0.501410168761127,
+            0.7586125034815325
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.478350708879021,
+          "p95_ci_low_m": 0.23581653002601688,
+          "p95_median_m": 0.3301003944708829
+        },
+        "told_5cm": {
+          "fail_count": 8,
+          "fail_rate_ci": [
+            0.08337420678033404,
+            0.2851421606303499
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.19094481634934435,
+          "p95_ci_low_m": 0.13154009417006013,
+          "p95_median_m": 0.17414127829416087
+        },
+        "told_truth": {
+          "fail_count": 8,
+          "fail_rate_ci": [
+            0.08337420678033404,
+            0.2851421606303499
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.19094481634934435,
+          "p95_ci_low_m": 0.13154009417006013,
+          "p95_median_m": 0.17414127829416087
+        }
+      },
+      "condition_id": "constant_velocity/n0.05/d0.0/burst30",
+      "delay_s": 0.0,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.05,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.29937188462101916,
+        "ci_low_m": 0.055883288904290146,
+        "median_m": 0.13347273836020032
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.29937188462101916,
+        "ci_low_m": 0.055883288904290146,
+        "median_m": 0.13347273836020032
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.04549583992848469,
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.1477264931542144,
+          "p95_ci_low_m": 0.13975999646284093,
+          "p95_median_m": 0.14379845893096396
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.14158979833210608,
+          "p95_ci_low_m": 0.13103198706424565,
+          "p95_median_m": 0.13633233266650707
+        },
+        "told_truth": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.14158979833210608,
+          "p95_ci_low_m": 0.13103198706424565,
+          "p95_median_m": 0.13633233266650707
+        }
+      },
+      "condition_id": "constant_velocity/n0.05/d0.2/none",
+      "delay_s": 0.2,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.05,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.010146379391920035,
+        "ci_low_m": 0.005637663469559434,
+        "median_m": 0.00804257203066544
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.010146379391920035,
+        "ci_low_m": 0.005637663469559434,
+        "median_m": 0.00804257203066544
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.04713944180214757,
+          "fail_count": 39,
+          "fail_rate_ci": [
+            0.6475845041874634,
+            0.8724608402978559
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.6531426880670439,
+          "p95_ci_low_m": 0.3575517436356577,
+          "p95_median_m": 0.4580021728590591
+        },
+        "told_5cm": {
+          "fail_count": 12,
+          "fail_rate_ci": [
+            0.1429739139699173,
+            0.3741268375794292
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2208882258128549,
+          "p95_ci_low_m": 0.1713153946688567,
+          "p95_median_m": 0.2073770612878386
+        },
+        "told_truth": {
+          "fail_count": 12,
+          "fail_rate_ci": [
+            0.1429739139699173,
+            0.3741268375794292
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2208882258128549,
+          "p95_ci_low_m": 0.1713153946688567,
+          "p95_median_m": 0.2073770612878386
+        }
+      },
+      "condition_id": "constant_velocity/n0.05/d0.2/burst30",
+      "delay_s": 0.2,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.05,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.4502684987450967,
+        "ci_low_m": 0.12076874881978242,
+        "median_m": 0.21199625461972485
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.4502684987450967,
+        "ci_low_m": 0.12076874881978242,
+        "median_m": 0.21199625461972485
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.04551792379139624,
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.17400724548397578,
+          "p95_ci_low_m": 0.16355538387893187,
+          "p95_median_m": 0.16899670287636337
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.16584565126747763,
+          "p95_ci_low_m": 0.15244537256386992,
+          "p95_median_m": 0.15798857547315864
+        },
+        "told_truth": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.16584565126747763,
+          "p95_ci_low_m": 0.15244537256386992,
+          "p95_median_m": 0.15798857547315864
+        }
+      },
+      "condition_id": "constant_velocity/n0.05/d0.3/none",
+      "delay_s": 0.3,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.05,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.013742421843564862,
+        "ci_low_m": 0.00687591466445972,
+        "median_m": 0.009732046300017103
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.013742421843564862,
+        "ci_low_m": 0.00687591466445972,
+        "median_m": 0.009732046300017103
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.04709574031090552,
+          "fail_count": 39,
+          "fail_rate_ci": [
+            0.6475845041874634,
+            0.8724608402978559
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.7622615317617041,
+          "p95_ci_low_m": 0.40577564273579714,
+          "p95_median_m": 0.5194085698704016
+        },
+        "told_5cm": {
+          "fail_count": 14,
+          "fail_rate_ci": [
+            0.17474170665911232,
+            0.4166512369595657
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2368264377393904,
+          "p95_ci_low_m": 0.1917942120307355,
+          "p95_median_m": 0.2249764312533402
+        },
+        "told_truth": {
+          "fail_count": 14,
+          "fail_rate_ci": [
+            0.17474170665911232,
+            0.4166512369595657
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2368264377393904,
+          "p95_ci_low_m": 0.1917942120307355,
+          "p95_median_m": 0.2249764312533402
+        }
+      },
+      "condition_id": "constant_velocity/n0.05/d0.3/burst30",
+      "delay_s": 0.3,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.05,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.5254350940223137,
+        "ci_low_m": 0.16748252177624343,
+        "median_m": 0.2799830693716043
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.5254350940223137,
+        "ci_low_m": 0.16748252177624343,
+        "median_m": 0.2799830693716043
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.09834048317126656,
+          "fail_count": 5,
+          "fail_rate_ci": [
+            0.04347576493189041,
+            0.21360231437479654
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.19390338211892436,
+          "p95_ci_low_m": 0.17897646568677142,
+          "p95_median_m": 0.18812946902220512
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.19614111374283857,
+          "p95_ci_low_m": 0.18182874376298513,
+          "p95_median_m": 0.18703369955230628
+        },
+        "told_truth": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.1639859441547224,
+          "p95_ci_low_m": 0.15301813571203,
+          "p95_median_m": 0.15944428449685974
+        }
+      },
+      "condition_id": "constant_velocity/n0.10/d0.0/none",
+      "delay_s": 0.0,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.1,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.006465650393018801,
+        "ci_low_m": -0.012255127578772729,
+        "median_m": -0.003209448079365726
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.03565219843855161,
+        "ci_low_m": 0.018162929996617755,
+        "median_m": 0.025700555520267898
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.09734935480291887,
+          "fail_count": 44,
+          "fail_rate_ci": [
+            0.7619518261679701,
+            0.9438239984906773
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.37402696859177925,
+          "p95_ci_low_m": 0.2794529974955019,
+          "p95_median_m": 0.3199295779868376
+        },
+        "told_5cm": {
+          "fail_count": 38,
+          "fail_rate_ci": [
+            0.6258731624205708,
+            0.8570260860300828
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.3818896766968175,
+          "p95_ci_low_m": 0.2630795584840611,
+          "p95_median_m": 0.34827623964780496
+        },
+        "told_truth": {
+          "fail_count": 19,
+          "fail_rate_ci": [
+            0.25862789310193596,
+            0.5184955306900703
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2614289182655335,
+          "p95_ci_low_m": 0.2015237929295163,
+          "p95_median_m": 0.23420250903970338
+        }
+      },
+      "condition_id": "constant_velocity/n0.10/d0.0/burst30",
+      "delay_s": 0.0,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.1,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.031369343086090795,
+        "ci_low_m": -0.016945943471353975,
+        "median_m": 0.001776967672667551
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.1062810686170026,
+        "ci_low_m": 0.05626926803863366,
+        "median_m": 0.08642990782681631
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.09865916252691637,
+          "fail_count": 22,
+          "fail_rate_ci": [
+            0.3116219921125717,
+            0.5769397197834315
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.25270841419910556,
+          "p95_ci_low_m": 0.23701999145631938,
+          "p95_median_m": 0.24537153185441776
+        },
+        "told_5cm": {
+          "fail_count": 43,
+          "fail_rate_ci": [
+            0.7381380628941446,
+            0.9304916657298371
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.28317959666421216,
+          "p95_ci_low_m": 0.26206510795628196,
+          "p95_median_m": 0.2726646808963334
+        },
+        "told_truth": {
+          "fail_count": 2,
+          "fail_rate_ci": [
+            0.011038884327619805,
+            0.1346009068750702
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.21506000133299477,
+          "p95_ci_low_m": 0.20177811973402476,
+          "p95_median_m": 0.20878276435627494
+        }
+      },
+      "condition_id": "constant_velocity/n0.10/d0.2/none",
+      "delay_s": 0.2,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.1,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": -0.014790938885533567,
+        "ci_low_m": -0.03686412402739281,
+        "median_m": -0.030919971249195932
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.051472494242240624,
+        "ci_low_m": 0.02379288587652692,
+        "median_m": 0.033099555431601216
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.09732310854710624,
+          "fail_count": 48,
+          "fail_rate_ci": [
+            0.8653990931249297,
+            0.9889611156723802
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.4573951765329378,
+          "p95_ci_low_m": 0.3526985113488338,
+          "p95_median_m": 0.3852768382945809
+        },
+        "told_5cm": {
+          "fail_count": 49,
+          "fail_rate_ci": [
+            0.8950455641036219,
+            0.9964607407283539
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.44177645162575196,
+          "p95_ci_low_m": 0.34263022171998925,
+          "p95_median_m": 0.4147541225415169
+        },
+        "told_truth": {
+          "fail_count": 33,
+          "fail_rate_ci": [
+            0.521538260502326,
+            0.7756305077749992
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2998543942964057,
+          "p95_ci_low_m": 0.2535882925804149,
+          "p95_median_m": 0.27689648039068154
+        }
+      },
+      "condition_id": "constant_velocity/n0.10/d0.2/burst30",
+      "delay_s": 0.2,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.1,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.05474280767154893,
+        "ci_low_m": -0.033936059368074256,
+        "median_m": 0.012488325443787668
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.1695112526136205,
+        "ci_low_m": 0.06529532725116338,
+        "median_m": 0.11731868757825858
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.09871709633634107,
+          "fail_count": 44,
+          "fail_rate_ci": [
+            0.7619518261679701,
+            0.9438239984906773
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.28776163394575105,
+          "p95_ci_low_m": 0.27072581805072393,
+          "p95_median_m": 0.2785783181462619
+        },
+        "told_5cm": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.3316913025349554,
+          "p95_ci_low_m": 0.30489074512773723,
+          "p95_median_m": 0.315977150948309
+        },
+        "told_truth": {
+          "fail_count": 13,
+          "fail_rate_ci": [
+            0.15871527493552393,
+            0.39553157264848837
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2443191158584251,
+          "p95_ci_low_m": 0.22671508073913296,
+          "p95_median_m": 0.23595135686614593
+        }
+      },
+      "condition_id": "constant_velocity/n0.10/d0.3/none",
+      "delay_s": 0.3,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.1,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": -0.030679809561283355,
+        "ci_low_m": -0.04926585551200369,
+        "median_m": -0.040540009335905014
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.05639526136908074,
+        "ci_low_m": 0.02813954233367949,
+        "median_m": 0.04155255888325832
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.0974243010595235,
+          "fail_count": 49,
+          "fail_rate_ci": [
+            0.8950455641036219,
+            0.9964607407283539
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.5067450329581081,
+          "p95_ci_low_m": 0.39277190659020733,
+          "p95_median_m": 0.4255403179353505
+        },
+        "told_5cm": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.4736528755285774,
+          "p95_ci_low_m": 0.383588424061471,
+          "p95_median_m": 0.4499528595744319
+        },
+        "told_truth": {
+          "fail_count": 43,
+          "fail_rate_ci": [
+            0.7381380628941446,
+            0.9304916657298371
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.3281807537390047,
+          "p95_ci_low_m": 0.27902339171579515,
+          "p95_median_m": 0.2978352723448505
+        }
+      },
+      "condition_id": "constant_velocity/n0.10/d0.3/burst30",
+      "delay_s": 0.3,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_velocity",
+      "noise_std_m": 0.1,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.06054978685194434,
+        "ci_low_m": -0.05609996153440405,
+        "median_m": 0.019654732088902394
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.18260720725021035,
+        "ci_low_m": 0.08060688136889452,
+        "median_m": 0.13954367566247847
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.021733315943094956,
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.06692443327813531,
+          "p95_ci_low_m": 0.0616024244000839,
+          "p95_median_m": 0.06373647563767576
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.07960044910977916,
+          "p95_ci_low_m": 0.07674267053113283,
+          "p95_median_m": 0.07840428452130724
+        },
+        "told_truth": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.058969422723082546,
+          "p95_ci_low_m": 0.057061037901907294,
+          "p95_median_m": 0.05776006213920351
+        }
+      },
+      "condition_id": "constant_turn/n0.02/d0.0/none",
+      "delay_s": 0.0,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_turn",
+      "noise_std_m": 0.02,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": -0.011403146657138583,
+        "ci_low_m": -0.01748406867229349,
+        "median_m": -0.01485959148463227
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.009599921925873278,
+        "ci_low_m": 0.0034595251867923574,
+        "median_m": 0.004200287755016338
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.05509037475980842,
+          "fail_count": 43,
+          "fail_rate_ci": [
+            0.7381380628941446,
+            0.9304916657298371
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.5851852968725224,
+          "p95_ci_low_m": 0.40013658420308496,
+          "p95_median_m": 0.5286968613166165
+        },
+        "told_5cm": {
+          "fail_count": 44,
+          "fail_rate_ci": [
+            0.7619518261679701,
+            0.9438239984906773
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.6320181812882493,
+          "p95_ci_low_m": 0.3918844935229361,
+          "p95_median_m": 0.5081780210515104
+        },
+        "told_truth": {
+          "fail_count": 39,
+          "fail_rate_ci": [
+            0.6475845041874634,
+            0.8724608402978559
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.5193879019630964,
+          "p95_ci_low_m": 0.310940208561675,
+          "p95_median_m": 0.43422131854003476
+        }
+      },
+      "condition_id": "constant_turn/n0.02/d0.0/burst30",
+      "delay_s": 0.0,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_turn",
+      "noise_std_m": 0.02,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.011633545251340527,
+        "ci_low_m": -0.018820786613808815,
+        "median_m": -0.009941470889367865
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.12910238609309566,
+        "ci_low_m": 0.048964040064661374,
+        "median_m": 0.08037133807110242
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.021743381431524135,
+          "fail_count": 1,
+          "fail_rate_ci": [
+            0.003539259271646236,
+            0.10495443589637815
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.1566065863003478,
+          "p95_ci_low_m": 0.1489256531663831,
+          "p95_median_m": 0.15180826809228568
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.17406369104823524,
+          "p95_ci_low_m": 0.1716817001166489,
+          "p95_median_m": 0.17272915468824374
+        },
+        "told_truth": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.14069296450192048,
+          "p95_ci_low_m": 0.13748390827977008,
+          "p95_median_m": 0.13912170945187807
+        }
+      },
+      "condition_id": "constant_turn/n0.02/d0.2/none",
+      "delay_s": 0.2,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_turn",
+      "noise_std_m": 0.02,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": -0.016080190117370108,
+        "ci_low_m": -0.024597113687226585,
+        "median_m": -0.02079016417495999
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.016137054521179278,
+        "ci_low_m": 0.008305542746918054,
+        "median_m": 0.011014217974549628
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.05515189041656381,
+          "fail_count": 46,
+          "fail_rate_ci": [
+            0.8116175308165717,
+            0.968450485911407
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.8098819374870299,
+          "p95_ci_low_m": 0.6224108466371165,
+          "p95_median_m": 0.7223345981670739
+        },
+        "told_5cm": {
+          "fail_count": 46,
+          "fail_rate_ci": [
+            0.8116175308165717,
+            0.968450485911407
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.8619599030379282,
+          "p95_ci_low_m": 0.589147708525617,
+          "p95_median_m": 0.7146890080516015
+        },
+        "told_truth": {
+          "fail_count": 46,
+          "fail_rate_ci": [
+            0.8116175308165717,
+            0.968450485911407
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.7326275435790711,
+          "p95_ci_low_m": 0.49239426312896856,
+          "p95_median_m": 0.6148743168527202
+        }
+      },
+      "condition_id": "constant_turn/n0.02/d0.2/burst30",
+      "delay_s": 0.2,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_turn",
+      "noise_std_m": 0.02,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.015218650305305503,
+        "ci_low_m": -0.0315945019422072,
+        "median_m": -0.0054596765691632965
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.13645969994593687,
+        "ci_low_m": 0.06151683087643767,
+        "median_m": 0.0914297387996672
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.021750852628312636,
+          "fail_count": 5,
+          "fail_rate_ci": [
+            0.04347576493189041,
+            0.21360231437479654
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2152293172950504,
+          "p95_ci_low_m": 0.20875947738515999,
+          "p95_median_m": 0.21038702798264103
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.23649393376978645,
+          "p95_ci_low_m": 0.23382591760575272,
+          "p95_median_m": 0.23523686626119888
+        },
+        "told_truth": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.19780544727901248,
+          "p95_ci_low_m": 0.19258361575046973,
+          "p95_median_m": 0.19534110287923756
+        }
+      },
+      "condition_id": "constant_turn/n0.02/d0.3/none",
+      "delay_s": 0.3,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_turn",
+      "noise_std_m": 0.02,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": -0.019743554460342455,
+        "ci_low_m": -0.027575759104420505,
+        "median_m": -0.024848331248448083
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.018954205973854915,
+        "ci_low_m": 0.011782581935594894,
+        "median_m": 0.016519560347730472
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.055218976901173764,
+          "fail_count": 48,
+          "fail_rate_ci": [
+            0.8653990931249297,
+            0.9889611156723802
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.9278144721766564,
+          "p95_ci_low_m": 0.7384347700176251,
+          "p95_median_m": 0.8446480078194296
+        },
+        "told_5cm": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.9877875430383627,
+          "p95_ci_low_m": 0.702895754780192,
+          "p95_median_m": 0.8159756871656704
+        },
+        "told_truth": {
+          "fail_count": 46,
+          "fail_rate_ci": [
+            0.8116175308165717,
+            0.968450485911407
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.8508055946211888,
+          "p95_ci_low_m": 0.6012071738801217,
+          "p95_median_m": 0.725387955690949
+        }
+      },
+      "condition_id": "constant_turn/n0.02/d0.3/burst30",
+      "delay_s": 0.3,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_turn",
+      "noise_std_m": 0.02,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.01703163865780044,
+        "ci_low_m": -0.035423283462113375,
+        "median_m": -0.005646229228371352
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.1419072350609113,
+        "ci_low_m": 0.06827899726754438,
+        "median_m": 0.0982242179758146
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.05681332597595956,
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.1305876701857199,
+          "p95_ci_low_m": 0.11995803868565642,
+          "p95_median_m": 0.12636718411425618
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.12357122523155623,
+          "p95_ci_low_m": 0.11700029966709255,
+          "p95_median_m": 0.12013635876370979
+        },
+        "told_truth": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.12357122523155623,
+          "p95_ci_low_m": 0.11700029966709255,
+          "p95_median_m": 0.12013635876370979
+        }
+      },
+      "condition_id": "constant_turn/n0.05/d0.0/none",
+      "delay_s": 0.0,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_turn",
+      "noise_std_m": 0.05,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.005630176973002304,
+        "ci_low_m": 0.002741452379147663,
+        "median_m": 0.00396017055904644
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.005630176973002304,
+        "ci_low_m": 0.002741452379147663,
+        "median_m": 0.00396017055904644
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.09166051338638859,
+          "fail_count": 45,
+          "fail_rate_ci": [
+            0.7863976856252035,
+            0.9565242350681096
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.7487785333446527,
+          "p95_ci_low_m": 0.490230678951094,
+          "p95_median_m": 0.6029865790218205
+        },
+        "told_5cm": {
+          "fail_count": 45,
+          "fail_rate_ci": [
+            0.7863976856252035,
+            0.9565242350681096
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.6346803225151563,
+          "p95_ci_low_m": 0.41169142666325087,
+          "p95_median_m": 0.5444893165280256
+        },
+        "told_truth": {
+          "fail_count": 45,
+          "fail_rate_ci": [
+            0.7863976856252035,
+            0.9565242350681096
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.6346803225151563,
+          "p95_ci_low_m": 0.41169142666325087,
+          "p95_median_m": 0.5444893165280256
+        }
+      },
+      "condition_id": "constant_turn/n0.05/d0.0/burst30",
+      "delay_s": 0.0,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_turn",
+      "noise_std_m": 0.05,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.07518157727147701,
+        "ci_low_m": 0.029075525414532732,
+        "median_m": 0.050270826133735125
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.07518157727147701,
+        "ci_low_m": 0.029075525414532732,
+        "median_m": 0.050270826133735125
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.056837856866300634,
+          "fail_count": 7,
+          "fail_rate_ci": [
+            0.06950833427016294,
+            0.2618619371058554
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2378791447425846,
+          "p95_ci_low_m": 0.22829240378079546,
+          "p95_median_m": 0.23084085726019826
+        },
+        "told_5cm": {
+          "fail_count": 2,
+          "fail_rate_ci": [
+            0.011038884327619805,
+            0.1346009068750702
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.22997667792022897,
+          "p95_ci_low_m": 0.22346861013090344,
+          "p95_median_m": 0.2274991902971643
+        },
+        "told_truth": {
+          "fail_count": 2,
+          "fail_rate_ci": [
+            0.011038884327619805,
+            0.1346009068750702
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.22997667792022897,
+          "p95_ci_low_m": 0.22346861013090344,
+          "p95_median_m": 0.2274991902971643
+        }
+      },
+      "condition_id": "constant_turn/n0.05/d0.2/none",
+      "delay_s": 0.2,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_turn",
+      "noise_std_m": 0.05,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.00627879481882776,
+        "ci_low_m": 0.002529649375483417,
+        "median_m": 0.005243012234136535
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.00627879481882776,
+        "ci_low_m": 0.002529649375483417,
+        "median_m": 0.005243012234136535
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.09192278695078532,
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.9956834514510187,
+          "p95_ci_low_m": 0.7127070643132232,
+          "p95_median_m": 0.8032761565496651
+        },
+        "told_5cm": {
+          "fail_count": 48,
+          "fail_rate_ci": [
+            0.8653990931249297,
+            0.9889611156723802
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.8604283508584707,
+          "p95_ci_low_m": 0.6294336245034208,
+          "p95_median_m": 0.737271760828865
+        },
+        "told_truth": {
+          "fail_count": 48,
+          "fail_rate_ci": [
+            0.8653990931249297,
+            0.9889611156723802
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.8604283508584707,
+          "p95_ci_low_m": 0.6294336245034208,
+          "p95_median_m": 0.737271760828865
+        }
+      },
+      "condition_id": "constant_turn/n0.05/d0.2/burst30",
+      "delay_s": 0.2,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_turn",
+      "noise_std_m": 0.05,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.07804553314263218,
+        "ci_low_m": 0.03941829580648415,
+        "median_m": 0.05666600394632998
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.07804553314263218,
+        "ci_low_m": 0.03941829580648415,
+        "median_m": 0.05666600394632998
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.05688527907789877,
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.30587073289030103,
+          "p95_ci_low_m": 0.2983015421164508,
+          "p95_median_m": 0.29986403952847834
+        },
+        "told_5cm": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2981061656885023,
+          "p95_ci_low_m": 0.29238726290102673,
+          "p95_median_m": 0.29445863239343506
+        },
+        "told_truth": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2981061656885023,
+          "p95_ci_low_m": 0.29238726290102673,
+          "p95_median_m": 0.29445863239343506
+        }
+      },
+      "condition_id": "constant_turn/n0.05/d0.3/none",
+      "delay_s": 0.3,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_turn",
+      "noise_std_m": 0.05,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.008199371187452287,
+        "ci_low_m": 0.004105725572280117,
+        "median_m": 0.005696928195580153
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.008199371187452287,
+        "ci_low_m": 0.004105725572280117,
+        "median_m": 0.005696928195580153
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.09188697062279107,
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 1.1169730360503736,
+          "p95_ci_low_m": 0.8250231825035549,
+          "p95_median_m": 0.9276356892975427
+        },
+        "told_5cm": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.9841659272431987,
+          "p95_ci_low_m": 0.7381453631378172,
+          "p95_median_m": 0.8804185709197057
+        },
+        "told_truth": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.9841659272431987,
+          "p95_ci_low_m": 0.7381453631378172,
+          "p95_median_m": 0.8804185709197057
+        }
+      },
+      "condition_id": "constant_turn/n0.05/d0.3/burst30",
+      "delay_s": 0.3,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_turn",
+      "noise_std_m": 0.05,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.07676406623677301,
+        "ci_low_m": 0.03722492491617391,
+        "median_m": 0.05544278318965157
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.07676406623677301,
+        "ci_low_m": 0.03722492491617391,
+        "median_m": 0.05544278318965157
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.11950927712840809,
+          "fail_count": 15,
+          "fail_rate_ci": [
+            0.19103553500880954,
+            0.437503504644534
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.24830562270565043,
+          "p95_ci_low_m": 0.22607008737557216,
+          "p95_median_m": 0.2389015707975008
+        },
+        "told_5cm": {
+          "fail_count": 0,
+          "fail_rate_ci": [
+            6.938893903907228e-18,
+            0.07134759913335872
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.20940305889468025,
+          "p95_ci_low_m": 0.19780431625574896,
+          "p95_median_m": 0.202799353454028
+        },
+        "told_truth": {
+          "fail_count": 1,
+          "fail_rate_ci": [
+            0.003539259271646236,
+            0.10495443589637815
+          ],
+          "label": "passes",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.2211567001480028,
+          "p95_ci_low_m": 0.2047164432029677,
+          "p95_median_m": 0.21372122771773666
+        }
+      },
+      "condition_id": "constant_turn/n0.10/d0.0/none",
+      "delay_s": 0.0,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_turn",
+      "noise_std_m": 0.1,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.038069392865073604,
+        "ci_low_m": 0.022365783763872354,
+        "median_m": 0.029600568584571246
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.026650611887045428,
+        "ci_low_m": 0.011352855790612515,
+        "median_m": 0.019159741997310645
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.15327596133549776,
+          "fail_count": 48,
+          "fail_rate_ci": [
+            0.8653990931249297,
+            0.9889611156723802
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.860520896769869,
+          "p95_ci_low_m": 0.6581183207924426,
+          "p95_median_m": 0.7294087837525149
+        },
+        "told_5cm": {
+          "fail_count": 45,
+          "fail_rate_ci": [
+            0.7863976856252035,
+            0.9565242350681096
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.7035523758651971,
+          "p95_ci_low_m": 0.47672652108704344,
+          "p95_median_m": 0.6072010977984137
+        },
+        "told_truth": {
+          "fail_count": 45,
+          "fail_rate_ci": [
+            0.7863976856252035,
+            0.9565242350681096
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.803990962134284,
+          "p95_ci_low_m": 0.5693016261384963,
+          "p95_median_m": 0.6738850612906865
+        }
+      },
+      "condition_id": "constant_turn/n0.10/d0.0/burst30",
+      "delay_s": 0.0,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_turn",
+      "noise_std_m": 0.1,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.16190512156156567,
+        "ci_low_m": 0.1014027403636738,
+        "median_m": 0.1334832062184944
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.09686430726898504,
+        "ci_low_m": 0.04826225249867455,
+        "median_m": 0.07422500488621951
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.11962052537693521,
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.3918372372488617,
+          "p95_ci_low_m": 0.3671482602023975,
+          "p95_median_m": 0.38245497341143864
+        },
+        "told_5cm": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.34134576472973555,
+          "p95_ci_low_m": 0.3287574684869582,
+          "p95_median_m": 0.3345369785954069
+        },
+        "told_truth": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.3570714960711878,
+          "p95_ci_low_m": 0.33929303949966744,
+          "p95_median_m": 0.3504644378052892
+        }
+      },
+      "condition_id": "constant_turn/n0.10/d0.2/none",
+      "delay_s": 0.2,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_turn",
+      "noise_std_m": 0.1,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.04641358629054482,
+        "ci_low_m": 0.0278141253125625,
+        "median_m": 0.033548069114185564
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.03798793707224973,
+        "ci_low_m": 0.013305596295278665,
+        "median_m": 0.020084337966815913
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.15327596133549776,
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 1.129344684444022,
+          "p95_ci_low_m": 0.8789502157375936,
+          "p95_median_m": 0.961983875372771
+        },
+        "told_5cm": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.9687533657116689,
+          "p95_ci_low_m": 0.6667317256111823,
+          "p95_median_m": 0.8221513364091453
+        },
+        "told_truth": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 1.0448729944067112,
+          "p95_ci_low_m": 0.7855785175832513,
+          "p95_median_m": 0.9063982894971478
+        }
+      },
+      "condition_id": "constant_turn/n0.10/d0.2/burst30",
+      "delay_s": 0.2,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_turn",
+      "noise_std_m": 0.1,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.21071489681584293,
+        "ci_low_m": 0.10670698529031164,
+        "median_m": 0.1507762974326105
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.10390467831559236,
+        "ci_low_m": 0.04680677131191335,
+        "median_m": 0.07482387046328168
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.11968002826966281,
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.4800463892431025,
+          "p95_ci_low_m": 0.4499156935903305,
+          "p95_median_m": 0.46961557968710077
+        },
+        "told_5cm": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.42103169619676545,
+          "p95_ci_low_m": 0.4115882130923222,
+          "p95_median_m": 0.41573078379196216
+        },
+        "told_truth": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 0.44037984166818006,
+          "p95_ci_low_m": 0.42323900040426865,
+          "p95_median_m": 0.4342527892497592
+        }
+      },
+      "condition_id": "constant_turn/n0.10/d0.3/none",
+      "delay_s": 0.3,
+      "loss": "none",
+      "loss_model": "independent",
+      "loss_probability": 0.0,
+      "motion": "constant_turn",
+      "noise_std_m": 0.1,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.051209452752359275,
+        "ci_low_m": 0.03017506783105045,
+        "median_m": 0.038738406990770025
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.04067130291921228,
+        "ci_low_m": 0.016214609808757274,
+        "median_m": 0.02090549764331945
+      }
+    },
+    {
+      "arms": {
+        "adaptive": {
+          "estimated_std_median_m": 0.15327596133549776,
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 1.2671506333564413,
+          "p95_ci_low_m": 1.0060912451945319,
+          "p95_median_m": 1.0936972305132469
+        },
+        "told_5cm": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 1.108451958763516,
+          "p95_ci_low_m": 0.7770439931130719,
+          "p95_median_m": 0.9348030721157982
+        },
+        "told_truth": {
+          "fail_count": 50,
+          "fail_rate_ci": [
+            0.9286524008666414,
+            1.0
+          ],
+          "label": "fails",
+          "n_seeds": 50,
+          "p95_ci_high_m": 1.1727089791026937,
+          "p95_ci_low_m": 0.9062423925472592,
+          "p95_median_m": 1.036332285461247
+        }
+      },
+      "condition_id": "constant_turn/n0.10/d0.3/burst30",
+      "delay_s": 0.3,
+      "loss": "burst30",
+      "loss_model": "burst",
+      "loss_probability": 0.3,
+      "motion": "constant_turn",
+      "noise_std_m": 0.1,
+      "paired_adaptive_minus_told_5cm": {
+        "ci_high_m": 0.19894252041571137,
+        "ci_low_m": 0.09810602756883391,
+        "median_m": 0.15898887801666395
+      },
+      "paired_adaptive_minus_told_truth": {
+        "ci_high_m": 0.10607274956359136,
+        "ci_low_m": 0.029002481151298,
+        "median_m": 0.06913898543715002
+      }
+    }
+  ],
+  "code_sha256": {
+    "sim/adaptive_r.py": "699def1e9bb45b874840a12e6552a1d0205da9337ef1ddf1ac5a0967b80a7432",
+    "sim/link.py": "ea167aba91b618029c575e8348e2305d1c357cae818a77e20c85d79708a87ced",
+    "sim/s6_recovery.py": "bc0c8b1363d85d4c9f6f6f73900b29f6e9553f01471c7e46a053eaf3cd1ab63d",
+    "sim/sensor.py": "ca028be92da927d9d7e8e8b3b2b0e9d0b8dd18543b87c22b0bbb6ced73dc4a95",
+    "sim/tracker.py": "741e17c76d23f009629bbf990156b99ebf93f7465169bb150f17fe4cee09e12f",
+    "tools/run_s6_adaptive_r.py": "cdc73eecb69d6dc920cec91cf36e15aa6fdcecb38725b70cb50caf26498a91f0"
+  },
+  "config": {
+    "burn_in_s": 2.0,
+    "duration_s": 12.0,
+    "failure_max_m": 0.5,
+    "failure_p95_m": 0.25,
+    "initial_position_variance_m2": 1.0,
+    "initial_velocity_variance_m2ps2": 1.0,
+    "observation_period_s": 0.1,
+    "query_dt_s": 0.02,
+    "target_speed_mps": 1.0,
+    "tracker_acceleration_psd": 0.1,
+    "tracker_measurement_std_m": 0.05,
+    "turn_radius_m": 1.0
+  },
+  "design": {
+    "adaptive_floor_std_m": 0.001,
+    "adaptive_window": 20,
+    "arms": [
+      "told_5cm",
+      "told_truth",
+      "adaptive"
+    ],
+    "n_seeds": 50,
+    "rules": {
+      "H1_recovers": "Straight line, true noise 0.10 m, no loss, every delay where median p95(told_5cm) - median p95(told_truth) >= 0.01 m: the adaptive arm closes at least 50% of that gap, and at 0.3 s its cell label equals the told_truth label.",
+      "H2_no_harm": "True noise 0.05 m (told_5cm is already right), straight line, every delay and loss: the median paired per-seed p95 difference adaptive - told_5cm is at most 0.01 m, and no cell goes from passes (told_5cm) to fails (adaptive).",
+      "H3_no_turn_flip": "1 m turn, every noise, delay and loss: no cell goes from passes (told_5cm) to fails (adaptive).",
+      "cell_label": "a cell fails when at least half of its 50 seeds fail (p95 > 0.25 m or max > 0.50 m)",
+      "verdict": "worth proposing if H1, H2 and H3 pass; worth proposing only with a turn guard if H1 and H2 pass and H3 fails; not worth proposing as is if H1 or H2 fails."
+    },
+    "seeds": [
+      475358220,
+      396089605,
+      2136615580,
+      3779945640,
+      2509691599,
+      1599255996,
+      955383047,
+      4168395281,
+      3059479106,
+      2330081308,
+      2548420355,
+      3041728360,
+      3547376745,
+      3355276595,
+      387623948,
+      2040990466,
+      2453760408,
+      1660017199,
+      4221023121,
+      394141339,
+      1001661805,
+      1295811602,
+      1257219801,
+      4174567095,
+      315509079,
+      1227242520,
+      959687189,
+      3218797055,
+      4293530995,
+      174199916,
+      3677287032,
+      943978214,
+      24258091,
+      3713717060,
+      931573184,
+      304613837,
+      3091759633,
+      3688069053,
+      323399984,
+      1512071749,
+      2506332794,
+      2737381719,
+      2685877617,
+      2497948870,
+      1719372898,
+      3052450238,
+      4210629999,
+      2558200030,
+      3536509971,
+      3794483829
+    ],
+    "statistic": "per-condition median of per-seed p95 error (recovery arm only), order-statistic 95% interval, Wilson interval for failure rates, paired per-seed differences",
+    "told_std_m": 0.05
+  },
+  "generator": "tools/run_s6_adaptive_r.py",
+  "rules_result": {
+    "H1_recovers": {
+      "label_at_0.3s_matches_truth": false,
+      "pass": false,
+      "scored": [
+        {
+          "closed_fraction": -0.03971702436230224,
+          "condition_id": "constant_velocity/n0.10/d0.0/none",
+          "gap_m": 0.027589415055446542
+        },
+        {
+          "closed_fraction": 0.42724374158062245,
+          "condition_id": "constant_velocity/n0.10/d0.2/none",
+          "gap_m": 0.06388191654005845
+        },
+        {
+          "closed_fraction": 0.4673347291455737,
+          "condition_id": "constant_velocity/n0.10/d0.3/none",
+          "gap_m": 0.0800257940821631
+        }
+      ]
+    },
+    "H2_no_harm": {
+      "pass": false,
+      "rows": [
+        {
+          "condition_id": "constant_velocity/n0.05/d0.0/none",
+          "flip": false,
+          "median_cost_m": 0.0027955109160405084
+        },
+        {
+          "condition_id": "constant_velocity/n0.05/d0.0/burst30",
+          "flip": true,
+          "median_cost_m": 0.13347273836020032
+        },
+        {
+          "condition_id": "constant_velocity/n0.05/d0.2/none",
+          "flip": false,
+          "median_cost_m": 0.00804257203066544
+        },
+        {
+          "condition_id": "constant_velocity/n0.05/d0.2/burst30",
+          "flip": true,
+          "median_cost_m": 0.21199625461972485
+        },
+        {
+          "condition_id": "constant_velocity/n0.05/d0.3/none",
+          "flip": false,
+          "median_cost_m": 0.009732046300017103
+        },
+        {
+          "condition_id": "constant_velocity/n0.05/d0.3/burst30",
+          "flip": true,
+          "median_cost_m": 0.2799830693716043
+        }
+      ]
+    },
+    "H3_no_turn_flip": {
+      "flips": [],
+      "pass": true
+    },
+    "verdict": "not worth proposing as is"
+  },
+  "schema": "zephyr-s6-adaptive-r-1",
+  "status": "EXP-037 proposal: synthetic link and sensor, not flight performance, not registered"
+}

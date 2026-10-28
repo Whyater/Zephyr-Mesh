@@ -1,0 +1,17 @@
+{
+  "git_revision": "653d8aec4608360a4ae07c8e034c829bcc0d03cc",
+  "git_tree_state": "clean",
+  "n_conditions": 36,
+  "n_processes": 3,
+  "n_seeds": 50,
+  "numpy": "2.5.1",
+  "outputs": {
+    "per_seed.csv": "43506309dddbcb09844c40e08d49314c6510aad478e8209af44cf58f45555a34",
+    "summary.json": "c9098fe76e26fce05c461f857a27f2c5ac75328362b5dd9e188ac1d1b7ce2b59"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_q_sweep.py --output runs/s6-q-sweep --seeds 50 --processes 3",
+  "runtime_s": 530.759949750005,
+  "schema": "zephyr-s6-q-sweep-manifest-1"
+}
