@@ -416,5 +416,14 @@
    "summary.json": "334b621e5e14113c87a92f28297bb61d93dea483a28490eb310b0b5f457da71c",
    "thresholds.json": "b191b4c1073f45870409f0b19f87c2c363354057fdfb6d8c2adb2c8594aa8ad1"
   }
+ },
+ {
+  "run_dir": "sim/runs/e-exp042-hold",
+  "command": "PYTHONPATH=. {python} tools/e_exp042_hold.py --output {out} --processes 1",
+  "outputs": {
+   "exp042.csv": "9e37122d0cd60bcdb5f3a02973dd4445dcab9f1189e7530c8015bc105a41dda3",
+   "exp042_hold_simulated.png": "8496fb2c02f1c63e6f83c1e07c2ada6fda4aabf508364771928a89a3d32ceaf8",
+   "summary.json": "11e5e7aed461599042f9bf28b02be140fb8866fa473aedbf8f17ab6dcac4ee9e"
+  }
  }
 ]
