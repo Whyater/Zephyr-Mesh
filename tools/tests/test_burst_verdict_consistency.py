@@ -152,6 +152,22 @@ SWEEP = [
 # tests
 # ----------------------------------------------------------------------------
 
+def test_hand_z_matches_a_worked_example():
+    """Truth: one pattern worked through by hand, so hand_z is not only the tools' formula typed again.
+
+    30 single runs and 27 double runs, gap 4: R = 57 runs, 84 lost, 4 x 58 + 84 = 316 packets.
+    q = 84 / 316 = 0.26582; observed mean run 84 / 57 = 1.47368; independent mean
+    1 / (1 - q) = 316 / 232 = 1.36207; standard error sqrt(q) / (1 - q) / sqrt(57) = 0.093016;
+    z = (1.47368 - 1.36207) / 0.093016 = 1.19996.
+    """
+    lost = pattern_log(30, 27, 4)
+    assert (len(lost), sum(lost)) == (316, 84)
+    assert pattern_z(30, 27, 4) == pytest.approx(1.19996, abs=1e-5)
+    fit, res = run_both(doc_from_lost(lost))
+    assert res["gilbert"]["burstiness"]["approx_z"] == pytest.approx(1.19996, abs=1e-5)
+    assert fit["independence_check"]["approx_z"] == pytest.approx(1.19996, abs=1e-5)
+
+
 def test_pattern_logs_give_the_hand_worked_z_in_both_tools():
     """Truth: z from the definition (hand_z).  Both tools must report exactly that value."""
     for n1, n2, gap in SWEEP:
@@ -179,8 +195,10 @@ def test_verdicts_disagree_exactly_between_the_two_cutoffs(confidence):
         f, b = fit_says(fit), bridge_says(res)
         assert f == ("bursty" if z > fit_cut else "independent"), (n1, n2, gap, z)
         assert b == ("bursty" if z >= BRIDGE_CUTOFF else "independent"), (n1, n2, gap, z)
-        in_band = min(fit_cut, BRIDGE_CUTOFF) <= z < max(fit_cut, BRIDGE_CUTOFF)
+        # The band from the two rules themselves: (1.645, 2.0) at 0.95, [2.0, 2.326] at 0.99.
+        in_band = (z > fit_cut) != (z >= BRIDGE_CUTOFF)
         assert (f != b) == in_band, (n1, n2, gap, z, f, b)
+        assert in_band == (min(fit_cut, BRIDGE_CUTOFF) < z < max(fit_cut, BRIDGE_CUTOFF))  # no sweep z on an edge
         seen_disagree += f != b
     assert seen_disagree >= 3  # the sweep really has points inside the band
 
@@ -217,7 +235,7 @@ def test_negative_z_is_anti_bursty_in_the_bridge_and_independent_in_the_fit():
 
 
 def test_both_tools_cut_a_messy_trace_into_the_same_pieces():
-    """Two sessions, an unknown outcome, a seq gap, a duplicate record and an edge run.
+    """Three sessions, an unknown outcome, a seq gap, a duplicate record and edge runs at a piece end and start.
 
     Truth: the pieces and complete runs listed by hand below.  Both tools must
     count the same packets and give the same z as hand_z on those runs.
@@ -238,19 +256,22 @@ def test_both_tools_cut_a_messy_trace_into_the_same_pieces():
     # session b, one piece: seq 0..7, runs [1, 1, 2] complete
     for seq, v in enumerate([0, 1, 0, 1, 0, 1, 1, 0]):
         packets.append(_packet("b", seq, "lost" if v else "received"))
+    # session c, one piece: seq 0..4, an edge run of 2 at the start, then run [1] complete
+    for seq, v in enumerate([1, 1, 0, 1, 0]):
+        packets.append(_packet("c", seq, "lost" if v else "received"))
     doc = trace_doc(packets)
 
-    complete = [2, 1, 3, 1, 2, 1, 1, 2]
-    n_packets = 10 + 8 + 9 + 8
-    n_lost = 3 + 3 + 4 + 4
+    complete = [2, 1, 3, 1, 2, 1, 1, 2, 1]
+    n_packets = 10 + 8 + 9 + 8 + 5
+    n_lost = 3 + 3 + 4 + 4 + 3
     want = hand_z(complete, n_lost, n_packets)
 
     fit, res = run_both(doc)
     g = fit["gilbert_classic"]
-    assert (g["n_sequences"], g["n_packets"], g["n_lost"]) == (4, n_packets, n_lost)
-    assert (res["n_pieces"], res["n_packets"], res["n_lost"]) == (4, n_packets, n_lost)
+    assert (g["n_sequences"], g["n_packets"], g["n_lost"]) == (5, n_packets, n_lost)
+    assert (res["n_pieces"], res["n_packets"], res["n_lost"]) == (5, n_packets, n_lost)
     assert res["runs"]["n_complete"] == len(complete)
-    assert res["runs"]["n_edge_excluded"] == 1
+    assert res["runs"]["n_edge_excluded"] == 2
     assert fit["independence_check"]["approx_z"] == pytest.approx(want, rel=1e-12)
     assert res["gilbert"]["burstiness"]["approx_z"] == pytest.approx(want, rel=1e-12)
 
@@ -300,9 +321,9 @@ def test_independent_logs_the_fit_calls_bursty_get_a_near_independent_chain():
     """
     rng = np.random.default_rng(7)
     ends = []
-    for _ in range(300):
+    for _ in range(600):
         fit, _ = run_both(doc_from_lost((rng.random(2000) < 0.2).astype(int).tolist()))
         if fit["model_choice"]["loss_model"] == "burst":
             ends.append(fit["burst_chain"]["burst_end_probability"]["value"])
-    assert len(ends) >= 3
+    assert len(ends) >= 6  # about 3 % of 600; a 4000-log scratch sweep gave 132
     assert min(ends) > 0.85
