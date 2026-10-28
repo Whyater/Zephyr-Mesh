@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from sim.missions.api import Scenario
 from tools import e_exp042_hold as exp
 from tools.e_common import seeds_for
 from tools.e_exp029_part_b import scenario_for as part_b_scenario
@@ -61,9 +62,10 @@ def test_registered_reference_has_one_row_per_cell_and_seed():
 def _stats(part: str, *, landings: int, success: int, violations: int = 0, min_sep: float | None = 0.6) -> dict:
     count = {"count": success, "n": 20}
     if part == "tag":
-        return {"runs": 20, "landings": landings, "tagged": count, "separation_violation_steps": violations,
-                "min_separation_m": min_sep}
-    return {"runs": 20, "landings": landings, "completed": count}
+        return {"runs": 20, "landings": landings, "landings_per_run": landings / 20, "tagged": count,
+                "separation_violation_steps": violations, "min_separation_m": min_sep}
+    return {"runs": 20, "landings": landings, "landings_per_run": landings / 20, "completed": count,
+            "t100_s_median_of_completed": 50.0}
 
 
 def _cells(**hold_overrides) -> list[dict]:
@@ -197,3 +199,73 @@ def test_committed_run_matches_its_manifest_and_registry_entry():
     registry = json.loads((ROOT / "tools" / "reproduce_registry.json").read_text(encoding="utf-8"))
     entries = [e for e in registry if e["run_dir"] == "sim/runs/e-exp042-hold"]
     assert len(entries) == 1 and entries[0]["outputs"] == manifest["outputs"]
+
+
+def test_hold_fields_reach_the_failsafe_config():
+    for job in exp.build_jobs(pilot=True):
+        config = Scenario.from_dict(job["scenario"]).failsafe_config
+        if job["labels"]["arm"] == "hold":
+            assert (config.lost_link_action, config.hold_land_after_s) == ("hold", 5.0)
+        else:
+            assert config.lost_link_action == "land"
+        assert (config.degraded_after_s, config.land_after_s) == (0.15, 0.3)
+
+
+def test_tag_reproduction_checks_the_blackout_start():
+    row = {"part": "tag", "arm": "default", "target_class": "jink", "preset": "burst_10_0.5s", "seed": 11,
+           "adapter": "point_mass", "landings": 1}
+    start = repr(exp.draw_outage_start(11))
+    reference = {("tag", "jink", "burst_10_0.5s", "11"): {"adapter": "point_mass", "blackout_start_s": start,
+                                                          "landings": "1"}}
+    assert exp.default_reproduction([row], reference)["reproduced"] is True
+    reference[("tag", "jink", "burst_10_0.5s", "11")]["blackout_start_s"] = "9.5"
+    result = exp.default_reproduction([row], reference)
+    assert result["reproduced"] is False and result["examples"][0]["fields"] == ["blackout_start_s"]
+
+
+def test_cell_stats_from_hand_rows():
+    tag_rows = [
+        {"duration_s": 30.0, "landings": 1, "landings_before_outage": 1, "tagged": False, "min_separation_m": None,
+         "separation_violations": 0, "time_degraded_s": 0.5},
+        {"duration_s": 30.0, "landings": 0, "landings_before_outage": 0, "tagged": True, "min_separation_m": 0.4,
+         "separation_violations": 3, "time_degraded_s": 1.5},
+    ]
+    tag = exp.cell_stats(tag_rows, "tag")
+    assert tag["landings"] == 1 and tag["landings_per_run"] == 0.5
+    assert tag["landings_per_drone_hour"] == pytest.approx(1 / (60.0 / 3600.0))  # 60 s of one follower
+    assert tag["tagged"]["count"] == 1 and tag["min_separation_m"] == 0.4  # None is skipped, not zero
+    assert (tag["separation_violation_steps"], tag["runs_with_violation"]) == (3, 1)
+    sweep_rows = [
+        {"duration_s": 120.0, "failsafe_landings": 3, "end_reason": "timeout", "t100_s": None,
+         "false_loss_declarations": 2, "duplicated_fraction": 0.1},
+        {"duration_s": 40.0, "failsafe_landings": 0, "end_reason": "complete", "t100_s": 40.0,
+         "false_loss_declarations": 0, "duplicated_fraction": 0.3},
+        {"duration_s": 60.0, "failsafe_landings": 0, "end_reason": "complete", "t100_s": 60.0,
+         "false_loss_declarations": 1, "duplicated_fraction": 0.2},
+    ]
+    sweep = exp.cell_stats(sweep_rows, "sweep")
+    assert sweep["completed"]["count"] == 2 and sweep["t100_s_median_of_completed"] == 60.0
+    assert sweep["landings_per_drone_hour"] == pytest.approx(3 / (220.0 * 3 / 3600.0))
+    assert sweep["false_loss_declarations"] == 3 and sweep["duplicated_fraction_mean"] == pytest.approx(0.2)
+
+
+def test_prediction_check_reads_the_observed_cells():
+    cells = _cells(**{"jink/burst_30_0.5s": {"violations": 5, "min_sep": 0.3}})
+    checks = exp.prediction_check(cells, exp.verdict(cells, _valid(cells)))
+    held = [c["held"] for c in checks]
+    # Hand cells: default lands 20 times per 20 runs (tag 1.0 per drone, sweep a third per drone), default
+    # tags and sweeps 10 of 20, hold 0 landings, 20 of 20 tags and sweeps, t100 50 s, violations only on jink.
+    assert held == [
+        False,  # about once per drone per run: sweep cells are a third
+        True,   # hold 0 landings
+        True,   # rule 1
+        False,  # 20 of 20 tags is outside the 12 to 18 band for burst_30
+        False,  # default sweeps completed 10, not 0
+        True,   # hold sweeps at least 15 of 20
+        False,  # t100 50 s is outside 60 to 90 s for dropout one
+        True,   # rule 2
+        True,   # rule 3 fails, all steps on jink, one cell more than 0.05 m below
+        True,   # overall FAIL
+    ]
+    assert checks[8]["observed"]["hold_steps_on_jink"] == 5
+    assert exp.prediction_check([], exp.verdict([], exp.validity([], {"reproduced": False}, 20))) == []

@@ -49,6 +49,7 @@ from tools.e_common import (
     write_rows,
 )
 from tools.e_exp029_part_b import _labels as part_b_labels
+from tools.e_exp029_part_b import draw_outage_start
 from tools.e_exp029_part_b import scenario_for as tag_scenario
 from tools.e_exp031_sweep import _scenario as sweep_scenario
 
@@ -85,8 +86,8 @@ REGISTERED_LABELS = {
     "sweep": {"slice", "seed_index", "seed", "adapter", "preset", "dropout", "message_mode", "policy_name"},
 }
 
-PREDICTION_SOURCE = ("pre-registered before the full run (EXP-042 section of the private pre-registration); "
-                     "written after a disclosed 2-seed pilot")
+PREDICTION_SOURCE = ("written in the project's experiment notes (kept outside this repository) before the "
+                     "full run, after a 2-seed pilot of this grid; the repository alone cannot show the order")
 PREDICTION = (
     "Landings: default lands about once per run in every burst cell; hold has 0 landings everywhere. "
     "Rule 1 passes. "
@@ -189,7 +190,11 @@ def registered_rows(repo: Path = REPO_ROOT) -> dict[tuple, dict]:
 
 
 def default_reproduction(rows: list[dict], reference: dict[tuple, dict]) -> dict:
-    """Check every default-arm row against the registered row: same metric columns, same values."""
+    """Check every default-arm row against the registered row: same metric columns, same values.
+
+    Tag rows also check the blackout start: the registered runner stores it as a label column,
+    this run draws it from the same seed (``draw_outage_start``).
+    """
     checked = mismatched = missing = 0
     examples = []
     for row in rows:
@@ -208,6 +213,8 @@ def default_reproduction(rows: list[dict], reference: dict[tuple, dict]) -> dict
         problems += sorted(k for k in run_metrics & ref_metrics if _text(row[k]) != ref[k])
         if _text(row["adapter"]) != ref["adapter"]:
             problems.append("adapter")
+        if part == "tag" and _text(draw_outage_start(int(row["seed"]))) != ref["blackout_start_s"]:
+            problems.append("blackout_start_s")
         if problems:
             mismatched += 1
             if len(examples) < 5:
@@ -326,6 +333,60 @@ def verdict(cells: list[dict], valid: dict) -> dict:
     }
 
 
+def _in(value: float | None, low: float, high: float) -> bool:
+    return value is not None and low <= value <= high
+
+
+def prediction_check(cells: list[dict], result: dict) -> list[dict]:
+    """Each sentence of the stored prediction against what this run observed (computed, not typed in)."""
+    if result["status"] == "void":
+        return []
+    tag = [c for c in cells if c["part"] == "tag"]
+    sweep = [c for c in cells if c["part"] == "sweep"]
+    name = {"tag": lambda c: f"tag {c['target_class']} {c['preset']}",
+            "sweep": lambda c: f"sweep dropout {c['dropout']} {c['preset']}"}
+    # Landings per drone per run: a tag run has one follower, a sweep run three drones.
+    per_drone = {name[c["part"]](c): c["default"]["landings_per_run"] / (TAG_FOLLOWERS if c["part"] == "tag"
+                                                                         else SWEEP_DRONES) for c in cells}
+    tags = {name["tag"](c): c["hold"]["tagged"]["count"] for c in tag}
+    tag_bands = {"burst_10_0.5s": (18, 20), "burst_30_0.5s": (12, 18)}
+    t100 = {name["sweep"](c): c["hold"]["t100_s_median_of_completed"] for c in sweep}
+    t100_bands = {"none": (40.0, 60.0), "one": (60.0, 90.0)}
+    jink_steps = sum(c["hold"]["separation_violation_steps"] for c in tag if c["target_class"] == "jink")
+    safety = result["rule_3_safety"]
+    items = [
+        ("Default lands about once per run in every burst cell (read as once per drone per run).",
+         {"default_landings_per_drone_per_run": per_drone},
+         all(_in(v, 0.5, 1.5) for v in per_drone.values())),
+        ("Hold has 0 landings everywhere.", {"hold_landings": result["rule_1_landings"]["pooled_hold"]},
+         result["rule_1_landings"]["pooled_hold"] == 0),
+        ("Rule 1 passes.", {"rule_1": result["rule_1_landings"]["pass"]}, result["rule_1_landings"]["pass"]),
+        ("Tag success with hold: about 18 to 20 of 20 on burst_10 and 12 to 18 of 20 on burst_30.",
+         {"hold_tagged_of_20": tags},
+         all(_in(tags[name["tag"](c)], *tag_bands[c["preset"]]) for c in tag)),
+        ("Sweeps: default completes 0 of 20 in all four cells.",
+         {"default_completed": {name["sweep"](c): c["default"]["completed"]["count"] for c in sweep}},
+         all(c["default"]["completed"]["count"] == 0 for c in sweep)),
+        ("Sweeps: hold completes at least 15 of 20 per cell.",
+         {"hold_completed": {name["sweep"](c): c["hold"]["completed"]["count"] for c in sweep}},
+         all(c["hold"]["completed"]["count"] >= 15 for c in sweep)),
+        ("Hold t100 about 40 to 60 s without dropout and 60 to 90 s with one.",
+         {"hold_t100_s_median_of_completed": t100},
+         all(_in(t100[name["sweep"](c)], *t100_bands[c["dropout"]]) for c in sweep)),
+        ("Rule 2 passes.", {"rule_2": result["rule_2_success"]["pass"]}, result["rule_2_success"]["pass"]),
+        ("Rule 3 fails: more violation steps with hold, mostly on jink, and at least one tag cell's minimum "
+         "separation more than 0.05 m below default.",
+         {"violation_steps_default": safety["violation_steps_default"],
+          "violation_steps_hold": safety["violation_steps_hold"], "hold_steps_on_jink": jink_steps,
+          "cells_more_than_0.05_m_below": len(safety["tag_cells_min_separation_more_than_0.05_m_below_default"])},
+         safety["violation_steps_hold"] > safety["violation_steps_default"]
+         and jink_steps > safety["violation_steps_hold"] / 2
+         and bool(safety["tag_cells_min_separation_more_than_0.05_m_below_default"])),
+        ("Overall verdict FAIL.", {"status": result["status"]}, result["status"] == "FAIL"),
+    ]
+    return [{"prediction": text, "observed": observed, "held": bool(held)} for text, observed, held in items]
+
+
 def _figure(cells: list[dict]):
     pal = apply_mission_style()
     colors = dict(zip(ARMS, series_colors(len(ARMS))))
@@ -372,6 +433,7 @@ def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None
     cells = summarize_cells(rows)
     reproduction = default_reproduction(rows, registered_rows(repo))
     valid = validity(cells, reproduction, PILOT_SEEDS if pilot else N_SEEDS)
+    result = verdict(cells, valid)
     summary = {
         "experiment": "EXP-042",
         "label": "EXP-042, simulated comparison of two lost-link policies",
@@ -385,7 +447,8 @@ def run_experiment(output: Path, *, pilot: bool = False, n_processes: int | None
         "cells": cells,
         "default_arm_reproduces_registered_rows": reproduction,
         "validity": valid,
-        "verdict": verdict(cells, valid),
+        "verdict": result,
+        "prediction_check": prediction_check(cells, result),
         "limits": list(MISSION_LIMITS) + list(EXP_LIMITS),
     }
     write_json(output / OUTPUTS[1], summary)
