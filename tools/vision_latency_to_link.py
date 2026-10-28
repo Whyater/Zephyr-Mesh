@@ -13,6 +13,9 @@ latency.json      written by ``tools/vision_latency.py analyze``
 --processing      optional detector cost per frame, schema
                   zephyr-processing-time-1 with median_s, p95_s and n
                   (status is optional; without it the status is unknown).
+                  Made by tools/aruco_processing_time.py. A file that says
+                  measured must carry provenance (operator, captured_at,
+                  code_revision, raw_sha256) or it is refused.
 --vision-fit      optional, instead of --processing: a zephyr-vision-noise-fit-1
                   whose scenario_delay holds the detector latency from the
                   detection log (processing_time_s - capture_time_s).
@@ -50,6 +53,7 @@ import argparse
 import hashlib
 import json
 import math
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -63,6 +67,8 @@ LATENCY_SCHEMA = "zephyr-vision-latency-1"
 PROCESSING_SCHEMA = "zephyr-processing-time-1"
 FIT_SCHEMA = "zephyr-vision-noise-fit-1"
 STATUSES = {"synthetic", "measured", "unknown"}
+PROCESSING_PROVENANCE_TEXT = ("operator", "captured_at", "code_revision")
+_SHA256_HEX = re.compile(r"[0-9a-f]{64}")
 NO_OVERLAP = ("no overlap assumed: camera latency ends at the frame read and processing time starts there; "
               "if the log stamps capture earlier, the overlap is counted twice")
 
@@ -149,10 +155,28 @@ def _camera(latency: Any) -> dict[str, Any]:
     }
 
 
+def _require_processing_provenance(data: dict[str, Any]) -> None:
+    """A processing-time file that says measured must say who, when, which code and which raw timings."""
+    prov = data.get("provenance")
+    if not isinstance(prov, dict):
+        raise LinkConversionError("the processing-time file says measured but has no provenance block (operator, "
+                                  "captured_at, code_revision, raw_sha256), so it was not used")
+    for key in PROCESSING_PROVENANCE_TEXT:
+        value = prov.get(key)
+        if not isinstance(value, str) or not value.strip():
+            raise LinkConversionError(f"provenance.{key} must be non-empty text in a measured processing-time file")
+    digest = prov.get("raw_sha256")
+    if not isinstance(digest, str) or not _SHA256_HEX.fullmatch(digest):
+        raise LinkConversionError("provenance.raw_sha256 must be 64 lowercase hex characters (the hash of the raw "
+                                  "timings) in a measured processing-time file")
+
+
 def _processing_from_json(data: Any) -> dict[str, Any]:
     data = _object(data, "processing input")
     if data.get("schema") != PROCESSING_SCHEMA:
         raise LinkConversionError(f"processing input must have schema {PROCESSING_SCHEMA}, got {data.get('schema')!r}")
+    if _status(data.get("status")) == "measured":
+        _require_processing_provenance(data)
     median = _nonnegative(data.get("median_s"), "median_s")
     p95 = _nonnegative(data.get("p95_s"), "p95_s")
     if p95 < median:

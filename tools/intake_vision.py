@@ -25,9 +25,11 @@ the fit stage, and the folder this command made is removed.
 What the rerun applies: only the fitted noise (the registered S6 rerun applies
 nothing else). The link JSON is written for tools/s6_link_rerun.py and is not
 applied by this command. Display lag in the latency result is an assumption.
-One processing-time JSON is added to the link of every latency run, and a
-processing-time file has no provenance fields, so its status is taken as
-written. Inputs are never modified.
+One processing-time JSON is added to the link of every latency run. One that
+says "measured" must carry its provenance block (operator, captured_at,
+code_revision, raw_sha256), or it is refused before any stage runs; its raw
+timings can be rechecked with tools/aruco_processing_time.py check. Inputs
+are never modified.
 
 --pilot runs one seed on 8 of the 56 main-slice cells (both motions, delay 0
 and 0.10 s, loss 0 and 0.30). Without it the default is 5 seeds on every cell.
