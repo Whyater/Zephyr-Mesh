@@ -88,7 +88,8 @@ def cmd_analyze(args: argparse.Namespace) -> int:
     log = read_display_log(args.run_dir / LOG_FILE, n_bits)
     settings = Settings(n_bits=n_bits, roi=args.roi, mirror=args.mirror,
                         display_lag_s=(args.display_lag_ms[0] / 1000, args.display_lag_ms[1] / 1000),
-                        max_latency_s=args.max_latency_ms / 1000, seed=args.seed)
+                        max_latency_s=args.max_latency_ms / 1000, seed=args.seed,
+                        display_refresh_hz=args.refresh_hz)
     result = analyze(frames, t_read, log, settings)
     result["status"] = meta.get("status", "unknown")
     result["inputs"] = {name: _sha256(args.run_dir / name)
@@ -123,6 +124,11 @@ def summary_text(result: dict) -> str:
          f"p05 {1000 * a['p05']:.1f}, p95 {1000 * a['p95']:.1f} ms)"),
         f"  The +/- is a {100 * result['settings']['confidence']:.0f}% interval, but only approximately. Note: {result['settings']['confidence_note']}.",
         f"  This is an upper bound on camera latency: at most {1000 * (a['mean'] + a['stated_error']):.1f} ms.",
+    ]
+    if "refresh_phase" in a["stated_error_parts"]:
+        lines.append(f"  The +/- includes {1000 * a['stated_error_parts']['refresh_phase']:.1f} ms for the camera's "
+                     f"phase against the {result['settings']['display_refresh_hz']:g} Hz screen refresh.")
+    lines += [
         (f"Camera latency, assuming display lag {1000 * lag[0]:.0f} to {1000 * lag[1]:.0f} ms: "
          f"{1000 * cam['low']:.1f} to {1000 * cam['high']:.1f} ms"),
         ("Frame-to-frame jitter (std, from frames that caught a change): "
@@ -137,7 +143,8 @@ def summary_text(result: dict) -> str:
 def cmd_synth(args: argparse.Namespace) -> int:
     cfg = SynthConfig(latency_s=args.latency_ms / 1000, latency_jitter_s=args.jitter_ms / 1000,
                       display_lag_s=args.display_lag_ms / 1000, fps=args.fps, duration_s=args.duration_s,
-                      exposure_s=args.exposure_ms / 1000, mirrored=args.mirrored, seed=args.seed)
+                      exposure_s=args.exposure_ms / 1000, mirrored=args.mirrored, seed=args.seed,
+                      vsync_hz=args.vsync_hz)
     rec = synth_recording(cfg)
     args.run_dir.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(args.run_dir / FRAMES_FILE, frames=rec.frames, t_read_s=rec.t_read_s)
@@ -147,6 +154,8 @@ def cmd_synth(args: argparse.Namespace) -> int:
                          "display_lag_ms": args.display_lag_ms, "fps": args.fps,
                          "exposure_ms": args.exposure_ms, "mirrored": args.mirrored, "seed": args.seed,
                          "true_mean_latency_ms": 1000 * float(np.mean(rec.true_latency_s))}}
+    if args.vsync_hz is not None:
+        meta["injected"]["vsync_hz"] = args.vsync_hz
     (args.run_dir / META_FILE).write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(f"Wrote a SYNTHETIC recording ({len(rec.frames)} frames) to {args.run_dir}")
     return 0
@@ -186,6 +195,8 @@ def build_parser() -> argparse.ArgumentParser:
                    help="assumed display lag range min,max in ms (default 0,60; an assumption, see the docs)")
     p.add_argument("--max-latency-ms", type=float, default=2000.0, help="frames older than this are rejected")
     p.add_argument("--seed", type=int, default=0, help="bootstrap seed")
+    p.add_argument("--refresh-hz", type=float, help="screen refresh rate, e.g. 60; adds half a refresh step to "
+                   "the stated error for the camera's phase against the refresh (default: not added)")
     p.set_defaults(func=cmd_analyze)
 
     p = sub.add_parser("synth", help="write a synthetic recording with a known latency")
@@ -197,6 +208,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--exposure-ms", type=float, default=10.0)
     p.add_argument("--duration-s", type=float, default=20.0)
     p.add_argument("--mirrored", action="store_true")
+    p.add_argument("--vsync-hz", type=float, help="screen changes only on this refresh grid (default: instantly)")
     p.add_argument("--seed", type=int, default=1)
     p.set_defaults(func=cmd_synth)
 
