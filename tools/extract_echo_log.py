@@ -10,7 +10,7 @@ plus an audit JSON that lists every line it left out.
 Rules, in the order they are applied:
 
 1. The capture is split on ``\\n``. One ``\\r`` at the end of a line is dropped
-   (counted as ``crlf_lines``). Any other ``\\r`` stays and fails later.
+   (counted as ``crlf_lines``). Any other ``\\r`` inside a log block fails.
 2. If the capture does not end in ``\\n``, its last piece was cut off
    mid-line. It is dropped and reported as ``truncated_final_line``.
 3. Everything before the first line that is exactly the format line is boot
@@ -30,7 +30,8 @@ Rules, in the order they are applied:
    line, bytes that are not UTF-8) fails on its line number in the raw
    capture. Nothing inside a block is ever skipped or repaired.
 
-Nothing is written unless every block passes. The audit records the raw
+Nothing is written unless every block passes and every output path is new,
+distinct, and in a folder that exists (``--split`` makes its own folder). The audit records the raw
 capture's SHA-256 and each output's SHA-256, and uses file names only, never
 folders. It does not say whether the capture is a measurement; the importer's
 ``--status`` sets that.
@@ -91,10 +92,10 @@ def _split_lines(data: bytes) -> tuple[list[bytes], bytes, int]:
     return lines, tail, crlf
 
 
-def _role(lines: list[bytes], start: int, name: str) -> str:
-    """The block's role from its ``# role=`` header line."""
+def _role(lines: list[bytes], start: int, end: int, name: str) -> str:
+    """The block's role from its ``# role=`` header line (looking only inside the block)."""
     index = start + 1
-    while index < len(lines) and lines[index].startswith(b"# "):
+    while index < end and lines[index].startswith(b"# "):
         if lines[index].startswith(b"# role="):
             value = lines[index][len(b"# role="):]
             if value in (b"sender", b"echoer"):
@@ -113,6 +114,8 @@ def _check_block(lines: list[bytes], start: int, end: int, role: str, name: str)
     """Decode a block strictly and run the importer's parser on it; return its text."""
     decoded: list[str] = []
     for index in range(start, end):
+        if b"\r" in lines[index]:
+            raise _error(name, index + 1, "stray carriage return inside the log block")
         try:
             decoded.append(lines[index].decode("utf-8"))
         except UnicodeDecodeError:
@@ -144,6 +147,9 @@ def extract(data: bytes, name: str, *, split: bool = False) -> tuple[list[str], 
             starts.append(index)
         elif _FORMAT in line:
             raise _error(name, index + 1, f"this line holds {FORMAT_LINE} with extra characters on it")
+    if not starts and _FORMAT in tail:
+        raise _error(name, len(lines) + 1, f"this line holds {FORMAT_LINE} with extra characters on it "
+                                           "(no \\n line endings?)")
     if not starts:
         raise _error(name, 1, f"no line is exactly {FORMAT_LINE}; is this an echo log capture?")
     if len(starts) > 1 and not split:
@@ -158,7 +164,7 @@ def extract(data: bytes, name: str, *, split: bool = False) -> tuple[list[str], 
     for k, start in enumerate(starts):
         is_last = k == len(starts) - 1
         end = len(lines) if is_last else starts[k + 1]
-        role = _role(lines, start, name)
+        role = _role(lines, start, end, name)
         keep_end = end
         if not is_last:
             n_fields = _PARSERS[role][1]
@@ -230,10 +236,16 @@ def extract_file(raw_path: str | Path, *, out: str | Path | None = None, out_dir
     else:
         targets = [Path(out)]
         audit_target = Path(audit_path) if audit_path is not None else Path(str(out) + ".audit.json")
-    raw_resolved = raw_path.resolve()
+    resolved = [target.resolve() for target in [*targets, audit_target]]
+    if raw_path.resolve() in resolved:
+        raise ExtractError(f"refusing to overwrite the raw capture {raw_path.name}")
+    if len(set(resolved)) != len(resolved):
+        raise ExtractError("two outputs would be the same file; give --audit a different name")
     for target in [*targets, audit_target]:
-        if target.resolve() == raw_resolved:
-            raise ExtractError(f"refusing to overwrite the raw capture {raw_path.name}")
+        if target.exists():
+            raise ExtractError(f"{target.name} already exists; pick a new name")
+        if not (split and target.parent == Path(out_dir)) and not target.parent.is_dir():
+            raise ExtractError(f"the folder for {target.name} does not exist")
 
     for block, target, text in zip(audit["blocks"], targets, texts):
         block["output"] = target.name

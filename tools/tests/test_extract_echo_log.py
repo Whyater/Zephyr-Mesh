@@ -239,3 +239,51 @@ def test_cli_errors_exit_2_and_refuse_to_overwrite_the_raw_capture(tmp_path, cap
     assert good.read_bytes() == _crlf(_lines(_small_logs(6).sender_text))
     assert ex.main([str(good), "--split", "--out", str(tmp_path / "x.csv")]) == 2
     assert ex.main([str(good), "--out-dir", str(tmp_path / "d")]) == 2
+
+
+def test_a_second_carriage_return_at_a_line_end_fails_instead_of_reaching_the_output(tmp_path):
+    lines = _lines(_small_logs(7).sender_text)
+    data = _crlf(BANNER) + _crlf(lines[:18]) + lines[18] + b"\r\r\n" + _crlf(lines[19:])
+    raw = _write(tmp_path / "raw.txt", data)
+    with pytest.raises(ex.ExtractError, match=rf"raw.txt:{len(BANNER) + 19}: .*carriage return"):
+        ex.extract_file(raw, out=tmp_path / "out.csv")
+
+
+@pytest.mark.parametrize("data,line,message", [
+    (b"\xef\xbb\xbf# zephyr-espnow-echo-log-1\n# role=sender\n", 1, "extra characters"),
+    (b"boot\r# zephyr-espnow-echo-log-1\r# role=sender\r", 1, "extra characters"),
+    (b"# zephyr-espnow-echo-log-1\n# board=A\nseq,tx_us,echo_us\n0,1,2\n", 1, "no # role= line"),
+])
+def test_bom_cr_only_endings_and_missing_role_fail(tmp_path, data, line, message):
+    raw = _write(tmp_path / "raw.txt", data)
+    with pytest.raises(ex.ExtractError, match=rf"raw.txt:{line}: .*{message}"):
+        ex.extract_file(raw, out=tmp_path / "out.csv")
+
+
+def test_role_is_read_from_its_own_block_only(tmp_path):
+    second = _lines(_small_logs(2, n=10).sender_text)
+    data = b"# zephyr-espnow-echo-log-1\n" + _crlf(second)
+    raw = _write(tmp_path / "raw.txt", data)
+    with pytest.raises(ex.ExtractError, match=r"raw.txt:1: .*no # role= line"):
+        ex.extract_file(raw, out_dir=tmp_path / "blocks", split=True)
+
+
+def test_output_paths_must_differ_and_must_not_exist(tmp_path):
+    raw = _write(tmp_path / "raw.txt", _crlf(_lines(_small_logs(8).sender_text)))
+    with pytest.raises(ex.ExtractError, match="same file"):
+        ex.extract_file(raw, out=tmp_path / "s.csv", audit_path=tmp_path / "s.csv")
+    with pytest.raises(ex.ExtractError, match="same file"):
+        ex.extract_file(raw, out_dir=tmp_path / "d", split=True, audit_path=tmp_path / "d" / "block-1.csv")
+    assert not (tmp_path / "s.csv").exists() and not (tmp_path / "d").exists()
+    keep = _write(tmp_path / "keep.csv", b"precious\n")
+    with pytest.raises(ex.ExtractError, match="already exists"):
+        ex.extract_file(raw, out=keep)
+    assert keep.read_bytes() == b"precious\n"
+
+
+def test_a_bad_audit_path_leaves_no_log_behind(tmp_path):
+    raw = _write(tmp_path / "raw.txt", _crlf(_lines(_small_logs(9).sender_text)))
+    out = tmp_path / "s.csv"
+    with pytest.raises(ex.ExtractError, match="folder"):
+        ex.extract_file(raw, out=out, audit_path=tmp_path / "missing" / "a.json")
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["raw.txt"]
