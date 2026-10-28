@@ -114,6 +114,59 @@ VENV_HELP = (
 )
 
 
+@dataclass(frozen=True)
+class BoardGeometry:
+    """Sizes of the ChArUco board, from the square and marker sizes in mm."""
+
+    squares: tuple[int, int]
+    square_mm: float
+    marker_mm: float
+
+    @property
+    def square_m(self) -> float:
+        return self.square_mm / 1000.0
+
+    @property
+    def marker_m(self) -> float:
+        return self.marker_mm / 1000.0
+
+    @property
+    def width_mm(self) -> float:
+        return self.squares[0] * self.square_mm
+
+    @property
+    def height_mm(self) -> float:
+        return self.squares[1] * self.square_mm
+
+    @property
+    def inner_corners(self) -> int:
+        """ChArUco corners sit where four squares meet, so (columns - 1) x (rows - 1)."""
+        return (self.squares[0] - 1) * (self.squares[1] - 1)
+
+    @property
+    def page_width_mm(self) -> float:
+        return self.width_mm + 2 * PRINT_MARGIN_MM
+
+    @property
+    def page_height_mm(self) -> float:
+        return self.height_mm + 2 * PRINT_MARGIN_MM
+
+    @property
+    def print_size_px(self) -> tuple[int, int]:
+        """Board size in the printable PNG, without the margin."""
+        return round(self.width_mm * PRINT_PX_PER_MM), round(self.height_mm * PRINT_PX_PER_MM)
+
+
+def board_geometry(square_mm: float, marker_mm: float) -> BoardGeometry:
+    """The board for these sizes. The command line checks the sizes before this runs."""
+    return BoardGeometry(BOARD_SQUARES, square_mm, marker_mm)
+
+
+def rms_needs_recalibration(rms_px: float) -> bool:
+    """True above RMS_WARNING_PX (a rule of thumb, not a standard), or if the number is broken."""
+    return not (math.isfinite(rms_px) and rms_px <= RMS_WARNING_PX)
+
+
 class CalibrationError(RuntimeError):
     """A failure while running (camera, files, too few views). Exit code 1."""
 
@@ -143,7 +196,8 @@ def import_cv2() -> Any:
 
 def make_board(cv2: Any, square_mm: float, marker_mm: float) -> Any:
     dictionary = cv2.aruco.getPredefinedDictionary(getattr(cv2.aruco, DICTIONARY_NAME))
-    return cv2.aruco.CharucoBoard(BOARD_SQUARES, square_mm / 1000.0, marker_mm / 1000.0, dictionary)
+    geometry = board_geometry(square_mm, marker_mm)
+    return cv2.aruco.CharucoBoard(geometry.squares, geometry.square_m, geometry.marker_m, dictionary)
 
 
 def make_detector(cv2: Any, board: Any) -> Any:
@@ -153,9 +207,7 @@ def make_detector(cv2: Any, board: Any) -> Any:
 def board_image(cv2: Any) -> np.ndarray:
     """The nominal board at PRINT_PX_PER_MM, with a white margin of PRINT_MARGIN_MM."""
     board = make_board(cv2, NOMINAL_SQUARE_MM, NOMINAL_MARKER_MM)
-    width = round(BOARD_SQUARES[0] * NOMINAL_SQUARE_MM * PRINT_PX_PER_MM)
-    height = round(BOARD_SQUARES[1] * NOMINAL_SQUARE_MM * PRINT_PX_PER_MM)
-    image = board.generateImage((width, height), marginSize=0)
+    image = board.generateImage(board_geometry(NOMINAL_SQUARE_MM, NOMINAL_MARKER_MM).print_size_px, marginSize=0)
     margin = PRINT_MARGIN_MM * PRINT_PX_PER_MM
     return cv2.copyMakeBorder(image, margin, margin, margin, margin, cv2.BORDER_CONSTANT, value=255)
 
@@ -273,7 +325,7 @@ def horizontal_fov_deg(fx: float, width_px: int) -> float:
 
 def warnings_for(result: Calibration, coverage: np.ndarray) -> list[str]:
     notes = []
-    if result.rms_px > RMS_WARNING_PX:
+    if rms_needs_recalibration(result.rms_px):
         notes.append(
             f"RMS {result.rms_px:.3f} px is above {RMS_WARNING_PX} px (a rule of thumb, not a standard). "
             "Look for a bent board, blur, or too few angles."
@@ -289,7 +341,8 @@ def warnings_for(result: Calibration, coverage: np.ndarray) -> list[str]:
     return notes
 
 
-def calibration_document(cv2: Any, result: Calibration, square_mm: float, marker_mm: float, source: str) -> dict[str, Any]:
+def calibration_document(opencv_version: str, result: Calibration, square_mm: float, marker_mm: float,
+                         source: str) -> dict[str, Any]:
     m = result.camera_matrix
     return {
         "schema": CALIBRATION_SCHEMA,
@@ -298,12 +351,21 @@ def calibration_document(cv2: Any, result: Calibration, square_mm: float, marker
         "image_size_px": {"width": result.width_px, "height": result.height_px},
         "rms_reprojection_error_px": result.rms_px,
         "method": (
-            f"OpenCV {cv2.__version__} calibrateCamera (k1, k2, p1, p2, k3) on ChArUco corners; board "
+            f"OpenCV {opencv_version} calibrateCamera (k1, k2, p1, p2, k3) on ChArUco corners; board "
             f"{BOARD_SQUARES[0]}x{BOARD_SQUARES[1]} squares, {DICTIONARY_NAME}, measured square {square_mm:g} mm, "
             f"measured marker {marker_mm:g} mm"
         ),
         "notes": f"{result.views} views, {result.corners} corners, from {source}",
     }
+
+
+def render_calibration_json(document: dict[str, Any]) -> bytes:
+    """The exact bytes of a calibration file: sorted keys, 2-space indent, one final newline.
+
+    Non-finite numbers raise ValueError instead of being written as NaN or Infinity.
+    tools.aruco_geometry.load_camera_calibration reads the file back.
+    """
+    return (json.dumps(document, indent=2, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
 
 
 # ---------------------------------------------------------------- files
@@ -503,10 +565,9 @@ def main(argv: list[str] | None = None) -> int:
         cv2 = import_cv2()
         if args.print_board is not None:
             write_board_png(cv2, args.print_board, args.overwrite)
-            total_w = BOARD_SQUARES[0] * NOMINAL_SQUARE_MM + 2 * PRINT_MARGIN_MM
-            total_h = BOARD_SQUARES[1] * NOMINAL_SQUARE_MM + 2 * PRINT_MARGIN_MM
-            print(f"Wrote {args.print_board}: board {BOARD_SQUARES[0] * NOMINAL_SQUARE_MM:g} x "
-                  f"{BOARD_SQUARES[1] * NOMINAL_SQUARE_MM:g} mm, page image {total_w:g} x {total_h:g} mm at "
+            nominal = board_geometry(NOMINAL_SQUARE_MM, NOMINAL_MARKER_MM)
+            print(f"Wrote {args.print_board}: board {nominal.width_mm:g} x "
+                  f"{nominal.height_mm:g} mm, page image {nominal.page_width_mm:g} x {nominal.page_height_mm:g} mm at "
                   f"{PRINT_PX_PER_MM} px per mm. Print at 100% on letter, landscape.")
             return 0
         if args.save_views is not None:
@@ -520,8 +581,8 @@ def main(argv: list[str] | None = None) -> int:
             views, width, height = views_from_camera(cv2, detector, board, args)
             source = f"live camera index {args.camera_index}"
         result = calibrate(cv2, views, width, height)
-        document = calibration_document(cv2, result, args.square_mm, args.marker_mm, source)
-        rendered = (json.dumps(document, indent=2, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
+        document = calibration_document(cv2.__version__, result, args.square_mm, args.marker_mm, source)
+        rendered = render_calibration_json(document)
         _write_new_file(args.output, rendered, args.overwrite)
     except CalibrationError as exc:
         print(f"error: {exc}", file=sys.stderr)
