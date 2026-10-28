@@ -31,6 +31,9 @@ MEASURED_LATENCY_META = {"schema": "zephyr-vision-latency-run-1", "status": "mea
                          "clock": "time.monotonic (same clock for frames and display)"}
 PROCESSING = {"schema": "zephyr-processing-time-1", "median_s": 0.015, "p95_s": 0.021, "n": 300,
               "status": "synthetic"}
+# A processing file that says measured must now carry provenance (see test_aruco_processing_time.py).
+MEASURED_PROVENANCE = {"operator": "bench-test", "captured_at": "2026-10-30T10:00:00-06:00",
+                       "code_revision": "abc1234", "raw_sha256": "ab" * 32}
 
 
 def _sha(path):
@@ -264,7 +267,7 @@ def test_all_measured_inputs_give_overall_measured(bench, tmp_path):
     _make_latency(run)
     (run / "run_meta.json").write_text(json.dumps(MEASURED_LATENCY_META))
     proc = tmp_path / "proc.json"
-    proc.write_text(json.dumps({**PROCESSING, "status": "measured"}))
+    proc.write_text(json.dumps({**PROCESSING, "status": "measured", "provenance": MEASURED_PROVENANCE}))
     out = tmp_path / "out"
     assert _intake("--log", mlog, "--latency-run", run, "--processing", proc, "--output", out, "--pilot") == 0
     text = (out / "INTAKE.md").read_text()
@@ -456,6 +459,22 @@ def test_a_bad_processing_file_is_refused_before_any_stage_runs(bench, tmp_path,
     out = tmp_path / "out"
     assert _intake("--log", log, "--latency-run", run, "--processing", proc, "--output", out, "--pilot") == 2
     assert "proc.json" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_a_measured_processing_file_without_provenance_is_refused_before_any_stage_runs(bench, tmp_path, capsys,
+                                                                                         monkeypatch):
+    _, log, run, _ = bench
+
+    def must_not_run(*_args, **_kwargs):
+        raise AssertionError("a stage ran before the processing file's provenance was checked")
+
+    monkeypatch.setattr(tool.fit_vision_noise, "main", must_not_run)
+    proc = tmp_path / "proc.json"
+    proc.write_text(json.dumps({**PROCESSING, "status": "measured"}))
+    out = tmp_path / "out"
+    assert _intake("--log", log, "--latency-run", run, "--processing", proc, "--output", out, "--pilot") == 2
+    assert "provenance" in capsys.readouterr().err
     assert not out.exists()
 
 

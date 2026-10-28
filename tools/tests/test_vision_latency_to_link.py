@@ -20,6 +20,9 @@ from tools.s6_link_rerun import parse_link
 
 PROCESSING = {"schema": "zephyr-processing-time-1", "median_s": 0.015, "p95_s": 0.021, "n": 300,
               "status": "synthetic"}
+# A processing file that says measured must now carry provenance (see test_aruco_processing_time.py).
+MEASURED_PROVENANCE = {"operator": "bench-test", "captured_at": "2026-10-30T10:00:00-06:00",
+                       "code_revision": "abc1234", "raw_sha256": "ab" * 32}
 EXPOSURE_S = SynthConfig().exposure_s  # the synth default the end-to-end run uses
 
 
@@ -83,7 +86,7 @@ def test_processing_median_adds_exactly_and_keeps_jitter(synth_run, tmp_path):
 
 
 def test_output_parses_in_the_link_rerun():
-    link = tool.build_link(_latency(), processing=dict(PROCESSING, status="measured"))
+    link = tool.build_link(_latency(), processing=dict(PROCESSING, status="measured", provenance=MEASURED_PROVENANCE))
     assert parse_link(link) == {"delay_s": pytest.approx(0.145), "jitter_s": 0.008,
                                 "loss_probability": 0.0, "loss_model": "independent"}
     assert parse_link(json.loads(json.dumps(link)))["delay_s"] == pytest.approx(0.145)
@@ -109,7 +112,7 @@ def test_display_lag_is_passed_through_as_an_assumption():
 @pytest.mark.parametrize("camera, extra, expected", [
     ("synthetic", None, "synthetic"),
     ("measured", None, "measured"),
-    ("measured", {"processing": dict(PROCESSING, status="measured")}, "measured"),
+    ("measured", {"processing": dict(PROCESSING, status="measured", provenance=MEASURED_PROVENANCE)}, "measured"),
     ("measured", {"processing": PROCESSING}, "synthetic"),
     ("synthetic", {"vision_fit": _fit(status="measured")}, "synthetic"),
     ("measured", {"processing": {k: v for k, v in PROCESSING.items() if k != "status"}}, "unknown"),
