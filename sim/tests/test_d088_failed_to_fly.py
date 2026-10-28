@@ -1,4 +1,4 @@
-"""Tests for the D-088 "failed to fly" rule (opt-in, for future runs).
+"""Tests for the stricter "failed to fly" rule (opt-in, for future runs).
 
 The hand-built trajectories below are written directly with NumPy so they do
 not depend on the simulator. Each one flies badly in a way the EXP-021
@@ -208,7 +208,7 @@ def test_opt_in_adds_a_verdict_and_keeps_every_old_field():
 
 
 def test_esp_fly_slice_c_30_ms_is_stable_by_old_rules_but_failed_to_fly():
-    """The D-087 case: 68 degree wobble, 3 m below the (unmodeled) floor, still 'stable'."""
+    """The case that prompted the rule: 68 degree wobble, 3 m below the (unmodeled) floor, still 'stable'."""
     r = run_episode(ESP, "c", "step", 0.03, 0.0, 0, failed_to_fly_rule=True)
     assert r["unstable"] is False
     assert r["failed_to_fly"] is True
