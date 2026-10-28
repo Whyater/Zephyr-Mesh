@@ -82,7 +82,7 @@ def find_constructions() -> list[dict]:
             while i < len(text) and depth:
                 depth += {"(": 1, ")": -1}.get(text[i], 0)
                 i += 1
-            entry = {"where": f"{path.relative_to(ROOT)}:{text.count(chr(10), 0, m.start()) + 1}", "config": None}
+            entry = {"where": f"{path.relative_to(ROOT).as_posix()}:{text.count(chr(10), 0, m.start()) + 1}", "config": None}
             try:
                 args = ast.parse("f(" + text[m.end():i - 1] + ")", mode="eval").body.args
                 entry["config"] = tuple(ast.literal_eval(args[k]) for k in (0, 1, 3))
