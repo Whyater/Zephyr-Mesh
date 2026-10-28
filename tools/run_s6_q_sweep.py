@@ -356,7 +356,7 @@ def run(output: Path, *, seeds_count: int = 50, processes: int = 1, overwrite: b
     cells = [summarize_condition(c, r) for c, r in zip(conditions, results)]
     summary = {
         "schema": "zephyr-s6-q-sweep-1",
-        "status": "EXP-040 proposal: synthetic link and sensor, not flight performance, not registered",
+        "status": "EXP-040 proposal: synthetic link and sensor, not flight performance",
         "generator": "tools/run_s6_q_sweep.py",
         "config": asdict(config),
         "design": {"n_seeds": seeds_count, "seeds": seeds, "q_grid": list(Q_GRID), "registered_q": REGISTERED_Q,

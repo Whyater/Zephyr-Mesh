@@ -214,7 +214,7 @@ def run(output: Path, *, seeds_count: int = 50, processes: int = 1, overwrite: b
     cells = [summarize_condition(c, r) for c, r in zip(conditions, results)]
     summary = {
         "schema": "zephyr-s6-adaptive-r-1",
-        "status": "EXP-037 proposal: synthetic link and sensor, not flight performance, not registered",
+        "status": "EXP-037 proposal: synthetic link and sensor, not flight performance",
         "generator": "tools/run_s6_adaptive_r.py",
         "config": asdict(config),
         "design": {"n_seeds": seeds_count, "seeds": seeds, "arms": list(ARMS), "told_std_m": TOLD_STD_M,
