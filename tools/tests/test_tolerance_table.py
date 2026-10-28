@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 from tools.tolerance_table import (
+    _atlas_rows,
     boundary_for_rows,
     build_table,
     wilson_interval,
@@ -79,3 +80,46 @@ def test_default_s6_recovery_boundaries_match_published_summary():
     expected = {key: max((delay for delay in delays if delay is not None), default=None)
                 for key, delays in by_group.items()}
     assert actual == expected
+
+
+def _registered_tool_value(max_tolerated):
+    """Registered atlas entry -> the value the table tool reports for it."""
+    if max_tolerated["fails_at_zero"]:
+        return None
+    if max_tolerated["censored"]:
+        return 0.3
+    return max_tolerated["value"]
+
+
+def test_s6_atlas_groups_match_the_registered_atlas():
+    # The atlas has one group per (stratum, motion, loss model, loss rate, arm), 1883 in
+    # all.  Pooling motions or strata would give far fewer groups and mix conditions.
+    root = Path(__file__).resolve().parents[2]
+    report = build_table(root, sources=("s6-atlas",))
+    actual = {}
+    for row in report["rows"]:
+        if row["cell_threshold"] == 0.5 and row["failure_criterion_m"] == 0.25:
+            c = row["conditions"]
+            key = (c["stratum"], c["variant"], c["loss_model"], c["loss_probability"], c["arm"])
+            assert key not in actual
+            actual[key] = row["boundary"]
+    atlas = json.loads((root / "sim/runs/s6-atlas/atlas.json").read_text())
+    expected = {(e["stratum"], e["variant"], e["loss_model"], e["loss_probability"], e["arm"]):
+                _registered_tool_value(e["max_tolerated_delay_s"]) for e in atlas["entries"]}
+    assert len(expected) == 1883
+    assert set(actual) == set(expected)
+    # The registered rule stops at the first failing delay; the table takes the largest
+    # passing delay.  They differ only where pass/fail is not monotone along delay, which
+    # happens in exactly one registered group (rate20, start_stop, burst 0.3, naive).
+    differing = {k for k in expected if actual[k] != expected[k]}
+    assert differing == {("rate20", "start_stop", "burst", 0.3, "naive")}
+
+
+def test_s6_atlas_drops_cells_exported_twice():
+    # A cell shared by two strata is written to per_seed.csv.gz once per stratum with the
+    # same seeds.  Each group must count a flight once: 20 flights per delay value.
+    root = Path(__file__).resolve().parents[2]
+    rows = _atlas_rows(root / "sim" / "runs" / "s6-atlas")
+    keys = [(r["stratum"], r["variant"], r["loss_model"], r["loss_probability"], r["arm"],
+             r["cell_key"], r["seed"]) for r in rows]
+    assert len(keys) == len(set(keys))
