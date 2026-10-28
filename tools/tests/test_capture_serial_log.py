@@ -10,7 +10,6 @@ import hashlib
 import json
 import os
 import sys
-import termios
 import threading
 import time
 import types
@@ -18,7 +17,10 @@ from pathlib import Path
 
 import pytest
 
-from tools import capture_serial_log as csl
+pytestmark = pytest.mark.skipif(sys.platform.startswith("win"), reason="POSIX serial only (no termios or openpty)")
+termios = pytest.importorskip("termios")
+
+from tools import capture_serial_log as csl  # noqa: E402
 
 BANNER = b"ets Jun  8 2016 00:22:57\r\n\r\nrst:0x1 (POWERON_RESET),boot:0x13\r\n"
 # Every byte value, so any line-discipline change (CR/LF mapping, 0x03 signal,
@@ -341,3 +343,18 @@ def test_extract_hook_calls_module_when_present(tmp_path, pty_pair, monkeypatch)
     assert rc == 0
     assert len(calls) == 1
     assert str(out) in calls[0]
+
+
+def test_missing_out_folder_is_a_clean_start_failure(tmp_path, pty_pair, capsys):
+    _, _, name = pty_pair
+    rc = csl.main([name, "--out", str(tmp_path / "no-such-dir" / "d.bin"), "--seconds", "0.1"])
+    assert rc == 2
+    assert "capture_serial_log:" in capsys.readouterr().err
+
+
+def test_without_termios_main_says_posix_only(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(csl, "termios", None)
+    rc = csl.main(["/dev/null", "--out", str(tmp_path / "d.bin"), "--seconds", "0.1"])
+    assert rc == 2
+    assert "POSIX" in capsys.readouterr().err
+    assert not (tmp_path / "d.bin").exists()

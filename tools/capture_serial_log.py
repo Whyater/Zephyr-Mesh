@@ -62,11 +62,15 @@ import os
 import select
 import signal
 import sys
-import termios
 import threading
 import time
 from datetime import UTC, datetime
 from pathlib import Path
+
+try:
+    import termios
+except ImportError:  # Windows has no termios; the tool is POSIX only (macOS, Linux)
+    termios = None
 
 SCHEMA = "zephyr-serial-capture-1"
 READ_SIZE = 4096
@@ -311,13 +315,16 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
+    if termios is None:
+        print("capture_serial_log: this tool needs POSIX serial support (macOS or Linux)", file=sys.stderr)
+        return 2
     # Treat a plain `kill` like Ctrl-C so the sidecar is still written.
     previous = None
     if threading.current_thread() is threading.main_thread():
         previous = signal.signal(signal.SIGTERM, signal.default_int_handler)
     try:
         side = capture(args.port, args.baud, args.out, seconds=args.seconds)
-    except (CaptureError, FileExistsError) as exc:
+    except (CaptureError, OSError) as exc:
         print(f"capture_serial_log: {exc}", file=sys.stderr)
         return 2
     finally:
