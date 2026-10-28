@@ -43,6 +43,7 @@ import math
 import os
 import platform
 import shlex
+import shutil
 import sys
 import time
 from dataclasses import replace
@@ -320,35 +321,39 @@ def run_rerun(output: Path, *, radio_path: Path | None = None, vision_link_path:
     resolved.parent.mkdir(parents=True, exist_ok=True)
     staging = resolved.parent / f".{resolved.name}.partial-{os.getpid()}"
     staging.mkdir()
-    summary_path = staging / "summary.json"
-    summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
-    csv_path = staging / "per_seed.csv"
-    _write_csv(csv_path, cells, results, seeds)
-    readme_path = staging / "README.txt"
-    readme_path.write_text(_readme(status, combined, components))
-    if argv is None:
-        argv = ["--output", str(output)]
-        for flag, path in (("--radio", radio_path), ("--vision-link", vision_link_path),
-                           ("--vision-fit", vision_fit_path)):
-            if path is not None:
-                argv += [flag, str(path)]
-        argv += ["--noise", noise_label, "--tracker-r", tracker_r, "--seeds", str(seeds_count),
-                 "--base-seed", str(base_seed)]
-        if depth_axis is not None:
-            argv += ["--depth-axis", depth_axis]
-    manifest = {"schema": MANIFEST_SCHEMA, "status": status, "input_status": combined["status"],
-                "complete": combined["complete"],
-                "components": components, "settings": combined["settings"], "combining_rule": COMBINING_RULE,
-                "git_revision": git_revision, "git_tree_state": git_tree_state, "code_sha256": code_sha256,
-                "python": sys.version.split()[0], "numpy": np.__version__,
-                "platform": platform.platform(), "seeds_count": seeds_count, "base_seed": base_seed,
-                "pilot": pilot, "runtime_s": runtime, "argv": argv,
-                "replay_command": "PYTHONPATH=. .venv/bin/python tools/s6_combined_rerun.py " + shlex.join(argv),
-                "outputs": {path.name: _sha256(path) for path in (summary_path, csv_path, readme_path)}}
-    (staging / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
-    if resolved.exists():
-        resolved.rmdir()  # check_output already made sure it is empty
-    staging.rename(resolved)
+    try:
+        summary_path = staging / "summary.json"
+        summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
+        csv_path = staging / "per_seed.csv"
+        _write_csv(csv_path, cells, results, seeds)
+        readme_path = staging / "README.txt"
+        readme_path.write_text(_readme(status, combined, components))
+        if argv is None:
+            argv = ["--output", str(output)]
+            for flag, path in (("--radio", radio_path), ("--vision-link", vision_link_path),
+                               ("--vision-fit", vision_fit_path)):
+                if path is not None:
+                    argv += [flag, str(path)]
+            argv += ["--noise", noise_label, "--tracker-r", tracker_r, "--seeds", str(seeds_count),
+                     "--base-seed", str(base_seed)]
+            if depth_axis is not None:
+                argv += ["--depth-axis", depth_axis]
+        manifest = {"schema": MANIFEST_SCHEMA, "status": status, "input_status": combined["status"],
+                    "complete": combined["complete"],
+                    "components": components, "settings": combined["settings"], "combining_rule": COMBINING_RULE,
+                    "git_revision": git_revision, "git_tree_state": git_tree_state, "code_sha256": code_sha256,
+                    "python": sys.version.split()[0], "numpy": np.__version__,
+                    "platform": platform.platform(), "seeds_count": seeds_count, "base_seed": base_seed,
+                    "pilot": pilot, "runtime_s": runtime, "argv": argv,
+                    "replay_command": "PYTHONPATH=. .venv/bin/python tools/s6_combined_rerun.py " + shlex.join(argv),
+                    "outputs": {path.name: _sha256(path) for path in (summary_path, csv_path, readme_path)}}
+        (staging / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+        if resolved.exists():
+            resolved.rmdir()  # check_output already made sure it is empty
+        staging.rename(resolved)
+    except BaseException:
+        shutil.rmtree(staging, ignore_errors=True)
+        raise
     return manifest
 
 

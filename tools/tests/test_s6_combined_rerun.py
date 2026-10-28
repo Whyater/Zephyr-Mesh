@@ -315,3 +315,14 @@ def test_refuses_output_inside_sim_runs(tmp_path):
     with pytest.raises(tool.CombinedRerunError, match="must not be inside"):
         tool.run_rerun(runs, radio_path=_radio(tmp_path), seeds_count=1)
     assert not runs.exists()
+
+
+def test_failed_write_leaves_no_staging_folder(tmp_path, monkeypatch):
+    def broken_csv(*args, **kwargs):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(tool, "_write_csv", broken_csv)
+    with pytest.raises(OSError, match="disk full"):
+        _all(tmp_path, pilot=True)
+    assert not (tmp_path / "out").exists()
+    assert [p.name for p in tmp_path.iterdir() if p.name.startswith(".out.partial-")] == []
