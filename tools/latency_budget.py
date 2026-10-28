@@ -27,6 +27,13 @@ import sys
 from pathlib import Path
 from typing import Any
 
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+# One provenance rule for measured processing-time files, kept in the link converter.
+from tools.vision_latency_to_link import LinkConversionError, _require_processing_provenance  # noqa: E402
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SUMMARY = REPO_ROOT / "sim" / "runs" / "s6-recovery" / "summary.json"
 
@@ -100,6 +107,11 @@ def camera_term(latency: Any) -> dict[str, Any]:
 def processing_term(processing: Any) -> dict[str, Any]:
     """Detector processing median from a processing-time file."""
     data = _object(processing, PROCESSING_SCHEMA, "processing input")
+    if data.get("status") == "measured":
+        try:
+            _require_processing_provenance(data)
+        except LinkConversionError as exc:
+            raise LatencyBudgetError(str(exc)) from exc
     if "median_s" not in data:
         raise LatencyBudgetError("processing input has no median_s")
     median = _seconds(data["median_s"], "median_s")

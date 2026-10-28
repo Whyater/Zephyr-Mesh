@@ -40,6 +40,15 @@ def _processing(median_s, status=None):
     return data
 
 
+_PROVENANCE = {"operator": "A. Tester", "captured_at": "2026-10-27T12:00:00-06:00", "code_revision": "0b48871",
+               "raw_sha256": "a" * 64}
+
+
+def _measured_processing(median_s):
+    """A processing file that says measured, with the provenance block a measured file needs."""
+    return {**_processing(median_s, status="measured"), "provenance": dict(_PROVENANCE)}
+
+
 def _fit(delay_s, ci_high_s, status):
     """The parts of a zephyr-espnow-fit-1 the tool reads."""
     return {
@@ -116,7 +125,7 @@ def test_float_rounding_does_not_push_a_grid_point_up():
 
 
 def test_default_radio_term_is_labelled_assumed_simulated():
-    result = lb.budget(_latency(0.050), _processing(0.010, status="measured"))
+    result = lb.budget(_latency(0.050), _measured_processing(0.010))
     radio = result["components"]["radio"]
     assert radio["value_s"] == 0.040
     assert radio["label"] == "assumed, simulated"
@@ -137,11 +146,11 @@ def test_radio_label_and_value_change_when_a_fit_is_given():
 
 
 def test_overall_status_follows_the_weakest_input():
-    measured_parts = {"latency": _latency(0.05, "measured"), "processing": _processing(0.01, "measured")}
+    measured_parts = {"latency": _latency(0.05, "measured"), "processing": _measured_processing(0.01)}
     assert lb.budget(**measured_parts)["status"] == "partly measured"  # radio assumed
     assert lb.budget(**measured_parts, fit=_fit(0.003, 0.004, "measured"))["status"] == "measured"
     assert lb.budget(**measured_parts, fit=_fit(0.003, 0.004, "fixture"))["status"] == "synthetic"
-    assert lb.budget(_latency(0.05, "synthetic"), _processing(0.01, "measured"),
+    assert lb.budget(_latency(0.05, "synthetic"), _measured_processing(0.01),
                      fit=_fit(0.003, 0.004, "measured"))["status"] == "synthetic"
     # a processing file without a status field is unknown, so never fully measured
     assert lb.budget(_latency(0.05, "measured"), _processing(0.01),
@@ -270,3 +279,61 @@ def test_broken_summary_is_an_error_not_a_traceback(tmp_path, text):
     bad = tmp_path / "summary.json"
     bad.write_text(text)
     assert lb.main(["--latency", str(lat), "--processing-median-ms", "10", "--summary", str(bad)]) == 2
+
+
+def test_measured_processing_without_provenance_is_refused():
+    bare = _processing(0.010, status="measured")  # the old accepted shape
+    with pytest.raises(lb.LatencyBudgetError, match="provenance"):
+        lb.budget(_latency(0.050), bare)
+
+
+@pytest.mark.parametrize("field", ["operator", "captured_at", "code_revision"])
+@pytest.mark.parametrize("bad", [None, "", "   ", 7])
+def test_measured_processing_needs_every_text_provenance_field(field, bad):
+    data = _measured_processing(0.010)
+    data["provenance"][field] = bad
+    with pytest.raises(lb.LatencyBudgetError, match=field):
+        lb.budget(_latency(0.050), data)
+
+
+@pytest.mark.parametrize("digest", [None, "", "a" * 63, "A" * 64, "g" * 64, 7])
+def test_measured_processing_needs_a_lowercase_sha256(digest):
+    data = _measured_processing(0.010)
+    data["provenance"]["raw_sha256"] = digest
+    with pytest.raises(lb.LatencyBudgetError, match="raw_sha256"):
+        lb.budget(_latency(0.050), data)
+
+
+def test_measured_processing_with_provenance_is_accepted():
+    term = lb.budget(_latency(0.050), _measured_processing(0.010))["components"]["processing"]
+    assert term["status"] == "measured"
+    assert term["value_s"] == pytest.approx(0.010)
+
+
+def test_synthetic_and_unlabelled_processing_need_no_provenance():
+    for status in ("synthetic", None):
+        term = lb.budget(_latency(0.050), _processing(0.010, status=status))["components"]["processing"]
+        assert term["value_s"] == pytest.approx(0.010)
+
+
+def test_budget_uses_the_same_rule_as_the_link_converter():
+    """One rule, one home: the refusal here is the link converter's own check."""
+    from tools import vision_latency_to_link as link
+    bare = _processing(0.010, status="measured")
+    with pytest.raises(link.LinkConversionError):
+        link._processing_from_json(bare)
+    with pytest.raises(lb.LatencyBudgetError):
+        lb.processing_term(bare)
+    assert lb.processing_term(_measured_processing(0.010))["value_s"] == pytest.approx(
+        link._processing_from_json(_measured_processing(0.010))["delay_s"])
+
+
+def test_command_line_refuses_a_bare_measured_processing_file(tmp_path, capsys):
+    lat = tmp_path / "latency.json"
+    lat.write_text(json.dumps(_latency(0.050, "measured")))
+    proc = tmp_path / "processing.json"
+    proc.write_text(json.dumps(_processing(0.010, status="measured")))
+    out = tmp_path / "out"
+    assert lb.main(["--latency", str(lat), "--processing", str(proc), "--out", str(out)]) == 2
+    assert "provenance" in capsys.readouterr().err
+    assert not out.exists()
