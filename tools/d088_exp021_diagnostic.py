@@ -1,4 +1,4 @@
-"""Diagnostic only: how EXP-021 reads under the stricter D-088 "failed to fly" rule.
+"""Diagnostic only: how EXP-021 reads under the stricter "failed to fly" rule.
 
 EXP-021 is reported under its pre-registered rules (tilt above 80 degrees,
 error above 5 m, x-only growth).  This tool does NOT replace that result.  It
@@ -8,7 +8,7 @@ above 45 degrees, height below 0 m, growth on x, y or z) call failed?
 Part 1 reads the committed ``per_run.csv``.  Its whole-run maximum tilt and
 lowest height cover the same recorded flight the new rule would see, so the
 tilt and height parts are exact.  The y and z growth part cannot be checked
-from summary columns, so these counts are a lower bound on D-088 failures.
+from summary columns, so these counts are a lower bound on failures under that rule.
 
 Part 2 reruns the four loss-0 d_crit searches (arm b and slice c, both
 profiles, seed 0, 20 s) with ``failed_to_fly_rule=True``.  These are exact.
@@ -35,7 +35,7 @@ LABEL = ("DIAGNOSTIC ONLY. EXP-021 stays reported under its pre-registered rules
 
 
 def _partial_reclassify(rows: list[dict]) -> dict:
-    """Count runs per cell under the old rule and under the tilt and height parts of D-088."""
+    """Count runs per cell under the old rule and under the tilt and height parts of the new rule."""
     cells: dict[tuple, dict] = defaultdict(lambda: {"runs": 0, "old_unstable": 0, "d088_failed_lower_bound": 0})
     reasons: dict[str, int] = defaultdict(int)
     for row in rows:

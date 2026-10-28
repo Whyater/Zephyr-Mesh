@@ -24,8 +24,9 @@ WHOLE_STATE_SAMPLE_S = 0.01
 
 # Rule sets for calling a run a failure.  EXP021_RULES are the pre-registered
 # EXP-021 rules and stay the default, so EXP-021 reproduces unchanged.
-# FAILED_TO_FLY_RULES is the stricter D-088 rule for future experiments: it
-# is only used when a caller opts in with ``failed_to_fly_rule=True``.
+# FAILED_TO_FLY_RULES is the stricter "failed to fly" rule for future
+# experiments: it is only used when a caller opts in with
+# ``failed_to_fly_rule=True``.
 EXP021_RULES = "exp021_preregistered"
 FAILED_TO_FLY_RULES = "d088_failed_to_fly"
 _MAX_ERROR_M = 5.0
@@ -229,9 +230,9 @@ def classify_trajectory(times_s, positions_m, references_m, tilts_deg, *,
     Inputs are one row per control step: time (s), 3-D position and reference
     (m), and tilt from upright (degrees, NaN if the attitude was not finite).
     The first step that breaks a per-step rule decides the verdict:
-    non-finite sample, tilt above the limit, height below the limit (D-088
-    only), or 3-D error above 5 m.  If no step does, the growth rule runs on
-    the whole record (x only for EXP-021, x, y and z for D-088).
+    non-finite sample, tilt above the limit, height below the limit (stricter
+    rule only), or 3-D error above 5 m.  If no step does, the growth rule runs
+    on the whole record (x only for EXP-021, x, y and z for the stricter rule).
 
     With EXP021_RULES this mirrors the pre-registered rules on a recorded
     trajectory (it sees position and tilt only, not velocities).  Every run
@@ -281,7 +282,7 @@ def run_episode(profile, arm: str, reference: str, delay_s: float, loss_p: float
     """Run one deterministic EXP-021 episode and return JSON-safe metrics.
 
     ``unstable`` always uses the pre-registered EXP-021 rules.  With
-    ``failed_to_fly_rule=True`` the result also carries a D-088 verdict
+    ``failed_to_fly_rule=True`` the result also carries a "failed to fly" verdict
     (``failed_to_fly`` and its reason and time) for the same flight.  The
     flight itself is unchanged: it still stops only on the EXP-021 rules.
     """
@@ -405,7 +406,7 @@ def run_episode(profile, arm: str, reference: str, delay_s: float, loss_p: float
                                       rule_set=FAILED_TO_FLY_RULES)
         if not verdict["failed"] and unstable:
             # The state checks also see velocity and angular rate, which the
-            # recorded trajectory lacks.  Keep D-088 at least as strict.
+            # recorded trajectory lacks.  Keep the new rule at least as strict.
             verdict = {"failed": True, "reason": reason, "time_s": unstable_time}
         result.update({
             "failed_to_fly": bool(verdict["failed"]),
@@ -424,7 +425,7 @@ def find_d_crit(profile, *, arm: str = "b", resolution_s: float = CONTROL_DT_S,
     """Bisect the stable/unstable boundary on the 10 ms control grid.
 
     By default a run counts as unstable under the EXP-021 rules.  With
-    ``failed_to_fly_rule=True`` it bisects on the D-088 ``failed_to_fly``
+    ``failed_to_fly_rule=True`` it bisects on the ``failed_to_fly``
     verdict instead and records ``rule_set`` in the answer.
     """
     p = _profile_obj(profile)

@@ -10,7 +10,7 @@ from sim.tests.reference_e.hand_checks import first_order_loop_jitter_std
 
 def test_full_grid_count_and_named_cells() -> None:
     jobs = build_jobs()
-    # 1600 point-mass + 400 physics jobs on the registered 0.8 m guard ("local", D-126),
+    # 1600 point-mass + 400 physics jobs on the registered 0.8 m guard ("local"),
     # plus 800 Run D rule comparison jobs, all at 50 seeds
     assert len(jobs) == 2800
     rules = {}
