@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 from pathlib import Path
 import subprocess
@@ -270,54 +271,72 @@ def test_c_landed_dropout_is_faster_than_silent():
 
 
 def test_d_lost_leaving_detection_uses_last_state_receipt():
-    config = CoopSwarmConfig(
-        n_agents=4,
-        seed=1,
-        duration_s=7.0,
-        log_every=1,
-        dropouts=(("drone-001", 5.0, "landed"),),
-        link=CoopLinkConfig(
-            delay_s=0.05, loss_probability=0.5, loss_model="independent"
-        ),
-    )
-    run = CoopSwarmSimulator(config).run().as_dict()
-    for receiver in config.agent_ids[1:] + ("gs",):
-        leaving = next(
-            event for event in run["link_events"]
-            if event["kind"] == "leaving" and event["receiver"] == receiver
+    # A receiver drops drone-001 from believed_alive at the earlier of two
+    # moments (sim/coop/simulator.py):
+    # 1. Leaving received: _deliver pops drone-001 from the receiver's latest
+    #    table (line 379) at the first step whose time is >= the leaving
+    #    receive time (SimulatedLink.advance delivers receive_time <= now,
+    #    sim/link.py:187).
+    # 2. Heartbeat timeout: _alive_view keeps a peer while
+    #    t - last_receive <= heartbeat_timeout_s + 1e-12 (line 450), so the
+    #    peer is gone at the first step with t > last + timeout + 1e-12.
+    # With 50 percent loss, drone-001 can also flicker out of the view before
+    # its last state receipt, so the search starts at that last receipt.
+    branches = {"received": 0, "lost": 0}
+    for seed in (1, 2, 3):
+        config = CoopSwarmConfig(
+            n_agents=4,
+            seed=seed,
+            duration_s=7.0,
+            log_every=1,
+            dropouts=(("drone-001", 5.0, "landed"),),
+            link=CoopLinkConfig(
+                delay_s=0.05, loss_probability=0.5, loss_model="independent"
+            ),
         )
-        state_receipts = [
-            event["receive_time"]
-            for event in run["link_events"]
-            if event["kind"] == "state"
-            and event["sender"] == "drone-001"
-            and event["receiver"] == receiver
-            and event["receive_time"] is not None
-        ]
-        threshold = (
-            leaving["receive_time"]
-            if leaving["outcome"] == "received"
-            else max(state_receipts) + 0.5
-        )
-        observed = next(
-            step["time_s"] for step in run["steps"]
-            if step["time_s"] >= threshold
-            and (
-                receiver == "gs"
-                or next(
-                    row for row in step["agents"]
-                    if row["agent_id"] == receiver
-                )["active"]
+        run = CoopSwarmSimulator(config).run().as_dict()
+        times = [step["time_s"] for step in run["steps"]]
+        timeout = config.heartbeat_timeout_s
+        for receiver in config.agent_ids[1:]:
+            leaving = next(
+                event for event in run["link_events"]
+                if event["kind"] == "leaving"
+                and event["sender"] == "drone-001"
+                and event["receiver"] == receiver
             )
-            and (
-                receiver == "gs"
-                or "drone-001" not in next(
-                    row for row in step["agents"]
-                    if row["agent_id"] == receiver
-                )["believed_alive"]
+            state_receipts = [
+                event["receive_time"]
+                for event in run["link_events"]
+                if event["kind"] == "state"
+                and event["sender"] == "drone-001"
+                and event["receiver"] == receiver
+                and event["receive_time"] is not None
+            ]
+            assert state_receipts, (seed, receiver)
+            last = max(state_receipts)
+
+            def row(step, receiver=receiver):
+                return next(
+                    item for item in step["agents"]
+                    if item["agent_id"] == receiver
+                )
+
+            observed = next(
+                step["time_s"] for step in run["steps"]
+                if step["time_s"] >= last
+                and row(step)["active"]
+                and "drone-001" not in row(step)["believed_alive"]
             )
-        )
-        assert observed >= threshold - 1e-9
+            expected = next(t for t in times if t > last + timeout + 1e-12)
+            if leaving["outcome"] == "received":
+                leaving_step = next(
+                    t for t in times if t >= leaving["receive_time"]
+                )
+                expected = min(expected, leaving_step)
+            branches[leaving["outcome"]] += 1
+            assert observed == expected, (seed, receiver, leaving["outcome"], last)
+    # Both the leaving-received and leaving-lost paths must be exercised.
+    assert branches["received"] > 0 and branches["lost"] > 0, branches
 
 
 def test_e_antipodal_swap_has_no_separation_violation(monkeypatch):
@@ -348,18 +367,22 @@ def test_e_antipodal_swap_has_no_separation_violation(monkeypatch):
     assert run["summary"]["spherical_violations_count"] == 0
     assert run["summary"]["separation_violations_count"] == 0
     assert run["summary"]["min_pairwise_separation_m"] >= 0.35 - 1e-6
-    step = min(run["steps"], key=lambda row: abs(row["time_s"] - 10.0))
-    positions = {
-        row["agent_id"]: np.asarray(row["position_m"])
-        for row in step["agents"] if row["active"]
-    }
-    ids = sorted(positions)
-    truth = np.asarray(step["target_truth_position_m"])
+    def positions_at(time_s):
+        step = min(run["steps"], key=lambda row: abs(row["time_s"] - time_s))
+        return {
+            row["agent_id"]: np.asarray(row["position_m"])
+            for row in step["agents"] if row["active"]
+        }
+
+    # The target barely moves, so a completed swap puts each drone where its
+    # antipode (index + 3 mod 6) started. Without the swap every drone stays near
+    # its own start, about one standoff diameter (3 m) from that point.
+    start, end = positions_at(0.0), positions_at(10.0)
+    ids = sorted(start)
+    assert len(ids) == 6 and sorted(end) == ids
     assert all(
-        np.linalg.norm(
-            positions[ids[i]] + positions[ids[i + 3]] - 2.0 * truth
-        ) <= 0.3
-        for i in range(3)
+        np.linalg.norm(end[ids[i]] - start[ids[(i + 3) % 6]]) <= 0.3
+        for i in range(6)
     )
 
 
@@ -440,11 +463,67 @@ def test_i_traffic_counts_and_bytes_after_leaving():
     )
     run = CoopSwarmSimulator(config).run().as_dict()
     traffic = run["summary"]["traffic"]
-    expected = {"state": 71, "track": 33, "command": 25, "leaving": 3}
+
+    # Message sizes in bytes, written out by hand. They match the table in
+    # sim/coop/simulator.py (_traffic_by_kind, lines 244-250). The old check
+    # compared bytes with the simulator's own message_bytes, so a wrong size
+    # could never fail it.
+    SIZE = {"state": 240, "raw": 56, "track": 216, "command": 24, "leaving": 1}
+
+    # Raw count, worked out by hand from the capture phases. Each agent takes a
+    # camera capture every 0.1 s, starting at its own phase (0.0 s for drone-001,
+    # a random offset under 0.1 s for the others, stored in
+    # observation_phases_s). The simulator only looks at captures on its 0.05 s
+    # control steps, so a capture at time c is sent to the ground station at the
+    # first step at or after c. A capture is never sent if:
+    #   - that step falls after the last step (t = 1.0 s), so the capture
+    #     at 1.0 s plus a phase offset never happens, or
+    #   - the agent has landed by that step. drone-001 lands at 0.5 s and the
+    #     landing is applied before captures at the step t = 0.5 s, so only
+    #     drone-001 captures at 0.0, 0.1, 0.2, 0.3 and 0.4 s count (5).
+    # Every message is counted when it is sent, so delay and loss do not matter.
+    # With these phases drone-002 and drone-003 each get 10 captures
+    # (phase + 0.1 j for j = 0..9; the j = 10 capture falls after 1.0 s), so the
+    # total is 5 + 10 + 10 = 25.
+    dt = config.control_dt_s
+    period = 1.0 / config.sensor_rate_hz
+    last_step = round(config.duration_s / dt)
+    landing_step = round(0.5 / dt)
+    raw_expected = 0
+    for index, phase in enumerate(run["config"]["observation_phases_s"]):
+        landed = index == 0  # drone-001 is the only agent that lands
+        j = 0
+        while True:
+            step = math.ceil((phase + j * period) / dt - 1e-9)
+            if step > last_step:
+                break
+            if not (landed and step >= landing_step):
+                raw_expected += 1
+            j += 1
+    assert raw_expected == 25
+
+    # The other counts, from the same timeline (11 share steps at t = 0, 0.1 ... 1.0 s):
+    #   state 71: every active agent sends to its 2 peers and the ground station
+    #     (3 each) for t = 0..0.4 s with 3 agents (5 x 9 = 45); at t = 0.5 s the
+    #     landed drone sends nothing but the 2 others still send 3 each because
+    #     the "leaving" notice arrives at 0.55 s (6); then t = 0.6..1.0 s the 2
+    #     others send 2 each (5 x 4 = 20). 45 + 6 + 20 = 71.
+    #   track 33: the ground station sends one track to each of 3 agents at all
+    #     11 share steps (the landed drone is still addressed).
+    #   command 25: no state has reached the ground yet at t = 0 s, so commands
+    #     start at t = 0.1 s: 3 per step for t = 0.1..0.5 s (15, drone-001 is still
+    #     listed until its leaving notice lands at 0.55 s), then 2 per step for
+    #     t = 0.6..1.0 s (10). 15 + 10 = 25.
+    #   leaving 3: drone-001 tells its 2 peers and the ground station once.
+    expected = {
+        "state": 71, "raw": raw_expected, "track": 33, "command": 25, "leaving": 3,
+    }
     for kind, count in expected.items():
-        assert traffic[kind]["messages"] == count
-        assert traffic[kind]["bytes"] == count * traffic[kind]["message_bytes"]
-    assert all(event["kind"] in expected or event["kind"] == "raw" for event in run["link_events"])
+        assert traffic[kind]["messages"] == count, kind
+        assert traffic[kind]["message_bytes"] == SIZE[kind], kind
+        assert traffic[kind]["bytes"] == count * SIZE[kind], kind
+    assert set(traffic) == set(SIZE)
+    assert all(event["kind"] in expected for event in run["link_events"])
 
 
 def test_j_gs_fuser_matches_target_estimate():
