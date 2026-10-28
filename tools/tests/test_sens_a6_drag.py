@@ -79,3 +79,15 @@ def test_scan_control_matches_with_float_grid_delays():
     ]
     result = {"rows": rows, "exp021": {"first_fail_delay_s": 36 * ct.CONTROL_DT_S}}
     assert sens.scan_matches_registered(result, registered)
+
+
+def test_scan_control_rejects_a_shifted_boundary_or_missing_row():
+    registered = sens.registered_arm_b("crazyflie-class")
+    rows = [
+        {"delay_s": 0.35, **registered["stable_side"]},
+        {"delay_s": 0.36, **registered["unstable_side"]},
+    ]
+    shifted = {"rows": rows, "exp021": {"first_fail_delay_s": 0.37}}
+    missing = {"rows": rows[1:], "exp021": {"first_fail_delay_s": 0.36}}
+    assert not sens.scan_matches_registered(shifted, registered)
+    assert not sens.scan_matches_registered(missing, registered)

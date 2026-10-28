@@ -132,7 +132,7 @@ def scan(profile_path: Path, drag_coefficient: float | None, area_m2: float | No
                 duration_s=EPISODE_DURATION_S, scoring_windows=config.get("scoring_windows"),
                 failed_to_fly_rule=True,
             )
-            row = {"delay_s": out["delay_s"], **{key: out[key] for key in ROW_KEYS}}
+            row = {"delay_s": round(out["delay_s"], 10), **{key: out[key] for key in ROW_KEYS}}
             rows.append(row)
     effective = sorted(set(built))
     if len(effective) != 1:
@@ -226,7 +226,7 @@ def run(output_dir: Path, areas: tuple[float, ...] = AREAS_M2,
             }
     (output_dir / "result.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n",
                                             encoding="utf-8")
-    inputs = [CONFIG_PATH, REGISTERED_DCRIT, *(PROFILES[p] for p in profiles)]
+    inputs = [Path(__file__).resolve(), CONFIG_PATH, REGISTERED_DCRIT, *(PROFILES[p] for p in profiles)]
     manifest = {
         "command": [sys.executable, "tools/sens_a6_drag.py", *sys.argv[1:]],
         "git_commit": _git_commit(),
@@ -252,6 +252,8 @@ def main(argv: list[str] | None = None) -> int:
         for name, answer in controls.items():
             first = answer.get("d_crit_s", answer.get("exp021", {}).get("first_fail_delay_s"))
             print(f"control {pid} {name}: d_crit {first} s, matches registered {answer['matches_registered']}")
+        print(f"control {pid} profile_drag_scan: failed-to-fly first fail "
+              f"{controls['profile_drag_scan']['failed_to_fly']['first_fail_delay_s']} s")
     for pid, variants in result["variants"].items():
         for answer in variants.values():
             print(f"drag {pid} Cd {answer['effective_drag_coefficient']:g} area {answer['effective_area_m2']:g}: "
