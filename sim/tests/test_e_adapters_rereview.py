@@ -55,8 +55,18 @@ def truth_velocity(adapter) -> np.ndarray:
 
 
 def raw_mission_goal(adapter, goal) -> None:
-    """A mission position request that skips send_setpoint (and so the clip)."""
-    adapter.request_command(ControlCommand.position(goal), source=CommandSource.MISSION, ttl_s=0.5)
+    """Inject an unclipped mission goal straight into the authority arbiter.
+
+    ``request_command`` now clips every POSITION command, so the breach latch
+    (the last line of defence behind the clip) can only be exercised by
+    putting a goal past the clip, which is what a fault in the clip would do.
+    """
+    adapter.authority.submit(
+        CommandSource.MISSION,
+        ControlCommand.position(goal),
+        timestamp_s=adapter._time_s,
+        ttl_s=0.5,
+    )
 
 
 # 1. Geofence: the step that crosses a face latches the hold ------------------

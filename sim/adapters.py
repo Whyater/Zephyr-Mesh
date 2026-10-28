@@ -509,17 +509,21 @@ class SimulatedAdapterCore(DroneAdapter):
         if not math.isfinite(now) or now < self._time_s:
             raise ValueError("timestamp_s must be finite and nondecreasing")
         self._time_s = now
+        if command.kind is CommandKind.POSITION and self._geofence is not None:
+            # Every POSITION command meets the geofence here, whichever path it
+            # took in.  A command already inside the clip box is left alone, so
+            # it is never clipped (or logged) twice.
+            requested = np.asarray(command.position_m, dtype=float)
+            clipped = self._geofence.clip(requested)
+            if not np.array_equal(clipped, requested):
+                self._event("geofence_clip", {"requested_m": requested.tolist(), "clipped_m": clipped.tolist()})
+                command = ControlCommand.position(clipped)
         return self.authority.submit(normalized_source, command, timestamp_s=now, ttl_s=ttl_s)
 
     def send_setpoint(self, position: np.ndarray) -> AuthorityDecision:
         if not self.capabilities.supports_position_setpoint:
             return self._rejected("position_setpoint_unsupported")
         point = _vector3(position, name="position")
-        if self._geofence is not None:
-            clipped = self._geofence.clip(point)
-            if not np.array_equal(clipped, point):
-                self._event("geofence_clip", {"requested_m": point.tolist(), "clipped_m": clipped.tolist()})
-            point = clipped
         return self.request_command(
             ControlCommand.position(point),
             source=CommandSource.MISSION,
