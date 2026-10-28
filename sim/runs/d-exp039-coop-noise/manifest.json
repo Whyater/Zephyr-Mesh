@@ -1,0 +1,301 @@
+{
+  "argv": [
+    "--output",
+    "/tmp/cn-port/full",
+    "--processes",
+    "1",
+    "--checkpoint",
+    "/tmp/cn-port/ckpt"
+  ],
+  "code_sha256": {
+    "sim/__init__.py": "b5c4e06e700bf9268baefbdd45fd6ee3a779b89d785cc304f23b8971cb584793",
+    "sim/adapters.py": "db376930087564cc8b78347439bf3416ab7eaa37e09243383fb1e7037d0ca673",
+    "sim/authority.py": "7f602adc5b52ffe7657fd726d6610aa9147521bdeda5caf0d5b86034069ce5e6",
+    "sim/coop/__init__.py": "8ee474a6e91b0d38c51d44c5d7117c0b66b3953e6e45a04fc93a316e004ae26a",
+    "sim/coop/boundary.py": "e7c9041e812f1936a0d8cfc71e4cfa8530b9182e5075ddd1d94176c127f133f1",
+    "sim/coop/fusion.py": "5ab2dbe682dc798465d8d2f6c3e9e3577a947e6d549ba66ebdb27562e33fa11f",
+    "sim/coop/net.py": "42a215cd70566056c9478fa1e87b46acccaf6ca66cbde41a82c4fd94dec02acb",
+    "sim/coop/observers.py": "a233bf8dbe6479b5f1930b8c236f49fb76f2f7bd4fb1e76dcc1dd8bbf2d45a5b",
+    "sim/estimation/__init__.py": "6e8981cdfdcf234fd4f2cf9879a38c11567411a04b32721411831f6ccb9d25c2",
+    "sim/estimation/base.py": "e247f7aace69ce7e63c8a12a2d8813f624fb0493b0d585df6e4d3e64eec32e37",
+    "sim/estimation/consistency.py": "d9553433e8f4af94c0d4af192f7c296cc553a48822c2705b1553d38fd7030857",
+    "sim/estimation/cv.py": "e7850c104aa5542000c2ddc017a5c0ebeccbaf04a82ccbbee12717fdd9a1cae0",
+    "sim/estimation/factory.py": "bcff372083358102a58d3f0250922512dc26359e863cc9ab9351c4cfc6d097e1",
+    "sim/estimation/kinematics.py": "8b4215ac94ef2a815eb47ebedc4cc0845368b7498941fd6504847b0b8b13ca5e",
+    "sim/estimation/sweep.py": "c858cdb0593c5017a4f1291ba48ae87b0c945a65ebeeebd62543141001e9f52d",
+    "sim/estimation/targets.py": "2e14fcc23d99627dff7de7ff6e2a354b694c2eb1c971c712fb252026f06ad9b7",
+    "sim/failsafe.py": "150a5cec93a930fa974c433fa2f818f841c03c59ec5a2f33d75a8e0c5dffa4de",
+    "sim/hardware.py": "15b3dc15d80b2cd8965548e7bb9d0aae05fd595424c1b1ef76a7ab616fcf78ed",
+    "sim/link.py": "ea167aba91b618029c575e8348e2305d1c357cae818a77e20c85d79708a87ced",
+    "sim/radio/__init__.py": "2f955fe60495563de22199604cc235139e20221e53723c5af820a5b5ca9b8035",
+    "sim/radio/channel.py": "e095a023fc3c9c3a11844ec27be608f0d283fe0966e86eb954f2a7d31d68e6b1",
+    "sim/radio/mac.py": "5ccdb58940f8d75466e84081fbc4f566e95b37e23124820d7b3aa9e36f257be9",
+    "sim/radio/params.py": "bfc1d4a794818399581e0d5b6330ea98356ac30e0006622118e09996ae4370d1",
+    "sim/s6_recovery.py": "bc0c8b1363d85d4c9f6f6f73900b29f6e9553f01471c7e46a053eaf3cd1ab63d",
+    "sim/sensor.py": "ca028be92da927d9d7e8e8b3b2b0e9d0b8dd18543b87c22b0bbb6ced73dc4a95",
+    "sim/tracker.py": "741e17c76d23f009629bbf990156b99ebf93f7465169bb150f17fe4cee09e12f",
+    "tools/__init__.py": "951ea81ff0224e39e6f39ddd01b6bf632c1a0dc1480f1e19ed83dfd9b06a4ed4",
+    "tools/c_common.py": "8c8bf9bbae39633ce3d92bc009b4eb2d80488ebc569b3b1536340d925efac1c6",
+    "tools/coop_noise_hand.py": "496159615bb97882cb01cb3ad645df49c7d519690d679b15e3c6174dea587cd8",
+    "tools/d_common.py": "711a0999abde10854d7641960ce645d0e71496f65d8148d71a16f446120c1998",
+    "tools/d_make_tolerance_figure.py": "6af1cc71b13bcaccf7f533f820856c31eb5e6217f08a7754d2ac6d29aead3b09",
+    "tools/d_run_coop_noise.py": "46aa48f814d3631b7370deff4dd2ecc72e8513e3080bef9a402dc39ee0630cfe",
+    "tools/d_run_tolerance.py": "486f2a3de0d9abb122c7bf8124034ff8345b90239ac584aa276eca5d545bf140",
+    "tools/horizon_mpl.py": "1fb2870d6a7f2f2aa2ca4db6ff7d4e854ffb53750cd79b08167b225689b26e6e"
+  },
+  "config": {
+    "cell_rule": "fails when at least half the seeds fail (Proposed)",
+    "check_slice": {
+      "arms": [
+        [
+          1,
+          "random"
+        ],
+        [
+          3,
+          "random"
+        ],
+        [
+          3,
+          "sync"
+        ]
+      ],
+      "delay": 0.0,
+      "loss": 0.0,
+      "targets": [
+        "cv_1",
+        "ct_r1"
+      ]
+    },
+    "delays_s": [
+      0.0,
+      0.025,
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.3
+    ],
+    "experiment": "EXP-039 (proposal)",
+    "failure_rule": {
+      "max_error_m": 0.5,
+      "p95_error_m": 0.25
+    },
+    "link": "abstract",
+    "losses": [
+      [
+        "independent",
+        0.3
+      ],
+      [
+        "independent",
+        0.5
+      ],
+      [
+        "burst",
+        0.3
+      ]
+    ],
+    "n_registered_seeds": 20,
+    "noise_pairs": [
+      [
+        0.0,
+        "told5"
+      ],
+      [
+        0.02,
+        "told5"
+      ],
+      [
+        0.02,
+        "truth"
+      ],
+      [
+        0.05,
+        "told5"
+      ],
+      [
+        0.1,
+        "told5"
+      ],
+      [
+        0.1,
+        "truth"
+      ]
+    ],
+    "ns": {
+      "1": "single",
+      "3": "central"
+    },
+    "phase": "random (o1 at 0) except the sync check arm",
+    "pilot": false,
+    "rate_hz": 10.0,
+    "seeds": [
+      2716946712,
+      3097084028,
+      4062637011,
+      2286883208,
+      208585127,
+      987282301,
+      3632161291,
+      2140707743,
+      1580580508,
+      3318650603,
+      39527022,
+      576509979,
+      3228649976,
+      1845121183,
+      497460755,
+      451139172,
+      834935213,
+      3461579958,
+      3257868378,
+      956842447,
+      3167769613,
+      2443833397,
+      1056636601,
+      2168798486,
+      2713846303,
+      2221817314,
+      366507035,
+      3519405686,
+      998795093,
+      78788302,
+      4267525342,
+      3506333677,
+      129601508,
+      1242533475,
+      4231043891,
+      1406955951,
+      2670590576,
+      281929617,
+      3484109800,
+      1620360903,
+      2754868846,
+      3150706823,
+      1286047844,
+      1575053394,
+      2027398026,
+      1193346845,
+      1441433705,
+      3705463247,
+      3006481902,
+      2323000410,
+      65411301,
+      930302720,
+      3527491996,
+      1741537489,
+      3673945528,
+      2965474962,
+      2444013425,
+      208068970,
+      3487577891,
+      1841827963
+    ],
+    "targets_main": [
+      "ct_r1",
+      "jink"
+    ],
+    "told5_means": "r_std_m=None (filter default 0.05 m), as registered"
+  },
+  "config_sha256": "da2e44a08d17e59fd7d0a9140463b34dc9b185462ef241bddfba7632b54d0dca",
+  "git_revision": "81e2560f08761ef0f61709a44d16b8b9e1d55738",
+  "git_tree_state": "dirty",
+  "limits": [
+    "Simulated only: no drone, camera or radio hardware was used, and nothing here is measured.",
+    "Proposal (EXP-039), not Adopted.",
+    "Agents move as kinematic point masses in the tracking simulation.",
+    "Sensor samples are simulated Gaussian noise on the true target position.",
+    "The link is the abstract model with synthetic loss; nothing is measured.",
+    "Sixty seeds; one-step boundary differences are still weak.",
+    "The cell rule (half the seeds fail) is Proposed, not Adopted."
+  ],
+  "n_processes": 1,
+  "n_runs": 32400,
+  "numpy": "2.5.1",
+  "outputs": {
+    "boundaries.json": "1f41a330af1367b70eee27ef373d5412e948049a4b490f9cf5394a8639808e7c",
+    "cells.csv": "2fd8f9b1d7acdd262e60fc2deaf5cc3e9c18882d1812518633f752d6e4625175",
+    "check_cells.json": "d9eef2aff79f4a9c4c11e1af7ac0c7200c3224391db8dec342f07f5260a4573c",
+    "hand_check.json": "157071aeadb2f933649831fc712d8a493b1aa5932f60162eac69e338b54f9684",
+    "per_seed.csv.gz": "5c19bc2b34931cc5353af8135cf5d0133fe1582db631465d6cbdf2cf8a6861e8",
+    "reproduction.json": "551fe9322dcfb8f6916c83ac071132fd66965dd501851e950968c5bb4277f76f",
+    "tolerance_vs_noise.png": "b1e824a793c38c54df3a7889ca2068cd0ccfeae9d4e73cb777e66d4781f08d27",
+    "verdict.json": "d8d306b0f94cacaec33e54872ee05826fea37bf2697ab40d3a8d97dea4c9d57a"
+  },
+  "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+  "python": "3.13.15",
+  "replay_command": "PYTHONPATH=. {python} tools/d_run_coop_noise.py --output {out} --processes 1",
+  "runtime_s": 1486.862630291027,
+  "schema": "zephyr-d-coop-noise-manifest-1",
+  "seeds": [
+    2716946712,
+    3097084028,
+    4062637011,
+    2286883208,
+    208585127,
+    987282301,
+    3632161291,
+    2140707743,
+    1580580508,
+    3318650603,
+    39527022,
+    576509979,
+    3228649976,
+    1845121183,
+    497460755,
+    451139172,
+    834935213,
+    3461579958,
+    3257868378,
+    956842447,
+    3167769613,
+    2443833397,
+    1056636601,
+    2168798486,
+    2713846303,
+    2221817314,
+    366507035,
+    3519405686,
+    998795093,
+    78788302,
+    4267525342,
+    3506333677,
+    129601508,
+    1242533475,
+    4231043891,
+    1406955951,
+    2670590576,
+    281929617,
+    3484109800,
+    1620360903,
+    2754868846,
+    3150706823,
+    1286047844,
+    1575053394,
+    2027398026,
+    1193346845,
+    1441433705,
+    3705463247,
+    3006481902,
+    2323000410,
+    65411301,
+    930302720,
+    3527491996,
+    1741537489,
+    3673945528,
+    2965474962,
+    2444013425,
+    208068970,
+    3487577891,
+    1841827963
+  ],
+  "volatile_fields": [
+    "runtime_s",
+    "git_revision",
+    "git_tree_state",
+    "platform",
+    "n_processes",
+    "argv"
+  ]
+}

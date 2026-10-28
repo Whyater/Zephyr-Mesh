@@ -1,0 +1,75 @@
+{
+  "ideal_ratio": 0.57735,
+  "items": [
+    {
+      "measured_random_ratio": 0.6751609393931364,
+      "measured_rmse_1": 0.023299818995744404,
+      "measured_sync_ratio": 0.6659584971054757,
+      "pair": "2|told5",
+      "random_in_band": true,
+      "reference_rmse_1": 0.023483,
+      "reference_staggered_ratio": 0.66736,
+      "reference_sync_ratio": 0.660469,
+      "sync_within_0.03": true
+    },
+    {
+      "measured_random_ratio": 0.6712853288157868,
+      "measured_rmse_1": 0.02931879961309486,
+      "measured_sync_ratio": 0.6621868878701785,
+      "pair": "2|truth",
+      "random_in_band": true,
+      "reference_rmse_1": 0.029397,
+      "reference_staggered_ratio": 0.667784,
+      "reference_sync_ratio": 0.661224,
+      "sync_within_0.03": true
+    },
+    {
+      "measured_random_ratio": 0.6751563621206927,
+      "measured_rmse_1": 0.05824996099710955,
+      "measured_sync_ratio": 0.6659535674361704,
+      "pair": "5|told5",
+      "random_in_band": true,
+      "reference_rmse_1": 0.058708,
+      "reference_staggered_ratio": 0.66736,
+      "reference_sync_ratio": 0.660469,
+      "sync_within_0.03": true
+    },
+    {
+      "measured_random_ratio": 0.6751548358881172,
+      "measured_rmse_1": 0.11650019775194882,
+      "measured_sync_ratio": 0.6659519237418096,
+      "pair": "10|told5",
+      "random_in_band": true,
+      "reference_rmse_1": 0.117416,
+      "reference_staggered_ratio": 0.66736,
+      "reference_sync_ratio": 0.660469,
+      "sync_within_0.03": true
+    },
+    {
+      "measured_random_ratio": 0.6813036344584972,
+      "measured_rmse_1": 0.09699774359224816,
+      "measured_sync_ratio": 0.6774549253499692,
+      "pair": "10|truth",
+      "random_in_band": true,
+      "reference_rmse_1": 0.099086,
+      "reference_staggered_ratio": 0.666467,
+      "reference_sync_ratio": 0.66049,
+      "sync_within_0.03": true
+    }
+  ],
+  "missing": [],
+  "passed": true,
+  "reference_script": "tools/coop_noise_hand.py",
+  "zero_noise_single": {
+    "ct_r1": {
+      "measured_p95": 0.06129271313988209,
+      "reference_p95": 0.061293,
+      "within_1mm": true
+    },
+    "cv_1": {
+      "measured_p95": 5.148684943279136e-06,
+      "reference_p95": 5e-06,
+      "within_1mm": true
+    }
+  }
+}

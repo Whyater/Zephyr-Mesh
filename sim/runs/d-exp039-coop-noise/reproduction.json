@@ -1,0 +1,17 @@
+{
+  "boundaries_compared": 12,
+  "boundaries_expected": 12,
+  "boundary_mismatches": [],
+  "duplicate_keys": 0,
+  "fields": [
+    "failed",
+    "p95",
+    "max",
+    "rmse",
+    "mean_nees"
+  ],
+  "passed": true,
+  "row_mismatches": [],
+  "rows_compared": 1680,
+  "rows_expected": 1680
+}
