@@ -441,5 +441,19 @@
    "summary.json": "2640baa101f069c79d76576c6ae9a74e3cc66adebde32cab90bd4dbb07986f28",
    "s6_q_sweep.png": "95f7c13629b363b0880034e6e329884872e651ecfccf037ce58f5457b73b463f"
   }
+ },
+ {
+  "run_dir": "sim/runs/d-exp039-coop-noise",
+  "command": "PYTHONPATH=. {python} tools/d_run_coop_noise.py --output {out} --processes 1",
+  "outputs": {
+   "boundaries.json": "1f41a330af1367b70eee27ef373d5412e948049a4b490f9cf5394a8639808e7c",
+   "cells.csv": "2fd8f9b1d7acdd262e60fc2deaf5cc3e9c18882d1812518633f752d6e4625175",
+   "check_cells.json": "d9eef2aff79f4a9c4c11e1af7ac0c7200c3224391db8dec342f07f5260a4573c",
+   "hand_check.json": "157071aeadb2f933649831fc712d8a493b1aa5932f60162eac69e338b54f9684",
+   "per_seed.csv.gz": "5c19bc2b34931cc5353af8135cf5d0133fe1582db631465d6cbdf2cf8a6861e8",
+   "reproduction.json": "551fe9322dcfb8f6916c83ac071132fd66965dd501851e950968c5bb4277f76f",
+   "tolerance_vs_noise.png": "b1e824a793c38c54df3a7889ca2068cd0ccfeae9d4e73cb777e66d4781f08d27",
+   "verdict.json": "d8d306b0f94cacaec33e54872ee05826fea37bf2697ab40d3a8d97dea4c9d57a"
+  }
  }
 ]
