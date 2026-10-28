@@ -2095,7 +2095,7 @@
     "sim/s6_recovery.py": "bc0c8b1363d85d4c9f6f6f73900b29f6e9553f01471c7e46a053eaf3cd1ab63d",
     "sim/sensor.py": "ca028be92da927d9d7e8e8b3b2b0e9d0b8dd18543b87c22b0bbb6ced73dc4a95",
     "sim/tracker.py": "741e17c76d23f009629bbf990156b99ebf93f7465169bb150f17fe4cee09e12f",
-    "tools/run_s6_adaptive_r.py": "cdc73eecb69d6dc920cec91cf36e15aa6fdcecb38725b70cb50caf26498a91f0"
+    "tools/run_s6_adaptive_r.py": "44260c1eb02304fc5fab7f4093e32ee1cd32b1f73fe463fa96c912665962b1b7"
   },
   "config": {
     "burn_in_s": 2.0,
@@ -2247,5 +2247,5 @@
     "verdict": "not worth proposing as is"
   },
   "schema": "zephyr-s6-adaptive-r-1",
-  "status": "EXP-037 proposal: synthetic link and sensor, not flight performance, not registered"
+  "status": "EXP-037 proposal: synthetic link and sensor, not flight performance"
 }

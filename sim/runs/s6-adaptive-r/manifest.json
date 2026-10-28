@@ -1,5 +1,5 @@
 {
-  "git_revision": "a23293f3401ac1688584f50981331d27249c67e1",
+  "git_revision": "1053edffe1abcbce35f6bd655a4ee163f9a1cdc1",
   "git_tree_state": "clean",
   "n_conditions": 36,
   "n_processes": 1,
@@ -7,11 +7,11 @@
   "numpy": "2.5.1",
   "outputs": {
     "per_seed.csv": "8d3ac72f60c9e690dbf4810025f01b17eb9f95f2d968767ab0eeafeaf1b6d58f",
-    "summary.json": "6b6e9b0fb955458f3ea5e3aa58d7f69dcb2ceec5873194a73de939f1cd609152"
+    "summary.json": "c17a94f8bd85d90d1cb05bd2d8ca6a56303f15d84edeb957111467012de29049"
   },
   "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
   "python": "3.13.15",
-  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_adaptive_r.py --output runs/s6-adaptive-r --seeds 50 --processes 1",
-  "runtime_s": 529.4143921669747,
+  "replay_command": "PYTHONPATH=. ./.venv/bin/python tools/run_s6_adaptive_r.py --output sim/runs/s6-adaptive-r --seeds 50 --processes 1 --overwrite",
+  "runtime_s": 158.9604040000122,
   "schema": "zephyr-s6-adaptive-r-manifest-1"
 }
