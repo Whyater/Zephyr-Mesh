@@ -260,10 +260,10 @@ def test_output_inside_sim_runs_is_refused(tmp_path):
         lb._check_output(target)
 
 
-@pytest.mark.parametrize("text", ['{"schema": "zephyr-s6-recovery-1", "cells": [', 
-                                  '{"schema": "zephyr-s6-recovery-1", "cells": [{"slice": "main", "motion": '
-                                  '"constant_velocity", "loss_model": "independent", "loss_probability": 0.0, '
-                                  '"jitter_s": 0.0, "noise_std_m": 0.05, "delay_s": 0.1}]}'])
+@pytest.mark.parametrize("text", ['{"schema": "zephyr-s6-recovery-1", "cells": [',
+                                  ('{"schema": "zephyr-s6-recovery-1", "cells": [{"slice": "main", "motion": '
+                                   '"constant_velocity", "loss_model": "independent", "loss_probability": 0.0, '
+                                   '"jitter_s": 0.0, "noise_std_m": 0.05, "delay_s": 0.1}]}')])
 def test_broken_summary_is_an_error_not_a_traceback(tmp_path, text):
     lat = tmp_path / "latency.json"
     lat.write_text(json.dumps(_latency(0.050)))
