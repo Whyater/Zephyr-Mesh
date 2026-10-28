@@ -368,3 +368,98 @@ def test_no_latency_run_means_no_link_section_and_no_link_file(bench, tmp_path):
     assert _intake("--log", log, "--output", out, "--pilot", "--bracket", "pooled") == 0
     assert not (out / "links").exists()
     assert "no latency run" in (out / "INTAKE.md").read_text().lower()
+
+
+def test_one_processing_time_is_added_to_every_latency_run(bench, tmp_path):
+    _, log, run, _ = bench
+    second = tmp_path / "lat-b"
+    _make_latency(second, latency_ms=80, jitter_ms=4)
+    proc = tmp_path / "proc.json"
+    proc.write_text(json.dumps(PROCESSING))
+    out = tmp_path / "out"
+    assert _intake("--log", log, "--latency-run", run, "--latency-run", second, "--processing", proc,
+                   "--output", out, "--pilot", "--bracket", "pooled") == 0
+    uppers = []
+    for name in ("lat-a", "lat-b"):
+        link = json.loads((out / "links" / f"{name}.link.json").read_text())
+        upper = link["components"]["camera"]["latency_s"]["upper"]
+        assert link["delay_s"] == pytest.approx(upper + 0.015, abs=1e-12)
+        uppers.append(upper)
+    assert uppers[0] - uppers[1] > 0.03  # the 120 ms and 80 ms recordings stay distinguishable
+    assert (out / "INTAKE.md").read_text().count("### lat-") == 2
+
+
+def test_overall_unknown_when_nothing_is_synthetic_and_a_status_is_missing(bench, tmp_path):
+    _, log, _, _ = bench
+    mlog = _measured_log(tmp_path, log)
+    run = tmp_path / "lat-u"
+    _make_latency(run)
+    (run / "run_meta.json").unlink()
+    out = tmp_path / "out"
+    assert _intake("--log", mlog, "--latency-run", run, "--output", out, "--pilot", "--bracket", "pooled") == 0
+    assert re.search(r"^Overall status: unknown$", (out / "INTAKE.md").read_text(), re.MULTILINE)
+
+
+def test_a_processing_file_without_status_keeps_an_otherwise_measured_intake_unknown(bench, tmp_path):
+    _, log, _, _ = bench
+    mlog = _measured_log(tmp_path, log)
+    run = tmp_path / "lat-m"
+    _make_latency(run)
+    (run / "run_meta.json").write_text(json.dumps(MEASURED_LATENCY_META))
+    proc = tmp_path / "proc.json"
+    proc.write_text(json.dumps({k: v for k, v in PROCESSING.items() if k != "status"}))
+    out = tmp_path / "out"
+    assert _intake("--log", mlog, "--latency-run", run, "--processing", proc, "--output", out, "--pilot",
+                   "--bracket", "pooled") == 0
+    assert re.search(r"^Overall status: unknown$", (out / "INTAKE.md").read_text(), re.MULTILINE)
+
+
+def test_a_fixture_log_is_shown_as_fixture_and_never_counts_as_measured(bench, tmp_path):
+    _, log, _, _ = bench
+    doc = read_detection_log(log).as_dict()
+    doc["status"] = "fixture"
+    path = tmp_path / "fx.jsonl"
+    write_detection_log(VisionTrace.from_dict(doc), path)
+    out = tmp_path / "out"
+    assert _intake("--log", path, "--output", out, "--pilot", "--bracket", "pooled") == 0
+    text = (out / "INTAKE.md").read_text()
+    assert re.search(r"^\| fx.jsonl \| [0-9a-f]{64} \| fixture \|$", text, re.MULTILINE)
+    assert re.search(r"^Overall status: synthetic$", text, re.MULTILINE)
+
+
+def test_a_corrupt_recording_gives_a_plain_error_and_leaves_no_output(bench, tmp_path, capsys):
+    _, log, _, _ = bench
+    run = tmp_path / "lat-bad"
+    _make_latency(run)
+    (run / "frames.npz").write_bytes(b"this is not an npz file")
+    for existing in (False, True):
+        out = tmp_path / f"out-{existing}"
+        if existing:
+            out.mkdir()
+        assert _intake("--log", log, "--latency-run", run, "--output", out, "--pilot", "--bracket", "pooled") == 2
+        err = capsys.readouterr().err
+        assert "error:" in err and "lat-bad" in err and "Traceback" not in err
+        assert out.exists() == existing
+        if existing:
+            assert list(out.iterdir()) == []  # a folder the user made is emptied, not deleted
+
+
+def test_a_bad_processing_file_is_refused_before_any_stage_runs(bench, tmp_path, capsys, monkeypatch):
+    _, log, run, _ = bench
+
+    def must_not_run(*_args, **_kwargs):
+        raise AssertionError("a stage ran before the processing file was checked")
+
+    monkeypatch.setattr(tool.fit_vision_noise, "main", must_not_run)
+    proc = tmp_path / "proc.json"
+    proc.write_text(json.dumps({"median_s": 0.01}))  # no schema, no p95_s, no n
+    out = tmp_path / "out"
+    assert _intake("--log", log, "--latency-run", run, "--processing", proc, "--output", out, "--pilot") == 2
+    assert "proc.json" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_intake_md_says_the_pilot_is_not_a_result_and_the_interval_is_approximate(pilot):
+    text = (pilot["out"] / "INTAKE.md").read_text()
+    assert "It is not a result." in text
+    assert "approximate interval" in text

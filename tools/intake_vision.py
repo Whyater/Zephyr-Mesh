@@ -16,15 +16,18 @@ given. For each fit it then reruns the S6 main slice with the fitted noise
 sim/runs, and INTAKE.md lists every input and output with its sha256, each
 status, and the fitted values.
 
-Status: the overall status is synthetic if any input is synthetic, measured
-only if every input says measured, otherwise unknown. A log or latency run that
-says "measured" without its provenance stops the intake before anything is
-written.
+Status: the overall status is synthetic if any input is synthetic (or a test
+fixture), measured only if every input says measured, otherwise unknown. A log
+or latency run that says "measured" without its provenance is refused before
+any stage runs. A log whose provenance is present but malformed is refused by
+the fit stage, and the folder this command made is removed.
 
 What the rerun applies: only the fitted noise (the registered S6 rerun applies
 nothing else). The link JSON is written for tools/s6_link_rerun.py and is not
 applied by this command. Display lag in the latency result is an assumption.
-Inputs are never modified.
+One processing-time JSON is added to the link of every latency run, and a
+processing-time file has no provenance fields, so its status is taken as
+written. Inputs are never modified.
 
 --pilot runs one seed on 8 of the 56 main-slice cells (both motions, delay 0
 and 0.10 s, loss 0 and 0.30). Without it the default is 5 seeds on every cell.
@@ -39,6 +42,7 @@ import json
 import shutil
 import sys
 import time
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -55,11 +59,11 @@ from tools.s6_measured_rerun import (
 )
 from tools.vision_latency_to_link import (
     LinkConversionError,
+    _processing_from_json,
     combine_status,
     convert_files,
 )
 
-SCHEMA_NOTE = "proposal tool: synthetic or fixture inputs say nothing about a real camera"
 PILOT_DELAYS = (0.0, 0.10)
 PILOT_LOSSES = (0.0, 0.30)
 PILOT_SEEDS = 1
@@ -67,9 +71,9 @@ DEFAULT_SEEDS = 5
 LATENCY_FILES = ("frames.npz", "display_log.csv", "run_meta.json")
 RECORDER_KEYS = ("schema", "opencv_version", "platform", "clock")
 VOLATILE = ("INTAKE.md", "manifest.json", "README.txt")
-STATUSES = ("synthetic", "measured", "unknown")
-STATUS_RULE = ("The overall status is synthetic if any input is synthetic, measured only if every input says "
-               "measured, otherwise unknown.")
+STATUSES = ("synthetic", "measured", "fixture", "unknown")
+STATUS_RULE = ("The overall status is synthetic if any input is synthetic or a test fixture, measured only if "
+               "every input says measured, otherwise unknown.")
 SCOPE_NOTE = ("Scope: simulation inputs only. This does not claim flight performance, and a synthetic or fixture "
               "input says nothing about a real camera.")
 LINK_NOTE = ("The link JSON files (links/) are for tools/s6_link_rerun.py. The S6 rerun below does not use "
@@ -78,7 +82,11 @@ RERUN_NOTE = ("Only the fitted noise is applied. Fitted bias, dropout and latenc
               "not applied, and the tracker measurement std stays at 0.05 m as registered. The link and "
               "tracker are simulated.")
 VOLATILE_NOTE = ("manifest.json and README.txt inside each S6 rerun folder are volatile (they hold paths and "
-                 "runtime), so they are not hashed here. INTAKE.md does not hash itself.")
+                 "runtime), so they are not hashed here. INTAKE.md does not hash itself. comparison.csv copies "
+                 "registered columns from sim/runs when that file exists, so its hash depends on the checkout.")
+PILOT_NOTE = ("Pilot: the range below spans one-seed medians on a subset of cells. It shows that the chain "
+              "runs. It is not a result.")
+INTERVAL_NOTE = "(the +/- is an approximate interval)"
 
 
 class IntakeError(ValueError):
@@ -154,6 +162,16 @@ def _check_log(name: str, path: Path) -> None:
                               "revision, instrument), so this input was not used")
 
 
+def _read_processing(path: Path) -> dict[str, Any]:
+    """Check a processing-time file before any stage runs; return its parsed fields."""
+    if not path.is_file():
+        raise IntakeError(f"processing-time file {path.name}: file not found")
+    try:
+        return _processing_from_json(json.loads(path.read_text(encoding="utf-8")))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, LinkConversionError) as exc:
+        raise IntakeError(f"processing-time file {path.name}: {exc}") from exc
+
+
 def _check_latency_run(name: str, run: Path) -> None:
     if not run.is_dir():
         raise IntakeError(f"latency run {name}: not a folder")
@@ -184,6 +202,9 @@ def _quiet(func, *args) -> tuple[int, str, str]:
             code = func(*args)
         except SystemExit as exc:
             code = exc.code if isinstance(exc.code, int) else 2
+        except (OSError, ValueError, KeyError, ArithmeticError, zipfile.BadZipFile) as exc:
+            err.write(f"{type(exc).__name__}: {exc}\n")
+            code = 2
     return int(code or 0), out.getvalue(), err.getvalue()
 
 
@@ -278,7 +299,8 @@ def _latency_section(name: str, run: Path, result: dict[str, Any], link: dict[st
              f"- Run folder: {run.name}",
              f"- Status: {_status(result.get('status'))}",
              f"- Frames used: {result['frames_used']} of {result['frames_total']}",
-             f"- Apparent latency (camera plus display lag): mean {_ms(a['mean'])} +/- {_ms(a['stated_error'])}",
+             (f"- Apparent latency (camera plus display lag): mean {_ms(a['mean'])} +/- {_ms(a['stated_error'])} "
+              f"{INTERVAL_NOTE}"),
              camera,
              f"- Frame-to-frame jitter (std, straddle frames): {_ms(jitter)}",
              f"- Link: delay {_ms(link['delay_s'])}, jitter {_ms(link['jitter_s'])}, status {link['status']}",
@@ -293,8 +315,11 @@ def _rerun_section(name: str, manifest: dict[str, Any], output: Path) -> list[st
              f"- Seeds per cell: {manifest['seeds_count']}, cells per bracket: "
              f"{', '.join(f'{k} {v}' for k, v in manifest['n_cells'].items())}"
              + (" (pilot subset)" if manifest["cell_filter_used"] else " (full main slice)"),
-             "", "| Bracket | Noise used (m) | Source | Recovery median p95 error, min to max (m) |",
-             "|---|---|---|---|"]
+             ""]
+    if manifest["cell_filter_used"] or manifest["seeds_count"] == 1:
+        lines += [PILOT_NOTE, ""]
+    lines += ["| Bracket | Noise used (m) | Source | Recovery median p95 error, min to max (m) |",
+              "|---|---|---|---|"]
     for entry in manifest["bracket"]:
         summary = json.loads((output / entry["label"] / "summary.json").read_text(encoding="utf-8"))
         p95 = [cell["arms"]["recovery"]["p95_median_m"] for cell in summary["cells"]]
@@ -357,15 +382,16 @@ def run_intake(*, logs: list[Path], latency_runs: list[Path], processing: Path |
         _check_log(name, path)
     for name, path in named_runs.items():
         _check_latency_run(name, path)
-    if processing is not None and not processing.is_file():
-        raise IntakeError(f"processing-time file {processing.name}: file not found")
+    processing_info = None
+    if processing is not None:
+        processing_info = _read_processing(processing)
     inputs = [*logs, *latency_runs, *([processing] if processing else [])]
     resolved, existed = _check_output(output, inputs)
     n_seeds = seeds if seeds is not None else (PILOT_SEEDS if pilot else DEFAULT_SEEDS)
 
     resolved.mkdir(parents=True, exist_ok=True)
     try:
-        return _run_stages(named_logs, named_runs, processing, resolved, pilot=pilot, seeds=n_seeds,
+        return _run_stages(named_logs, named_runs, processing, processing_info, resolved, pilot=pilot, seeds=n_seeds,
                            bracket=bracket, depth_axis=depth_axis, subject=subject, dropout_mode=dropout_mode,
                            bootstrap=bootstrap, fit_seed=fit_seed)
     except BaseException:
@@ -377,7 +403,7 @@ def run_intake(*, logs: list[Path], latency_runs: list[Path], processing: Path |
         raise
 
 
-def _run_stages(named_logs, named_runs, processing, out: Path, *, pilot, seeds, bracket, depth_axis, subject,
+def _run_stages(named_logs, named_runs, processing, processing_info, out: Path, *, pilot, seeds, bracket, depth_axis, subject,
                 dropout_mode, bootstrap, fit_seed) -> Path:
     input_rows: list[tuple[str, str, str]] = []
     statuses: list[str] = []
@@ -398,14 +424,9 @@ def _run_stages(named_logs, named_runs, processing, out: Path, *, pilot, seeds, 
                            pilot=pilot)
         rerun_blocks.append(_rerun_section(name, manifest, out / "s6" / name))
 
-    processing_status = None
     if processing is not None:
-        try:
-            processing_status = _status(json.loads(processing.read_text(encoding="utf-8")).get("status"))
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError, AttributeError) as exc:
-            raise IntakeError(f"processing-time file {processing.name}: cannot read it as a JSON object: {exc}") from exc
-        statuses.append(processing_status)
-        input_rows.append((processing.name, _sha256(processing), processing_status))
+        statuses.append(processing_info["status"])
+        input_rows.append((processing.name, _sha256(processing), processing_info["status"]))
 
     for name, run in named_runs.items():
         (out / "latency").mkdir(exist_ok=True)
@@ -424,7 +445,7 @@ def _run_stages(named_logs, named_runs, processing, out: Path, *, pilot, seeds, 
             raise IntakeError(f"link conversion failed for {name}: {exc}") from exc
         latency_blocks.append(_latency_section(name, run, result, link))
 
-    overall = combine_status(statuses)
+    overall = combine_status(["synthetic" if status == "fixture" else status for status in statuses])
     output_rows = sorted(
         (path.relative_to(out).as_posix(), _sha256(path)) for path in out.rglob("*")
         if path.is_file() and path.name not in VOLATILE)
