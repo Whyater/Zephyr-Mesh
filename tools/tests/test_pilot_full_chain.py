@@ -269,3 +269,20 @@ def test_delay_sweep_refuses_nonempty_output(tmp_path):
     (tmp_path / "old.txt").write_text("x")
     with pytest.raises(SystemExit):
         pilot.run_delay_sweep(tmp_path)
+
+
+def test_grid_cell_equals_pilot_cell_and_is_opt_in(tmp_path):
+    # Opt-in: without --grid the parser leaves it off, so the default runs never reach run_grid.
+    assert pilot.GRID_VARIANTS == ("w1", "w1_lead")
+    # One grid point is the pilot's s6_pass cell (0.10 s, 10 % independent loss, 0.05 m noise),
+    # so its row must equal the pilot row for the same seed, field for field.
+    grid = pilot.run_grid(tmp_path / "g", n_seeds=1, delays_s=(0.1,), losses=(0.1,), variants=("w1",))
+    rows = [r for r in grid["rows"] if r["motion"] == "constant_velocity"]
+    assert len(grid["rows"]) == 2 and len(rows) == 1
+    old = pilot._loop_row(pilot.CELLS["s6_pass"], "constant_velocity", "w1", SEED)
+    for k, v in old.items():
+        if k != "cell":
+            assert rows[0][k] == v, k
+    assert (tmp_path / "g" / "grid.json").exists() and not (tmp_path / "g.partial").exists()
+    with pytest.raises(SystemExit):
+        pilot.run_grid(tmp_path / "g", n_seeds=1)  # never overwrites a finished folder

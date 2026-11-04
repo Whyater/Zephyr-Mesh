@@ -54,6 +54,7 @@ the pre-registration) drops the start transient: the target jumps from rest to 1
 
     PYTHONPATH=. .venv/Scripts/python.exe tools/pilot_full_chain.py --output DIR [--seeds 5] [--lead]
     PYTHONPATH=. .venv/Scripts/python.exe tools/pilot_full_chain.py --output DIR --delay-sweep
+    PYTHONPATH=. .venv/Scripts/python.exe tools/pilot_full_chain.py --output DIR --grid --seeds 3 --workers 8
 """
 from __future__ import annotations
 
@@ -588,6 +589,84 @@ def run_delay_sweep(output: Path, delays_s: tuple[float, ...] = SWEEP_DELAYS_S) 
     return summary
 
 
+GRID_DELAYS_S = (0.0, 0.05, 0.1, 0.2, 0.3)  # a subset of the S6 main-slice delays
+GRID_LOSSES = (0.0, 0.1, 0.3, 0.5)  # the S6 main-slice independent loss levels
+GRID_NOISE_M = 0.05  # the S6 main-slice noise level the s6_pass and s6_fail cells use
+GRID_VARIANTS = ("w1", "w1_lead")  # S6 placement: delay and loss on the camera path
+GRID_CHECKPOINT = "grid_checkpoint.jsonl"
+
+
+def _grid_job(job: tuple) -> dict:
+    delay, loss, motion, variant, seed = job
+    cell = Cell(f"d{delay:.3f}_l{loss:.2f}", radio_delay_s=delay, loss_probability=loss, noise_std_m=GRID_NOISE_M)
+    row = _loop_row(cell, motion, variant, seed)
+    row["delay_s"] = delay
+    row["loss_probability"] = loss
+    return row
+
+
+def grid_jobs(n_seeds: int, delays_s=GRID_DELAYS_S, losses=GRID_LOSSES,
+              variants=GRID_VARIANTS) -> list[tuple]:
+    """Every (delay, loss, motion, variant, seed), seed outermost so a stopped run keeps whole seeds."""
+    return [(d, l, m, v, s) for s in seed_list(n_seeds) for d in delays_s for l in losses
+            for m in MOTIONS for v in variants]
+
+
+def run_grid(output: Path, n_seeds: int = 3, workers: int = 1, delays_s=GRID_DELAYS_S,
+             losses=GRID_LOSSES, variants=GRID_VARIANTS) -> dict:
+    """Delay by independent-loss grid on the camera path (w1 wiring), 0.05 m noise.
+
+    Opt-in; the default cells, --lead and --delay-sweep runs are untouched. Each finished run is
+    appended to a checkpoint, so rerunning the same command resumes.
+    """
+    output = Path(output)
+    if output.exists() and any(output.iterdir()):
+        raise SystemExit(f"{output} exists and is not empty; pick a new folder")
+    if "sim" in output.resolve().parts and "runs" in output.resolve().parts:
+        raise SystemExit("this pilot never writes under sim/runs")
+    partial = output.with_name(output.name + ".partial")
+    partial.mkdir(parents=True, exist_ok=True)
+    checkpoint = partial / GRID_CHECKPOINT
+    rows = [json.loads(line) for line in checkpoint.read_text().splitlines()] if checkpoint.exists() else []
+    key = lambda r: (r["delay_s"], r["loss_probability"], r["motion"], r["variant"], r["seed"])
+    done = {key(r) for r in rows}
+    todo = [j for j in grid_jobs(n_seeds, delays_s, losses, variants) if j not in done]
+    started = time.perf_counter()
+    with open(checkpoint, "a") as handle:
+        if workers > 1:
+            from concurrent.futures import ProcessPoolExecutor
+            with ProcessPoolExecutor(max_workers=workers) as pool:
+                results = pool.map(_grid_job, todo)
+                for row in results:
+                    handle.write(json.dumps(row) + "\n")
+                    handle.flush()
+                    rows.append(row)
+                    print(f"done {len(rows)} ({time.perf_counter() - started:.0f} s)", flush=True)
+        else:
+            for job in todo:
+                row = _grid_job(job)
+                handle.write(json.dumps(row) + "\n")
+                handle.flush()
+                rows.append(row)
+    rows.sort(key=key)
+    with open(partial / "grid.csv", "w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    summary = {"schema": SCHEMA + "-grid", "status": "pilot; synthetic; simulated only; not registered",
+               "seeds": seed_list(n_seeds), "delays_s": list(delays_s), "losses": list(losses),
+               "variants": list(variants), "noise_std_m": GRID_NOISE_M, "wiring": "w1",
+               "settings": {"lead_rule": _LEAD_RULE_SETTINGS, "velocity_rule_lead_s": LEAD_S},
+               "rows": rows, "elapsed_s": time.perf_counter() - started}
+    (partial / "grid.json").write_text(json.dumps(summary, indent=2) + "\n")
+    checkpoint.unlink()
+    if output.exists():
+        _move_into(partial, output)
+    else:
+        partial.rename(output)
+    return summary
+
+
 def _move_into(partial: Path, output: Path) -> None:
     for item in partial.iterdir():
         item.rename(output / item.name)
@@ -673,7 +752,14 @@ def main(argv: list[str] | None = None) -> int:
                         help="also run the lead goal rule variants (w2_truth_lead, w1_lead, w2_lead)")
     parser.add_argument("--delay-sweep", action="store_true",
                         help="run the pure delay sweep (no noise or loss, one seed) instead of the cells")
+    parser.add_argument("--grid", action="store_true",
+                        help="run the delay by loss grid (w1 wiring, 0.05 m noise, both goal rules) instead")
+    parser.add_argument("--workers", type=int, default=1, help="processes for --grid")
     args = parser.parse_args(argv)
+    if args.grid:
+        grid = run_grid(args.output, args.seeds, workers=args.workers)
+        print(f"grid rows {len(grid['rows'])} in {grid['elapsed_s']:.0f} s")
+        return 0
     if args.delay_sweep:
         sweep = run_delay_sweep(args.output)
         for r in sweep["rows"]:
