@@ -545,7 +545,7 @@ def stock_edge(fine: dict[float, dict[str, Any]]) -> dict[str, Any]:
             "flies_again_after_first_fail_s": again}
 
 
-def write_gap_figure(cells, rows, fine, headline_s: float, path: Path) -> None:
+def write_gap_figure(rows, fine, headline_s: float, path: Path) -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -639,7 +639,7 @@ def run_gap(output_dir: Path, *, taus=GAP_TAUS_S, scales=SCALES, fine_taus=GAP_F
         } for t in sorted(fine)]
         result["table"] = write_table(cells, output_dir / "table.csv")
         write_gap_table(rows, output_dir / "gap_table.csv")
-        write_gap_figure(cells, rows, fine, headline, output_dir / "motor_lag_gap.png")
+        write_gap_figure(rows, fine, headline, output_dir / "motor_lag_gap.png")
     (output_dir / "result.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     inputs = [Path(__file__).resolve(), CONFIG_PATH, REGISTERED_DCRIT, REGISTERED_A5, PROFILE_PATH,
               ROOT / "sim" / "controller.py", ROOT / "sim" / "physics" / "control_tolerance.py",

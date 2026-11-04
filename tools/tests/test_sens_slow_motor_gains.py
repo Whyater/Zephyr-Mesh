@@ -205,6 +205,35 @@ def test_flies_at_zero_needs_both_arms_and_both_rules():
     assert not sm.flies_at_zero({"zero_delay": _zero(b_fail=True)})
     assert not sm.flies_at_zero({"zero_delay": _zero(c_fail=True)})
     assert not sm.flies_at_zero({"zero_delay": _zero(c_ftf=True)})
+    arm_b_ftf = _zero()
+    arm_b_ftf["b"]["failed_to_fly"] = True
+    assert not sm.flies_at_zero({"zero_delay": arm_b_ftf})
+
+
+def test_gap_mode_reuses_grid_and_control_cells(tmp_path, monkeypatch):
+    calls = []
+
+    def fake_cell(cells_dir, tau, scale, windows, scan=True):
+        calls.append((tau, scale, scan))
+        kp, kd = sm.scaled_gains(scale)
+        zero = _zero()
+        zero["b"]["whole_run_max_tilt_deg"] = 10.0
+        return {"zero_delay": zero, "hand": {"attitude_pm_minus_hold_deg": 20.0},
+                "scan_b": None, "scan_c": None, "effective_K_p_att": list(kp), "effective_K_d_att": list(kd)}
+
+    monkeypatch.setattr(sm, "control_dcrit", lambda windows: {
+        "arm_b": {"matches_registered": True}, "slice_c": {"matches_registered": True}})
+    monkeypatch.setattr(sm, "_cached_cell", fake_cell)
+    monkeypatch.setattr(sm, "scan_matches_registered", lambda cell: True)
+    monkeypatch.setattr(sm, "control_a5_slow_motor", lambda cell: True)
+    monkeypatch.setattr(sm, "write_table", lambda cells, path: [])
+    monkeypatch.setattr(sm, "write_gap_figure", lambda *a, **k: None)
+    result = sm.run_gap(tmp_path / "gap", taus=(0.10, 0.12), scales=(1.0, 0.8), fine_taus=(0.10, 0.11, 0.12, 0.16))
+    zero_only = [(t, s) for t, s, scan in calls if not scan]
+    # Only 0.11 needs its own zero-delay run: 0.10 and 0.12 reuse grid cells, 0.16 the control cell.
+    assert zero_only == [(0.11, 1.0)]
+    assert [r["tau_s"] for r in result["fine_stock_scan"]] == [0.10, 0.11, 0.12, 0.16]
+    assert (tmp_path / "gap" / "gap_table.csv").read_text().splitlines()[0].startswith("tau_s,stock_flies")
 
 
 def test_gap_selection_rules():
