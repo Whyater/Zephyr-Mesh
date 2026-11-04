@@ -31,6 +31,26 @@ measured only if every given input is measured, otherwise unknown. Missing input
 not included, and the "complete" field is true only when all three inputs were given. Motion, the link timing model and the tracker are always simulated. Output goes to a
 new or empty folder, never under sim/runs/.
 
+Noise shape, bias and dropout (all off by default; with them off the outputs are the same as before
+they existed). Each reads the vision fit, the fits/<name>.fit.json file that tools/intake_vision.py
+writes:
+
+--noise-shape per-axis    each world axis gets its own std from per_axis.std_m instead of the pooled
+                          value on every axis. The pooled value still sets noise_std_m and --tracker-r.
+--apply-bias              add sensor_config.bias_m (m) to every measurement.
+--apply-dropout           drop detections with sensor_config.dropout_probability (a fraction), or in
+                          burst mode with its burst_start_probability and burst_end_probability.
+--axis-map A,B,C          which fit axis drives world x, y and z, with an optional minus sign, for
+                          example z,-x,-y for a camera looking along world +x (camera z is depth,
+                          camera x points right and camera y points down). Needed with --noise-shape
+                          per-axis or --apply-bias, because the fit is in the camera frame.
+
+The shaped measurements reuse sim/sensor.py (unit noise scaled per axis, its bias and its dropout)
+with the same sensor seed as the registered path, and the link part reuses sim/s6_recovery.deliver.
+A dropped detection is never sent, but the link still draws its random numbers for that capture
+slot (its burst state moves on in time), so the surviving packets arrive exactly when they would
+have without dropout.
+
     PYTHONPATH=. .venv/bin/python tools/s6_combined_rerun.py --radio radio.json \\
         --vision-link link.json --vision-fit fit.json --output DIR [--tracker-r measured] [--pilot]
 """
@@ -56,7 +76,15 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from sim.s6_recovery import RecoveryConfig, deliver, run_arms, seed_list
+from sim.s6_recovery import (
+    Delivery,
+    RecoveryConfig,
+    deliver,
+    run_arms,
+    seed_list,
+    truth_position,
+)
+from sim.sensor import SensorConfig, SensorModel
 from tools.run_s6_recovery import _cell_summary, _git_value, _sha256, _write_csv
 from tools.s6_link_rerun import LinkRerunError, describe_input, parse_link
 from tools.s6_measured_rerun import RerunError, protected_runs_dirs, resolve_brackets
@@ -79,6 +107,15 @@ COMBINING_RULE = [
     "noise comes from the vision fit; without a fit the sensor has no noise",
     "the combined delay is drawn lognormal with the combined mean and std; the true sum is not lognormal",
     "the capture stamp is assumed to be the true exposure time (camera latency compensated)",
+]
+NOISE_SHAPES = ("isotropic", "per-axis")
+UNSHAPED_LIMIT = "fitted bias, dropout and per-axis shape are not applied; noise is isotropic"
+SHAPE_RULE = [
+    "measurement = truth + bias + unit normal noise x per-axis std (sim/sensor.py with noise_std_m 1.0)",
+    "fit axes map onto world axes through axis_map; a minus sign flips that axis's bias (std has no sign)",
+    "a dropped detection is not sent; the link still spends its draws on that capture slot",
+    "the tracker measurement std stays one number for all axes (the pooled value or the registered 0.05 m)",
+    "random_walk_std_m is not applied",
 ]
 
 
@@ -139,6 +176,127 @@ def noise_component(fit: Any, raw: bytes, name: str, label: str = "pooled",
                             "note": "the fit's detector delay is not added here; use it through the vision "
                                     "link (vision_latency_to_link.py --vision-fit) so it is counted once"},
             "file": name, "sha256": hashlib.sha256(raw).hexdigest()}
+
+
+def parse_axis_map(text: str, axes: list[str]) -> list[str]:
+    """Parse "z,-x,-y" into three signed fit-axis names, one per world axis x, y, z."""
+    tokens = [token.strip() for token in str(text).split(",")]
+    if len(tokens) != 3:
+        raise CombinedRerunError("--axis-map needs three comma-separated entries (world x, y, z), e.g. z,-x,-y")
+    names = [token[1:] if token[:1] in ("+", "-") else token for token in tokens]
+    for name in names:
+        if name not in axes:
+            raise CombinedRerunError(f"--axis-map entry {name!r} is not a fit axis ({', '.join(axes)})")
+    if len(set(names)) != 3:
+        raise CombinedRerunError("--axis-map must use each fit axis once")
+    return [("-" if token.startswith("-") else "") + name for token, name in zip(tokens, names)]
+
+
+def _probability(value: Any, name: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)) \
+            or not 0.0 <= float(value) <= 1.0:
+        raise CombinedRerunError(f"vision fit {name} must be a fraction from 0 to 1")
+    return float(value)
+
+
+def shape_component(fit: Any, *, noise_shape: str = "isotropic", apply_bias: bool = False,
+                    apply_dropout: bool = False, axis_map: str | None = None,
+                    noise_label: str = "pooled") -> dict[str, Any] | None:
+    """Read the per-axis std, bias and dropout the options ask for. None when every option is off."""
+    if noise_shape not in NOISE_SHAPES:
+        raise CombinedRerunError("--noise-shape must be isotropic or per-axis")
+    per_axis_on = noise_shape == "per-axis"
+    needs_map = per_axis_on or apply_bias
+    if axis_map is not None and not needs_map:
+        raise CombinedRerunError("--axis-map is used only with --noise-shape per-axis or --apply-bias")
+    if not (needs_map or apply_dropout):
+        return None
+    if fit is None:
+        raise CombinedRerunError("--noise-shape per-axis, --apply-bias and --apply-dropout need --vision-fit")
+    if per_axis_on and noise_label != "pooled":
+        raise CombinedRerunError("--noise-shape per-axis replaces --noise depth; keep --noise pooled")
+    axes = fit["per_axis"]["axes"]
+    if needs_map and axis_map is None:
+        raise CombinedRerunError("--noise-shape per-axis and --apply-bias need --axis-map (the fit is in the "
+                                 f"{fit['per_axis'].get('position_frame')!r} frame)")
+    mapping = parse_axis_map(axis_map, axes) if axis_map is not None else None
+    sensor = fit["sensor_config"]
+
+    def world(values: list[float], signed: bool) -> list[float]:
+        out = []
+        for token in mapping:
+            value = float(values[axes.index(token.lstrip("-"))])
+            out.append(-value if signed and token.startswith("-") else value)
+        return out
+
+    pooled = float(sensor["noise_std_m"])
+    std = world(fit["per_axis"]["std_m"], False) if per_axis_on else [pooled] * 3
+    bias = [0.0, 0.0, 0.0]
+    if apply_bias:
+        raw = sensor.get("bias_m")
+        if not isinstance(raw, list) or len(raw) != 3 or any(
+                isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(float(v)) for v in raw):
+            raise CombinedRerunError("vision fit sensor_config.bias_m must list three finite numbers (m)")
+        bias = world(raw, True)
+    dropout = None
+    if apply_dropout:
+        mode = sensor.get("mode", "independent")
+        if mode == "independent":
+            dropout = {"mode": "independent",
+                       "dropout_probability": _probability(sensor.get("dropout_probability"),
+                                                           "sensor_config.dropout_probability")}
+        elif mode == "burst":
+            dropout = {"mode": "burst",
+                       "burst_start_probability": _probability(sensor.get("burst_start_probability"),
+                                                               "sensor_config.burst_start_probability"),
+                       "burst_end_probability": _probability(sensor.get("burst_end_probability"),
+                                                             "sensor_config.burst_end_probability")}
+            if dropout["burst_start_probability"] == 0.0 and float(sensor.get("dropout_probability") or 0.0) > 0.0:
+                # The fit writes start 0.0 when the burst rates were not identifiable; that would drop nothing.
+                raise CombinedRerunError("vision fit is in burst mode with burst_start_probability 0 but a positive "
+                                         "dropout_probability (burst rates not identifiable?); refit with "
+                                         "--dropout-mode independent or collect more frames")
+        else:
+            raise CombinedRerunError(f"vision fit sensor_config.mode must be independent or burst, got {mode!r}")
+    return {"noise_shape": noise_shape, "noise_std_axis_m": std, "bias_m": bias, "sensor_dropout": dropout,
+            "axis_map": mapping, "apply_bias": apply_bias, "apply_dropout": apply_dropout}
+
+
+def shaped_deliver(motion: str, *, delay_s: float, loss_probability: float, seed: int, config: RecoveryConfig,
+                   loss_model: str = "independent", jitter_s: float = 0.0, burst_mean_length_packets: float = 5.0,
+                   axis_std_m=(0.0, 0.0, 0.0), bias_m=(0.0, 0.0, 0.0),
+                   dropout: dict[str, Any] | None = None) -> tuple[list[Delivery], int]:
+    """sim.s6_recovery.deliver with per-axis noise, a constant bias and detection dropout.
+
+    The link part is deliver() itself (run with no noise). The sensor part reruns
+    sim/sensor.py with the same sensor seed and noise_std_m 1.0, so its noise draw
+    is a unit normal z, and each world axis gets truth + bias + z x std. NumPy draws
+    normal(0, s) as s x z, so equal stds reproduce the isotropic packets exactly.
+    Returns the arriving packets and the number of captures the sensor dropped.
+    """
+    base = deliver(motion, delay_s=delay_s, loss_probability=loss_probability, noise_std_m=0.0, seed=seed,
+                   config=config, loss_model=loss_model, jitter_s=jitter_s,
+                   burst_mean_length_packets=burst_mean_length_packets)
+    sensor_seed = int(np.random.SeedSequence(seed).generate_state(2)[1])  # deliver's sensor seed
+    drop = dropout or {}
+    sensor = SensorModel(SensorConfig(noise_std_m=1.0, bias_m=tuple(float(v) for v in bias_m),
+                                      dropout_probability=float(drop.get("dropout_probability", 0.0)),
+                                      burst_start_probability=float(drop.get("burst_start_probability", 0.0)),
+                                      burst_end_probability=float(drop.get("burst_end_probability", 1.0)),
+                                      mode=drop.get("mode", "independent")), seed=sensor_seed)
+    std = np.asarray(axis_std_m, dtype=float)
+    n_captures = round(config.duration_s / config.observation_period_s)
+    capture_times = np.arange(n_captures + 1) * config.observation_period_s
+    truth = truth_position(motion, capture_times, config)
+    measurements = {}
+    for seq, (capture_time, position) in enumerate(zip(capture_times, truth)):
+        sample = sensor.sample(position, float(capture_time))
+        if sample.available:
+            value = np.asarray(sample.truth_m) + np.asarray(sample.bias_m) + std * np.asarray(sample.noise_m)
+            measurements[seq] = tuple(float(v) for v in value)
+    shaped = [replace(packet, measurement_m=measurements[packet.seq]) for packet in base
+              if packet.seq in measurements]
+    return shaped, len(capture_times) - len(measurements)
 
 
 def combine(radio: dict[str, Any] | None, vision_link: dict[str, Any] | None,
@@ -204,6 +362,13 @@ def build_cells(settings: dict[str, Any]) -> list[dict[str, Any]]:
         if settings["loss_model"] == "burst":
             cell["burst_mean_length_packets"] = settings["burst_mean_length_packets"]
             cell_id += f"/b{_id_part(cell['burst_mean_length_packets'])}"
+        if "noise_shape" in settings:
+            cell.update({key: settings[key] for key in ("noise_std_axis_m", "bias_m", "sensor_dropout")})
+            dropout = settings["sensor_dropout"]
+            drop_id = "none" if dropout is None else "_".join(
+                [dropout["mode"]] + [_id_part(dropout[k]) for k in sorted(dropout) if k != "mode"])
+            cell_id += ("/shape/s" + "_".join(_id_part(v) for v in settings["noise_std_axis_m"])
+                        + "/bias" + "_".join(_id_part(v) for v in settings["bias_m"]) + f"/drop{drop_id}")
         cell["cell_id"] = cell_id
         cells.append(cell)
     return cells
@@ -217,7 +382,13 @@ def run_cell(cell: dict[str, Any], seeds: list[int], config: RecoveryConfig) -> 
                   "loss_model": cell["loss_model"], "jitter_s": cell["jitter_s"]}
         if cell["loss_model"] == "burst":
             kwargs["burst_mean_length_packets"] = cell["burst_mean_length_packets"]
-        arms = run_arms(deliver(cell["motion"], **kwargs), cell["motion"], config,
+        if "noise_std_axis_m" in cell:
+            del kwargs["noise_std_m"]
+            packets, _ = shaped_deliver(cell["motion"], axis_std_m=cell["noise_std_axis_m"], bias_m=cell["bias_m"],
+                                        dropout=cell["sensor_dropout"], **kwargs)
+        else:
+            packets = deliver(cell["motion"], **kwargs)
+        arms = run_arms(packets, cell["motion"], config,
                         tracker_measurement_std_m=cell["tracker_measurement_std_m"])
         naive.append(replace(arms["naive"], query_times_s=None, errors_m=None))
         recovery.append(replace(arms["recovery"], query_times_s=None, errors_m=None))
@@ -245,7 +416,8 @@ def check_output(output: Path, inputs: list[Path]) -> Path:
     return resolved
 
 
-def _readme(status: str, combined: dict[str, Any], components: dict[str, Any]) -> str:
+def _readme(status: str, combined: dict[str, Any], components: dict[str, Any],
+            shape: dict[str, Any] | None = None) -> str:
     settings = combined["settings"]
     lines = [status, "", "applied settings:"]
     lines += [f"  {key}: {settings[key]!r}" for key in sorted(settings)]
@@ -260,6 +432,13 @@ def _readme(status: str, combined: dict[str, Any], components: dict[str, Any]) -
                 lines.append(f"    source: {part['source']}")
             lines += [f"    warning: {warning}" for warning in part.get("warnings", [])]
     lines += ["", "combining rule (assumptions):"] + [f"  - {rule}" for rule in COMBINING_RULE]
+    if shape is not None:
+        lines += ["", (f"noise shape: {shape['noise_shape']}, bias {'applied' if shape['apply_bias'] else 'not applied'}, "
+                       f"dropout {'applied' if shape['apply_dropout'] else 'not applied'}"),
+                  f"  axis map (world x, y, z from fit axes): {shape['axis_map']!r}",
+                  (f"  world std {shape['noise_std_axis_m']!r} m, world bias {shape['bias_m']!r} m, "
+                   f"dropout {shape['sensor_dropout']!r}"),
+                  "shape rule (assumptions):"] + [f"  - {rule}" for rule in SHAPE_RULE]
     lines += ["", "per_seed.csv carries no label of its own; this README and manifest.json are the label.", ""]
     return "\n".join(lines)
 
@@ -267,7 +446,9 @@ def _readme(status: str, combined: dict[str, Any], components: dict[str, Any]) -
 def run_rerun(output: Path, *, radio_path: Path | None = None, vision_link_path: Path | None = None,
               vision_fit_path: Path | None = None, noise_label: str = "pooled", depth_axis: str | None = None,
               tracker_r: str = "registered", seeds_count: int = 50, base_seed: int = BASE_SEED,
-              pilot: bool = False, argv: list[str] | None = None) -> dict[str, Any]:
+              pilot: bool = False, argv: list[str] | None = None, noise_shape: str = "isotropic",
+              apply_bias: bool = False, apply_dropout: bool = False,
+              axis_map: str | None = None) -> dict[str, Any]:
     """Run both motions with the combined settings and write the outputs. Returns the manifest."""
     if pilot:
         seeds_count = PILOT_SEEDS
@@ -276,6 +457,7 @@ def run_rerun(output: Path, *, radio_path: Path | None = None, vision_link_path:
     given = [Path(p) for p in (radio_path, vision_link_path, vision_fit_path) if p is not None]
     resolved = check_output(Path(output), given)
     components: dict[str, Any] = {"radio": None, "vision_link": None, "vision_fit": None}
+    fit_data = None
     if radio_path is not None:
         data, raw = _read(Path(radio_path))
         components["radio"] = radio_component(data, raw, Path(radio_path).name)
@@ -283,9 +465,14 @@ def run_rerun(output: Path, *, radio_path: Path | None = None, vision_link_path:
         data, raw = _read(Path(vision_link_path))
         components["vision_link"] = vision_link_component(data, raw, Path(vision_link_path).name)
     if vision_fit_path is not None:
-        data, raw = _read(Path(vision_fit_path))
-        components["vision_fit"] = noise_component(data, raw, Path(vision_fit_path).name, noise_label, depth_axis)
+        fit_data, raw = _read(Path(vision_fit_path))
+        components["vision_fit"] = noise_component(fit_data, raw, Path(vision_fit_path).name, noise_label, depth_axis)
+    shape = shape_component(fit_data, noise_shape=noise_shape, apply_bias=apply_bias, apply_dropout=apply_dropout,
+                            axis_map=axis_map, noise_label=noise_label)
     combined = combine(components["radio"], components["vision_link"], components["vision_fit"], tracker_r)
+    if shape is not None:
+        combined["settings"].update({key: shape[key] for key in ("noise_shape", "noise_std_axis_m", "bias_m",
+                                                                 "sensor_dropout", "axis_map")})
     status = status_text(combined)
     cells = build_cells(combined["settings"])
     seeds = seed_list(seeds_count, base_seed=base_seed)
@@ -302,7 +489,7 @@ def run_rerun(output: Path, *, radio_path: Path | None = None, vision_link_path:
     limits = ["combined settings are an assumption-based sum, see combining_rule",
               (f"tracker measurement std {combined['settings']['tracker_measurement_std_m']!r} m "
                f"({'fitted noise' if tracker_r == 'measured' else 'registered value'})"),
-              "fitted bias, dropout and per-axis shape are not applied; noise is isotropic",
+              *(_shape_limits(shape) if shape is not None else [UNSHAPED_LIMIT]),
               f"{seeds_count} seeds per motion"]
     limits += [f"{name} not included: contributes no delay, jitter, loss or noise" for name in combined["not_included"]]
     if components["vision_link"] is not None:
@@ -315,6 +502,8 @@ def run_rerun(output: Path, *, radio_path: Path | None = None, vision_link_path:
                                                              "observation_period_s": config.observation_period_s},
                "design": {"pilot": pilot, "n_seeds": seeds_count, "base_seed": base_seed, "seeds": seeds},
                "cells": [_cell_summary(cell, result) for cell, result in zip(cells, results)], "limits": limits}
+    if shape is not None:
+        summary["shape_rule"] = SHAPE_RULE
 
     # Write into a hidden sibling folder and rename it at the end, so a failed write never
     # leaves a half-filled output folder behind.
@@ -327,7 +516,7 @@ def run_rerun(output: Path, *, radio_path: Path | None = None, vision_link_path:
         csv_path = staging / "per_seed.csv"
         _write_csv(csv_path, cells, results, seeds)
         readme_path = staging / "README.txt"
-        readme_path.write_text(_readme(status, combined, components))
+        readme_path.write_text(_readme(status, combined, components, shape))
         if argv is None:
             argv = ["--output", str(output)]
             for flag, path in (("--radio", radio_path), ("--vision-link", vision_link_path),
@@ -338,6 +527,14 @@ def run_rerun(output: Path, *, radio_path: Path | None = None, vision_link_path:
                      "--base-seed", str(base_seed)]
             if depth_axis is not None:
                 argv += ["--depth-axis", depth_axis]
+            if noise_shape != "isotropic":
+                argv += ["--noise-shape", noise_shape]
+            if apply_bias:
+                argv += ["--apply-bias"]
+            if apply_dropout:
+                argv += ["--apply-dropout"]
+            if axis_map is not None:
+                argv += ["--axis-map", axis_map]
         manifest = {"schema": MANIFEST_SCHEMA, "status": status, "input_status": combined["status"],
                     "complete": combined["complete"],
                     "components": components, "settings": combined["settings"], "combining_rule": COMBINING_RULE,
@@ -347,6 +544,8 @@ def run_rerun(output: Path, *, radio_path: Path | None = None, vision_link_path:
                     "pilot": pilot, "runtime_s": runtime, "argv": argv,
                     "replay_command": "PYTHONPATH=. .venv/bin/python tools/s6_combined_rerun.py " + shlex.join(argv),
                     "outputs": {path.name: _sha256(path) for path in (summary_path, csv_path, readme_path)}}
+        if shape is not None:
+            manifest["shape_rule"] = SHAPE_RULE
         (staging / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
         if resolved.exists():
             resolved.rmdir()  # check_output already made sure it is empty
@@ -357,11 +556,29 @@ def run_rerun(output: Path, *, radio_path: Path | None = None, vision_link_path:
     return manifest
 
 
+def _shape_limits(shape: dict[str, Any]) -> list[str]:
+    lines = [f"noise shape {shape['noise_shape']}: world x, y, z std {shape['noise_std_axis_m']!r} m"
+             + (f" from per_axis.std_m through axis map {shape['axis_map']!r}" if shape["noise_shape"] == "per-axis"
+                else " (the pooled value on every axis)")]
+    if shape["apply_bias"]:
+        lines.append(f"fitted bias applied: world {shape['bias_m']!r} m through axis map {shape['axis_map']!r}")
+    else:
+        lines.append("fitted bias not applied")
+    if shape["apply_dropout"]:
+        lines.append(f"fitted detection dropout applied: {shape['sensor_dropout']!r}")
+    else:
+        lines.append("fitted dropout not applied")
+    return lines
+
+
 def summary_lines(summary: dict[str, Any]) -> list[str]:
     s = summary["settings"]
     lines = [summary["status"],
              (f"delay {1000 * s['delay_s']:.1f} ms, jitter {1000 * s['jitter_s']:.1f} ms, loss {s['loss_probability']:.3f} "
               f"({s['loss_model']}), noise {s['noise_std_m']:.4f} m, tracker R {s['tracker_measurement_std_m']:.4f} m")]
+    if "noise_shape" in s:
+        lines.append(f"noise shape {s['noise_shape']}, world std {s['noise_std_axis_m']!r} m, bias {s['bias_m']!r} m, "
+                     f"dropout {s['sensor_dropout']!r}")
     for cell in summary["cells"]:
         arms = cell["arms"]
         lines.append(f"  {cell['motion']}: median p95 error naive {arms['naive']['p95_median_m']:.4f} m, "
@@ -383,12 +600,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seeds", type=int, default=50)
     parser.add_argument("--base-seed", type=int, default=BASE_SEED)
     parser.add_argument("--pilot", action="store_true", help=f"run {PILOT_SEEDS} seeds per motion")
+    parser.add_argument("--noise-shape", choices=NOISE_SHAPES, default="isotropic",
+                        help="per-axis: each world axis gets its own fitted std (needs --axis-map)")
+    parser.add_argument("--apply-bias", action="store_true", help="add the fitted bias_m (needs --axis-map)")
+    parser.add_argument("--apply-dropout", action="store_true", help="drop detections at the fitted dropout rate")
+    parser.add_argument("--axis-map", help="fit axis for world x, y, z with optional sign, e.g. z,-x,-y")
     args = parser.parse_args(argv)
     try:
         run_rerun(args.output, radio_path=args.radio, vision_link_path=args.vision_link,
                   vision_fit_path=args.vision_fit, noise_label=args.noise, depth_axis=args.depth_axis,
                   tracker_r=args.tracker_r, seeds_count=args.seeds, base_seed=args.base_seed, pilot=args.pilot,
-                  argv=list(sys.argv[1:] if argv is None else argv))
+                  argv=list(sys.argv[1:] if argv is None else argv), noise_shape=args.noise_shape,
+                  apply_bias=args.apply_bias, apply_dropout=args.apply_dropout, axis_map=args.axis_map)
     except (CombinedRerunError, OSError) as exc:
         parser.error(str(exc))
     summary = json.loads((args.output / "summary.json").read_text())
