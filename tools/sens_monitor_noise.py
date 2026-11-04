@@ -168,8 +168,10 @@ def effective_sigma_check(rows: list[dict]) -> dict:
            if row["n_sensor_configs_built"] != 2 or row["n_estimator_settings_built"] != 1
            or row["effective_sensor_sigma_m"] != row["sensor_sigma_m"]
            or row["effective_estimator_sigma_m"] != row["estimator_sigma_m"]]
+    built = group_rows(rows, ("arm", "effective_sensor_sigma_m", "effective_estimator_sigma_m"))
     return {"n_rows": len(rows), "n_rows_wrong": len(bad), "passed": not bad,
-            "first_wrong": [{key: row[key] for key in LABEL_ORDER} for row in bad[:5]]}
+            "first_wrong": [{key: row[key] for key in LABEL_ORDER} for row in bad[:5]],
+            "by_arm": [[arm, sensor, estimator, len(group)] for (arm, sensor, estimator), group in built.items()]}
 
 
 def sha256(path: Path) -> str:
@@ -312,6 +314,9 @@ def main(argv: list[str] | None = None) -> None:
                         n_processes=args.processes, argv=raw_argv)
     print("control passed:", summary["control"]["passed"],
           "| effective sigma passed:", summary["effective_sigma"]["passed"])
+    print("effective sigma built inside the worker runs (arm: sensor m, estimator m, runs):")
+    for arm, sensor_sigma, estimator_sigma, n_runs in summary["effective_sigma"]["by_arm"]:
+        print(f"  {arm}: {sensor_sigma}, {estimator_sigma}, {n_runs}")
     print("first failing sigma:", summary["first_failing_sigma"])
 
 
