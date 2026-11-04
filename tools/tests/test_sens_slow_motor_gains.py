@@ -173,3 +173,92 @@ def test_failed_control_skips_every_variant(tmp_path, monkeypatch):
     # Only the two stock control cells ran.
     assert ran == [(0.07, 1.0), (0.16, 1.0)]
     assert not (tmp_path / "out" / "table.csv").exists()
+
+
+# ---- motor-lag gap sweep (--mode lag-gap) ----
+
+def _zero(b_fail=False, c_fail=False, c_ftf=False):
+    return {"b": {"unstable": b_fail, "failed_to_fly": False},
+            "c": {"unstable": c_fail, "failed_to_fly": c_ftf}}
+
+
+def _gap_cell(pm, zero, b_limit, c_limit, s=1.0):
+    def scan(lim):
+        return None if lim == "x" else {"limit_s": lim, "scan_top_s": 0.5,
+                                        "exp021": {"monotone": True}, "failed_to_fly": {"monotone": True}}
+    kp, kd = sm.scaled_gains(s)
+    return {"zero_delay": zero, "hand": {"attitude_pm_minus_hold_deg": pm},
+            "scan_b": scan(b_limit), "scan_c": scan(c_limit),
+            "effective_K_p_att": list(kp), "effective_K_d_att": list(kd)}
+
+
+def test_gap_grid_is_the_preregistered_one():
+    assert sm.GAP_TAUS_S == (0.10, 0.11, 0.12, 0.13, 0.14, 0.15)
+    assert len(sm.GAP_FINE_TAUS_S) == 31
+    assert sm.GAP_FINE_TAUS_S[0] == 0.1 and sm.GAP_FINE_TAUS_S[-1] == sm.FINE_TAU_S
+    # Every grid lag is also a fine-scan lag, so the fine scan reuses those cells.
+    assert set(sm.GAP_TAUS_S) <= set(sm.GAP_FINE_TAUS_S)
+
+
+def test_flies_at_zero_needs_both_arms_and_both_rules():
+    assert sm.flies_at_zero({"zero_delay": _zero()})
+    assert not sm.flies_at_zero({"zero_delay": _zero(b_fail=True)})
+    assert not sm.flies_at_zero({"zero_delay": _zero(c_fail=True)})
+    assert not sm.flies_at_zero({"zero_delay": _zero(c_ftf=True)})
+
+
+def test_gap_selection_rules():
+    cells = {}
+    for s, pm in zip(sm.SCALES, (4.0, 7.0, 11.0, 16.0, 23.0)):
+        # Stock flies only in arm b; slice c fails at zero, so stock must not count as flying.
+        zero = _zero(c_fail=True) if s == 1.0 else _zero()
+        cells[(0.13, s)] = _gap_cell(pm, zero, {1.0: 0.30, 0.9: 0.31, 0.8: None, 0.65: 0.27, 0.5: 0.19}[s],
+                                     "x" if s == 1.0 else 0.02, s)
+    (row,) = sm.gap_select(cells, 0.36, taus=(0.13,))
+    assert row["stock_flies_at_zero_delay"] is False
+    assert row["scales_flying_at_zero_delay"] == [0.9, 0.8, 0.65, 0.5]
+    assert row["s_fly"]["scale"] == 0.9
+    assert row["s_fly"]["arm_b_change_vs_headline"] == pytest.approx((0.31 - 0.36) / 0.36)
+    assert row["s_fly"]["K_p_att"] == pytest.approx(81.0)
+    assert row["s_margin"]["scale"] == 0.8
+    # A limit above the scanned range has no change number and prints as "> top".
+    assert row["s_margin"]["arm_b_change_vs_headline"] is None
+    assert sm._fmt_limit(row["s_margin"]["arm_b"]) == "> 0.50"
+    assert sm._fmt_limit(None) == "unstable at 0"
+
+
+def test_stock_edge_reports_return_to_flying():
+    fine = {t: {"zero_delay": _zero(b_fail=t in (0.152, 0.156))} for t in (0.15, 0.152, 0.154, 0.156)}
+    assert sm.stock_edge(fine) == {"last_flying_s": 0.15, "first_failing_s": 0.152,
+                                   "flies_again_after_first_fail_s": [0.154]}
+    assert sm.stock_edge({0.1: {"zero_delay": _zero()}})["first_failing_s"] is None
+
+
+def test_gap_mode_failed_control_skips_every_variant(tmp_path, monkeypatch):
+    ran = []
+
+    def fake_cell(cells_dir, tau, scale, windows, scan=True):
+        ran.append((tau, scale))
+        return {"scan_b": None, "zero_delay": _zero()}
+
+    monkeypatch.setattr(sm, "control_dcrit", lambda windows: {
+        "arm_b": {"matches_registered": True}, "slice_c": {"matches_registered": False}})
+    monkeypatch.setattr(sm, "_cached_cell", fake_cell)
+    monkeypatch.setattr(sm, "scan_matches_registered", lambda cell: True)
+    monkeypatch.setattr(sm, "control_a5_slow_motor", lambda cell: True)
+    result = sm.run_gap(tmp_path / "gap")
+    assert result["controls_pass"] is False
+    assert "per_lag" not in result
+    assert ran == [(0.07, 1.0), (0.16, 1.0)]
+    assert not (tmp_path / "gap" / "gap_table.csv").exists()
+
+
+def test_gap_output_under_sim_runs_is_refused():
+    with pytest.raises(ValueError):
+        sm.run_gap(sm.ROOT / "sim" / "runs" / "never-made")
+
+
+def test_stability_rule_text_has_no_decision_number():
+    import re
+    assert not re.search(r"\bD-\d", sm.STABILITY_RULE)
+    assert "failed-to-fly rule" in sm.STABILITY_RULE
