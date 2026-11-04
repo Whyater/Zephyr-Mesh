@@ -164,6 +164,9 @@ def test_failed_control_skips_every_variant(tmp_path, monkeypatch):
     monkeypatch.setattr(sm, "control_dcrit", lambda windows: {
         "arm_b": {"matches_registered": False}, "slice_c": {"matches_registered": True}})
     monkeypatch.setattr(sm, "_cached_cell", fake_cell)
+    # The other controls pass, so the arm b flag alone must close the gate.
+    monkeypatch.setattr(sm, "scan_matches_registered", lambda cell: True)
+    monkeypatch.setattr(sm, "control_a5_slow_motor", lambda cell: True)
     result = sm.run(tmp_path / "out")
     assert result["controls_pass"] is False
     assert "selection" not in result and "table" not in result
