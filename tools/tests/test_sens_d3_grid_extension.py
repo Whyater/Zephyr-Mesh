@@ -112,3 +112,48 @@ def test_output_under_sim_runs_is_refused(tmp_path):
         ext.run(ext.ROOT / "sim" / "runs" / "d3-ext", processes=1, checkpoint=None)
     with pytest.raises(ValueError, match="checkpoint"):
         ext.run(tmp_path / "out", processes=1, checkpoint=tmp_path / "out" / "ck")
+
+
+def test_target_option_keeps_the_turn_default_and_builds_jinking_jobs():
+    assert ext.make_job(0.4, 0.0, 2, 7) == ext.make_job(0.4, 0.0, 2, 7, "ct_r1")
+    assert ext.jobs_for([(0.4, 0.0, 2)], [7]) == [ext.make_job(0.4, 0.0, 2, 7)]
+    job = ext.make_job(0.4, 0.0, 2, 7, "jink")
+    assert job["target"] == "jink" and registered._cell(job).target == "jink"
+    with pytest.raises(ValueError, match="unknown target"):
+        ext.make_job(0.4, 0.0, 2, 7, "cv_1")
+
+
+def test_one_registered_jinking_row_reproduces_as_text():
+    reference = ext.load_registered(target="jink")
+    assert len(reference) == 7 * 5 * 20 * 13
+    result = ext.control(processes=1, cells=((0.3, 0.0, 1),), seed_list=ext.seeds()[:1],
+                         reference=reference, target="jink")
+    assert result["rows"] == 1 and result["target"] == "jink"
+    assert result["passed"], result["mismatches"]
+
+
+def test_combined_cells_cross_delay_with_high_loss():
+    cells = ext.combined_cells()
+    assert set(cells) == {(d, p, n) for d in (0.0, 0.05, 0.1, 0.2, 0.3)
+                          for p in (0.7, 0.8) for n in (3, 4, 6)}
+    assert len(cells) == 30 and len(ext.jobs_for(cells, ext.seeds())) == 600
+    assert all(d in registered.DELAYS for d in ext.COMBINED_DELAYS)
+
+
+def test_combined_edges_read_both_directions_of_one_block():
+    counts = {}
+    for n in ext.COMBINED_NS:
+        for arm in ext.arms_for(n):
+            for d, delay in enumerate(ext.COMBINED_DELAYS):
+                for p, loss in enumerate(ext.COMBINED_LOSS_AXIS):
+                    # fail when delay index + loss index reaches 6
+                    counts[(arm, n, delay, loss)] = (20 if d + p >= 6 else 0, 20)
+    out = ext.combined_edges(counts)
+    # loss 0.7 is index 4: delays 0, 0.05 pass, 0.1 fails
+    assert out["delay_edges_at_loss"]["0.7"]["central|3"]["value"] == 0.05
+    assert out["delay_edges_at_loss"]["0.8"]["peer_ci|6"]["value"] == 0.0
+    # delay 0 passes the whole loss axis: censored past 0.8
+    assert out["loss_edges_at_delay"]["0"]["star_avg|4"]["censored"] == ">0.8"
+    assert out["loss_edges_at_delay"]["0.3"]["central|6"]["value"] == 0.1
+    assert set(out["loss_edges_at_delay"]["0.1"]) == {
+        f"{arm}|{n}" for n in (3, 4, 6) for arm in registered.DISPLAY_ARMS}
