@@ -164,6 +164,15 @@ def unwrap_counter(ticks, modulus: int, max_gap_ticks: int | None = None) -> np.
       cause is a device reboot (the counter restarted at zero). Split the log
       at that index and fit each piece on its own.
 
+    A reordered packet can also straddle the wrap: one stamped just before
+    the top arrives after one stamped just after zero. That shows up as a
+    forward step of at least ``modulus - max_gap_ticks`` (it is at most
+    ``max_gap_ticks`` older, counted back across the wrap). It is placed in
+    the epoch before the previous sample, and later samples are judged as
+    usual. Results are counted from the first sample's epoch, so if the very
+    first sample is already past the wrap, a late packet from before it
+    comes out slightly below zero.
+
     A reboot can still pass as a rollover if it happens within
     ``max_gap_ticks`` of the top of the range, because the two look the same
     in the counter alone. A tight gap keeps that window small.
@@ -207,7 +216,9 @@ def unwrap_counter(ticks, modulus: int, max_gap_ticks: int | None = None) -> np.
             f"nor a rollover within max_gap_ticks={max_gap_ticks}: likely a device reboot. "
             "Split the log at this index."
         )
-    wraps = np.concatenate(([0], np.cumsum(wraps_here)))
+    late_pre_wrap = (nxt - prev) >= modulus - max_gap_ticks
+    steps = wraps_here.astype(np.int64) - late_pre_wrap.astype(np.int64)
+    wraps = np.concatenate(([0], np.cumsum(steps)))
     return values + wraps.astype(np.int64) * modulus
 
 

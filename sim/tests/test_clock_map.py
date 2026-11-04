@@ -183,7 +183,7 @@ def test_clock_map_rejects_impossible_drift():
 
 def test_small_backward_step_is_not_a_wrap():
     # A reordered packet can arrive with a slightly older stamp. That is not a
-    # rollover, so nothing is added (a wrap needs a drop of more than half the modulus).
+    # rollover, so nothing is added (the drop of 10 is within the gap of 250).
     raw = np.array([100, 200, 190, 300])
     assert clock_map.unwrap_counter(raw, 1000).tolist() == [100, 200, 190, 300]
 
@@ -243,3 +243,73 @@ def test_unwrap_rejects_a_gap_that_makes_wraps_and_backsteps_overlap(gap):
     # backward step and a rollover can never both explain the same drop.
     with pytest.raises(ValueError):
         clock_map.unwrap_counter(np.array([1, 2]), 1000, max_gap_ticks=gap)
+
+
+# Reordered packets across the rollover. Near the wrap a late packet stamped
+# just before the top can arrive after one stamped just after zero. Going
+# from the new sample (near zero) to the late one (near the top) is a forward
+# step of almost the whole modulus. Read naively, that adds a whole extra
+# wrap (2^32 us = 4295 s) to the late packet and to every sample after it.
+
+
+def test_reorder_straddling_the_wrap_keeps_each_packet_in_its_own_epoch():
+    # Worked by hand: 500 and 1500 come after the wrap (add M), the late
+    # packet M-500 comes from before it (add nothing).
+    M = US_32
+    raw = np.array([M - 2000, M - 1000, 500, M - 500, 1500], dtype=np.int64)
+    assert clock_map.unwrap_counter(raw, M).tolist() == [M - 2000, M - 1000, M + 500, M - 500, M + 1500]
+
+
+def test_late_pre_wrap_packet_after_the_first_post_wrap_sample():
+    M = US_32
+    raw = np.array([M - 2000, 10, M - 1000, 2000], dtype=np.int64)
+    assert clock_map.unwrap_counter(raw, M).tolist() == [M - 2000, M + 10, M - 1000, M + 2000]
+
+
+@pytest.mark.parametrize(
+    "true_ticks",
+    [
+        # Two packets swapped across the wrap.
+        [2**32 - 3000, 2**32 - 2000, 2**32 + 500, 2**32 - 500, 2**32 + 1500],
+        # Two late packets in a row, then the stream catches up.
+        [2**32 - 3000, 2**32 + 200, 2**32 - 900, 2**32 - 800, 2**32 + 1500, 2**32 + 2500],
+        # Reorders before and after the wrap, but none across it.
+        [2**32 - 3000, 2**32 - 1000, 2**32 - 1200, 2**32 + 1000, 2**32 + 700, 2**32 + 2000],
+        # The very first sample is already past the wrap and the late one is
+        # from before it. Values are counted from the first sample's epoch,
+        # so the late packet comes out just below zero.
+        [2**32 + 100, 2**32 - 100, 2**32 + 300],
+    ],
+)
+def test_unwrap_recovers_the_true_spacing_of_a_reordered_stream(true_ticks):
+    # Independent check: start from a known continuous counter (the truth),
+    # wrap it with % by hand, unwrap it, and compare. The first sample may be
+    # in any epoch, so the result may differ from the truth by a whole number
+    # of wraps, but by the same number for every sample.
+    M = US_32
+    truth = np.array(true_ticks, dtype=np.int64)
+    unwrapped = clock_map.unwrap_counter(truth % M, M)
+    shift = unwrapped - truth
+    assert np.all(shift == shift[0])
+    assert shift[0] % M == 0
+
+
+def test_late_packet_boundary_matches_the_reorder_limit():
+    # Modulus 1000, default gap 250. A late packet across the wrap is at most
+    # 250 ticks older than the sample before it, the same limit as an
+    # ordinary reorder. From 100 to 850 is 250 ticks back across the wrap
+    # (850 = -150 in the earlier epoch), so it is late. From 100 to 849 is
+    # 251 ticks back, so it is not read as a late packet.
+    assert clock_map.unwrap_counter(np.array([100, 850]), 1000).tolist() == [100, -150]
+    assert clock_map.unwrap_counter(np.array([100, 849]), 1000).tolist() == [100, 849]
+
+
+def test_two_wraps_with_a_late_packet_across_each():
+    # Small counter so two wraps fit in a short list. Modulus 1000, default
+    # gap 250. The truth counts up by 100 from 50; around each wrap the two
+    # packets 950/1050 and 1950/2050 arrive swapped.
+    truth = np.arange(50, 2600, 100)
+    for a, b in ((950, 1050), (1950, 2050)):
+        i, j = int(np.flatnonzero(truth == a)[0]), int(np.flatnonzero(truth == b)[0])
+        truth[i], truth[j] = truth[j], truth[i]
+    assert clock_map.unwrap_counter(truth % 1000, 1000).tolist() == truth.tolist()
