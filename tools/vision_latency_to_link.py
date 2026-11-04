@@ -45,7 +45,11 @@ jitter_s  standard deviation, the camera jitter (from frames that caught a
           standard deviation, so it adds no jitter; a warning says so.
 loss_probability  0: the camera path does not drop packets in this model.
 status    synthetic if any input is synthetic, measured only if every input
-          is measured, otherwise unknown.
+          is measured, unverified if every input is measured or unverified
+          (see below), otherwise unknown. A latency.json or vision fit that says
+          measured counts as unverified when it lacks the provenance that ties it
+          to the bench files (tools/measured_provenance.py); the reason goes into
+          its component as provenance_note and into warnings.
 """
 from __future__ import annotations
 
@@ -71,6 +75,9 @@ PROCESSING_PROVENANCE_TEXT = ("operator", "captured_at", "code_revision")
 _SHA256_HEX = re.compile(r"[0-9a-f]{64}")
 NO_OVERLAP = ("no overlap assumed: camera latency ends at the frame read and processing time starts there; "
               "if the log stamps capture earlier, the overlap is counted twice")
+
+
+from tools.measured_provenance import UNVERIFIED, checked_status  # noqa: E402
 
 
 class LinkConversionError(ValueError):
@@ -105,11 +112,17 @@ def _status(value: Any) -> str:
 
 
 def combine_status(statuses: list[str]) -> str:
-    """Synthetic wins, measured needs every input measured, anything else is unknown."""
+    """Synthetic wins, measured needs every input measured, anything else is unknown.
+
+    The one exception: when every input is measured or unverified (says measured, no checkable
+    provenance) and at least one is unverified, the result is unverified.
+    """
     if "synthetic" in statuses:
         return "synthetic"
     if statuses and all(status == "measured" for status in statuses):
         return "measured"
+    if statuses and all(status in ("measured", UNVERIFIED) for status in statuses):
+        return UNVERIFIED
     return "unknown"
 
 
@@ -140,8 +153,12 @@ def _camera(latency: Any) -> dict[str, Any]:
     jitter = apparent.get("jitter_std_from_straddles")
     if jitter is not None:
         jitter = _nonnegative(jitter, "apparent_latency_s.jitter_std_from_straddles")
+    status, note = checked_status(_status(latency.get("status")), latency)
+    if note is not None:
+        warnings = list(warnings) + [f"camera latency file {note}"]
     return {
-        "status": _status(latency.get("status")),
+        "status": status,
+        **({"provenance_note": note} if note is not None else {}),
         "latency_s": {"lower": low, "mid": 0.5 * (low + high), "upper": high},
         "used": "upper",
         "apparent_latency_mean_s": _number(apparent.get("mean"), "apparent_latency_s.mean"),
@@ -198,8 +215,9 @@ def _processing_from_fit(data: Any) -> dict[str, Any]:
         reason = data.get("scenario_delay_null_reason", "no reason given")
         raise LinkConversionError(f"the vision fit has no scenario_delay: {reason}")
     block = _object(block, "scenario_delay")
-    status = _object(data.get("input", {}), "input").get("status")
-    return {"source": FIT_SCHEMA + " scenario_delay", "status": _status(status),
+    status, note = checked_status(_status(_object(data.get("input", {}), "input").get("status")), data)
+    return {"source": FIT_SCHEMA + " scenario_delay", "status": status,
+            **({"provenance_note": note} if note is not None else {}),
             "delay_s": _nonnegative(block.get("measurement_delay_s"), "scenario_delay.measurement_delay_s"),
             "statistic": "mean", "assumption": NO_OVERLAP,
             "jitter_s": _nonnegative(block.get("measurement_jitter_s"), "scenario_delay.measurement_jitter_s"),
@@ -229,6 +247,8 @@ def build_link(latency: Any, processing: Any = None, vision_fit: Any = None) -> 
                         "usually right-skewed, so the median can understate it (p95_s is in components)")
     if camera["jitter_s"] is None:
         warnings.append("camera jitter was not measured, so jitter_s leaves it out")
+    if proc is not None and "provenance_note" in proc:
+        warnings.append(f"vision fit {proc['provenance_note']}")
     if proc is None:
         warnings.append("no processing time given, so delay_s is camera latency only")
     elif proc["jitter_s"] is None:

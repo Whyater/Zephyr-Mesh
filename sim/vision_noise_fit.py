@@ -705,6 +705,9 @@ def fit_vision_noise(trace: VisionTrace, *, subject_id: str | None = None, dropo
                       "residual_block_length": res_block, "latency_block_length": lat_block},
         "assumptions": assumptions,
     }
+    if trace.provenance is not None:
+        # Kept so a reader of this fit can check a measured label against the bench capture.
+        result["input"]["provenance"] = trace.provenance
     if scenario_delay is None:
         result["scenario_delay_null_reason"] = null_reason
     return result

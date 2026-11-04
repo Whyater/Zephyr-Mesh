@@ -30,18 +30,31 @@ def _write(path: Path, data: dict) -> Path:
     return path
 
 
-def _radio(tmp_path, delay=0.0, jitter=0.0, loss=0.0, status="synthetic", name="radio.json", **extra):
+# A measured input must carry what ties it to the bench files, or the tool calls it unverified.
+# These helpers add it to a measured input (as the real writers do) unless bare=True.
+_INPUTS = {"latency": {"file": "latency.json", "sha256": "ab" * 32}}
+_PROVENANCE = {"operator": "tester", "captured_at": "2026-10-30T09:30:00-06:00", "code_revision": "abc123",
+               "raw_sha256": "b" * 64}
+
+
+def _traced(status, bare, block):
+    return {} if bare or status != "measured" else block
+
+
+def _radio(tmp_path, delay=0.0, jitter=0.0, loss=0.0, status="synthetic", name="radio.json", bare=False, **extra):
     return _write(tmp_path / name, {"delay_s": delay, "jitter_s": jitter, "loss_probability": loss,
-                                    "status": status, **extra})
+                                    "status": status, **_traced(status, bare, {"inputs": _INPUTS}), **extra})
 
 
-def _vision_link(tmp_path, delay=0.0, jitter=0.0, status="synthetic", name="vlink.json", **extra):
+def _vision_link(tmp_path, delay=0.0, jitter=0.0, status="synthetic", name="vlink.json", bare=False, **extra):
     return _write(tmp_path / name, {"schema": "zephyr-vision-latency-link-1", "delay_s": delay, "jitter_s": jitter,
-                                    "loss_probability": 0.0, "status": status, **extra})
+                                    "loss_probability": 0.0, "status": status,
+                                    **_traced(status, bare, {"inputs": _INPUTS}), **extra})
 
 
-def _fit(tmp_path, noise=0.0, status="synthetic", name="fit.json", std_m=None):
-    data = {"schema": "zephyr-vision-noise-fit-1", "input": {"trace_id": "hand", "status": status},
+def _fit(tmp_path, noise=0.0, status="synthetic", name="fit.json", std_m=None, bare=False):
+    data = {"schema": "zephyr-vision-noise-fit-1",
+            "input": {"trace_id": "hand", "status": status, **_traced(status, bare, {"provenance": _PROVENANCE})},
             "sensor_config": {"noise_std_m": noise, "bias_m": [0.0, 0.0, 0.0], "dropout_probability": 0.0},
             "per_axis": {"axes": ["x", "y", "z"], "std_m": std_m or [noise] * 3, "position_frame": "camera"},
             "scenario_delay": None}
@@ -234,9 +247,35 @@ def test_weakest_input_status_sets_output_status(tmp_path, statuses, expected):
     assert expected in (out / "README.txt").read_text()
 
 
+@pytest.mark.parametrize("bare, statuses, expected", [
+    ((True, True, True), ("measured", "measured", "measured"), "unverified"),
+    ((True, False, False), ("measured", "measured", "measured"), "unverified"),
+    ((False, False, True), ("measured", "measured", "measured"), "unverified"),
+    ((True, False, False), ("measured", "unknown", "measured"), "unknown"),
+    ((True, False, False), ("measured", "synthetic", "measured"), "synthetic"),
+])
+def test_a_measured_input_without_provenance_never_gives_measured(tmp_path, bare, statuses, expected):
+    # Truth: a "bare" input file only says measured; nothing in it names an operator, a capture time,
+    # a code revision or a hash of a bench file, so the output cannot be called measured.
+    radio = _radio(tmp_path, status=statuses[0], bare=bare[0])
+    vision = _vision_link(tmp_path, status=statuses[1], bare=bare[1])
+    fit = _fit(tmp_path, status=statuses[2], bare=bare[2])
+    out = tmp_path / "out"
+    manifest = tool.run_rerun(out, radio_path=radio, vision_link_path=vision, vision_fit_path=fit, seeds_count=1)
+    summary = json.loads((out / "summary.json").read_text())
+    assert manifest["input_status"] == summary["input_status"] == expected
+    assert "from measured inputs" not in summary["status"]
+    if expected == "unverified":
+        assert any("cannot" in line or "not treated as measured" in line for line in summary["limits"])
+
+
 def test_espnow_fit_status_comes_from_source_trace(tmp_path):
     fit = {"schema": "zephyr-espnow-fit-1", "source_trace": {"status": "measured", "trace_id": "t1"},
            "s6_deliver": {"delay_s": 0.004, "jitter_s": 0.001, "loss_probability": 0.05}}
+    component = tool.radio_component(fit, b"x", "fit.json")
+    # the fit says measured but its trace's provenance block is missing
+    assert component["status"] == "unverified" and component["provenance"]["trace_id"] == "t1"
+    fit["source_trace"]["provenance"] = dict(_PROVENANCE)
     component = tool.radio_component(fit, b"x", "fit.json")
     assert component["status"] == "measured" and component["provenance"]["trace_id"] == "t1"
 

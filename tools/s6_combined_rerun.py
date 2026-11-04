@@ -27,7 +27,10 @@ compensated in the stamp). A stamp taken at frame read without that correction i
 which this tool does not model.
 
 The output status is the weakest input status: synthetic (or fixture) if any input is synthetic,
-measured only if every given input is measured, otherwise unknown. Missing inputs are listed as
+measured only if every given input is measured, otherwise unknown. An input that says measured but
+carries no provenance that ties it to the bench files (tools/measured_provenance.py) counts as
+unverified, and the output is unverified when every input is measured or unverified; the reason is
+written into the limits and the component. Missing inputs are listed as
 not included, and the "complete" field is true only when all three inputs were given. Motion, the link timing model and the tracker are always simulated. Output goes to a
 new or empty folder, never under sim/runs/.
 
@@ -89,6 +92,7 @@ from tools.run_s6_recovery import _cell_summary, _git_value, _sha256, _write_csv
 from tools.s6_link_rerun import LinkRerunError, describe_input, parse_link
 from tools.s6_measured_rerun import RerunError, protected_runs_dirs, resolve_brackets
 from tools.vision_latency_to_link import SCHEMA as VISION_LINK_SCHEMA
+from tools.measured_provenance import UNVERIFIED, checked_status
 from tools.vision_latency_to_link import combine_status
 
 SUMMARY_SCHEMA = "zephyr-s6-combined-rerun-1"
@@ -131,10 +135,16 @@ def _number(value: Any, name: str) -> float:
 
 
 def _status(value: Any) -> str:
-    """Map a declared status onto measured, synthetic or unknown (fixture counts as synthetic)."""
+    """Map a declared status onto measured, synthetic, unverified or unknown (fixture counts as synthetic)."""
     if value == "fixture":
         return "synthetic"
-    return value if value in ("measured", "synthetic") else "unknown"
+    return value if value in ("measured", "synthetic", UNVERIFIED) else "unknown"
+
+
+def _with_note(component: dict[str, Any], note: str | None) -> dict[str, Any]:
+    if note is not None:
+        component["provenance_note"] = note
+    return component
 
 
 def radio_component(data: Any, raw: bytes, name: str) -> dict[str, Any]:
@@ -142,9 +152,11 @@ def radio_component(data: Any, raw: bytes, name: str) -> dict[str, Any]:
         link = parse_link(data)
     except LinkRerunError as exc:
         raise CombinedRerunError(f"radio input: {exc}") from exc
-    provenance = describe_input(data, raw, name)
-    return {"included": True, "link": link, "declared_status": provenance["input_status"],
-            "status": _status(provenance["input_status"]), "provenance": provenance}
+    provenance = describe_input(data, raw, name)  # a measured input without provenance comes back unverified
+    status = provenance["input_status"]
+    return _with_note({"included": True, "link": link,
+                       "declared_status": "measured" if status == UNVERIFIED else status,
+                       "status": _status(status), "provenance": provenance}, provenance.get("provenance_note"))
 
 
 def vision_link_component(data: Any, raw: bytes, name: str) -> dict[str, Any]:
@@ -158,9 +170,10 @@ def vision_link_component(data: Any, raw: bytes, name: str) -> dict[str, Any]:
     warnings = data.get("warnings", [])
     if not isinstance(warnings, list) or not all(isinstance(w, str) for w in warnings):
         raise CombinedRerunError("vision link warnings must be a list of strings")
-    return {"included": True, "delay_s": delay, "jitter_s": jitter, "declared_status": data.get("status"),
-            "status": _status(data.get("status")), "source": data.get("source"), "warnings": list(warnings),
-            "file": name, "sha256": hashlib.sha256(raw).hexdigest()}
+    status, note = checked_status(_status(data.get("status")), data)
+    return _with_note({"included": True, "delay_s": delay, "jitter_s": jitter, "declared_status": data.get("status"),
+                       "status": status, "source": data.get("source"), "warnings": list(warnings),
+                       "file": name, "sha256": hashlib.sha256(raw).hexdigest()}, note)
 
 
 def noise_component(fit: Any, raw: bytes, name: str, label: str = "pooled",
@@ -170,12 +183,13 @@ def noise_component(fit: Any, raw: bytes, name: str, label: str = "pooled",
     except RerunError as exc:
         raise CombinedRerunError(f"vision fit: {exc}") from exc
     declared = fit.get("input", {}).get("status")
-    return {"included": True, "noise_std_m": entry["noise_std_m"], "label": entry["label"],
-            "source": entry["source"], "declared_status": declared, "status": _status(declared),
+    status, note = checked_status(_status(declared), fit)
+    return _with_note({"included": True, "noise_std_m": entry["noise_std_m"], "label": entry["label"],
+            "source": entry["source"], "declared_status": declared, "status": status,
             "not_applied": {"scenario_delay": fit.get("scenario_delay"),
                             "note": "the fit's detector delay is not added here; use it through the vision "
                                     "link (vision_latency_to_link.py --vision-fit) so it is counted once"},
-            "file": name, "sha256": hashlib.sha256(raw).hexdigest()}
+            "file": name, "sha256": hashlib.sha256(raw).hexdigest()}, note)
 
 
 def parse_axis_map(text: str, axes: list[str]) -> list[str]:
@@ -430,6 +444,8 @@ def _readme(status: str, combined: dict[str, Any], components: dict[str, Any],
             lines.append(f"  {name}: status {part['status']} (declared {part['declared_status']!r}), sha256 {sha}")
             if part.get("source"):
                 lines.append(f"    source: {part['source']}")
+            if part.get("provenance_note"):
+                lines.append(f"    provenance: {part['provenance_note']}")
             lines += [f"    warning: {warning}" for warning in part.get("warnings", [])]
     lines += ["", "combining rule (assumptions):"] + [f"  - {rule}" for rule in COMBINING_RULE]
     if shape is not None:
@@ -494,6 +510,8 @@ def run_rerun(output: Path, *, radio_path: Path | None = None, vision_link_path:
     limits += [f"{name} not included: contributes no delay, jitter, loss or noise" for name in combined["not_included"]]
     if components["vision_link"] is not None:
         limits += [f"vision link warning: {warning}" for warning in components["vision_link"]["warnings"]]
+    limits += [f"{name} input {part['provenance_note']}" for name, part in components.items()
+               if part is not None and "provenance_note" in part]
     summary = {"schema": SUMMARY_SCHEMA, "status": status, "input_status": combined["status"],
                "complete": combined["complete"],
                "generator": "tools/s6_combined_rerun.py", "settings": combined["settings"],

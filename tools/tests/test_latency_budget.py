@@ -33,6 +33,15 @@ def _latency(high_s, status="synthetic"):
     }
 
 
+def _recorded_latency(high_s):
+    """A latency.json that says measured and carries what analyze writes for a recorded run: the hashes
+    of the run files and the recorder metadata. A bare "measured" without them counts as unverified."""
+    return {**_latency(high_s, "measured"),
+            "inputs": {"frames.npz": "1" * 64, "display_log.csv": "2" * 64, "run_meta.json": "3" * 64},
+            "run_meta": {"schema": "zephyr-vision-latency-run-1", "status": "measured", "opencv_version": "4.x",
+                         "platform": "bench", "clock": "time.monotonic"}}
+
+
 def _processing(median_s, status=None):
     data = {"schema": "zephyr-processing-time-1", "median_s": median_s, "p95_s": median_s * 2, "n": 200}
     if status is not None:
@@ -49,13 +58,21 @@ def _measured_processing(median_s):
     return {**_processing(median_s, status="measured"), "provenance": dict(_PROVENANCE)}
 
 
-def _fit(delay_s, ci_high_s, status):
-    """The parts of a zephyr-espnow-fit-1 the tool reads."""
+def _fit(delay_s, ci_high_s, status, provenance=None):
+    """The parts of a zephyr-espnow-fit-1 the tool reads. A measured fit needs the trace's provenance
+    block (fit_espnow_log.py copies it) to count as measured."""
+    source = {"trace_id": "t1", "status": status, "n_packets": 100}
+    if provenance is not None:
+        source["provenance"] = provenance
     return {
         "schema": "zephyr-espnow-fit-1",
-        "source_trace": {"trace_id": "t1", "status": status, "n_packets": 100},
+        "source_trace": source,
         "delay": {"one_way_estimate": {"delay_s": {"value": delay_s, "ci": [delay_s / 2, ci_high_s]}}},
     }
+
+
+def _measured_fit(delay_s, ci_high_s):
+    return _fit(delay_s, ci_high_s, "measured", provenance=dict(_PROVENANCE))
 
 
 def _cells(result):
@@ -141,20 +158,31 @@ def test_radio_label_and_value_change_when_a_fit_is_given():
     assert lb.RADIO_FIT_NOTE in result["limits"]
     assert result["total_delay_s"] == pytest.approx(0.064)
     assert result["grid_point_s"] == 0.1
-    measured = lb.budget(_latency(0.050), _processing(0.010), fit=_fit(0.003, 0.004, "measured"))
+    measured = lb.budget(_latency(0.050), _processing(0.010), fit=_measured_fit(0.003, 0.004))
     assert measured["components"]["radio"]["label"] == "from a measured ESP-NOW fit"
+    # a fit that only says measured, with no provenance from its trace, is not called measured
+    bare = lb.budget(_latency(0.050), _processing(0.010), fit=_fit(0.003, 0.004, "measured"))
+    assert bare["components"]["radio"]["status"] == "unverified"
+    assert "unverified" in bare["components"]["radio"]["label"]
 
 
 def test_overall_status_follows_the_weakest_input():
-    measured_parts = {"latency": _latency(0.05, "measured"), "processing": _measured_processing(0.01)}
+    measured_parts = {"latency": _recorded_latency(0.05), "processing": _measured_processing(0.01)}
     assert lb.budget(**measured_parts)["status"] == "partly measured"  # radio assumed
-    assert lb.budget(**measured_parts, fit=_fit(0.003, 0.004, "measured"))["status"] == "measured"
+    assert lb.budget(**measured_parts, fit=_measured_fit(0.003, 0.004))["status"] == "measured"
     assert lb.budget(**measured_parts, fit=_fit(0.003, 0.004, "fixture"))["status"] == "synthetic"
     assert lb.budget(_latency(0.05, "synthetic"), _measured_processing(0.01),
-                     fit=_fit(0.003, 0.004, "measured"))["status"] == "synthetic"
+                     fit=_measured_fit(0.003, 0.004))["status"] == "synthetic"
     # a processing file without a status field is unknown, so never fully measured
+    assert lb.budget(_recorded_latency(0.05), _processing(0.01),
+                     fit=_measured_fit(0.003, 0.004))["status"] == "partly measured"
+    # files that only say measured, with nothing tying them to a capture, do not count as measured
+    assert lb.budget(_latency(0.05, "measured"), _measured_processing(0.01),
+                     fit=_fit(0.003, 0.004, "measured"))["status"] == "partly measured"  # processing only
     assert lb.budget(_latency(0.05, "measured"), _processing(0.01),
-                     fit=_fit(0.003, 0.004, "measured"))["status"] == "partly measured"
+                     fit=_fit(0.003, 0.004, "measured"))["status"] == "not measured"
+    # not one input measured: unknown camera, unlabelled processing, assumed radio
+    assert lb.budget(_latency(0.05, "unknown"), _processing(0.01))["status"] == "not measured"
 
 
 def test_ten_cm_noise_row_uses_the_10_cm_cells():
@@ -250,7 +278,7 @@ def test_synthetic_latency_run_end_to_end(tmp_path, capsys):
 
 def test_typed_processing_median_is_labelled(tmp_path):
     lat = tmp_path / "latency.json"
-    lat.write_text(json.dumps(_latency(0.050, "measured")))
+    lat.write_text(json.dumps(_recorded_latency(0.050)))
     out = tmp_path / "b.json"
     assert lb.main(["--latency", str(lat), "--processing-median-ms", "10", "--out", str(out)]) == 0
     result = json.loads(out.read_text())

@@ -10,7 +10,10 @@ in a fit, ``status`` in a small JSON). Only ``measured`` gives a measured link
 label; ``synthetic`` and ``fixture`` stay synthetic, and a missing or other
 value is labelled unknown. The sensor is always simulated. An input that says
 ``measured`` without saying where it came from is refused (see
-``require_measured_provenance``).
+``require_measured_provenance``). A fit that says measured but does not carry its
+trace's provenance block (``source_trace.provenance``, which ``fit_espnow_log.py``
+copies from a measured trace) is labelled unverified, never measured, and the summary
+says why (see ``tools/measured_provenance.py``).
 """
 from __future__ import annotations
 
@@ -32,6 +35,7 @@ if str(_REPO_ROOT) not in sys.path:
 from dataclasses import replace
 
 from sim.s6_recovery import RecoveryConfig, deliver, run_arms, seed_list
+from tools.measured_provenance import UNVERIFIED, checked_status
 from tools.run_s6_recovery import _cell_summary, _csv_value, _sha256
 
 SCHEMA = "zephyr-s6-link-rerun-1"
@@ -101,9 +105,13 @@ def describe_input(data: Any, raw: bytes, input_file: str) -> dict[str, Any]:
         source = data if isinstance(data, dict) else {}
     status = source.get("status")
     trace_id = source.get("trace_id")
-    return {"input_kind": kind, "input_status": status if status in KNOWN_STATUSES else "unknown",
-            "trace_id": trace_id if isinstance(trace_id, str) else None,
-            "input_file": input_file, "input_sha256": hashlib.sha256(raw).hexdigest()}
+    status, note = checked_status(status if status in KNOWN_STATUSES else "unknown", data)
+    described = {"input_kind": kind, "input_status": status,
+                 "trace_id": trace_id if isinstance(trace_id, str) else None,
+                 "input_file": input_file, "input_sha256": hashlib.sha256(raw).hexdigest()}
+    if note is not None:
+        described["provenance_note"] = note
+    return described
 
 
 def _text(value: Any) -> bool:
@@ -149,6 +157,11 @@ def status_label(provenance: dict[str, Any]) -> tuple[str, list[str]]:
                 [f"link from {what}", "sensor simulated", "main slice only"])
     if status in ("synthetic", "fixture"):
         return SYNTHETIC_STATUS, list(SYNTHETIC_LIMITS)
+    if status == UNVERIFIED:
+        what = "a fit" if provenance["input_kind"] == "espnow-fit" else "an input"
+        return (f"investigation: link from {what} that says measured but cannot be traced to a capture "
+                "(unverified), sensor simulated",
+                [f"input {provenance['provenance_note']}", "sensor simulated", "main slice only"])
     return ("investigation: link input status unknown, sensor simulated",
             ["link input status unknown, not shown to be measured", "sensor simulated", "main slice only"])
 

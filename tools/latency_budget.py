@@ -14,8 +14,17 @@ giving a fit usually lowers D. The result records this under ``limits``.
 D is rounded UP to the next S6 grid delay, and that row's pass or fail per
 arm is read from the registered S6 summary, which this tool only reads. A D
 above the largest grid delay is reported as off the grid. The result is
-labelled by its weakest input: synthetic stays synthetic, and an assumed
-radio term means the total is at most "partly measured".
+labelled by its weakest input: synthetic if any input is synthetic or a
+fixture, "measured" only if every input is measured, "partly measured" if at
+least one is, and otherwise "not measured". An assumed radio term or a typed
+processing median is never measured. A camera or radio file that says measured
+but carries no provenance tying it to the bench files is "unverified", not
+measured, and the reason is written into its component and the report
+(tools/measured_provenance.py).
+
+A processing median typed with --processing-median-ms must lie between 0.5 and
+500 ms; outside that range it is refused, because the likely cause is a value
+in seconds typed as milliseconds.
 """
 from __future__ import annotations
 
@@ -33,6 +42,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 # One provenance rule for measured processing-time files, kept in the link converter.
 from tools.vision_latency_to_link import LinkConversionError, _require_processing_provenance  # noqa: E402
+from tools.measured_provenance import checked_status  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SUMMARY = REPO_ROOT / "sim" / "runs" / "s6-recovery" / "summary.json"
@@ -58,6 +68,8 @@ SYNTHETIC_STATUSES = ("synthetic", "fixture")
 RADIO_FIT_NOTE = ("the fit term bounds the mean one-way delay and leaves out jitter and the tail, while the "
                   "40 ms default is a tail value (worst simulated seed's p95), so the two are not like for like")
 PASS_RULE = "a cell passes when fewer than half of its seeds fail (the cell rule in the S6 summary)"
+# A typed processing median outside this range (in ms) is far more likely a unit slip than a real detector.
+TYPED_PROCESSING_MS_RANGE = (0.5, 500.0)
 
 
 class LatencyBudgetError(ValueError):
@@ -92,6 +104,7 @@ def camera_term(latency: Any) -> dict[str, Any]:
     high = _seconds(camera["high"], "camera_latency_s.high")
     apparent = data.get("apparent_latency_s") if isinstance(data.get("apparent_latency_s"), dict) else {}
     settings = data.get("settings") if isinstance(data.get("settings"), dict) else {}
+    status, note = checked_status(str(data.get("status", "unknown")), data)
     return {
         "value_s": high,
         "rule": "camera latency upper bound (apparent mean plus its stated error, minus the smallest assumed display lag)",
@@ -100,7 +113,8 @@ def camera_term(latency: Any) -> dict[str, Any]:
         "apparent_stated_error_s": apparent.get("stated_error"),
         "jitter_std_s": apparent.get("jitter_std_from_straddles"),
         "display_lag_assumed_s": settings.get("display_lag_s"),
-        "status": str(data.get("status", "unknown")),
+        "status": status,
+        **({"provenance_note": note} if note is not None else {}),
     }
 
 
@@ -154,20 +168,28 @@ def radio_term(fit: Any = None) -> dict[str, Any]:
         term = value
         rule = "fit's one-way mean delay (the fit gave no interval)"
     trace = data.get("source_trace") if isinstance(data.get("source_trace"), dict) else {}
-    status = str(trace.get("status", "unknown"))
+    status, provenance_note = checked_status(str(trace.get("status", "unknown")), data)
     jitter = delay["one_way_estimate"].get("delay_jitter_s")
-    return {"value_s": term, "label": f"from a {status} ESP-NOW fit", "status": status, "rule": rule,
-            "one_way_mean_s": value, "one_way_mean_ci_s": ci,
-            "one_way_jitter_s": jitter.get("value") if isinstance(jitter, dict) else None,
-            "note": RADIO_FIT_NOTE, "trace_id": trace.get("trace_id")}
+    label = (f"from a {status} ESP-NOW fit" if provenance_note is None
+             else "from an ESP-NOW fit that says measured but cannot be traced to a capture (unverified)")
+    result = {"value_s": term, "label": label, "status": status, "rule": rule,
+              "one_way_mean_s": value, "one_way_mean_ci_s": ci,
+              "one_way_jitter_s": jitter.get("value") if isinstance(jitter, dict) else None,
+              "note": RADIO_FIT_NOTE, "trace_id": trace.get("trace_id")}
+    if provenance_note is not None:
+        result["provenance_note"] = provenance_note
+    return result
 
 
 def overall_status(statuses: list[str]) -> str:
+    """Synthetic wins; then measured (all), partly measured (at least one), or not measured (none)."""
     if any(s in SYNTHETIC_STATUSES for s in statuses):
         return "synthetic"
     if all(s == "measured" for s in statuses):
         return "measured"
-    return "partly measured"
+    if any(s == "measured" for s in statuses):
+        return "partly measured"
+    return "not measured"
 
 
 def load_summary(path: Path) -> dict[str, Any]:
@@ -298,8 +320,10 @@ def format_report(result: dict[str, Any]) -> str:
         f"Camera upper bound: {1000 * c['camera']['value_s']:.1f} ms ({c['camera']['status']})",
         f"Processing median:  {1000 * c['processing']['value_s']:.1f} ms ({c['processing']['status']})",
         f"Radio term:         {1000 * c['radio']['value_s']:.1f} ms ({c['radio']['label']})",
-        result["verdict"],
     ]
+    lines += [f"  {name}: {c[name]['provenance_note']}" for name in ("camera", "processing", "radio")
+              if c[name].get("provenance_note")]
+    lines.append(result["verdict"])
     for row in result["rows"]:
         parts = [f"{arm} {row[arm]['label']} ({row[arm]['fail_count']} of {row[arm]['n_seeds']} seeds fail)"
                  for arm in ("naive", "recovery")]
@@ -338,7 +362,16 @@ def _run(args: argparse.Namespace) -> int:
     if args.processing is not None:
         processing, override = _load_json(args.processing, "processing file"), None
     else:
-        processing, override = None, typed_processing_term(args.processing_median_ms / 1000.0)
+        low, high = TYPED_PROCESSING_MS_RANGE
+        typed = args.processing_median_ms
+        if not (math.isfinite(typed) and low <= typed <= high):
+            hint = (f"if you typed seconds (0.012 for 12 ms), type {1000 * typed:g} instead"
+                    if math.isfinite(typed) and 0 <= typed < low
+                    else "check that the value is in milliseconds, not microseconds, and that it is per frame")
+            raise LatencyBudgetError(
+                f"--processing-median-ms {typed:g} is outside {low:g} to {high:g} ms, which is not a plausible "
+                f"detector time per frame. It takes milliseconds: {hint}")
+        processing, override = None, typed_processing_term(typed / 1000.0)
     fit = _load_json(args.fit, "fit file") if args.fit is not None else None
     summary_bytes = Path(args.summary).read_bytes()
     try:
