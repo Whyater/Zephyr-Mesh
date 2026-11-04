@@ -116,11 +116,14 @@ def _parse_header(text: str, label: str, role: str) -> tuple[dict[str, str], dic
         raise _error(label, lines[-1][0] + 1, "missing column header")
     column_line, columns = lines[index]
     required = {"role", "board", "peer", "session"} | ({"firmware"} if role == "sender" else set())
+    if "role" in header and header["role"] != role:
+        # Checked before the missing keys: an echoer log given as the sender would otherwise
+        # be reported as "missing firmware", which hides the real mistake.
+        raise _error(label, key_lines["role"], f"role must be {role}, but this file says role={header['role']} "
+                     "(are the sender and echoer files swapped?)")
     missing = sorted(required - set(header))
     if missing:
         raise _error(label, column_line, f"missing required header key(s): {', '.join(missing)}")
-    if header["role"] != role:
-        raise _error(label, key_lines["role"], f"role must be {role}")
     if header["board"] == header["peer"]:
         raise _error(label, key_lines["peer"], "peer must differ from board")
     if "payload_bytes" in header and not _DIGITS.fullmatch(header["payload_bytes"]):

@@ -74,6 +74,8 @@ MAX_SESSION_SPAN_H = 12.0
 CENTER_TOLERANCE_M = 0.0005        # the runbook types LAT=0 for a center cross
 RADIO_SUFFIXES = {".csv", ".txt", ".raw", ".log"}
 RADIO_FORMAT = import_espnow_log.FORMAT_LINE
+MIN_RADIO_ROUND_TRIP_S = 200e-6      # at the default 1 Mbit/s rate one ESP-NOW frame takes well over 0.2 ms on
+                                     # the air, so a median round trip under 0.2 ms means the times are not microseconds
 FRAMES_NOTE = re.compile(r"The frames file (\S+) has SHA-256 ([0-9a-f]{64})")
 NEVER_EDIT = "never edit a bench file by hand"
 
@@ -467,6 +469,14 @@ def check_latency_run(run: Path, report: Report) -> str | None:
         report.fail("latency-run-refused", rel, f"intake would refuse it: {exc}", "record it again with "
                     "tools/vision_latency_run.py into a new folder (runbook step 6)")
         return None
+    if not (run / "run_meta.json").is_file():
+        # Intake reads a run without it as status "unknown", which would surface here only as a
+        # mixed-status failure that blames rehearsal files.
+        report.fail("latency-run-refused", rel, "run_meta.json is missing, so the run has no status or recorder "
+                    "record and can never count as measured", "put back the run_meta.json that "
+                    "tools/vision_latency_run.py wrote into this folder; if it is lost, record the run again "
+                    "into a new folder")
+        return None
     try:
         frames, t_read, meta = vision_latency.load_run(run)
         n_bits = int(meta.get("n_bits", 8)) if isinstance(meta, dict) else 8
@@ -548,6 +558,16 @@ def check_radio(found: Found, report: Report) -> int:
         except ValueError as exc:
             report.fail("radio-log-refused", rel, f"the two logs do not fit together: {exc}", "use the sender and "
                         "echoer logs from the same test; capture both again if one was cut short")
+            continue
+        trips = [p["echo_time_s"] - p["send_time_s"] - p.get("echo_turnaround_s", 0.0)
+                 for p in raw["packets"] if "echo_time_s" in p]
+        if trips and statistics.median(trips) < MIN_RADIO_ROUND_TRIP_S:
+            report.fail("radio-round-trip-too-short", rel, f"the median round trip is {1e6 * statistics.median(trips):.0f} "
+                        f"us, under the {1e6 * MIN_RADIO_ROUND_TRIP_S:.0f} us floor (a real ESP-NOW round trip is milliseconds at the "
+                        "default 1 Mbit/s rate), so "
+                        "the time columns are probably not microseconds (for example millis() printed into a _us column)",
+                        "make both boards print esp_timer_get_time() microseconds in every _us column, then capture "
+                        "both logs again")
             continue
         pairs += 1
     return pairs

@@ -187,3 +187,12 @@ def test_cli_reports_bad_input_without_a_traceback(tmp_path, capsys):
     sender = _write(tmp_path, "a.log", sender_text().replace("0,1000000,", "0," + "9" * 400 + ","))
     assert main(["--sender", str(sender), "--trace-id", "x", "--status", "synthetic", "--out", str(tmp_path / "t.json")]) == 2
     assert "a.log:11:" in capsys.readouterr().err
+
+
+def test_swapped_files_are_named_as_swapped():
+    # An echoer log handed in as the sender has no firmware key; the role mismatch is the
+    # real mistake, so it must be reported first, with the swap named.
+    with pytest.raises(EchoLogError, match=r"sender:2: role must be sender, but this file says role=echoer \(are the sender and echoer files swapped\?\)"):
+        parse_sender_log(echoer_text())
+    with pytest.raises(EchoLogError, match=r"echoer:2: role must be echoer, but this file says role=sender"):
+        parse_echoer_log(sender_text())
