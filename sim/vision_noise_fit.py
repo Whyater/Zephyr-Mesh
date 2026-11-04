@@ -201,24 +201,37 @@ _GAP_STEPS = 1.9          # a step this many median steps long means at least on
 _MIN_RECORDS_FOR_SHAPE = 20  # outlier and frozen-frame checks need enough frames to mean anything
 _SPREAD_RATIO = 2.0       # std this many times the outlier-resistant spread means wild frames
 _LARGE_DISTANCE_M = 100.0
+_UNITS_MIN_TRUTH_M = 0.05  # closer than this, noise alone can make measured/true distance big
 
 
-def _check_units(measured: np.ndarray, truth: np.ndarray) -> None:
-    """Refuse a fit whose positions are clearly not in meters, or not in the units of the truth."""
+def _check_units(measured: np.ndarray, truth: np.ndarray) -> str | None:
+    """Refuse a fit whose positions are clearly not in meters, or not in the units of the truth.
+
+    Returns a note for the assumptions when no frame can be compared, else None.
+    """
     meas_norm = np.linalg.norm(measured, axis=1)
     truth_norm = np.linalg.norm(truth, axis=1)
-    usable = (meas_norm > 1e-6) & (truth_norm > 1e-6)
+    # Only frames whose true distance is at least 5 cm count. Nearer than that
+    # (a world-frame target a few mm from the room's origin point), the
+    # measured distance is mostly noise, about sqrt(3) times the noise std, so
+    # the ratio can pass 10 with the units right. Every wrong-units case has a
+    # true distance far above 5 cm, and no camera sees a marker that close.
+    usable = (meas_norm > 1e-6) & (truth_norm >= _UNITS_MIN_TRUTH_M)
+    if not usable.any():
+        return (f"Units check skipped: every true position is closer than {_UNITS_MIN_TRUTH_M:g} m to the frame's "
+                "origin, too close to compare measured and true distance. Check by hand that position_m and "
+                "ground_truth.position_m are both in meters.")
     hint = ("Check that position_m and ground_truth.position_m are both in meters (the marker length given to "
             "the detector in meters, such as 0.150, not 150) and in the same frame")
-    if usable.any():
-        ratio = float(np.median(meas_norm[usable] / truth_norm[usable]))
-        if ratio > 10.0 or ratio < 0.1:
-            raise ValueError(f"position_m is probably not in meters, or not in the same units as "
-                             f"ground_truth.position_m: the measured distance is a median {ratio:.3g} times the "
-                             f"true distance (a factor near 1000 means millimeters; pixel coordinates also give a "
-                             f"big factor). {hint}")
+    ratio = float(np.median(meas_norm[usable] / truth_norm[usable]))
+    if ratio > 10.0 or ratio < 0.1:
+        raise ValueError(f"position_m is probably not in meters, or not in the same units as "
+                         f"ground_truth.position_m: the measured distance is a median {ratio:.3g} times the "
+                         f"true distance (a factor near 1000 means millimeters; pixel coordinates also give a "
+                         f"big factor). {hint}")
     # Only the distance ratio refuses. A rule like "error bigger than the target
     # distance" would also refuse a valid log whose truth sits at the origin.
+    return None
 
 
 def _quirk_warnings(trace: VisionTrace, subject_id: str, records: list[VisionObservation], res: np.ndarray,
@@ -347,7 +360,7 @@ def fit_vision_noise(trace: VisionTrace, *, subject_id: str | None = None, dropo
     n_res = len(residual_rows)
     if n_res < 2:
         raise ValueError(f"need at least 2 detected records with position_m and ground_truth; found {n_res}")
-    _check_units(np.asarray(measured_rows, dtype=float), np.asarray(truth_rows, dtype=float))
+    units_note = _check_units(np.asarray(measured_rows, dtype=float), np.asarray(truth_rows, dtype=float))
 
     counts = {
         "observed": len(records),
@@ -654,6 +667,8 @@ def fit_vision_noise(trace: VisionTrace, *, subject_id: str | None = None, dropo
             "sensor_config uses the SensorConfig default (burst_start_probability 0.0, burst_end_probability 1.0) and the uncertainty record is null. "
             "Do not switch this config to mode 'burst'."
         )
+    if units_note is not None:
+        assumptions.append(units_note)
     assumptions += _quirk_warnings(trace, subject_id, records, res, std, robust_std,
                                    np.asarray(measured_rows, dtype=float), np.asarray(truth_rows, dtype=float),
                                    frames)

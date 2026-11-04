@@ -31,7 +31,8 @@ SIGMA = 0.01
 LATENCY_S = 0.030
 
 
-def make_records(n: int = 600, *, seed: int = 3, sigma: float = SIGMA, subject: str = "aruco-4x4_50-id0") -> list[dict]:
+def make_records(n: int = 600, *, seed: int = 3, sigma: float = SIGMA, subject: str = "aruco-4x4_50-id0",
+                 truth: tuple[float, float, float] = TRUTH, frame: str = "camera") -> list[dict]:
     """One detected record per frame, in capture order, like tools/capture_aruco.py writes."""
     rng = np.random.default_rng(seed)
     noise = rng.normal(0.0, sigma, size=(n, 3))
@@ -42,9 +43,9 @@ def make_records(n: int = 600, *, seed: int = 3, sigma: float = SIGMA, subject: 
         records.append({
             "observation_id": f"obs-{i:06d}", "frame_id": f"frame-{i:06d}", "subject_id": subject,
             "capture_time_s": capture, "processing_time_s": capture + float(lat[i]), "outcome": "detected",
-            "confidence": 1.0, "position_m": [TRUTH[k] + float(noise[i, k]) for k in range(3)],
-            "position_frame": "camera",
-            "ground_truth": {"position_m": list(TRUTH), "uncertainty_m": 0.0, "method": "tape"},
+            "confidence": 1.0, "position_m": [truth[k] + float(noise[i, k]) for k in range(3)],
+            "position_frame": frame,
+            "ground_truth": {"position_m": list(truth), "uncertainty_m": 0.0, "method": "tape"},
         })
     return records
 
@@ -284,6 +285,41 @@ def test_pixels_on_both_sides_are_flagged():
         r["ground_truth"]["position_m"] = [640.0, 640.0, 640.0]
     warn = " ".join(warnings_of(fit(records)))
     assert "pixels" in warn
+
+
+@pytest.mark.parametrize("truth, sigma", [
+    ((0.001, 0.0, 0.0), 0.01),
+    ((0.005, 0.0, 0.0), 0.05),
+    ((0.0, 0.0, 0.002), 0.02),
+])
+def test_world_frame_target_a_few_mm_from_the_origin_is_not_refused(truth, sigma):
+    # Positions measured from a fixed room point. With the target much closer
+    # to that point than the noise, the measured distance is about sqrt(3)
+    # times the noise, so measured over true distance is big even though the
+    # units are right. Those frames are too close to compare, so the units
+    # check skips them and says so.
+    result = fit(make_records(truth=truth, sigma=sigma, frame="world"))
+    assert result["sensor_config"]["noise_std_m"] == pytest.approx(sigma, rel=0.1)
+    assert warnings_of(result) == []
+    assert any(line.startswith("Units check skipped") for line in result["assumptions"])
+
+
+def test_units_check_is_not_skipped_when_frames_are_far_enough():
+    result = fit(make_records())
+    assert not any(line.startswith("Units check skipped") for line in result["assumptions"])
+
+
+def test_millimeter_positions_on_a_world_line_through_the_origin_are_refused():
+    # Some frames sit within 5 cm of the origin and are left out of the
+    # comparison; the rest still show the factor of 1000.
+    records = make_records(frame="world")
+    for i, r in enumerate(records):
+        x = -1.0 + 2.0 * i / (len(records) - 1)
+        r["ground_truth"]["position_m"] = [x, 0.0, 0.0]
+        noise = [v - t for v, t in zip(r["position_m"], TRUTH)]
+        r["position_m"] = [1000.0 * (x + noise[0]), 1000.0 * noise[1], 1000.0 * noise[2]]
+    with pytest.raises(ValueError, match="not in meters"):
+        fit(records)
 
 
 # --------------------------------------------------------------------------- latency
