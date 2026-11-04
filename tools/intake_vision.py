@@ -285,8 +285,12 @@ def _fit_section(name: str, log: Path, fit: dict[str, Any]) -> list[str]:
              f"- Log: {log.name}",
              f"- Status: {_status(block.get('status'))}",
              f"- Trace id: {block.get('trace_id')}, position frame: {fit['per_axis'].get('position_frame')}",
-             f"- Frames: {frames}",
-             "", f"| Parameter | Estimate | {level_text} interval |", "|---|---|---|"]
+             f"- Frames: {frames}"]
+    warnings = [note for note in fit.get("assumptions") or [] if note.startswith("WARNING")]
+    if warnings:
+        lines.append(f"- Warnings: {len(warnings)}. Read the WARNING lines in the fit notes below before using "
+                     "these numbers.")
+    lines += ["", f"| Parameter | Estimate | {level_text} interval |", "|---|---|---|"]
     for label, record in _interval_rows(fit):
         est, low, high = record.get("estimate"), record.get("ci_low"), record.get("ci_high")
         interval = "n/a" if low is None or high is None else f"{low:.4f} to {high:.4f}"
