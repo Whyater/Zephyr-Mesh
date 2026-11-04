@@ -32,6 +32,7 @@ import gzip
 import io
 import json
 import math
+import re
 import sys
 from pathlib import Path
 from typing import Any, Iterator
@@ -39,6 +40,8 @@ from typing import Any, Iterator
 import numpy as np
 
 from sim.tests import platform_compare
+
+_WHOLE_NUMBER = re.compile(r"-?\d+")
 
 
 @contextlib.contextmanager
@@ -134,6 +137,9 @@ def _compare_lines(expected: str, actual: str, is_csv: bool) -> tuple[str, dict[
             for cx, cy in zip(xs, ys):
                 if cx == cy:
                     continue
+                if _WHOLE_NUMBER.fullmatch(cx.strip()) and _WHOLE_NUMBER.fullmatch(cy.strip()):
+                    # Seeds and counts are exact: any change is real, however small next to the value.
+                    same = False
                 nx, ny = _as_number(cx), _as_number(cy)
                 if nx is None or ny is None:
                     first_other = first_other or {"line": number, "expected": cx[:80], "found": cy[:80]}

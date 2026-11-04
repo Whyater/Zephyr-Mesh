@@ -56,6 +56,15 @@ def test_changed_count_is_real(tmp_path):
     assert info["max_relative_gap"] == pytest.approx(0.25)
 
 
+def test_changed_whole_number_in_csv_or_text_is_real(tmp_path):
+    # A seed or a count is compared exactly: a 1e-9 relative tolerance would let 3287529750 pass as
+    # 3287529751, since the gap is only about 3e-10 of the value.
+    for name, e, a in (("per_seed.csv", b"seed,x\n3287529750,1.0\n", b"seed,x\n3287529751,1.0\n"),
+                       ("log.txt", b"seed 3287529750\n", b"seed 3287529751\n")):
+        cls, _ = tool.classify(*pair(tmp_path, name, e, a))
+        assert cls == "real-difference", name
+
+
 def test_path_separator_is_real(tmp_path):
     cls, info = tool.classify(*pair(tmp_path, "run.json", b'{"cmd": "sim/runs/a"}', b'{"cmd": "sim\\\\runs\\\\a"}'))
     assert cls == "real-difference"
