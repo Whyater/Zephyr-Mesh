@@ -54,6 +54,7 @@ the pre-registration) drops the start transient: the target jumps from rest to 1
 
     PYTHONPATH=. .venv/Scripts/python.exe tools/pilot_full_chain.py --output DIR [--seeds 5] [--lead]
     PYTHONPATH=. .venv/Scripts/python.exe tools/pilot_full_chain.py --output DIR --delay-sweep
+    PYTHONPATH=. .venv/Scripts/python.exe tools/pilot_full_chain.py --output DIR --grid --seeds 3 --workers 8
 """
 from __future__ import annotations
 
@@ -620,6 +621,132 @@ def run_delay_sweep(output: Path, delays_s: tuple[float, ...] = SWEEP_DELAYS_S) 
     return summary
 
 
+GRID_DELAYS_S = (0.0, 0.05, 0.1, 0.2, 0.3)  # a subset of the S6 main-slice delays
+GRID_LOSSES = (0.0, 0.1, 0.3, 0.5)  # the S6 main-slice independent loss levels
+GRID_NOISE_M = 0.05  # the S6 main-slice noise level the s6_pass and s6_fail cells use
+GRID_VARIANTS = ("w1", "w1_lead")  # S6 placement: delay and loss on the camera path
+GRID_CHECKPOINT = "grid_checkpoint.jsonl"
+
+
+def _grid_job(job: tuple) -> dict:
+    delay, loss, motion, variant, seed = job
+    cell = Cell(f"d{delay:.3f}_l{loss:.2f}", radio_delay_s=delay, loss_probability=loss, noise_std_m=GRID_NOISE_M)
+    row = _loop_row(cell, motion, variant, seed)
+    row["delay_s"] = delay
+    row["loss_probability"] = loss
+    return row
+
+
+def grid_jobs(n_seeds: int, delays_s=GRID_DELAYS_S, losses=GRID_LOSSES,
+              variants=GRID_VARIANTS) -> list[tuple]:
+    """Every (delay, loss, motion, variant, seed), seed outermost so a stopped run keeps whole seeds."""
+    return [(d, l, m, v, s) for s in seed_list(n_seeds) for d in delays_s for l in losses
+            for m in MOTIONS for v in variants]
+
+
+def run_grid(output: Path, n_seeds: int = 3, workers: int = 1, delays_s=GRID_DELAYS_S,
+             losses=GRID_LOSSES, variants=GRID_VARIANTS) -> dict:
+    """Delay by independent-loss grid on the camera path (w1 wiring), 0.05 m noise.
+
+    Opt-in; the default cells, --lead and --delay-sweep runs are untouched. Each finished run is
+    appended to a checkpoint, so rerunning the same command resumes.
+    """
+    output = Path(output)
+    if output.exists() and any(output.iterdir()):
+        raise SystemExit(f"{output} exists and is not empty; pick a new folder")
+    if "sim" in output.resolve().parts and "runs" in output.resolve().parts:
+        raise SystemExit("this pilot never writes under sim/runs")
+    partial = output.with_name(output.name + ".partial")
+    partial.mkdir(parents=True, exist_ok=True)
+    checkpoint = partial / GRID_CHECKPOINT
+    rows = [json.loads(line) for line in checkpoint.read_text().splitlines()] if checkpoint.exists() else []
+    key = lambda r: (r["delay_s"], r["loss_probability"], r["motion"], r["variant"], r["seed"])
+    done = {key(r) for r in rows}
+    todo = [j for j in grid_jobs(n_seeds, delays_s, losses, variants) if j not in done]
+    started = time.perf_counter()
+    with open(checkpoint, "a") as handle:
+        if workers > 1:
+            from concurrent.futures import ProcessPoolExecutor
+            with ProcessPoolExecutor(max_workers=workers) as pool:
+                results = pool.map(_grid_job, todo)
+                for row in results:
+                    handle.write(json.dumps(row) + "\n")
+                    handle.flush()
+                    rows.append(row)
+                    print(f"done {len(rows)} ({time.perf_counter() - started:.0f} s)", flush=True)
+        else:
+            for job in todo:
+                row = _grid_job(job)
+                handle.write(json.dumps(row) + "\n")
+                handle.flush()
+                rows.append(row)
+    wanted = set(grid_jobs(n_seeds, delays_s, losses, variants))
+    rows = sorted((r for r in rows if key(r) in wanted), key=key)  # only the requested grid and seeds
+    if not rows:
+        raise SystemExit("no grid rows to write")
+    with open(partial / "grid.csv", "w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    summary = {"schema": SCHEMA + "-grid", "status": "pilot; synthetic; simulated only; not registered",
+               "seeds": seed_list(n_seeds), "delays_s": list(delays_s), "losses": list(losses),
+               "variants": list(variants), "noise_std_m": GRID_NOISE_M, "wiring": "w1",
+               "settings": {"lead_rule": _LEAD_RULE_SETTINGS, "velocity_rule_lead_s": LEAD_S},
+               "rows": rows, "elapsed_s": time.perf_counter() - started}
+    (partial / "grid.json").write_text(json.dumps(summary, indent=2) + "\n")
+    checkpoint.unlink()
+    if output.exists():
+        _move_into(partial, output)
+    else:
+        partial.rename(output)
+    return summary
+
+
+GRID_THRESHOLDS_M = (0.5, 1.0)  # steady p95 median thresholds, beside the fail rule
+
+
+def read_grid_rows(folder: Path) -> list[dict]:
+    """Rows of a finished grid folder (grid.json) or of a stopped one (FOLDER.partial checkpoint)."""
+    folder = Path(folder)
+    if (folder / "grid.json").exists():
+        return json.loads((folder / "grid.json").read_text())["rows"]
+    checkpoint = folder.with_name(folder.name + ".partial") / GRID_CHECKPOINT
+    if folder.name.endswith(".partial"):
+        checkpoint = folder / GRID_CHECKPOINT
+    return [json.loads(line) for line in checkpoint.read_text().splitlines() if line.strip()]
+
+
+def summarize_grid(rows: list[dict], seeds: list[int] | None = None) -> list[dict]:
+    """One entry per (motion, variant, delay, loss): steady p95 median over seeds, seeds failing the
+    steady fail rule, the cell fail label (at least half the seeds fail) and the threshold passes."""
+    groups: dict[tuple, list[dict]] = {}
+    for r in rows:
+        if seeds is None or r["seed"] in seeds:
+            groups.setdefault((r["motion"], r["variant"], r["delay_s"], r["loss_probability"]), []).append(r)
+    out = []
+    for (motion, variant, delay, loss), rs in sorted(groups.items()):
+        median = float(np.median([r["p95_steady_m"] for r in rs]))
+        fails = sum(bool(r["failed_steady"]) for r in rs)
+        entry = {"motion": motion, "variant": variant, "delay_s": delay, "loss_probability": loss,
+                 "n_seeds": len(rs), "steady_p95_median_m": median, "steady_fail_count": fails,
+                 "passes_fail_rule": not (2 * fails >= len(rs))}
+        for t in GRID_THRESHOLDS_M:
+            entry[f"passes_p95_{t:.1f}m"] = median <= t
+        out.append(entry)
+    return out
+
+
+def print_grid_report(folder: Path, n_seeds: int | None = None) -> list[dict]:
+    seeds = seed_list(n_seeds) if n_seeds else None
+    cells = summarize_grid(read_grid_rows(folder), seeds)
+    for c in cells:
+        print(f"{c['motion']:17s} {c['variant']:8s} delay {c['delay_s']:.3f} loss {c['loss_probability']:.2f} "
+              f"p95 {c['steady_p95_median_m']:.3f} fails {c['steady_fail_count']}/{c['n_seeds']} "
+              f"fail_rule {'pass' if c['passes_fail_rule'] else 'FAIL'} "
+              + " ".join(f"{t:.1f}m {'pass' if c[f'passes_p95_{t:.1f}m'] else 'FAIL'}" for t in GRID_THRESHOLDS_M))
+    return cells
+
+
 def _move_into(partial: Path, output: Path) -> None:
     for item in partial.iterdir():
         item.rename(output / item.name)
@@ -716,7 +843,19 @@ def main(argv: list[str] | None = None) -> int:
                         help="also run the switching goal rule variants (w1_switch, w2_switch)")
     parser.add_argument("--delay-sweep", action="store_true",
                         help="run the pure delay sweep (no noise or loss, one seed) instead of the cells")
+    parser.add_argument("--grid", action="store_true",
+                        help="run the delay by loss grid (w1 wiring, 0.05 m noise, both goal rules) instead")
+    parser.add_argument("--workers", type=int, default=1, help="processes for --grid")
+    parser.add_argument("--grid-report", action="store_true",
+                        help="print cell medians and pass marks of the --output grid folder (finished or stopped)")
     args = parser.parse_args(argv)
+    if args.grid_report:
+        print_grid_report(args.output, args.seeds)
+        return 0
+    if args.grid:
+        grid = run_grid(args.output, args.seeds, workers=args.workers)
+        print(f"grid rows {len(grid['rows'])} in {grid['elapsed_s']:.0f} s")
+        return 0
     if args.delay_sweep:
         sweep = run_delay_sweep(args.output)
         for r in sweep["rows"]:
