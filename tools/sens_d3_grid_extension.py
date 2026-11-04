@@ -160,9 +160,12 @@ def control(processes: int = 1, cells=CONTROL_CELLS, seed_list=None,
             tolerant += 1
         else:
             mismatches.append({"key": list(key), "actual": actual, "expected": expected})
+    expected_rows = sum(len(arms_for(n)) for _, _, n in cells) * len(seed_list)
     return {"cells": [list(cell) for cell in cells], "rows": len(rows),
+            "expected_rows": expected_rows,
             "exact_text_matches": exact, "platform_tolerance_matches": tolerant,
-            "mismatches": mismatches, "passed": not mismatches and len(rows) > 0,
+            "mismatches": mismatches,
+            "passed": not mismatches and len(rows) == expected_rows > 0,
             "worker_cpu_s": cpu, "platform": sys.platform}
 
 

@@ -45,6 +45,32 @@ def test_one_registered_row_reproduces_as_text(reference):
     assert result["passed"], result["mismatches"]
 
 
+def test_control_fails_when_a_registered_value_is_changed(reference):
+    # Negative control: perturb the stored p95 of the row being rerun; the check must fail.
+    seed = ext.seeds()[0]
+    key = ext.row_key("abstract", "ct_r1", "independent", 0.0, "single", 1, 0.3, seed)
+    line, values = reference[key]
+    p95 = values["p95"]
+    altered = dict(reference)
+    altered[key] = (line.replace(p95, repr(float(p95) + 1e-12), 1), values)
+    result = ext.control(processes=1, cells=((0.3, 0.0, 1),), seed_list=[seed], reference=altered)
+    assert not result["passed"] and len(result["mismatches"]) == 1
+    missing = {k: v for k, v in reference.items() if k != key}
+    assert not ext.control(processes=1, cells=((0.3, 0.0, 1),), seed_list=[seed],
+                           reference=missing)["passed"]
+
+
+def test_fail_counts_keep_burst_rows_off_both_axes(reference):
+    rows = [values for _, values in reference.values()]
+    for axis in ("delay", "loss"):
+        counts = ext.fail_counts(rows, axis)
+        assert all(total == 20 for _, total in counts.values())
+    # burst 0.3 at delay 0 must not be counted as independent 0.3 on the loss axis
+    loss = ext.fail_counts(rows, "loss")
+    assert loss[("single", 1, 0.3)] == (1, 20)
+    assert {v for _, _, v in loss} == set(ext.OLD_LOSSES)
+
+
 def test_row_text_matches_the_registered_writer(reference):
     line, values = next(iter(reference.values()))
     row = dict(values)
