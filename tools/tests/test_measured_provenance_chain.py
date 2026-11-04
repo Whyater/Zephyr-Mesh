@@ -243,3 +243,10 @@ def test_a_plausible_processing_median_is_accepted(tmp_path, capsys, typed):
     latency = tmp_path / "latency.json"
     latency.write_text(json.dumps(_bare_latency()))
     assert lb.main(["--latency", str(latency), "--processing-median-ms", typed]) == 0
+
+
+def test_the_recorder_keys_match_the_ones_the_vision_intake_requires():
+    # The rule keeps its own copy so the readers do not import the intake; the two must not drift.
+    from tools.intake_vision import RECORDER_KEYS as intake_keys
+    from tools.measured_provenance import RECORDER_KEYS
+    assert RECORDER_KEYS == intake_keys
