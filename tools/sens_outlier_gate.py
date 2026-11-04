@@ -44,7 +44,7 @@ import shutil
 import subprocess
 import sys
 import time
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 import numpy as np
@@ -188,8 +188,9 @@ def plan(pilot_seeds: int | None = None) -> list[tuple]:
 
 def _job(args):
     motion, delay, spec, seeds = args
+    cpu = time.process_time()
     rows = cell_runs(motion, delay, spec, seeds)
-    return motion, delay, spec, rows
+    return motion, delay, spec, rows, time.process_time() - cpu
 
 
 def summarize(motion, delay, spec, rows) -> list[dict]:
@@ -275,23 +276,62 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--output", required=True, type=Path)
     ap.add_argument("--seeds", type=int, default=50)
-    ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--workers", type=int, default=1)
     ap.add_argument("--overwrite", action="store_true")
+    ap.add_argument("--shard", default="0/1",
+                    help="i/k: run only cells with index %% k == i (separate processes share the checkpoint)")
     args = ap.parse_args(argv)
     out = args.output.resolve()
     if (ROOT / "sim" / "runs") in [out, *out.parents]:
         raise SystemExit("refusing to write under sim/runs/: this study is not registered")
+    shard_i, shard_k = (int(v) for v in args.shard.split("/"))
+    if not 0 <= shard_i < shard_k:
+        raise SystemExit("--shard must be i/k with 0 <= i < k")
     if out.exists() and not args.overwrite:
         raise SystemExit(f"{out} exists; pass --overwrite")
     seeds = seed_list(args.seeds)
     jobs = [(m, d, s, seeds) for m, d, s in plan()]
+    # One checkpoint file per finished cell, so a killed worker or a stop costs at
+    # most the cells in flight. Rerunning the same command resumes.
+    ckpt = out.with_name(out.name + ".ckpt")
+    ckpt.mkdir(parents=True, exist_ok=True)
+    stamp = {"n_seeds": args.seeds, "n_cells": len(jobs)}
+    stamp_path = ckpt / "plan.json"
+    if stamp_path.exists() and json.loads(stamp_path.read_text()) != stamp:
+        raise SystemExit(f"{ckpt} holds a different plan; delete it to start over")
+    stamp_path.write_text(json.dumps(stamp))
+    todo = [i for i in range(len(jobs))
+            if i % shard_k == shard_i and not (ckpt / f"cell{i:03d}.json").exists()]
     start = time.time()
-    cpu_start = time.process_time()
-    per_seed, summary = [], []
-    with ProcessPoolExecutor(max_workers=args.workers) as pool:
-        for motion, delay, spec, rows in pool.map(_job, jobs):
-            summary.extend(summarize(motion, delay, spec, rows))
-            per_seed.extend({k: v for k, v in r.items() if k != "_outcome"} for r in rows)
+
+    def finished():
+        if args.workers <= 1:  # in-process: no pool (a pool started from a detached shell can fail on Windows)
+            for i in todo:
+                yield i, _job(jobs[i])
+            return
+        with ProcessPoolExecutor(max_workers=args.workers) as pool:
+            futures = {pool.submit(_job, jobs[i]): i for i in todo}
+            for future in as_completed(futures):
+                yield futures[future], future.result()
+
+    for i, result in finished():
+        motion, delay, spec, rows, cpu_s = result
+        body = {"cpu_s": cpu_s, "summary": summarize(motion, delay, spec, rows),
+                "per_seed": [{k: v for k, v in r.items() if k != "_outcome"} for r in rows]}
+        part = ckpt / f"cell{i:03d}.json.part"
+        part.write_text(json.dumps(body, default=float))
+        os.replace(part, ckpt / f"cell{i:03d}.json")
+        print(f"cell {i + 1}/{len(jobs)} done", flush=True)
+    missing = [i for i in range(len(jobs)) if not (ckpt / f"cell{i:03d}.json").exists()]
+    if missing:
+        print(f"{len(missing)} cells still missing (other shards?); rerun without --shard to assemble")
+        return 0
+    per_seed, summary, worker_cpu_s = [], [], 0.0
+    for i in range(len(jobs)):
+        body = json.loads((ckpt / f"cell{i:03d}.json").read_text())
+        worker_cpu_s += body["cpu_s"]
+        summary.extend(body["summary"])
+        per_seed.extend(body["per_seed"])
     runtime = time.time() - start
     tmp = out.with_name(out.name + ".tmp")
     if tmp.exists():
@@ -303,7 +343,7 @@ def main(argv=None) -> int:
         writer.writerows(per_seed)
     meta = {"schema": "zephyr-sens-outlier-gate-1", "argv": sys.argv[1:] if argv is None else list(argv),
             "git_revision": _git_revision(), "n_seeds": args.seeds, "seeds": seeds,
-            "runtime_s": runtime, "main_process_cpu_s": time.process_time() - cpu_start,
+            "runtime_s_this_session": runtime, "worker_cpu_s": worker_cpu_s,
             "workers": args.workers, "python": sys.version.split()[0], "numpy": np.__version__,
             "platform": sys.platform, "gate_probability": GATE_PROBABILITY,
             "gate_reset_after": GATED.gate_reset_after, "outlier_stream": OUTLIER_STREAM,
@@ -313,6 +353,7 @@ def main(argv=None) -> int:
     if out.exists():
         shutil.rmtree(out)
     os.replace(tmp, out)
+    shutil.rmtree(ckpt)
     print(f"{len(jobs)} cells x {args.seeds} seeds x {len(ARMS)} arms in {runtime:.1f} s -> {out}")
     return 0
 
