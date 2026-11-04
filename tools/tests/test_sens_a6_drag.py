@@ -172,3 +172,6 @@ def test_long_check_reuses_a_finished_level(tmp_path, monkeypatch):
                                  delays=(0.37,), log=lambda msg: None)
     assert result["controls_pass"] is True
     assert result["levels"]["off"]["limits"]["crazyflie-class step 1"]["limit_s"] == 0.37
+    # The summary says both files were reused, so a reader can tell a stale folder from a fresh run.
+    assert result["control"]["flown_this_invocation"] is False
+    assert result["levels"]["off"]["flown_this_invocation"] is False

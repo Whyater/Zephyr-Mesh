@@ -368,7 +368,8 @@ def run_long_check(output_dir: Path, levels: tuple = LONG_LEVELS,
 
     # Control: the registered job list, drag off, must match the registered file exactly.
     control_path = output_dir / "control_long_check.json"
-    if not control_path.exists():
+    control_flown = not control_path.exists()
+    if control_flown:
         jobs = [(p, arm, d, a) for p in sorted(PROFILES) for arm, d, a in lc.JOBS]
         rows, _ = _fly_rows(jobs, None, None)
         _write_atomic(control_path, long_report_bytes(rows))
@@ -381,6 +382,8 @@ def run_long_check(output_dir: Path, levels: tuple = LONG_LEVELS,
         "registry_sha256": registered_long_sha256(),
         "registered_file_sha256": _sha256(REGISTERED_LONG),
         "rows_equal_registered": control_rows == registered_rows,
+        # False means an existing file in the output folder was reused, not flown now.
+        "flown_this_invocation": control_flown,
     }
     control["matches_registered"] = (control["rows_equal_registered"]
                                      and control_sha == control["registry_sha256"])
@@ -401,7 +404,9 @@ def run_long_check(output_dir: Path, levels: tuple = LONG_LEVELS,
             level_path = output_dir / f"level_{name}.json"
             config = {"level": name, "drag_coefficient": cd, "area_m2": area,
                       "profiles": list(profiles), "delays_s": list(delays), "steps_m": list(LONG_STEPS_M)}
-            if level_path.exists() and json.loads(level_path.read_text(encoding="utf-8"))["config"] == config:
+            flown = not (level_path.exists()
+                         and json.loads(level_path.read_text(encoding="utf-8"))["config"] == config)
+            if not flown:
                 level = json.loads(level_path.read_text(encoding="utf-8"))
                 log(f"long level {name}: reused checkpoint")
             else:
@@ -427,6 +432,7 @@ def run_long_check(output_dir: Path, levels: tuple = LONG_LEVELS,
             result["levels"][name] = {
                 "effective_drag_coefficient": level["effective_drag_coefficient"],
                 "effective_area_m2": level["effective_area_m2"],
+                "flown_this_invocation": flown,
                 "overlap_rows": len(overlap),
                 "overlap_equals_control": consistent if name == "off" else None,
                 "limits": summary,
