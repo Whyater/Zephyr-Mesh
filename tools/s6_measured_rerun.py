@@ -7,7 +7,9 @@ levels. Two noise values can be bracketed: the pooled value and the depth-axis
 value. Output goes to a new folder; registered outputs are never overwritten.
 
 The link and the tracker are simulated, and only the noise is taken from the
-fit. Run it with:
+fit. A fit that says measured but does not carry the detection log's provenance
+block (``input.provenance``) is labelled unverified, never measured, and the
+limits say why (tools/measured_provenance.py). Run it with:
 
     PYTHONPATH=. ./.venv/bin/python tools/s6_measured_rerun.py FIT.json --output DIR
 """
@@ -35,6 +37,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from sim.s6_recovery import RecoveryConfig, seed_list
 from sim.vision_trace import TRACE_STATUSES
+from tools.measured_provenance import checked_status
 from tools.run_s6_recovery import (
     MAIN_DELAYS,
     MAIN_LOSSES,
@@ -260,9 +263,12 @@ def _write_comparison(path: Path, labels: list[str], noises: dict[str, float],
 
 
 def fit_status(fit: dict[str, Any]) -> str:
-    """The fit's input status, or "unknown" when the fit does not give one."""
+    """The fit's input status, or "unknown" when the fit does not give one.
+
+    "measured" without a checkable provenance block comes back as "unverified".
+    """
     block = fit.get("input", {})
-    return block.get("status", "unknown")
+    return checked_status(block.get("status", "unknown"), fit)[0]
 
 
 def _status_text(input_status: str) -> str:
@@ -353,6 +359,9 @@ def run_rerun(fit_path: Path, output: Path, *, bracket: tuple[str, ...] = BRACKE
         "main slice only: independent loss, no jitter",
         f"{seeds_count} seeds per cell",
     ]
+    provenance_note = checked_status(input_block.get("status"), fit)[1]
+    if provenance_note is not None:
+        limits.append(f"input fit {provenance_note}")
     summaries: dict[str, list[dict[str, Any]]] = {}
     summary_texts: dict[str, str] = {}
     for entry in entries:

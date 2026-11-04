@@ -143,10 +143,11 @@ def test_synthetic_and_fixture_fits_stay_synthetic(tmp_path, status):
 
 
 def test_small_link_json_carries_its_declared_status(tmp_path):
-    # Truth: a small link JSON that declares status "measured" and trace id "cam-3".
+    # Truth: a small link JSON that declares status "measured" and trace id "cam-3", and lists its
+    # source file and hash (a measured small JSON is refused without them).
     source = tmp_path / "link.json"
     source.write_text(json.dumps({"delay_s": 0.12, "jitter_s": 0.008, "loss_probability": 0,
-                                  "status": "measured", "trace_id": "cam-3"}))
+                                  "status": "measured", "trace_id": "cam-3", "inputs": _INPUTS}))
     out = tmp_path / "small-out"
     run_rerun(source, out, pilot=True, seeds_count=2)
     summary = json.loads((out / "summary.json").read_text())
@@ -173,3 +174,82 @@ def test_missing_or_unrecognised_status_is_labelled_unknown(data):
     label, limits = status_label(provenance)
     assert "unknown" in label and "measured" not in label
     assert "synthetic" not in label
+
+
+# A link input that says measured must say where it came from, or the rerun refuses it: a hand-typed
+# delay labelled "measured" must never reach a measured-looking summary.
+
+_INPUTS = {"latency": {"file": "latency.json", "sha256": "ab" * 32}}
+
+
+def test_bare_measured_small_json_is_refused_before_anything_is_written(tmp_path):
+    source = tmp_path / "link.json"
+    source.write_text(json.dumps({"delay_s": 0.12, "loss_probability": 0, "status": "measured"}))
+    out = tmp_path / "bare-out"
+    with pytest.raises(LinkRerunError, match="inputs"):
+        run_rerun(source, out, pilot=True, seeds_count=2)
+    assert not out.exists()
+
+
+@pytest.mark.parametrize("inputs", [
+    None, [], {}, "latency.json",
+    {"latency": "latency.json"},                                   # entry is not an object
+    {"latency": {"file": "", "sha256": "ab" * 32}},                # empty file name
+    {"latency": {"file": "latency.json"}},                         # no hash
+    {"latency": {"file": "latency.json", "sha256": "AB" * 32}},    # upper case
+    {"latency": {"file": "latency.json", "sha256": "ab" * 31}},    # too short
+])
+def test_measured_small_json_needs_named_and_hashed_inputs(inputs):
+    from tools.s6_link_rerun import require_measured_provenance
+    data = {"delay_s": 0.12, "loss_probability": 0, "status": "measured"}
+    if inputs is not None:
+        data["inputs"] = inputs
+    with pytest.raises(LinkRerunError, match="inputs"):
+        require_measured_provenance(data)
+
+
+def test_measured_fit_without_a_trace_id_is_refused(tmp_path):
+    from tools.s6_link_rerun import require_measured_provenance
+    fit = json.loads(_fit_file(tmp_path, "measured", "bench-7", source="bench capture",
+                               provenance=MEASURED_PROVENANCE).read_text())
+    require_measured_provenance(fit)  # the real fit passes
+    for bad in (None, "", "  ", 7):
+        fit["source_trace"]["trace_id"] = bad
+        with pytest.raises(LinkRerunError, match="trace_id"):
+            require_measured_provenance(fit)
+    del fit["source_trace"]
+    require_measured_provenance(fit)  # no source_trace means status unknown, not measured
+
+
+def test_unlabelled_synthetic_and_wrong_case_inputs_need_no_provenance():
+    from tools.s6_link_rerun import require_measured_provenance
+    for status in (None, "synthetic", "fixture", "Measured", ["measured"]):
+        require_measured_provenance({"delay_s": 0.01, "loss_probability": 0, "status": status})
+
+
+def test_the_vision_link_converter_output_passes(tmp_path):
+    """The only writer of measured small link JSONs today is tools/vision_latency_to_link.py."""
+    from tools import vision_latency_to_link as conv
+    from tools.s6_link_rerun import require_measured_provenance
+    latency = tmp_path / "latency.json"
+    latency.write_text(json.dumps({
+        "schema": "zephyr-vision-latency-1", "status": "measured", "settings": {"display_lag_s": [0.0, 0.06]},
+        "apparent_latency_s": {"mean": 0.125, "stated_error": 0.005, "jitter_std_from_straddles": 0.008},
+        "camera_latency_s": {"low": 0.05, "high": 0.13, "note": "x"}, "warnings": [],
+        # what analyze writes for a recorded run; without it the converter calls the link unverified
+        "inputs": {"frames.npz": "1" * 64, "display_log.csv": "2" * 64, "run_meta.json": "3" * 64},
+        "run_meta": {"schema": "zephyr-vision-latency-run-1", "status": "measured", "opencv_version": "4.x",
+                     "platform": "bench", "clock": "time.monotonic"}}))
+    link = conv.convert_files(latency, tmp_path / "link.json")
+    assert link["status"] == "measured"
+    require_measured_provenance(json.loads((tmp_path / "link.json").read_text()))
+
+
+def test_command_line_refuses_a_bare_measured_small_json(tmp_path, capsys):
+    from tools.s6_link_rerun import main
+    source = tmp_path / "link.json"
+    source.write_text(json.dumps({"delay_s": 0.12, "loss_probability": 0, "status": "measured"}))
+    with pytest.raises(SystemExit) as stop:
+        main([str(source), "--output", str(tmp_path / "out"), "--pilot", "--seeds", "2"])
+    assert stop.value.code == 2
+    assert "inputs" in capsys.readouterr().err

@@ -647,7 +647,7 @@ def update_manifest(output_dir: Path, written: list[Path]) -> None:
         outputs[path.name] = sha256_of(path)
     manifest["outputs"] = outputs
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n",
-                             encoding="utf-8")
+                             encoding="utf-8", newline="\n")
 
 
 def build(run_dir: Path, output_dir: Path) -> list[Path]:

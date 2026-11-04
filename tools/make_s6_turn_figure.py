@@ -396,7 +396,7 @@ def update_manifest(output_dir: Path, pngs: list[Path]) -> None:
     outputs = manifest.setdefault("outputs", {})
     for png in pngs:
         outputs[png.name] = sha256_file(png)
-    with manifest_path.open("w", encoding="utf-8") as handle:
+    with manifest_path.open("w", encoding="utf-8", newline="\n") as handle:
         json.dump(manifest, handle, indent=2, sort_keys=True)
         handle.write("\n")
 

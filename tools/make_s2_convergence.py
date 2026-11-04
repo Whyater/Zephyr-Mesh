@@ -117,7 +117,7 @@ def main(argv=None) -> Path:
     args = parser.parse_args(argv)
     output = args.output if args.output_dir is None else args.output_dir / "convergence.json"
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(build_convergence(), indent=2) + "\n")
+    output.write_text(json.dumps(build_convergence(), indent=2) + "\n", newline="\n")
     print(output)
     return output
 

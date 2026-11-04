@@ -109,7 +109,7 @@ def main(argv=None):
     report = _round({"schema": "zephyr-exp-021-long-check-1", "duration_s": DURATION_S, "window_s": WINDOW_S,
                      "note": "3-D position error; growing means the last 10 s window peak exceeds the third window peak, or the run left the 5 m box (5 x step size for steps above 1 m)",
                      "rows": rows})
-    (out / "long_check.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (out / "long_check.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     write_manifest(out / "manifest.json", schema="zephyr-exp-021-long-check-manifest-1", argv=sys.argv[1:],
                    config={"duration_s": DURATION_S, "window_s": WINDOW_S, "jobs": [list(j) for j in JOBS]},
                    seeds=[0], limits=["simulated only", "literature-derived profiles", "loss 0 only", "no floor modeled"],

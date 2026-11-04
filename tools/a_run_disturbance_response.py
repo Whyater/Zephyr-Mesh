@@ -310,7 +310,7 @@ def run(output_dir, workers=None, pilot=False):
         summary["ground"][profile] = [r for r in rows if r["part"] == "c" and r["profile"] == profile]
         summary.setdefault("ground_transitions", {})[profile] = [r for r in rows if r["part"] == "c_transition" and r["profile"] == profile]
         summary["downwash"][profile] = [r for r in rows if r["part"] == "d" and r["profile"] == profile]
-    (output_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (output_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     _plot(summary, output_dir / "a7_disturbance.png")
     limits = ["simulated only", "literature-derived profiles", "drag area is an assumption sweep (UNCONFIRMED)", "downwash wake has no decay (conservative)", "single-disk wake lumps four rotors"]
     runtime = perf_counter() - start

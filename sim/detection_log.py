@@ -52,7 +52,7 @@ def _loads(text: str) -> Any:
     )
 
 
-def _parse(items: list[str | bytes], source_name: str) -> VisionTrace:
+def _parse(items: list[str | bytes], source_name: str, *, last_line_unterminated: bool = False) -> VisionTrace:
     def fail(line: int, message: str) -> DetectionLogError:
         return DetectionLogError(f"{source_name}:{line}: {message}")
 
@@ -84,7 +84,12 @@ def _parse(items: list[str | bytes], source_name: str) -> VisionTrace:
         try:
             value = _loads(text)
         except ValueError as exc:
-            raise fail(line_no, f"invalid JSON: {exc}") from exc
+            hint = ""
+            if last_line_unterminated and line_no == len(items):
+                hint = ("; this is the last line and the file does not end with a newline, so the recording was "
+                        "probably cut off mid-write (the program stopped or crashed): delete this last line and "
+                        "read the log again")
+            raise fail(line_no, f"invalid JSON: {exc}{hint}") from exc
         if not isinstance(value, dict):
             raise fail(line_no, "line must be a JSON object")
 
@@ -139,9 +144,10 @@ def read_detection_log(path: str | Path) -> VisionTrace:
 
     path = Path(path)
     raw_lines = path.read_bytes().split(b"\n")
-    if raw_lines[-1] == b"":
+    unterminated = raw_lines[-1] != b""
+    if not unterminated:
         raw_lines.pop()
-    return _parse(list(raw_lines), str(path))
+    return _parse(list(raw_lines), str(path), last_line_unterminated=unterminated)
 
 
 def detection_log_lines(trace: VisionTrace, *, source_name: str = "<memory>") -> list[str]:

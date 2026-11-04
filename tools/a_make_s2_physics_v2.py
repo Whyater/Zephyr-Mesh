@@ -47,7 +47,7 @@ def generate(output_dir: Path) -> list[Path]:
     started = time.perf_counter()
     document = build_convergence()
     convergence_path = output_dir / "convergence.json"
-    convergence_path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+    convergence_path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8", newline="\n")
     figure_path = output_dir / "a_s2_convergence.png"
     _figure(document, figure_path)
     runtime = time.perf_counter() - started
