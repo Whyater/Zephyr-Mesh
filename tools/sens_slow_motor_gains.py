@@ -373,7 +373,8 @@ def write_figure(cells, fine, path: Path) -> None:
     ax.set_ylabel("peak tilt in 20 s run (deg)")
     ax.set_title("motor lag 0.16 s, zero delay", fontsize=10)
     ax.legend(fontsize=8)
-    fig.suptitle("Simulated only: ESP-FLY-class, 1.2 m step, seed 0. x on the axis = fails with no delay.", fontsize=10)
+    fig.suptitle("Simulated only: ESP-FLY-class, 1 m step in x, seed 0. Limit = first delay failing the EXP-021 or "
+                 "the stricter failed-to-fly rule; x on the axis = fails with no delay.", fontsize=10)
     fig.savefig(path, dpi=150, metadata={"Software": None})
     plt.close(fig)
 
@@ -418,7 +419,9 @@ def run(output_dir: Path, *, taus=TAUS_S, scales=SCALES, fine_scales=FINE_SCALES
                                          "exp021_unstable": fine[s]["zero_delay"]["b"]["unstable"],
                                          "failed_to_fly": fine[s]["zero_delay"]["b"]["failed_to_fly"],
                                          "max_tilt_deg": fine[s]["zero_delay"]["b"]["whole_run_max_tilt_deg"],
-                                         "hand_attitude_pm_minus_hold_deg": fine[s]["hand"]["attitude_pm_minus_hold_deg"]}
+                                         "hand_attitude_pm_minus_hold_deg": fine[s]["hand"]["attitude_pm_minus_hold_deg"],
+                                         "hand_agrees_in_sign": ((fine[s]["hand"]["attitude_pm_minus_hold_deg"] > 0)
+                                                                 == fine[s]["stable_at_zero_delay"])}
                                         for s in fine_scales]
         result["table"] = write_table(cells, output_dir / "table.csv")
         write_figure(cells, fine, output_dir / "slow_motor_gains.png")
