@@ -411,6 +411,13 @@ def test_latency_run_without_display_log_fails(good: Path):
     assert_fails(tool.preflight(good), "latency-run-refused")
 
 
+def test_latency_run_without_run_meta_names_the_missing_file(good: Path):
+    (good / "latency" / "run1" / "run_meta.json").unlink()
+    report = tool.preflight(good)
+    assert_fails(report, "latency-run-refused")
+    assert any("run_meta.json is missing" in f.reason for f in report.findings)
+
+
 def test_measured_latency_run_without_recorder_provenance_fails(good: Path):
     meta_path = good / "latency" / "run1" / "run_meta.json"
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
@@ -464,6 +471,37 @@ def test_raw_capture_next_to_its_clean_log_counts_once(good: Path):
 def test_sender_without_echoer_fails(good: Path):
     (good / "radio" / "echoer.csv").unlink()
     assert_fails(tool.preflight(good), "radio-pairing")
+
+
+def _times_to_millis(path: Path) -> None:
+    """Rewrite every time column as whole milliseconds, the way millis() firmware would print them."""
+    out = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("#") or line.startswith("seq,"):
+            out.append(line)
+            continue
+        fields = line.split(",")
+        for i in range(1, 3):
+            if fields[i]:
+                fields[i] = str(int(fields[i]) // 1000)
+        out.append(",".join(fields))
+    path.write_text("\n".join(out) + "\n", encoding="utf-8", newline="\n")
+
+
+def test_millisecond_times_in_microsecond_columns_fail(good: Path):
+    # The good fixture's round trips are a few ms; read as microseconds they become a few us,
+    # which no ESP-NOW frame can do (one frame alone needs about 1.8 ms on the air).
+    _times_to_millis(good / "radio" / "sender.csv")
+    _times_to_millis(good / "radio" / "echoer.csv")
+    report = tool.preflight(good)
+    assert_fails(report, "radio-round-trip-too-short")
+    assert report.counts["radio pairs"] == 0
+
+
+def test_good_radio_round_trip_is_above_the_floor(good: Path):
+    report = tool.preflight(good)
+    assert "radio-round-trip-too-short" not in codes(report)
+    assert report.counts["radio pairs"] == 1
 
 
 # ---------------------------------------------------------------- mixed sessions and collisions
