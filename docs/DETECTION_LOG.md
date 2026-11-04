@@ -14,7 +14,7 @@ Run every command from the repo root with the project's virtual environment set 
 | --- | --- | --- |
 | Format | this page | One header line, then one line per observation |
 | Reader and writer | `sim/detection_log.py` | Reads a log and stops at the first bad line, naming its line number |
-| Fit | `sim/vision_noise_fit.py`, `tools/fit_vision_noise.py` | Turns one log with ground truth into bias, spread, dropout and latency, each with an interval |
+| Fit | `sim/vision_noise_fit.py`, `tools/fit_vision_noise.py` | Turns one log with ground truth into bias, spread, dropout and latency, each with an interval, and checks for common camera log problems |
 | Synthetic logs | `tools/make_detection_fixture.py` | Writes a log from known settings using the sim's own sensor model, so you can check that the fit gets them back |
 
 ---
@@ -103,6 +103,8 @@ Here is a header that passes the reader. **All of these values are made up for i
 - a processing time earlier than its capture time on a shared clock
 - an empty file, or a file that starts with a UTF-8 byte order mark (BOM)
 
+If the bad line is the last line and the file doesn't end with a newline, the error adds that the recording was probably cut off mid-write (the camera program stopped or crashed). Delete that last line and read the log again. A bad line anywhere else doesn't get this hint (`_parse` in `sim/detection_log.py`).
+
 The file may end with one final newline. `write_detection_log` writes the same format back, and reading what it writes gives the same trace.
 
 ---
@@ -136,7 +138,63 @@ The output is one JSON file (`zephyr-vision-noise-fit-1`).
 - `scenario_delay` holds `measurement_delay_s` (average latency) and `measurement_jitter_s` (its standard deviation). Copy them into a mission `Scenario` (`sim/missions/api.py`), which has fields with the same names. It is `null`, with a reason in `scenario_delay_null_reason`, when the clock domain is not `shared_monotonic` or fewer than 2 lines have `processing_time_s`.
 - `uncertainty` gives each number an estimate, a low and high end, the method, and how many lines it used. Bias, spread and latency intervals come from resampling short blocks of neighbouring frames (a block bootstrap). The dropout interval uses the Wilson formula, and the burst intervals come from simulating the fitted on/off pattern many times.
 - `per_axis` gives the spread on each axis, an outlier-resistant spread (1.4826 times the median absolute deviation), the share of large outliers, and the correlation between neighbouring frames.
-- `assumptions` lists, in plain words, every assumption the fit made for this log. Read it.
+- `assumptions` lists, in plain words, every assumption the fit made for this log, plus any warnings from the checks below. Read it.
+
+### Checks for a real camera log
+
+A real webcam log can be wrong in ways the format rules can't see: frames that never got a line, the same frame written twice, a frozen stream, pose flips, or numbers in the wrong unit. The reader accepts these logs, so `fit_vision_noise` in `sim/vision_noise_fit.py` checks for them itself.
+
+- Two problems are **refused**: positions in the wrong unit stop the whole fit, and a latency over 5 seconds stops the latency part.
+- Everything else is **flagged**: the fit adds a line starting with `WARNING:` to `assumptions`.
+- A check never changes a fitted number. A log with none of these problems fits exactly as it did before the checks existed.
+
+`tools/intake_vision.py` prints every `assumptions` line under "Fit notes" in `INTAKE.md`. When a fit has any `WARNING` lines, its section also gets a `Warnings: N` line near the top. Read those lines before you use the numbers.
+
+In this section, "detections with truth" means `detected` lines of the fitted subject that have both `position_m` and `ground_truth`. All checks look at the chosen `subject_id` only.
+
+#### Refused: positions in the wrong unit
+
+`_check_units` takes each detection with truth and divides the length of `position_m` by the length of `ground_truth.position_m`. Both lengths are distances from the origin of the position frame. If the median of those ratios is above 10 or below 0.1, the fit stops with an error that starts `position_m is probably not in meters`. The command line tool prints it and exits with code 2.
+
+A factor near 1000 means one side is in millimeters. Pixel coordinates against meter truth also give a big factor.
+
+**What to do:** give the detector the marker size in meters (0.150, not 150), make sure `position_m` and `ground_truth.position_m` are both in meters and in the same frame, and fit again.
+
+#### The 5 cm skip near the origin
+
+Only detections whose true position is at least 5 cm from the frame's origin (`_UNITS_MIN_TRUTH_M = 0.05`) count toward that ratio. A detection whose measured position sits on the origin itself (length 1e-6 m or less) is left out too. The reason: when the target is much closer to the origin than the noise, the measured distance is mostly noise (about 1.7 times the noise spread), so the ratio can pass 10 even with the right units.
+
+In the camera frame this almost never matters, because the target is far more than 5 cm from the lens. It matters in a world frame, when the target sits right on top of the room's origin point.
+
+If every true position is closer than 5 cm, the check is skipped and the fit adds a note that starts `Units check skipped`. This note is not a `WARNING` line, so it is not counted in the `INTAKE.md` warning number. **When you see it, nothing has checked your units.** For example, `position_m` in millimeters against `ground_truth` in meters passes without a refusal if the truth is always within 5 cm of the origin.
+
+**What to do:** check by hand that both positions are in meters. If you can, put the origin point at least 5 cm from the target, so the check can run.
+
+#### Refused: latency over 5 seconds
+
+This check runs only when `clock_domain` is `shared_monotonic`. If any line of the subject (detected, missed or unknown) has `processing_time_s - capture_time_s` above 5 seconds (`MAX_LATENCY_S = 5.0`), the latency fit is refused instead of skewed. `scenario_delay` is `null`, and `scenario_delay_null_reason` says how many lines were too slow and the largest value. A `WARNING: latency not fitted` line repeats the reason. Bias, spread and dropout are still fitted. Latencies of 5 seconds or less are kept.
+
+**What to do:** this is almost never real detector latency. Usually `processing_time_s` came from a different clock than `capture_time_s` (such as wall-clock time), or the program stalled. Fix the time stamps or remove those frames, then fit again.
+
+#### Flagged: warning lines
+
+These come from `_quirk_warnings`, in this order.
+
+| Warning | When it fires | Why it matters | What to do |
+| --- | --- | --- | --- |
+| Gaps in `capture_time_s` | The subject has at least 11 different capture times, and one step between neighbouring times is longer than 1.9 times the median step. The median step is used, not the header's `frame_rate_hz`, because a webcam often runs slower than it says. The warning estimates the missing frames as each long step divided by the median step, rounded, minus 1. | A frame with no line is not counted as missed, so `dropout_probability` and the burst fit can come out too low. | Make the capture program write a line for every frame, misses included. Normal timing jitter doesn't fire this, and neither does a camera that stops for good (the log is just shorter). |
+| Repeated capture times | Some lines share a `capture_time_s` with another line of the same subject. | If they are one camera frame written twice, its error counts twice and the intervals come out too narrow. | Remove the repeats or check the time stamps. |
+| Time going backward | In file order, a line has an earlier `capture_time_s` than the line before it, and it is not marked `"out_of_order": true`. | The fit sorts by capture time, so its numbers don't change, but a monotonic camera clock never runs backward. | Check that every `capture_time_s` comes from one monotonic clock. Mark lines that really arrived late as `out_of_order`. |
+| Frames only under other ids | Some `frame_id` values have lines for other `subject_id` values but none for the chosen one. | For the chosen subject those frames are neither detected nor missed, so dropout doesn't count them. If the other id is a misread of this marker, those frames are really misses. | Find out whether the other id is a second real target or the detector misreading this marker's id. |
+| Behind the camera | `position_frame` is `camera`, and some detections with truth have `position_m` z at 0 or below. In the camera frame (OpenCV convention) z points out of the lens, so that puts the target behind the camera. | These are almost always pose flips. They inflate `noise_std_m` and shift `bias_m`. | Find those frames and explain them before you use the fit. |
+| Outliers | At least 20 detections with truth, and on some axis either the standard deviation is more than 2 times the outlier-resistant spread, or at least 3 errors are more than 4 standard deviations from the mean. | `noise_std_m` is a plain standard deviation, so a few wild frames (pose flips, id mix-ups) set its size. | Find and explain those frames before you use `noise_std_m`. |
+| Frozen stream | At least 20 detections with truth, and the number that repeat the previous `position_m` exactly (in capture order) is at least 3 and at least 5% of them. | Real noise almost never gives the same value to every digit, so the camera probably sent the same frame again. Repeated frames shrink `noise_std_m`. | Check the video for frozen stretches. |
+| Very far target | The median length of `ground_truth.position_m` is above 100 m. | On a bench run this means both positions are probably in pixels or millimeters. They agree with each other, so the units ratio is near 1 and the refusal above doesn't catch it. | Convert both to meters and fit again. |
+
+#### Clearer errors
+
+- A log with more than one `subject_id` and no `--subject` now lists each id with its number of lines. If one id has only a few lines, the detector probably misread the marker id on those frames. Pick the real one with `--subject`.
+- A log with a header but no observation lines reads fine, but the fit stops with `trace has no observations to fit`, because the camera program wrote no frames.
 
 ### Checking the fit on known settings
 
@@ -172,6 +230,6 @@ On the machine this page was checked on, the two commands gave these values, rou
 - **Ground truth is a full 3D position.** A tape measure gives only a distance, so a bench run has to record the target position in the camera frame some other way, or this needs a distance-only mode (not built).
 - **Latency is processing time only.** `processing_time_s - capture_time_s` covers what happens after the capture time stamp. Anything before that stamp, such as exposure and readout, is not seen. How close the stamp is to the real exposure time depends on the camera software and is not checked here.
 - **Correlated frames make intervals too narrow.** Short blocks handle short-range correlation. A slow drift, or a static target whose error is the same for the whole run, still gives intervals that are too narrow. `per_axis.lag1_autocorrelation` is a warning sign.
-- **Outliers inflate the spread.** `noise_std_m` is a plain standard deviation. If it is much bigger than the outlier-resistant spread in `per_axis`, a bell curve is a poor description of that log.
-- **Missing lines are invisible.** The burst fit assumes the log lists every frame, including misses. Frames dropped before they reach the log cannot be counted.
-- **Duplicates are not removed.** Lines marked `duplicate` or `out_of_order` are used as they are.
+- **Outliers inflate the spread.** `noise_std_m` is a plain standard deviation. If it is much bigger than the outlier-resistant spread in `per_axis`, a bell curve is a poor description of that log. The outlier warning points at this, but the fit never removes outliers for you.
+- **Missing lines are hard to see.** The burst fit assumes the log lists every frame, including misses. Frames dropped before they reach the log cannot be counted as misses. The gap warning catches pauses in the middle of a run, but not frames lost at the start or end, or a frame rate that is slower than expected the whole time.
+- **Duplicates are not removed.** Lines marked `duplicate` or `out_of_order` are used as they are. Repeated capture times get a warning, but they stay in the fit.
