@@ -142,3 +142,31 @@ def test_motor_lag_shrinks_hand_margin():
 def test_output_under_sim_runs_is_refused():
     with pytest.raises(ValueError):
         sm.run(sm.ROOT / "sim" / "runs" / "never-made")
+
+
+def test_patch_reaches_the_whole_state_controller():
+    profile = sm.profile_with_tau(0.07)
+    stock = _short(profile, "c")
+    with sm.gain_patch(0.5) as built:
+        slow = _short(profile, "c")
+    # One plain controller from run_episode, one inner controller in the slice c wrapper.
+    assert len(built) == 2
+    assert slow["rms_error_m"] != stock["rms_error_m"]
+
+
+def test_failed_control_skips_every_variant(tmp_path, monkeypatch):
+    ran = []
+
+    def fake_cell(cells_dir, tau, scale, windows, scan=True):
+        ran.append((tau, scale))
+        return {"scan_b": None, "zero_delay": {"b": {"unstable": False}, "c": {"unstable": False}}}
+
+    monkeypatch.setattr(sm, "control_dcrit", lambda windows: {
+        "arm_b": {"matches_registered": False}, "slice_c": {"matches_registered": True}})
+    monkeypatch.setattr(sm, "_cached_cell", fake_cell)
+    result = sm.run(tmp_path / "out")
+    assert result["controls_pass"] is False
+    assert "selection" not in result and "table" not in result
+    # Only the two stock control cells ran.
+    assert ran == [(0.07, 1.0), (0.16, 1.0)]
+    assert not (tmp_path / "out" / "table.csv").exists()
