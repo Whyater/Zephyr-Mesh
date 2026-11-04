@@ -120,7 +120,7 @@ def predicted_clean_reject_rate(mean_nis: float, probability: float = GATE_PROBA
     """Clean reject rate if NIS were a chi-square with ``dof`` degrees of freedom scaled to mean ``mean_nis``.
 
     A consistent filter has mean NIS = dof and rejects 1 - probability. This is the
-    hand model the packet compares the measured rates against.
+    hand model the measured rates are compared against.
     """
     from scipy.stats import chi2
 

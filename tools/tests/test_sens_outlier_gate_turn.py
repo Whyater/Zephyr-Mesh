@@ -47,7 +47,7 @@ def test_each_gated_arm_differs_from_its_twin_only_by_the_gate():
 
 def test_predicted_reject_rate_hand_values():
     """Independent: a consistent filter (mean NIS 3) rejects exactly 1 %; the line CV filter's
-    mean NIS of 2.51 gives the 0.36 % worked out by hand in the parent packet (P(chi2_3 > 13.55))."""
+    mean NIS of 2.51 gives 0.36 %, worked out by hand as P(chi2_3 > 11.34 x 3 / 2.51 = 13.55)."""
     assert turn.predicted_clean_reject_rate(3.0) == pytest.approx(0.01, rel=1e-9)
     assert turn.predicted_clean_reject_rate(2.51) == pytest.approx(0.0036, abs=0.0002)
     assert turn.predicted_clean_reject_rate(3.50) == pytest.approx(0.021, abs=0.001)
