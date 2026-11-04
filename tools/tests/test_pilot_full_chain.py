@@ -135,3 +135,18 @@ def test_resume_refuses_a_checkpoint_with_other_seeds(tmp_path):
                                                         "seeds": [1, 2], "rows": []}) + "\n")
     with pytest.raises(SystemExit):
         pilot.run_pilot(tmp_path / "out", n_seeds=1)
+
+
+def test_replot_reads_per_run_csv_back_to_the_same_summary(tmp_path):
+    import csv
+
+    rows = [row for cell in pilot.CELLS for motion in ("constant_velocity", "constant_turn")
+            for row in _fake_rows(cell, motion, seed_list(2))]
+    rows[0].update({"median_m": None, "min_separation_m": None, "non_nominal_fraction": None, "landed": None})
+    path = tmp_path / "per_run.csv"
+    with open(path, "w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    assert pilot.read_rows(path) == rows
+    assert pilot.summarize(pilot.read_rows(path)) == pilot.summarize(rows)

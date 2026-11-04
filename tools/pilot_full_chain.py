@@ -285,6 +285,69 @@ def _label(failures: int, n: int) -> str:
     return "fails" if 2 * failures >= n else "passes"
 
 
+def summarize(rows: list[dict]) -> list[dict]:
+    """One entry per (cell, motion, variant): medians and ranges over seeds, fail counts, labels."""
+    summary_cells = []
+    for cell in CELLS:
+        for motion in MOTIONS:
+            for variant in ("tracker_only",) + VARIANTS:
+                sub = [r for r in rows if r["cell"] == cell and r["motion"] == motion and r["variant"] == variant]
+                fails = sum(r["failed"] for r in sub)
+                steady_fails = int(sum(r["failed_steady"] for r in sub))
+                nn = [r["non_nominal_fraction"] for r in sub if r["non_nominal_fraction"] is not None]
+                sep = [r["min_separation_m"] for r in sub if r["min_separation_m"] is not None]
+                summary_cells.append({
+                    "cell": cell, "motion": motion, "variant": variant, "n_seeds": len(sub),
+                    "p95_median_m": float(np.median([r["p95_m"] for r in sub])),
+                    "p95_min_m": float(np.min([r["p95_m"] for r in sub])),
+                    "p95_max_m": float(np.max([r["p95_m"] for r in sub])),
+                    "max_median_m": float(np.median([r["max_m"] for r in sub])),
+                    "estimate_p95_median_m": float(np.median([r["estimate_p95_m"] for r in sub])),
+                    "fail_count": int(fails), "label": _label(fails, len(sub)),
+                    "steady_p95_median_m": float(np.median([r["p95_steady_m"] for r in sub])),
+                    "steady_p95_min_m": float(np.min([r["p95_steady_m"] for r in sub])),
+                    "steady_p95_max_m": float(np.max([r["p95_steady_m"] for r in sub])),
+                    "steady_fail_count": steady_fails, "steady_label": _label(steady_fails, len(sub)),
+                    "non_nominal_fraction_max": float(max(nn)) if nn else None,
+                    "min_separation_min_m": float(min(sep)) if sep else None,
+                    "landed_count": int(sum(bool(r["landed"]) for r in sub if r["landed"] is not None)),
+                })
+    return summary_cells
+
+
+def read_rows(path: Path) -> list[dict]:
+    """Read per_run.csv back into typed rows (empty cells are None)."""
+    text = {"cell", "motion", "variant"}
+    flags = {"failed", "failed_steady", "landed"}
+    rows = []
+    with open(path, newline="") as handle:
+        for raw in csv.DictReader(handle):
+            row = {}
+            for key, value in raw.items():
+                if key in text:
+                    row[key] = value
+                elif value == "":
+                    row[key] = None
+                elif key in flags:
+                    row[key] = value == "True"
+                elif key == "seed":
+                    row[key] = int(value)
+                else:
+                    row[key] = float(value)
+            rows.append(row)
+    return rows
+
+
+def replot(folder: Path) -> dict:
+    """Rebuild cells_summary and the figure of a finished pilot folder from its per_run.csv."""
+    folder = Path(folder)
+    summary = json.loads((folder / "summary.json").read_text())
+    summary["cells_summary"] = summarize(read_rows(folder / "per_run.csv"))
+    (folder / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+    _plot(summary["cells_summary"], folder / "pilot_full_chain.png")
+    return summary
+
+
 def run_pilot(output: Path, n_seeds: int = 5) -> dict:
     output = Path(output)
     if output.exists() and any(output.iterdir()):
@@ -339,29 +402,7 @@ def run_pilot(output: Path, n_seeds: int = 5) -> dict:
                 handle.write(json.dumps(record) + "\n")
             rows.extend(group)
             print(f"done {cell.name} {motion} ({time.perf_counter() - started:.0f} s)", flush=True)
-    summary_cells = []
-    for cell in CELLS:
-        for motion in MOTIONS:
-            for variant in ("tracker_only",) + VARIANTS:
-                sub = [r for r in rows if r["cell"] == cell and r["motion"] == motion and r["variant"] == variant]
-                fails = sum(r["failed"] for r in sub)
-                nn = [r["non_nominal_fraction"] for r in sub if r["non_nominal_fraction"] is not None]
-                sep = [r["min_separation_m"] for r in sub if r["min_separation_m"] is not None]
-                summary_cells.append({
-                    "cell": cell, "motion": motion, "variant": variant, "n_seeds": len(sub),
-                    "p95_median_m": float(np.median([r["p95_m"] for r in sub])),
-                    "p95_min_m": float(np.min([r["p95_m"] for r in sub])),
-                    "p95_max_m": float(np.max([r["p95_m"] for r in sub])),
-                    "max_median_m": float(np.median([r["max_m"] for r in sub])),
-                    "estimate_p95_median_m": float(np.median([r["estimate_p95_m"] for r in sub])),
-                    "fail_count": int(fails), "label": _label(fails, len(sub)),
-                    "steady_p95_median_m": float(np.median([r["p95_steady_m"] for r in sub])),
-                    "steady_fail_count": int(sum(r["failed_steady"] for r in sub)),
-                    "steady_label": _label(int(sum(r["failed_steady"] for r in sub)), len(sub)),
-                    "non_nominal_fraction_max": float(max(nn)) if nn else None,
-                    "min_separation_min_m": float(min(sep)) if sep else None,
-                    "landed_count": int(sum(bool(r["landed"]) for r in sub if r["landed"] is not None)),
-                })
+    summary_cells = summarize(rows)
     summary = {
         "schema": SCHEMA, "status": "pilot; synthetic inputs; simulated only; not registered",
         "seeds": seeds, "cells": {name: asdict(c) for name, c in CELLS.items()},
@@ -410,32 +451,46 @@ def _plot(cells: list[dict], path: Path) -> None:
     from tools.horizon_mpl import apply_style
 
     colors = apply_style("light")
+    # Red and amber stay reserved for alerts, so no variant uses them (or the orange target colour).
     shades = {"tracker_only": colors["textSecondary"], "w2_truth": colors["lineStrong"], "w1": colors["accent"],
-              "w2": colors["target"], "w2_comp": colors["ok"]}
-    names = {"tracker_only": "tracker only (S6 score)", "w2_truth": "loop, goal from true state",
-             "w1": "loop, delay on camera path",
-             "w2": "loop, radio on setpoints", "w2_comp": "loop, radio on setpoints, lead + delay"}
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.2), sharey=True)
+              "w2": colors["keepOut"], "w2_comp": colors["ok"]}
+    names = {"tracker_only": "tracker only (the S6 score)", "w2_truth": "loop, goal from the true state",
+             "w1": "loop, delay and loss on the camera path",
+             "w2": "loop, radio on the setpoints", "w2_comp": "loop, radio on the setpoints, lead + radio delay"}
+    windows = (("", "pre-registered window, t >= 2 s"), ("steady_", "steady window, t >= 6 s (post hoc)"))
+    top = 3.0
+    fig, axes = plt.subplots(2, 2, figsize=(11, 7.4), sharey=True)
     variants = ("tracker_only",) + VARIANTS
     width = 0.16
-    for ax, motion in zip(axes, MOTIONS):
-        for k, variant in enumerate(variants):
-            sub = [c for c in cells if c["motion"] == motion and c["variant"] == variant]
-            x = np.arange(len(sub)) + (k - (len(variants) - 1) / 2) * width
-            mid = np.array([c["p95_median_m"] for c in sub])
-            lo = mid - np.array([c["p95_min_m"] for c in sub])
-            hi = np.array([c["p95_max_m"] for c in sub]) - mid
-            ax.bar(x, mid, width, color=shades[variant], label=names[variant])
-            ax.errorbar(x, mid, yerr=[lo, hi], fmt="none", ecolor=colors["text"], capsize=2, lw=0.8)
-        ax.axhline(0.25, color=colors["textSecondary"], ls="--", lw=1)
-        ax.set_xticks(np.arange(len(CELLS)))
-        ax.set_xticklabels(list(CELLS))
-        ax.set_title(f"{motion.replace('_', ' ')} (simulated, synthetic inputs)")
-        ax.set_ylabel("p95 error (m), median over seeds; bars show seed range")
-    axes[0].legend(fontsize=7, frameon=False, loc="upper left")
-    fig.text(0.5, 0.005, "dashed line: 0.25 m p95 fail threshold. Pilot, 5 seeds, not registered.",
-             ha="center", fontsize=7)
-    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    for row, (prefix, window) in enumerate(windows):
+        for col, motion in enumerate(MOTIONS):
+            ax = axes[row, col]
+            for k, variant in enumerate(variants):
+                sub = [c for c in cells if c["motion"] == motion and c["variant"] == variant]
+                x = np.arange(len(sub)) + (k - (len(variants) - 1) / 2) * width
+                mid = np.array([c[f"{prefix}p95_median_m"] for c in sub])
+                low = np.array([c[f"{prefix}p95_min_m"] for c in sub])
+                high = np.array([c[f"{prefix}p95_max_m"] for c in sub])
+                shown = np.minimum(mid, top)
+                ax.bar(x, shown, width, color=shades[variant], label=names[variant])
+                ax.errorbar(x, shown, yerr=[shown - np.minimum(low, top), np.minimum(high, top) - shown],
+                            fmt="none", ecolor=colors["text"], capsize=2, lw=0.8)
+                for xi, hi_value in zip(x, high):
+                    if hi_value > top:  # a seed off the scale: print its value instead of stretching the axis
+                        ax.annotate(f"{hi_value:.1f} m", (xi, top), xytext=(2, -3), textcoords="offset points",
+                                    ha="left", va="top", rotation=90, fontsize=6, color=colors["text"])
+            ax.axhline(0.25, color=colors["textSecondary"], ls="--", lw=1)
+            ax.set_ylim(0, top * 1.08)
+            ax.set_xticks(np.arange(len(CELLS)))
+            ax.set_xticklabels(list(CELLS))
+            ax.set_title(f"{motion.replace('_', ' ')}, {window}")
+            if col == 0:
+                ax.set_ylabel("p95 error (m): bar = median of 5 seeds,\nwhisker = seed range")
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=3, fontsize=7.5, frameon=False, bbox_to_anchor=(0.5, 0.03))
+    fig.text(0.5, 0.008, "Simulated, synthetic inputs, 5 seeds, pilot (not registered). Dashed line: 0.25 m p95 "
+             "fail threshold. A value printed under the top edge is a seed beyond the scale.", ha="center", fontsize=7)
+    fig.tight_layout(rect=(0, 0.09, 1, 1))
     fig.savefig(path, dpi=150, metadata={"Software": None})
     plt.close(fig)
 
@@ -444,8 +499,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--seeds", type=int, default=5)
+    parser.add_argument("--replot", action="store_true",
+                        help="rebuild the summary table and figure of a finished --output folder from per_run.csv")
     args = parser.parse_args(argv)
-    summary = run_pilot(args.output, args.seeds)
+    summary = replot(args.output) if args.replot else run_pilot(args.output, args.seeds)
     for c in summary["cells_summary"]:
         print(f"{c['cell']:10s} {c['motion']:18s} {c['variant']:13s} p95 {c['p95_median_m']:.3f} "
               f"[{c['p95_min_m']:.3f}, {c['p95_max_m']:.3f}] fails {c['fail_count']}/{c['n_seeds']} {c['label']}"
