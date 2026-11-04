@@ -11,6 +11,7 @@ import hashlib
 import json
 import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -185,3 +186,65 @@ def test_cli_refusal_exit_code(tree: Path, tmp_path: Path, monkeypatch, capsys) 
     code = pme.main([str(intake), "--run-dir", "sim/runs/zz-x", "--intake-command", COMMAND,
                      "--source-dir", str(tree)])
     assert code == 2 and "no provenance" in capsys.readouterr().err
+
+
+def test_refuses_file_the_command_makes_that_the_folder_lacks(tree: Path, tmp_path: Path) -> None:
+    # The folder was made without --extra; the command adds it, so the replay makes extra.txt too.
+    intake = _intake(tree, tmp_path / "intake")
+    with pytest.raises(pme.ProposalError, match="made by the command but not in the folder: extra.txt"):
+        _propose(intake, tree, command=COMMAND + " --extra")
+    assert not (intake / pme.PROPOSAL_NAME).exists()
+
+
+@pytest.mark.parametrize("run_dir", [
+    "sim/runs/x;touch $ZM_MARK;#",
+    "sim/runs/$(touch $ZM_MARK)",
+    "sim/runs/x`touch $ZM_MARK`",
+    "sim/runs/my run",
+    "sim/runs/a/b",
+    "sim/runs/Upper",
+    "sim/runs/.hidden",
+    "sim/runs/a..b",
+    "sim/runs/",
+    "runs/x",
+])
+def test_refuses_bad_run_dir_before_running_anything(tree: Path, tmp_path: Path, monkeypatch, request,
+                                                     run_dir: str) -> None:
+    # A harmless marker file shows whether any shell text in run_dir was executed. It sits in the
+    # system temp folder, whose path has no spaces, so an unquoted $ZM_MARK would really be touched.
+    marker_dir = Path(tempfile.mkdtemp(prefix="zm-mark-"))
+    marker = marker_dir / "INJECTED"
+    monkeypatch.setenv("ZM_MARK", marker.as_posix())
+    request.addfinalizer(lambda: shutil.rmtree(marker_dir, ignore_errors=True))
+    intake = _intake(tree, tmp_path / "intake")
+    with pytest.raises(pme.ProposalError, match="run_dir must be exactly sim/runs/<name>"):
+        _propose(intake, tree, run_dir=run_dir)
+    assert not marker.exists()
+    assert not (intake / pme.PROPOSAL_NAME).exists()
+
+
+def test_shell_text_in_the_intake_command_is_not_executed(tree: Path, tmp_path: Path, monkeypatch) -> None:
+    # Shell operators in the intake command become plain arguments, so nothing extra runs.
+    marker = tmp_path / "INJECTED"
+    monkeypatch.setenv("ZM_MARK", str(marker))
+    intake = _intake(tree, tmp_path / "intake")
+    with pytest.raises(pme.ProposalError):
+        _propose(intake, tree, command=COMMAND + " ';' touch '$ZM_MARK'")
+    assert not marker.exists()
+
+
+def test_proposed_command_has_no_rm_and_quotes_the_stage(tree: Path, tmp_path: Path) -> None:
+    intake = _intake(tree, tmp_path / "intake")
+    command = json.loads(_propose(intake, tree).read_text(encoding="utf-8"))["entry"]["command"]
+    assert "rm " not in command
+    assert command.endswith("--output .intake-staging-zz-proposed-test && "
+                            "cp -R .intake-staging-zz-proposed-test/. {out}/")
+
+
+@pytest.mark.parametrize("where", ["tree", "elsewhere"])
+def test_refuses_intake_folder_under_sim_runs(tree: Path, tmp_path: Path, where: str) -> None:
+    base = tree if where == "tree" else tmp_path / "other-checkout"
+    intake = _intake(tree, base / "sim" / "runs" / "zz-inplace")
+    with pytest.raises(pme.ProposalError, match="outside sim/runs"):
+        _propose(intake, tree)
+    assert not (intake / pme.PROPOSAL_NAME).exists()

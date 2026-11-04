@@ -9,14 +9,19 @@
 INTAKE_DIR is an output folder of tools/intake_espnow.py or tools/intake_vision.py. --intake-command is
 the intake command that made it, with repo-relative input paths and without --output. The intake tools
 refuse to write under sim/runs, so the proposed command runs the intake into a staging folder at the
-repo root, copies it into {out}, and removes the staging folder.
+root of the clean tree and copies it into {out}. reproduce_all always runs a command inside a fresh
+temporary copy of the tree and deletes that copy afterwards, so the staging folder needs no rm.
+The <name> in sim/runs/<name> must match [a-z0-9][a-z0-9._-]* with no '..', and the intake command is
+rebuilt from its parsed words with each word quoted, so no shell text can ride in on either.
+INTAKE_DIR must sit outside every sim/runs folder: this tool never writes under sim/runs.
 
 Before it writes anything, it checks, and refuses on the first failure:
 
 1. INTAKE.md is there and states the status, the inputs with their sha256, and the output files with
    their sha256 (the intake's own provenance record). Every listed output still has that hash.
 2. Every input INTAKE.md lists is a file the command names, with the same sha256.
-3. The command has {python}, no {out} or --output of its own, and no absolute or '..' paths.
+3. The run_dir is a plain sim/runs/<name>. The command has {python}, no {out} or --output of its
+   own, and no absolute or '..' paths.
 4. The run_dir is not already in the registry, and the registry plus the new entry passes the real
    loader in tools/reproduce_all.py.
 5. The command, run the way tools/reproduce_all.py runs it (a clean copy of --rev, or --source-dir),
@@ -52,6 +57,7 @@ FORMAT = "zephyr-proposed-registry-entry-1"
 STATUSES = ("measured", "synthetic", "fixture", "unknown")
 _ROW = re.compile(r"^\|\s*([^|]+?)\s*\|\s*([0-9a-fA-F]{64})\s*\|")
 _WINDOWS_ABS = re.compile(r"^[A-Za-z]:[\\/]")
+_RUN_NAME = re.compile(r"[a-z0-9][a-z0-9._-]*")
 NOTE = ("PROPOSED, not registered. To register: review it, add the outputs under run_dir, append 'entry' "
         "to tools/reproduce_registry.json, and rerun tools/reproduce_all.py --only <name>. The hashes were "
         "recorded on the platform named under 'replay'.")
@@ -116,8 +122,27 @@ def _is_unsafe(token: str) -> bool:
     return False
 
 
+def check_run_dir(run_dir: str) -> str:
+    """Return <name> for a run_dir that is exactly sim/runs/<name>; refuse anything else."""
+    prefix = "sim/runs/"
+    name = run_dir[len(prefix):] if run_dir.startswith(prefix) else ""
+    if not _RUN_NAME.fullmatch(name) or ".." in name:
+        raise ProposalError(f"run_dir must be exactly sim/runs/<name>, with <name> made of a-z, 0-9, '.', "
+                            f"'_' and '-', starting with a letter or digit, and no '..': {run_dir!r}")
+    return name
+
+
+def check_outside_runs(intake_dir: Path) -> None:
+    """Refuse an intake folder inside any sim/runs folder, so the proposal never lands there."""
+    parts = [part.lower() for part in intake_dir.parts]
+    if any(parts[i:i + 2] == ["sim", "runs"] for i in range(len(parts) - 1)):
+        raise ProposalError(f"{intake_dir} is under sim/runs. Keep the intake output outside sim/runs until "
+                            "the entry is registered; this tool never writes under sim/runs")
+
+
 def build_command(intake_command: str, run_dir: str) -> str:
     """Wrap the intake command so it writes into a staging folder and copies that into {out}."""
+    name = check_run_dir(run_dir)
     if "{python}" not in intake_command:
         raise ProposalError("the intake command must run Python as {python}")
     if "{out}" in intake_command:
@@ -131,8 +156,11 @@ def build_command(intake_command: str, run_dir: str) -> str:
     unsafe = [t for t in tokens if _is_unsafe(t)]
     if unsafe:
         raise ProposalError(f"the command must use repo-relative paths only, without '..': {unsafe[0]}")
-    stage = f".intake-staging-{Path(run_dir).name}"
-    return (f"{intake_command} --output {stage} && cp -R {stage}/. {{out}}/ && rm -rf {stage}")
+    # Rebuild from the parsed words so shell operators become plain arguments. {python} stays bare:
+    # reproduce_all swaps it for a quoted path.
+    words = " ".join(t if t == "{python}" else shlex.quote(t) for t in tokens)
+    stage = shlex.quote(f".intake-staging-{name}")
+    return f"{words} --output {stage} && cp -R {stage}/. {{out}}/"
 
 
 def match_inputs(intake_command: str, inputs: list[tuple[str, str]], tree: Path) -> list[dict[str, str]]:
@@ -228,6 +256,8 @@ def propose(intake_dir: Path, *, run_dir: str, intake_command: str, registry: Pa
     intake_dir = intake_dir.resolve()
     if not intake_dir.is_dir():
         raise ProposalError(f"not a folder: {intake_dir}")
+    check_outside_runs(intake_dir)
+    check_run_dir(run_dir)
     record = read_intake(intake_dir)
     command = build_command(intake_command, run_dir)
     tree = source_dir.resolve() if source_dir is not None else repo_root
