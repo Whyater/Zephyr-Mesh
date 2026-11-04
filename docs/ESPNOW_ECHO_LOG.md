@@ -154,6 +154,15 @@ It never skips or repairs a line.
     (`echo_us - tx_us`).
 11. The last line ends with a newline. A file that stops mid-line was
     probably cut off, so it is rejected.
+12. One sender session per echoer file. If the sender reboots during a test,
+    the reader refuses the echoer file instead of mixing two sessions. It
+    catches this two ways. A `seq` that repeats more than 1 s after its first
+    arrival is the same number from a new session, not a radio duplicate. And
+    `rx_us - tx_us` is B's clock minus A's clock plus the trip time, while A's
+    round trip puts a ceiling on the trip time, so a slow link cannot move the
+    clock gap but a reboot of A does: a jump of more than 20 ms outside the
+    range earlier packets allow is refused. A reboot after which no packet
+    gets an echo can only be caught by the 1 s repeat rule.
 
 ## Packet labels in the trace
 

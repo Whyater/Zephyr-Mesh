@@ -10,6 +10,20 @@ scenario inputs and are not flight-performance claims.
 and event rules shared by every simulated adapter (this module's point-mass
 adapters and ``sim.missions.physics_adapter.PhysicsAdapter``).  Everything here
 is simulated.
+
+Frames, units and clocks at this boundary:
+
+* Positions and velocities (``DroneState``, ``send_setpoint``, geofences) are
+  in the sim world frame, ENU: x east, y north, z up, metres and m/s.
+* ``timestamp_s``, ``time_s`` and ``link_age_s`` are sim seconds on the one
+  shared clock.
+* Link telemetry mixes units on purpose for display: ``link_delay_ms`` in
+  milliseconds and ``link_loss_pct`` from 0 to 100.
+  :func:`link_metrics_from_si` converts seconds and fractions to those units.
+
+A hardware adapter converts into these conventions before anything reaches
+the swarm layer: ``sim.frames`` for NED/FRD vehicles (PX4, MAVLink) and
+``sim.clock_map`` for device boot-clock stamps.
 """
 from __future__ import annotations
 
@@ -119,7 +133,9 @@ class Capabilities:
 class DroneState:
     """Normalized telemetry returned by every adapter.
 
-    ``position`` and ``velocity`` are NumPy vectors in SI units.  Authority and
+    ``position`` and ``velocity`` are NumPy vectors in SI units, in the sim
+    world frame (ENU: x east, y north, z up), whatever frame the vehicle uses
+    natively.  ``timestamp_s`` and ``link_age_s`` are sim seconds.  Authority and
     failsafe fields are strings so a state serializes directly to JSON without
     importing simulator enums in a ground-station client.
     """
@@ -238,7 +254,12 @@ class DroneAdapter(ABC):
 
     @abstractmethod
     def set_link_metrics(self, *, delay_ms: float, loss_pct: float, age_s: float | None) -> None:
-        """Inject normalized link telemetry for a synthetic or replay adapter."""
+        """Inject normalized link telemetry for a synthetic or replay adapter.
+
+        Units: ``delay_ms`` milliseconds, ``loss_pct`` percent from 0 to 100,
+        ``age_s`` seconds.  :func:`link_metrics_from_si` builds these keyword
+        arguments from seconds and a 0-to-1 loss fraction.
+        """
 
     @abstractmethod
     def set_battery_pct(self, battery_pct: float) -> None:
@@ -282,6 +303,20 @@ class DroneAdapter(ABC):
     @property
     def geofence(self) -> Geofence | None:
         return None
+
+
+def link_metrics_from_si(*, delay_s: float, loss_fraction: float, age_s: float | None) -> dict[str, Any]:
+    """Keyword arguments for ``set_link_metrics`` from seconds and a 0-to-1 loss.
+
+    ``adapter.set_link_metrics(**link_metrics_from_si(delay_s=0.012,
+    loss_fraction=0.05, age_s=0.2))`` sets a 12 ms delay and 5 % loss.  This
+    only changes units; ``set_link_metrics`` still checks the ranges.
+    """
+    delay = float(delay_s)
+    loss = float(loss_fraction)
+    if not math.isfinite(delay) or not math.isfinite(loss):
+        raise ValueError("delay_s and loss_fraction must be finite")
+    return {"delay_ms": delay * 1000.0, "loss_pct": loss * 100.0, "age_s": age_s}
 
 
 # A body this close to the floor (or below it) counts as touching it.

@@ -54,6 +54,7 @@ the pre-registration) drops the start transient: the target jumps from rest to 1
 
     PYTHONPATH=. .venv/Scripts/python.exe tools/pilot_full_chain.py --output DIR [--seeds 5] [--lead]
     PYTHONPATH=. .venv/Scripts/python.exe tools/pilot_full_chain.py --output DIR --delay-sweep
+    PYTHONPATH=. .venv/Scripts/python.exe tools/pilot_full_chain.py --output DIR --grid --seeds 3 --workers 8
 """
 from __future__ import annotations
 
@@ -106,8 +107,14 @@ CONTROLLER_LAG_S = 0.75
 TURN_RATE_WINDOW_S = 0.5  # heading change measured over about this long
 TURN_RATE_MIN_SPEED_MPS = 0.2  # below this the heading means nothing: no turn
 TURN_RATE_MAX_RADPS = 2.0
-GOAL_RULES = ("velocity", "lead")
+GOAL_RULES = ("velocity", "lead", "switch")
 LEAD_VARIANTS = ("w2_truth_lead", "w1_lead", "w2_lead")
+# Switching rule: the lead rule only while the estimated turn rate is clearly nonzero, with
+# hysteresis. Thresholds come from the turn-rate noise on straight lines in the noisy cells,
+# on calibration seeds that are never scored (99.5th and 95th percentiles of |w|).
+SWITCH_ON_RADPS = 0.80  # 99.5th percentile of |w| on calibration straight lines, rounded up
+SWITCH_OFF_RADPS = 0.55  # 95th percentile, rounded up
+SWITCH_VARIANTS = ("w1_switch", "w2_switch")
 SWEEP_DELAYS_S = (0.0, 0.1, 0.2, 0.4)
 SWEEP_VARIANTS = ("w1", "w2_comp", "w2_truth_lead", "w1_lead", "w2_lead")
 
@@ -224,7 +231,8 @@ class LoopResult:
 def run_loop(motion: str, cell: Cell, *, wiring: str = "w1", lead_s: float = LEAD_S, seed: int,
              config: RecoveryConfig | None = None, keep_trace: bool = False,
              max_speed_mps: float = MAX_SPEED_MPS, goal_source: str = "tracker",
-             goal_rule: str = "velocity"):
+             goal_rule: str = "velocity", switch_on_radps: float | None = None,
+             switch_off_radps: float | None = None):
     """Run one closed-loop episode. Returns a LoopResult (and the trace dict when keep_trace).
 
     max_speed_mps is the adapter's carrot speed cap (PhysicsAdapter's default 1.5 m/s); the
@@ -232,12 +240,18 @@ def run_loop(motion: str, cell: Cell, *, wiring: str = "w1", lead_s: float = LEA
     the goal from the true position and velocity instead of the tracker (the controller's own
     floor); the camera packets and the tracker still run, so the estimate error is unchanged.
     goal_rule "velocity" (default) predicts lead_s ahead along the tangent; "lead" predicts
-    lead_s ahead along the curve (see the module docstring).
+    lead_s ahead along the curve (see the module docstring); "switch" uses the lead rule while
+    the estimated |turn rate| has reached switch_on_radps and not yet fallen below
+    switch_off_radps, else the velocity rule.
     """
     if goal_source not in ("tracker", "truth"):
         raise ValueError("goal_source must be tracker or truth")
     if goal_rule not in GOAL_RULES:
         raise ValueError(f"goal_rule must be one of {GOAL_RULES}")
+    switch_on = SWITCH_ON_RADPS if switch_on_radps is None else float(switch_on_radps)
+    switch_off = SWITCH_OFF_RADPS if switch_off_radps is None else float(switch_off_radps)
+    if goal_rule == "switch" and not 0.0 < switch_off < switch_on:
+        raise ValueError("switch thresholds need 0 < switch_off_radps < switch_on_radps")
     config = config or RecoveryConfig()
     if wiring == "w1":
         cam = deliver(motion, delay_s=cell.total_delay_s, loss_probability=cell.loss_probability,
@@ -270,6 +284,8 @@ def run_loop(motion: str, cell: Cell, *, wiring: str = "w1", lead_s: float = LEA
     est_times, est_err = [], []
     times, follow, separation, nominal, positions = [], [], [], [], []
     headings: list[tuple[float, float, float]] = []  # (fuse time, vx, vy) for the lead rule
+    turn_trace: list[tuple[float, float, bool]] = []  # (time, turn rate, lead on) for lead and switch
+    lead_on = False
     landed = False
     for i in range(-n_pre, n_run):
         t = i * DT_S
@@ -285,7 +301,7 @@ def run_loop(motion: str, cell: Cell, *, wiring: str = "w1", lead_s: float = LEA
                         continue  # late: the recovery arm drops it
                     tracker.update(np.asarray(packet.measurement_m, dtype=float), packet.capture_time_s)
                     last_capture = packet.capture_time_s
-                    if goal_rule == "lead":
+                    if goal_rule in ("lead", "switch"):
                         fused = tracker.predict_at(tracker.timestamp_s).velocity_mps
                         headings.append((tracker.timestamp_s, fused[0], fused[1]))
                         while headings[0][0] < tracker.timestamp_s - 2.0 * TURN_RATE_WINDOW_S:
@@ -294,9 +310,17 @@ def run_loop(motion: str, cell: Cell, *, wiring: str = "w1", lead_s: float = LEA
                 estimate = np.asarray(tracker.predict_at(now).position_m)
                 est_times.append(t)
                 est_err.append(float(np.linalg.norm(estimate - truth_position(motion, [t], config)[0])))
-                if goal_rule == "lead" and goal_source == "truth":
+                use_lead = goal_rule == "lead"
+                if goal_rule == "switch" and goal_source == "tracker":
+                    rate = estimate_turn_rate(headings)
+                    lead_on = abs(rate) >= switch_on if not lead_on else abs(rate) >= switch_off
+                    use_lead = lead_on
+                    turn_trace.append((t, rate, lead_on))
+                elif goal_rule == "lead" and goal_source == "tracker" and keep_trace:
+                    turn_trace.append((t, estimate_turn_rate(headings), True))
+                if use_lead and goal_source == "truth":
                     goal = truth_position(motion, [t + lead_s], config)[0] + offset
-                elif goal_rule == "lead":
+                elif use_lead:
                     fused = tracker.predict_at(tracker.timestamp_s)
                     goal = turn_predict(fused.position_m, fused.velocity_mps, estimate_turn_rate(headings),
                                         t + lead_s - tracker.timestamp_s) + offset
@@ -347,7 +371,7 @@ def run_loop(motion: str, cell: Cell, *, wiring: str = "w1", lead_s: float = LEA
     )
     if keep_trace:
         return result, {"times_s": times_a, "follow_m": follow_a, "estimate_times_s": est_t, "estimate_m": est_a,
-                        "position_m": np.asarray(positions)}
+                        "position_m": np.asarray(positions), "turn_trace": turn_trace}
     return result
 
 
@@ -443,6 +467,9 @@ def variant_settings(variant: str, cell: Cell) -> dict:
         "w2_truth_lead": dict(wiring="w2", lead_s=CONTROLLER_LAG_S + radio, goal_source="truth", goal_rule="lead"),
         "w1_lead": dict(wiring="w1", lead_s=CONTROLLER_LAG_S, goal_source="tracker", goal_rule="lead"),
         "w2_lead": dict(wiring="w2", lead_s=CONTROLLER_LAG_S + radio, goal_source="tracker", goal_rule="lead"),
+        # switching rule: off it equals w1 / w2_comp, on it equals w1_lead / w2_lead
+        "w1_switch": dict(wiring="w1", lead_s=CONTROLLER_LAG_S, goal_source="tracker", goal_rule="switch"),
+        "w2_switch": dict(wiring="w2", lead_s=CONTROLLER_LAG_S + radio, goal_source="tracker", goal_rule="switch"),
     }
     return table[variant]
 
@@ -457,7 +484,7 @@ def _loop_row(cell: Cell, motion: str, variant: str, seed: int) -> dict:
             "failed": r.failed}
 
 
-def run_pilot(output: Path, n_seeds: int = 5, with_lead: bool = False) -> dict:
+def run_pilot(output: Path, n_seeds: int = 5, with_lead: bool = False, with_switch: bool = False) -> dict:
     output = Path(output)
     if output.exists() and any(output.iterdir()):
         raise SystemExit(f"{output} exists and is not empty; pick a new folder")
@@ -466,7 +493,7 @@ def run_pilot(output: Path, n_seeds: int = 5, with_lead: bool = False) -> dict:
     partial = output.with_name(output.name + ".partial")
     partial.mkdir(parents=True, exist_ok=True)
     seeds = seed_list(n_seeds)
-    variants = VARIANTS + (LEAD_VARIANTS if with_lead else ())
+    variants = VARIANTS + (LEAD_VARIANTS if with_lead else ()) + (SWITCH_VARIANTS if with_switch else ())
     # Checkpoint: one JSON line per finished (cell, motion) group. A rerun with the same output
     # resumes from it; the finished folder only appears when every group is done.
     checkpoint = partial / CHECKPOINT
@@ -502,7 +529,7 @@ def run_pilot(output: Path, n_seeds: int = 5, with_lead: bool = False) -> dict:
                     group.append(_loop_row(cell, motion, variant, seed))
             with open(checkpoint, "a") as handle:
                 record = {"cell": cell.name, "motion": motion, "seeds": seeds, "rows": group}
-                if with_lead:
+                if with_lead or with_switch:
                     record["variants"] = list(variants)
                 handle.write(json.dumps(record) + "\n")
             rows.extend(group)
@@ -533,6 +560,12 @@ def run_pilot(output: Path, n_seeds: int = 5, with_lead: bool = False) -> dict:
         summary["variant_order"] = list(variants)
         summary["settings"]["lead_rule"] = _LEAD_RULE_SETTINGS
         summary["variants"].update(_LEAD_VARIANT_TEXT)
+    if with_switch:
+        summary["variant_order"] = list(variants)
+        summary["settings"]["lead_rule"] = _LEAD_RULE_SETTINGS
+        summary["settings"]["switch_rule"] = {"on_radps": SWITCH_ON_RADPS, "off_radps": SWITCH_OFF_RADPS,
+                                              "on_when": "|turn rate| >= on_radps", "off_when": "|turn rate| < off_radps"}
+        summary["variants"].update(_SWITCH_VARIANT_TEXT)
     with open(partial / "per_run.csv", "w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader()
@@ -588,6 +621,132 @@ def run_delay_sweep(output: Path, delays_s: tuple[float, ...] = SWEEP_DELAYS_S) 
     return summary
 
 
+GRID_DELAYS_S = (0.0, 0.05, 0.1, 0.2, 0.3)  # a subset of the S6 main-slice delays
+GRID_LOSSES = (0.0, 0.1, 0.3, 0.5)  # the S6 main-slice independent loss levels
+GRID_NOISE_M = 0.05  # the S6 main-slice noise level the s6_pass and s6_fail cells use
+GRID_VARIANTS = ("w1", "w1_lead")  # S6 placement: delay and loss on the camera path
+GRID_CHECKPOINT = "grid_checkpoint.jsonl"
+
+
+def _grid_job(job: tuple) -> dict:
+    delay, loss, motion, variant, seed = job
+    cell = Cell(f"d{delay:.3f}_l{loss:.2f}", radio_delay_s=delay, loss_probability=loss, noise_std_m=GRID_NOISE_M)
+    row = _loop_row(cell, motion, variant, seed)
+    row["delay_s"] = delay
+    row["loss_probability"] = loss
+    return row
+
+
+def grid_jobs(n_seeds: int, delays_s=GRID_DELAYS_S, losses=GRID_LOSSES,
+              variants=GRID_VARIANTS) -> list[tuple]:
+    """Every (delay, loss, motion, variant, seed), seed outermost so a stopped run keeps whole seeds."""
+    return [(d, l, m, v, s) for s in seed_list(n_seeds) for d in delays_s for l in losses
+            for m in MOTIONS for v in variants]
+
+
+def run_grid(output: Path, n_seeds: int = 3, workers: int = 1, delays_s=GRID_DELAYS_S,
+             losses=GRID_LOSSES, variants=GRID_VARIANTS) -> dict:
+    """Delay by independent-loss grid on the camera path (w1 wiring), 0.05 m noise.
+
+    Opt-in; the default cells, --lead and --delay-sweep runs are untouched. Each finished run is
+    appended to a checkpoint, so rerunning the same command resumes.
+    """
+    output = Path(output)
+    if output.exists() and any(output.iterdir()):
+        raise SystemExit(f"{output} exists and is not empty; pick a new folder")
+    if "sim" in output.resolve().parts and "runs" in output.resolve().parts:
+        raise SystemExit("this pilot never writes under sim/runs")
+    partial = output.with_name(output.name + ".partial")
+    partial.mkdir(parents=True, exist_ok=True)
+    checkpoint = partial / GRID_CHECKPOINT
+    rows = [json.loads(line) for line in checkpoint.read_text().splitlines()] if checkpoint.exists() else []
+    key = lambda r: (r["delay_s"], r["loss_probability"], r["motion"], r["variant"], r["seed"])
+    done = {key(r) for r in rows}
+    todo = [j for j in grid_jobs(n_seeds, delays_s, losses, variants) if j not in done]
+    started = time.perf_counter()
+    with open(checkpoint, "a") as handle:
+        if workers > 1:
+            from concurrent.futures import ProcessPoolExecutor
+            with ProcessPoolExecutor(max_workers=workers) as pool:
+                results = pool.map(_grid_job, todo)
+                for row in results:
+                    handle.write(json.dumps(row) + "\n")
+                    handle.flush()
+                    rows.append(row)
+                    print(f"done {len(rows)} ({time.perf_counter() - started:.0f} s)", flush=True)
+        else:
+            for job in todo:
+                row = _grid_job(job)
+                handle.write(json.dumps(row) + "\n")
+                handle.flush()
+                rows.append(row)
+    wanted = set(grid_jobs(n_seeds, delays_s, losses, variants))
+    rows = sorted((r for r in rows if key(r) in wanted), key=key)  # only the requested grid and seeds
+    if not rows:
+        raise SystemExit("no grid rows to write")
+    with open(partial / "grid.csv", "w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    summary = {"schema": SCHEMA + "-grid", "status": "pilot; synthetic; simulated only; not registered",
+               "seeds": seed_list(n_seeds), "delays_s": list(delays_s), "losses": list(losses),
+               "variants": list(variants), "noise_std_m": GRID_NOISE_M, "wiring": "w1",
+               "settings": {"lead_rule": _LEAD_RULE_SETTINGS, "velocity_rule_lead_s": LEAD_S},
+               "rows": rows, "elapsed_s": time.perf_counter() - started}
+    (partial / "grid.json").write_text(json.dumps(summary, indent=2) + "\n")
+    checkpoint.unlink()
+    if output.exists():
+        _move_into(partial, output)
+    else:
+        partial.rename(output)
+    return summary
+
+
+GRID_THRESHOLDS_M = (0.5, 1.0)  # steady p95 median thresholds, beside the fail rule
+
+
+def read_grid_rows(folder: Path) -> list[dict]:
+    """Rows of a finished grid folder (grid.json) or of a stopped one (FOLDER.partial checkpoint)."""
+    folder = Path(folder)
+    if (folder / "grid.json").exists():
+        return json.loads((folder / "grid.json").read_text())["rows"]
+    checkpoint = folder.with_name(folder.name + ".partial") / GRID_CHECKPOINT
+    if folder.name.endswith(".partial"):
+        checkpoint = folder / GRID_CHECKPOINT
+    return [json.loads(line) for line in checkpoint.read_text().splitlines() if line.strip()]
+
+
+def summarize_grid(rows: list[dict], seeds: list[int] | None = None) -> list[dict]:
+    """One entry per (motion, variant, delay, loss): steady p95 median over seeds, seeds failing the
+    steady fail rule, the cell fail label (at least half the seeds fail) and the threshold passes."""
+    groups: dict[tuple, list[dict]] = {}
+    for r in rows:
+        if seeds is None or r["seed"] in seeds:
+            groups.setdefault((r["motion"], r["variant"], r["delay_s"], r["loss_probability"]), []).append(r)
+    out = []
+    for (motion, variant, delay, loss), rs in sorted(groups.items()):
+        median = float(np.median([r["p95_steady_m"] for r in rs]))
+        fails = sum(bool(r["failed_steady"]) for r in rs)
+        entry = {"motion": motion, "variant": variant, "delay_s": delay, "loss_probability": loss,
+                 "n_seeds": len(rs), "steady_p95_median_m": median, "steady_fail_count": fails,
+                 "passes_fail_rule": not (2 * fails >= len(rs))}
+        for t in GRID_THRESHOLDS_M:
+            entry[f"passes_p95_{t:.1f}m"] = median <= t
+        out.append(entry)
+    return out
+
+
+def print_grid_report(folder: Path, n_seeds: int | None = None) -> list[dict]:
+    seeds = seed_list(n_seeds) if n_seeds else None
+    cells = summarize_grid(read_grid_rows(folder), seeds)
+    for c in cells:
+        print(f"{c['motion']:17s} {c['variant']:8s} delay {c['delay_s']:.3f} loss {c['loss_probability']:.2f} "
+              f"p95 {c['steady_p95_median_m']:.3f} fails {c['steady_fail_count']}/{c['n_seeds']} "
+              f"fail_rule {'pass' if c['passes_fail_rule'] else 'FAIL'} "
+              + " ".join(f"{t:.1f}m {'pass' if c[f'passes_p95_{t:.1f}m'] else 'FAIL'}" for t in GRID_THRESHOLDS_M))
+    return cells
+
+
 def _move_into(partial: Path, output: Path) -> None:
     for item in partial.iterdir():
         item.rename(output / item.name)
@@ -602,6 +761,9 @@ _LEAD_VARIANT_TEXT = {
     "w2_truth_lead": "w2 wiring, lead rule from the true state: the true position lead_s ahead on the path",
     "w1_lead": "w1 wiring, lead rule: constant-turn prediction from the tracker, controller_lag_s ahead",
     "w2_lead": "w2 wiring, lead rule: constant-turn prediction, radio delay + controller_lag_s ahead"}
+_SWITCH_VARIANT_TEXT = {
+    "w1_switch": "w1 wiring, lead rule only while the turn-rate estimate is clearly nonzero, else the w1 goal",
+    "w2_switch": "w2 wiring, lead rule only while the turn-rate estimate is clearly nonzero, else the w2_comp goal"}
 
 
 def _plot(cells: list[dict], path: Path, plot_variants: tuple[str, ...] = VARIANTS) -> None:
@@ -614,13 +776,16 @@ def _plot(cells: list[dict], path: Path, plot_variants: tuple[str, ...] = VARIAN
     # Red and amber stay reserved for alerts, so no variant uses them (or the orange target colour).
     shades = {"tracker_only": colors["textSecondary"], "w2_truth": colors["lineStrong"], "w1": colors["accent"],
               "w2": colors["keepOut"], "w2_comp": colors["ok"],
-              "w2_truth_lead": colors["lineStrong"], "w1_lead": colors["accent"], "w2_lead": colors["ok"]}
+              "w2_truth_lead": colors["lineStrong"], "w1_lead": colors["accent"], "w2_lead": colors["ok"],
+              "w1_switch": colors["accent"], "w2_switch": colors["ok"]}
     names = {"tracker_only": "tracker only (the S6 score)", "w2_truth": "loop, goal from the true state",
              "w1": "loop, delay and loss on the camera path",
              "w2": "loop, radio on the setpoints", "w2_comp": "loop, radio on the setpoints, lead + radio delay",
              "w2_truth_lead": "lead rule (hatched), goal from the true state",
              "w1_lead": "lead rule, delay and loss on the camera path",
-             "w2_lead": "lead rule, radio on the setpoints"}
+             "w2_lead": "lead rule, radio on the setpoints",
+             "w1_switch": "switching rule (cross-hatched), delay and loss on the camera path",
+             "w2_switch": "switching rule, radio on the setpoints"}
     windows = (("", "pre-registered window, t >= 2 s"), ("steady_", "steady window, t >= 6 s (post hoc)"))
     top = 3.0
     fig, axes = plt.subplots(2, 2, figsize=(11, 7.4), sharey=True)
@@ -638,6 +803,9 @@ def _plot(cells: list[dict], path: Path, plot_variants: tuple[str, ...] = VARIAN
                 shown = np.minimum(mid, top)
                 if variant.endswith("_lead"):
                     ax.bar(x, shown, width, color=shades[variant], label=names[variant], hatch="////",
+                           edgecolor=colors["surface"], linewidth=0)
+                elif variant.endswith("_switch"):
+                    ax.bar(x, shown, width, color=shades[variant], label=names[variant], hatch="xx",
                            edgecolor=colors["surface"], linewidth=0)
                 else:
                     ax.bar(x, shown, width, color=shades[variant], label=names[variant])
@@ -671,16 +839,31 @@ def main(argv: list[str] | None = None) -> int:
                         help="rebuild the summary table and figure of a finished --output folder from per_run.csv")
     parser.add_argument("--lead", action="store_true",
                         help="also run the lead goal rule variants (w2_truth_lead, w1_lead, w2_lead)")
+    parser.add_argument("--lead-switch", action="store_true",
+                        help="also run the switching goal rule variants (w1_switch, w2_switch)")
     parser.add_argument("--delay-sweep", action="store_true",
                         help="run the pure delay sweep (no noise or loss, one seed) instead of the cells")
+    parser.add_argument("--grid", action="store_true",
+                        help="run the delay by loss grid (w1 wiring, 0.05 m noise, both goal rules) instead")
+    parser.add_argument("--workers", type=int, default=1, help="processes for --grid")
+    parser.add_argument("--grid-report", action="store_true",
+                        help="print cell medians and pass marks of the --output grid folder (finished or stopped)")
     args = parser.parse_args(argv)
+    if args.grid_report:
+        print_grid_report(args.output, args.seeds)
+        return 0
+    if args.grid:
+        grid = run_grid(args.output, args.seeds, workers=args.workers)
+        print(f"grid rows {len(grid['rows'])} in {grid['elapsed_s']:.0f} s")
+        return 0
     if args.delay_sweep:
         sweep = run_delay_sweep(args.output)
         for r in sweep["rows"]:
             print(f"{r['delay_s']:.2f} s {r['motion']:18s} {r['variant']:14s} p95 {r['p95_m']:.3f} "
                   f"steady p95 {r['p95_steady_m']:.3f} max {r['max_m']:.3f}")
         return 0
-    summary = replot(args.output) if args.replot else run_pilot(args.output, args.seeds, with_lead=args.lead)
+    summary = replot(args.output) if args.replot else run_pilot(args.output, args.seeds, with_lead=args.lead,
+                                                                with_switch=args.lead_switch)
     for c in summary["cells_summary"]:
         print(f"{c['cell']:10s} {c['motion']:18s} {c['variant']:13s} p95 {c['p95_median_m']:.3f} "
               f"[{c['p95_min_m']:.3f}, {c['p95_max_m']:.3f}] fails {c['fail_count']}/{c['n_seeds']} {c['label']}"

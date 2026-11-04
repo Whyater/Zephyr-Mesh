@@ -41,6 +41,14 @@ import numpy as np
 
 BROADCAST = "*"
 
+# 2.4 GHz OFDM (802.11g ERP-OFDM, and 802.11n in 2.4 GHz) adds 6 us of silence
+# after every frame, the "signal extension", and TXTIME counts it. It gives the
+# receiver time to finish decoding inside the 10 us SIFS of this band. The
+# ESP32 radio is 2.4 GHz only, so every OFDM frame in this model gets it.
+# Source: IEEE 802.11 ERP clause, as quoted in Linux mac80211
+# ieee80211_frame_duration and IEEE 802.11 doc 11-08/0981r1.
+ERP_SIGNAL_EXTENSION_S = 6e-6
+
 
 @dataclass(frozen=True)
 class PhyConfig:
@@ -92,7 +100,7 @@ def airtime_s(n_bytes_mpdu: int, rate_mbps: float, phy: PhyConfig) -> float:
         pre = 192e-6 if phy.preamble == "long" else 96e-6
         return pre + 8 * int(n_bytes_mpdu) / (rate_mbps * 1e6)
     symbols = math.ceil((16 + 8 * int(n_bytes_mpdu) + 6) / (4 * rate_mbps))
-    return 20e-6 + 4e-6 * symbols
+    return 20e-6 + 4e-6 * symbols + ERP_SIGNAL_EXTENSION_S
 
 
 def data_airtime_s(payload_bytes: int, phy: PhyConfig) -> float:

@@ -131,8 +131,11 @@ def test_printed_estimate_matches_measured_formula(tmp_path):
         line for line in stdout.splitlines() if "full-run best-case estimate:" in line
     )
     printed_best = float(best_line.split("full-run best-case estimate: ", 1)[1].split(" CPU s", 1)[0])
-    assert printed == pytest.approx(round(expected_worst, 1), abs=0.05)
-    assert printed_best == pytest.approx(round(expected_best, 1), abs=0.05)
+    # The printed totals are rounded to 0.1 s, so they sit within 0.05 s of the exact sum. Rounding the
+    # recomputed sum as well would allow a 0.1 s gap whenever the sum lands near a rounding boundary.
+    # The 1e-3 s slack covers the rates being printed to 10 decimals.
+    assert printed == pytest.approx(expected_worst, abs=0.05 + 1e-3)
+    assert printed_best == pytest.approx(expected_best, abs=0.05 + 1e-3)
 
 
 def test_processes_are_capped(tmp_path):

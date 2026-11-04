@@ -15,6 +15,7 @@ from tools import pilot_full_chain as pilot
 
 KP, KD = 2.0, 1.5  # Crazyflie-class v2 profile position loop, x and y axes
 SEED = seed_list(1)[0]
+GOLDEN_W1_S6_PASS_TURN_STEADY_P95_M = 1.3957818145058185  # old w1 row, s6_pass turn, first S6 seed
 
 
 def _settled(trace, after_s=8.0):
@@ -269,3 +270,91 @@ def test_delay_sweep_refuses_nonempty_output(tmp_path):
     (tmp_path / "old.txt").write_text("x")
     with pytest.raises(SystemExit):
         pilot.run_delay_sweep(tmp_path)
+
+
+# Switching rule. The two limiting cases are the rule's definition checked end to end: with no
+# camera noise the turn-rate estimate is exact, so on a 1 rad/s circle the latch turns on and
+# stays on (switch = lead), and on a straight line it is exactly 0 (switch = the old goal).
+
+def test_switch_on_a_constant_rate_circle_equals_the_lead_rule():
+    cell = pilot.CELLS["zero"]
+    lead = pilot.run_loop("constant_turn", cell, seed=SEED, **pilot.variant_settings("w1_lead", cell))
+    switch, trace = pilot.run_loop("constant_turn", cell, seed=SEED, keep_trace=True,
+                                   **pilot.variant_settings("w1_switch", cell))
+    # The latch needs |w| >= 0.80 rad/s first, so it turns on a little later than the lead rule's
+    # estimate starts; that start difference is still about 0.003 m at 6 s.
+    assert switch.follow_p95_steady_m == pytest.approx(lead.follow_p95_steady_m, abs=0.01)
+    assert all(on for t, _, on in trace["turn_trace"] if t >= 2.0)
+
+
+def test_switch_on_a_straight_line_equals_the_default_rule():
+    cell = pilot.CELLS["zero"]
+    for switch_variant, old_variant in (("w1_switch", "w1"), ("w2_switch", "w2_comp")):
+        old = pilot.run_loop("constant_velocity", cell, seed=SEED, **pilot.variant_settings(old_variant, cell))
+        switch, trace = pilot.run_loop("constant_velocity", cell, seed=SEED, keep_trace=True,
+                                       **pilot.variant_settings(switch_variant, cell))
+        assert switch == old
+        assert not any(on for _, _, on in trace["turn_trace"])
+
+
+def test_switch_thresholds_must_leave_a_hysteresis_band():
+    assert 0.0 < pilot.SWITCH_OFF_RADPS < pilot.SWITCH_ON_RADPS
+    with pytest.raises(ValueError):
+        pilot.run_loop("constant_velocity", pilot.CELLS["zero"], seed=SEED, goal_rule="switch",
+                       switch_on_radps=0.5, switch_off_radps=0.5)
+
+
+def test_default_noisy_cell_output_is_unchanged():
+    # Golden value: the old velocity rule (w1) on the s6_pass turn, first S6 seed, from the code
+    # before the switching rule existed. Restates the old output on purpose, to catch any change.
+    cell = pilot.CELLS["s6_pass"]
+    result = pilot.run_loop("constant_turn", cell, seed=SEED, **pilot.variant_settings("w1", cell))
+    assert result.follow_p95_steady_m == pytest.approx(GOLDEN_W1_S6_PASS_TURN_STEADY_P95_M, abs=1e-12)
+    assert pilot.SWITCH_VARIANTS[0] not in pilot.VARIANTS  # the default run never adds switch rows
+
+
+def test_grid_cell_equals_pilot_cell_and_is_opt_in(tmp_path):
+    # Opt-in: without --grid the parser leaves it off, so the default runs never reach run_grid.
+    assert pilot.GRID_VARIANTS == ("w1", "w1_lead")
+    # One grid point is the pilot's s6_pass cell (0.10 s, 10 % independent loss, 0.05 m noise),
+    # so its row must equal the pilot row for the same seed, field for field.
+    grid = pilot.run_grid(tmp_path / "g", n_seeds=1, delays_s=(0.1,), losses=(0.1,), variants=("w1",))
+    rows = [r for r in grid["rows"] if r["motion"] == "constant_velocity"]
+    assert len(grid["rows"]) == 2 and len(rows) == 1
+    old = pilot._loop_row(pilot.CELLS["s6_pass"], "constant_velocity", "w1", SEED)
+    for k, v in old.items():
+        if k != "cell":
+            assert rows[0][k] == v, k
+    assert (tmp_path / "g" / "grid.json").exists() and not (tmp_path / "g.partial").exists()
+    with pytest.raises(SystemExit):
+        pilot.run_grid(tmp_path / "g", n_seeds=1)  # never overwrites a finished folder
+
+
+def _fake_row(delay, loss, motion, variant, seed, p95, failed):
+    return {"cell": "x", "motion": motion, "variant": variant, "seed": seed, "p95_m": p95, "max_m": p95,
+            "median_m": p95, "p95_steady_m": p95, "failed_steady": failed, "estimate_p95_m": 0.0,
+            "min_separation_m": 1.0, "non_nominal_fraction": 0.0, "landed": False, "failed": failed,
+            "delay_s": delay, "loss_probability": loss}
+
+
+def test_grid_resume_keeps_only_requested_seeds_and_report_rules(tmp_path):
+    # A checkpoint holding every requested job plus a row from an extra seed: run_grid runs nothing
+    # new and writes only the requested seed (no simulation runs in this test).
+    seed, extra = seed_list(2)
+    partial = tmp_path / "g.partial"
+    partial.mkdir()
+    rows = [_fake_row(0.1, 0.1, m, "w1", seed, 0.2, False) for m in ("constant_velocity", "constant_turn")]
+    rows.append(_fake_row(0.1, 0.1, "constant_turn", "w1", extra, 9.0, True))
+    (partial / pilot.GRID_CHECKPOINT).write_text("".join(__import__("json").dumps(r) + "\n" for r in rows))
+    grid = pilot.run_grid(tmp_path / "g", n_seeds=1, delays_s=(0.1,), losses=(0.1,), variants=("w1",))
+    assert {r["seed"] for r in grid["rows"]} == {seed} and len(grid["rows"]) == 2
+    # Report rules by hand: 3 seeds with p95 0.2, 0.6, 1.2 m, two failing: median 0.6 m, so the cell
+    # fails the fail rule (2 of 3), fails 0.5 m and passes 1.0 m. One failing seed of 3 passes.
+    trio = [_fake_row(0.0, 0.0, "constant_turn", "w1", s, p, f)
+            for s, p, f in ((1, 0.2, False), (2, 0.6, True), (3, 1.2, True))]
+    trio += [_fake_row(0.0, 0.0, "constant_velocity", "w1", s, 0.1, s == 1) for s in (1, 2, 3)]
+    cells = {c["motion"]: c for c in pilot.summarize_grid(trio)}
+    turn, line = cells["constant_turn"], cells["constant_velocity"]
+    assert turn["steady_p95_median_m"] == 0.6 and turn["steady_fail_count"] == 2
+    assert not turn["passes_fail_rule"] and not turn["passes_p95_0.5m"] and turn["passes_p95_1.0m"]
+    assert line["passes_fail_rule"] and line["steady_fail_count"] == 1

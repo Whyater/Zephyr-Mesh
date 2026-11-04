@@ -40,8 +40,8 @@ def test_state_frame_at_default_rate_by_hand():
 
 
 def test_other_rates_by_hand():
-    # 11 Mbit/s short preamble: 96 + 1632 / 11
-    assert ab.data_us(161, mode("11M_S")) == pytest.approx(96 + 1632 / 11)
+    # 11 Mbit/s short preamble: 96 + 1632 / 11 = 96 + 148.36, rounded up to a whole us
+    assert ab.data_us(161, mode("11M_S")) == pytest.approx(96 + 149)
     # 2 Mbit/s short preamble: 96 + 816; ACK 96 + 112 / 2 = 152
     assert ab.data_us(161, mode("2M_S")) == pytest.approx(912)
     assert ab.ack_us(mode("2M_S")) == pytest.approx(152)
@@ -93,15 +93,18 @@ def test_unicast_holds_the_air_longer_than_broadcast():
     assert u["aloha_collision"] > b["aloha_collision"]
 
 
-def test_crosscheck_dsss_matches_sim_radio_and_ofdm_differs_by_signal_extension():
+def test_crosscheck_matches_sim_radio_for_dsss_and_ofdm():
+    # sim/radio/mac.py now includes the 6 us ERP signal extension, so OFDM matches too
     for r in ab.crosscheck_sim_radio():
         if "OFDM" in r["mode"]:
-            # sim/radio/mac.py leaves out the 6 us ERP signal extension
-            assert r["data_us_here"] - r["data_us_sim_radio"] == pytest.approx(6.0)
-            assert r["ack_us_here"] - r["ack_us_sim_radio"] == pytest.approx(6.0)
-        else:
             assert r["data_us_here"] == pytest.approx(r["data_us_sim_radio"])
             assert r["ack_us_here"] == pytest.approx(r["ack_us_sim_radio"])
+        else:
+            # this file rounds DSSS/CCK frame time up to a whole microsecond and
+            # sim/radio/mac.py does not, so they can differ by less than 1 us
+            for key in ("data", "ack"):
+                gap = r[f"{key}_us_here"] - r[f"{key}_us_sim_radio"]
+                assert 0.0 <= gap < 1.0
 
 
 def test_engine_aloha_matches_the_closed_form():
