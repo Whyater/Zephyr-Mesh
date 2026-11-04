@@ -217,12 +217,8 @@ def _check_units(measured: np.ndarray, truth: np.ndarray) -> None:
                              f"ground_truth.position_m: the measured distance is a median {ratio:.3g} times the "
                              f"true distance (a factor near 1000 means millimeters; pixel coordinates also give a "
                              f"big factor). {hint}")
-    error = float(np.median(np.linalg.norm(measured - truth, axis=1)))
-    distance = float(np.median(truth_norm))
-    if error > max(1.0, distance):
-        raise ValueError(f"position_m is probably not in meters, or not in the same frame as ground_truth: the "
-                         f"median position error ({error:.3g} m) is bigger than the median target distance "
-                         f"({distance:.3g} m). {hint}")
+    # Only the distance ratio refuses. A rule like "error bigger than the target
+    # distance" would also refuse a valid log whose truth sits at the origin.
 
 
 def _quirk_warnings(trace: VisionTrace, subject_id: str, records: list[VisionObservation], res: np.ndarray,
