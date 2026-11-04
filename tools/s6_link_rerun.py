@@ -8,7 +8,9 @@ and ``loss_probability``. Results are always written to a new folder outside
 The summary label follows the input's declared status (``source_trace.status``
 in a fit, ``status`` in a small JSON). Only ``measured`` gives a measured link
 label; ``synthetic`` and ``fixture`` stay synthetic, and a missing or other
-value is labelled unknown. The sensor is always simulated.
+value is labelled unknown. The sensor is always simulated. An input that says
+``measured`` without saying where it came from is refused (see
+``require_measured_provenance``).
 """
 from __future__ import annotations
 
@@ -17,6 +19,7 @@ import csv
 import hashlib
 import json
 import math
+import re
 import shlex
 import sys
 from pathlib import Path
@@ -38,6 +41,7 @@ NOISES = (0.0, 0.02, 0.05, 0.10)
 KNOWN_STATUSES = ("measured", "synthetic", "fixture")
 SYNTHETIC_STATUS = "synthetic investigation: simulated link and sensor"
 SYNTHETIC_LIMITS = ["simulated link and sensor", "main slice only", "no hardware data"]
+_SHA256_HEX = re.compile(r"[0-9a-f]{64}")
 
 
 class LinkRerunError(ValueError):
@@ -100,6 +104,40 @@ def describe_input(data: Any, raw: bytes, input_file: str) -> dict[str, Any]:
     return {"input_kind": kind, "input_status": status if status in KNOWN_STATUSES else "unknown",
             "trace_id": trace_id if isinstance(trace_id, str) else None,
             "input_file": input_file, "input_sha256": hashlib.sha256(raw).hexdigest()}
+
+
+def _text(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def require_measured_provenance(data: Any) -> None:
+    """Refuse an input that says measured but does not say where its numbers came from.
+
+    A fit whose ``source_trace.status`` is measured must name its trace (``source_trace.trace_id``),
+    which ``fit_espnow_log.py`` always writes. A small link JSON whose ``status`` is measured must list
+    its source files under ``inputs``, each with a ``file`` name and a 64-character lowercase hex
+    ``sha256``, which ``vision_latency_to_link.py`` always writes. Anything not labelled exactly
+    ``measured`` is left alone (it is labelled synthetic or unknown, never measured).
+    """
+    if not isinstance(data, dict):
+        return
+    if data.get("schema") == FIT_SCHEMA:
+        source = data.get("source_trace")
+        if isinstance(source, dict) and source.get("status") == "measured" and not _text(source.get("trace_id")):
+            raise LinkRerunError("the fit says its trace was measured but source_trace.trace_id is missing or "
+                                 "empty, so it cannot be traced back to a capture; rerun tools/fit_espnow_log.py "
+                                 "on the imported trace instead of editing the fit")
+        return
+    if data.get("status") != "measured":
+        return
+    inputs = data.get("inputs")
+    entries = list(inputs.values()) if isinstance(inputs, dict) else []
+    if not entries or not all(isinstance(e, dict) and _text(e.get("file")) and isinstance(e.get("sha256"), str)
+                              and _SHA256_HEX.fullmatch(e["sha256"]) for e in entries):
+        raise LinkRerunError("the link JSON says measured but its inputs block does not list every source file "
+                             "with a name and a 64-character lowercase hex sha256, so it was not used; make it "
+                             "with tools/vision_latency_to_link.py, or remove status: measured from a "
+                             "hand-typed link")
 
 
 def status_label(provenance: dict[str, Any]) -> tuple[str, list[str]]:
@@ -173,6 +211,7 @@ def run_rerun(input_path: Path, output: Path, *, pilot: bool = False, seeds_coun
     raw = input_path.read_bytes()
     data = json.loads(raw.decode("utf-8"))
     link = parse_link(data)
+    require_measured_provenance(data)
     provenance = describe_input(data, raw, input_path.name)
     status, limits = status_label(provenance)
     cells = build_cells(link, pilot=pilot)
