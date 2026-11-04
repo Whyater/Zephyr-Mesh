@@ -151,7 +151,9 @@ def extract(data: bytes, name: str, *, split: bool = False) -> tuple[list[str], 
         raise _error(name, len(lines) + 1, f"this line holds {FORMAT_LINE} with extra characters on it "
                                            "(no \\n line endings?)")
     if not starts:
-        raise _error(name, 1, f"no line is exactly {FORMAT_LINE}; is this an echo log capture?")
+        raise _error(name, 1, f"no line is exactly {FORMAT_LINE}; is this an echo log capture? If the "
+                              "capture started after the board had already printed its header, reset the board "
+                              "(press its reset button) while the capture is running so the header is captured")
     if len(starts) > 1 and not split:
         raise _error(name, starts[1] + 1, "a second format line (did the board reset mid-run?); "
                                           "use --split to write one file per block")
