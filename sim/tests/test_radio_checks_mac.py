@@ -92,10 +92,10 @@ def test_d6_ack_airtime(m):
 
 def test_d6_ofdm_airtime(m):
     """D6 (hand-derived): 802.11g, 6 Mbps, 4 us symbols carry 24 bits. 75 B -> 16 + 600 + 6 =
-    622 bits -> ceil(622/24) = 26 symbols -> 20 us + 26 * 4 us = 124 us."""
+    622 bits -> ceil(622/24) = 26 symbols -> 20 us + 26 * 4 us + 6 us signal extension = 130 us."""
     phy = m.PhyConfig(rate_mbps=6.0, modulation="ofdm")
-    assert m.airtime_s(75, 6.0, phy) == pytest.approx(124e-6, abs=1e-12)
-    assert m.data_airtime_s(32, phy) == pytest.approx(124e-6, abs=1e-12)
+    assert m.airtime_s(75, 6.0, phy) == pytest.approx(130e-6, abs=1e-12)
+    assert m.data_airtime_s(32, phy) == pytest.approx(130e-6, abs=1e-12)
 
 
 def test_d6_short_preamble_2mbps(m):

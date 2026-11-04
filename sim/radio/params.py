@@ -15,6 +15,9 @@ Status meanings:
   Used only where a model needs some number, and always swept.
 - ``UNCONFIRMED``: no source found.  Kept out of defaults.
 - ``modelling-choice``: not a fact about the world; a choice of this model.
+- ``contradicted``: a published value that breaks a hard limit of the model
+  it was meant to check (for example, more frames per second than the
+  airtime allows).  Kept for the record; never used as a check or default.
 
 The sources were checked on 2026-10-14.
 """
@@ -142,8 +145,13 @@ PARAMS: dict[str, SourcedValue] = {
     "cca_threshold_dbm": _v(-82.0, -95.0, -62.0, "dBm", "", "modelling-choice",
                             "-82 dBm is the 802.11 OFDM preamble-detect level; the ESP32 DSSS carrier-sense level is "
                             "UNCONFIRMED. Inside a gym every node is far above any of these"),
-    "measured_throughput_250b_pps": _v(357, None, None, "packets/s", _NTU_BLOG, "partial",
-                                       "1 Mbps unicast, 250 B: a check value for the airtime model (predicts ~312 to 345)"),
+    "measured_throughput_250b_pps": SourcedValue(
+        357, None, None, "packets/s", _NTU_BLOG, "2026-11-04", "contradicted",
+        "the source's 1 Mbps unicast row: 89250 B/s / 250 B. A 250 B unicast exchange at 1 Mbps with the "
+        "standard 1 Mbps ACK takes 2536 + 10 + 304 = 2850 us, so at most 350.9 per second even with no DIFS "
+        "or backoff (the model predicts ~312 to 345 with them). The same table's broadcast row (101000 B/s, "
+        "404 per second) is also above its 394.3 air-only ceiling, which points to the counting window, not a "
+        "mislabel (UNCONFIRMED). Not a valid check as labelled"),
 }
 
 
