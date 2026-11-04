@@ -6,6 +6,7 @@ code against the merged tool's own delivery function.
 """
 from __future__ import annotations
 
+import json
 from math import radians, tan
 
 import numpy as np
@@ -97,3 +98,32 @@ def test_grid_has_reference_and_camera_cells():
     assert len(cells) == 5 * 2 * 7 * 4 * 2
     assert len({c["cell_id"] for c in cells}) == len(cells)
     assert {c["noise_std_m"] for c in cells} == {0.05, 0.10}
+
+
+def test_identity_check_flags_a_changed_record(tmp_path):
+    # Build a fake "merged run" from fake records, then change one value by 1e-12:
+    # the check must count exactly that cell as not byte-identical.
+    cells = [c for c in cam.build_cells() if c["model"] in cam.REFERENCE_MODELS][:3]
+    record = {"arms": {"naive": {"p95_median_m": 0.1}}, "paired": {}, "per_seed": {"naive": [{"p95_error_m": 0.1}]}}
+    results = {c["cell_id"]: {"cell_id": c["cell_id"], **json.loads(json.dumps(record))} for c in cells}
+    merged = tmp_path / "merged"
+    merged.mkdir()
+    lines = [json.dumps({**r, "n_seeds": 30, "code_sha256": "x"}) for r in results.values()]
+    (merged / "checkpoint.jsonl").write_text("\n".join(lines) + "\n")
+    tol = "variant,motion,loss_probability,noise_std_m,arm\njitter_const_bias,constant_turn,0.0,0.1,naive\n"
+    (merged / "tolerance.csv").write_text(tol)
+    (tmp_path / "mine.csv").write_text(tol)
+    results["__tolerance_csv__"] = str(tmp_path / "mine.csv")
+    same = cam.merged_identity_check(cells, results, merged)
+    assert same["cells_byte_identical"] == 3 and same["tolerance_rows_identical"]
+    results[cells[1]["cell_id"]]["per_seed"]["naive"][0]["p95_error_m"] = 0.1 + 1e-12
+    (tmp_path / "mine.csv").write_text(tol.replace("naive", "recovery"))
+    changed = cam.merged_identity_check(cells, results, merged)
+    assert changed["cell_mismatches"] == [cells[1]["cell_id"]]
+    assert not changed["tolerance_rows_identical"]
+
+
+def test_checks_only_creates_its_folder(tmp_path):
+    out = tmp_path / "new" / "folder"
+    assert cam.main(["--output", str(out), "--seeds", "2", "--checks-only"]) == 0
+    assert (out / "checks.json").exists()

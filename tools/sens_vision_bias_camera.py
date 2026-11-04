@@ -428,6 +428,7 @@ def run(output: Path, *, seeds_count: int, processes: int, control: bool, merged
 
 def write_checks(output: Path, seeds: list[int]) -> dict[str, Any]:
     """Bias speed and per-seed raw error floors (cheap; no tracker runs)."""
+    output.mkdir(parents=True, exist_ok=True)
     speeds = {}
     for motion in ves.MOTIONS:
         for noise in NOISES:
