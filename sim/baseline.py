@@ -284,10 +284,10 @@ def write_baseline(output_dir: str | Path, config: BaselineConfig = BaselineConf
     manifest = build_manifest(config, command=command, output_dir=destination, telemetry=telemetry)
     manifest["artifacts"] = {"telemetry.csv": {"path": _portable(csv_path), "sha256": _sha256(csv_path)}}
     manifest_path = destination / "manifest.json"
-    with manifest_path.open("w") as handle:
+    with manifest_path.open("w", newline="\n") as handle:
         json.dump(manifest, handle, indent=2)
         handle.write("\n")
-    (destination / "manifest.sha256").write_text(f"{_sha256(manifest_path)}  manifest.json\n")
+    (destination / "manifest.sha256").write_text(f"{_sha256(manifest_path)}  manifest.json\n", newline="\n")
     return csv_path
 
 

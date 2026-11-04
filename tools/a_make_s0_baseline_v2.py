@@ -102,7 +102,7 @@ def generate(output_dir: Path, *, dt: float = 0.01, overwrite: bool = False) -> 
         "scenarios": {name: _metric(name, telemetry[name]) for name in SCENARIOS},
     }
     report_path = output_dir / "report.json"
-    report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     written.append(report_path)
     figure_path = output_dir / "a_s0_baseline_v2.png"
     _figure(telemetry, figure_path)

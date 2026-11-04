@@ -107,7 +107,7 @@ def main(argv: list[str] | None = None) -> None:
         "per_run_partial": _partial_reclassify(rows),
         "d_crit_loss0_seed0_20s": _dcrit_compare(config, committed),
     }
-    (out / "diagnostic.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (out / "diagnostic.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     write_manifest(out / "manifest.json", schema="zephyr-d088-exp021-diagnostic-manifest-1", argv=sys.argv[1:] if argv is None else argv,
                    config={"tilt_limit_deg": TILT_LIMIT_DEG, "min_height_m": MIN_HEIGHT_M, "source": "sim/runs/a6-control-tolerance"},
                    seeds=[0], limits=["diagnostic only, does not replace EXP-021", "simulated only",

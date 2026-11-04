@@ -134,7 +134,7 @@ def write_manifest(path: str | Path, **kwargs) -> Path:
     if "output_dir" not in kwargs:
         kwargs["output_dir"] = destination.parent
     document = build_manifest(**kwargs)
-    destination.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    destination.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     return destination
 
 
