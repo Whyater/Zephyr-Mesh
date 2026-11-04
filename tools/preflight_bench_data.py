@@ -9,7 +9,8 @@ Give it the bench data folder (the one holding aruco/, latency/ and radio/ in th
 every subfolder, works out what each file is from its contents, and checks the things intake depends on:
 
 - detection logs: the same reader and provenance check the intake uses, the detection rate, the ground truth
-  against the file name (d2.0 means 2.0 m, center means x = 0), the detected distance against the tape, and
+  against the file name (d2.0 means a tape value that rounds to 2.0 m, center means x = 0), the detected
+  distance and sideways position against the recorded truth, and
   the raw video and frames file against the sha256 values written into the log;
 - calibration files: readable, unchanged since the capture, and the same frame size as the logs;
 - the processing-time file: the same check the intake uses, plus its timings file and sha256;
@@ -55,10 +56,22 @@ from tools.vision_latency_to_link import (
 )
 
 DEFAULT_MIN_DETECTION_RATE = 0.5   # runbook step 4: under half the frames detected means fix the setup
+# Truth against what the camera sees, on the median over the log's frames. Frame-to-frame ArUco noise is a few
+# mm at 1 m and more at 2 m, mostly in z (tools/capture_aruco.py), and the median of hundreds of frames shrinks
+# it far below that, so these limits are set by the honest steady errors instead:
+# - z (relative): marker length and focal length errors scale z by a percent or two. 10% allows several times
+#   that. A stale DIST is 50 to 100% off (0.5, 1.0 and 2.0 m crosses).
+# - x (absolute plus a part of z): 2 cm for tape and centering the marker on the cross, plus 5% of z for an
+#   axis line a few degrees off the lens axis (tan 3 deg = 0.05) or a principal point tens of px off. Side
+#   crosses sit at x = 427 z / fx, so x doubles from one cross to the next and a stale LAT is off by half or
+#   all of the true x: 0.107 m at the 0.5 and 1 m crosses, where the limit is 0.045 and 0.07 m, and 0.22 m at
+#   2 m, where it is 0.12 m. Center crosses (x = 0) get the 2 cm term plus 5% of z.
 MAX_DISTANCE_ERROR = 0.10          # runbook step 3: live z should be within a few percent of the tape
+LATERAL_ERROR_M = 0.02
+LATERAL_ERROR_PER_M_OF_Z = 0.05
 MAX_RMS_PX = 0.5                   # runbook step 3: calibration RMS under about 0.5 px
 MAX_SESSION_SPAN_H = 12.0
-NAME_TOLERANCE_M = 0.0005
+CENTER_TOLERANCE_M = 0.0005        # the runbook types LAT=0 for a center cross
 RADIO_SUFFIXES = {".csv", ".txt", ".raw", ".log"}
 RADIO_FORMAT = import_espnow_log.FORMAT_LINE
 FRAMES_NOTE = re.compile(r"The frames file (\S+) has SHA-256 ([0-9a-f]{64})")
@@ -211,12 +224,16 @@ def _name_problems(stem: str, truth: tuple[float, float, float]) -> list[str]:
     problems = []
     for token in tokens:
         match = re.fullmatch(r"d(\d+(?:\.\d+)?)", token)
-        if match and abs(float(match.group(1)) - truth[2]) > NAME_TOLERANCE_M:
+        # The name is the taped distance rounded to the digits it shows ("d1.0" reads "distance 1.0 m" in
+        # tools/capture_aruco.py, whose own example names a 0.998 m tape d1.0), so d1.0 covers 0.95 to 1.05 m.
+        # That still catches a mix-up between crosses (0.5, 1.0, 2.0 m) or 0.75 m data under d1.0.
+        decimals = len(match.group(1).partition(".")[2]) if match else 0
+        if match and abs(float(match.group(1)) - truth[2]) > 0.5 * 10 ** -decimals + 1e-9:
             problems.append(f"the name says {match.group(1)} m but the ground truth z in the log is "
                             f"{truth[2]:g} m")
-    if "center" in tokens and abs(truth[0]) > NAME_TOLERANCE_M:
+    if "center" in tokens and abs(truth[0]) > CENTER_TOLERANCE_M:
         problems.append(f"the name says center but the ground truth x (sideways) is {truth[0]:g} m, not 0")
-    if "side" in tokens and abs(truth[0]) <= NAME_TOLERANCE_M:
+    if "side" in tokens and abs(truth[0]) <= CENTER_TOLERANCE_M:
         problems.append("the name says side but the ground truth x (sideways) is 0")
     return problems
 
@@ -277,6 +294,15 @@ def check_log(path: Path, report: Report, min_rate: float) -> LogInfo | None:
                                 f"{tape_z:.3f} m ({100 * error:.0f}% off; the runbook allows a few percent)",
                                 "check --marker-length-m against the ruler and that --calibration is the file made "
                                 "at this frame size, then record again")
+            seen_x = statistics.median(o.position_m[0] for o in usable)
+            truth_x = statistics.median(o.ground_truth["position_m"][0] for o in usable)
+            limit = LATERAL_ERROR_M + LATERAL_ERROR_PER_M_OF_Z * abs(truth[2])
+            if abs(seen_x - truth_x) > limit:
+                report.fail("lateral-off", rel, f"the camera puts the marker {seen_x:.3f} m sideways but the log's "
+                            f"truth says {truth_x:.3f} m ({abs(seen_x - truth_x):.3f} m apart; honest placement "
+                            f"error is under {limit:.3f} m here)",
+                            "LAT was probably left from another cross; set LAT to the x on this cross's card and "
+                            "record again under a new name")
 
     _check_sidecars(path, trace, report, rel)
 

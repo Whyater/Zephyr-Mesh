@@ -44,8 +44,11 @@ def write_log(folder: Path, name: str, truth: tuple[float, float, float], *, fra
               detected_per_10: int = 9, status: str = "measured", calibration: Path | None = None,
               code_revision: str = REVISION, resolution: tuple[int, int] = (1280, 720), scale: float = 1.0,
               mixed_frames: bool = False, raw_video: bool = True, captured_at: str = CAPTURED_AT,
-              subjects: int = 1) -> Path:
-    """A detection log plus its frames file and raw video, the way tools/capture_aruco.py lays them out."""
+              subjects: int = 1, seen: tuple[float, float, float] | None = None) -> Path:
+    """A detection log plus its frames file and raw video, the way tools/capture_aruco.py lays them out.
+
+    The camera sees scale x truth plus noise, or `seen` plus noise when it is given (a marker that is not
+    where the recorded truth says)."""
     folder.mkdir(parents=True, exist_ok=True)
     log = folder / f"{name}.jsonl"
     frames_path = folder / f"{name}.frames.jsonl"
@@ -66,7 +69,8 @@ def write_log(folder: Path, name: str, truth: tuple[float, float, float], *, fra
                "processing_time_s": i / 30 + 0.012, "ground_truth": gt}
         if i % 10 < detected_per_10:
             noise = rng.normal(0.0, 0.003, 3)
-            obs.update(outcome="detected", position_m=[scale * t + n for t, n in zip(truth, noise)],
+            centre = [scale * t for t in truth] if seen is None else list(seen)
+            obs.update(outcome="detected", position_m=[c + n for c, n in zip(centre, noise)],
                        position_frame="world" if mixed_frames and i % 2 else "camera")
         else:
             obs.update(outcome="missed", miss_reason="not_found")
@@ -252,6 +256,48 @@ def test_center_name_with_sideways_truth_fails(good: Path):
 def test_side_name_with_center_truth_fails(good: Path):
     write_log(good / "aruco", LOG_2M, (0.0, 0.0, 2.0), calibration=good / "aruco" / "calibration-1280x720.json")
     assert_fails(tool.preflight(good), "name-truth-mismatch")
+
+
+@pytest.mark.parametrize("truth_z", [0.998, 1.003, 0.96, 1.04])
+def test_honest_tape_values_match_a_rounded_name(good: Path, truth_z: float):
+    # The name is the taped distance rounded to the digits shown: d1.0 covers 0.95 to 1.05 m.
+    # 0.998 is the example in tools/capture_aruco.py.
+    write_log(good / "aruco", LOG_1M, (0.0, 0.0, truth_z), calibration=good / "aruco" / "calibration-1280x720.json")
+    assert not codes(tool.preflight(good)), "an honest tape value under its rounded name must pass"
+
+
+@pytest.mark.parametrize("truth_z", [0.75, 0.94, 1.06, 0.5, 2.0])
+def test_tape_value_that_does_not_round_to_the_name_fails(good: Path, truth_z: float):
+    # 0.75 m data in a d1.0 file is a mix-up, not tape error.
+    write_log(good / "aruco", LOG_1M, (0.0, 0.0, truth_z), calibration=good / "aruco" / "calibration-1280x720.json")
+    assert_fails(tool.preflight(good), "name-truth-mismatch")
+
+
+@pytest.mark.parametrize("name, truth, seen", [
+    # Side crosses sit at x = 427 z / fx, so x doubles from one taped distance to the next. A LAT left from the
+    # last placement is off by half or all of the true x. Values follow the runbook (about 0.107, 0.21, 0.43 m).
+    ("2026-10-30_d2.0_side_yaw0_r1", (0.21, 0.0, 2.0), (0.43, 0.0, 2.0)),
+    ("2026-10-30_d2.0_side_yaw0_r1", (0.43, 0.0, 2.0), (0.21, 0.0, 2.0)),
+    ("2026-10-30_d1.0_side_yaw0_r1", (0.107, 0.0, 1.0), (0.21, 0.0, 1.0)),
+    ("2026-10-30_d0.5_side_yaw0_r1", (0.21, 0.0, 0.5), (0.107, 0.0, 0.5)),
+])
+def test_stale_lateral_truth_fails(good: Path, name: str, truth: tuple, seen: tuple):
+    (good / "aruco" / f"{LOG_2M}.jsonl").unlink()
+    write_log(good / "aruco", name, truth, seen=seen, calibration=good / "aruco" / "calibration-1280x720.json")
+    report = tool.preflight(good)
+    assert_fails(report, "lateral-off")
+    assert "LAT" in next(f.fix for f in report.findings if f.code == "lateral-off")
+
+
+@pytest.mark.parametrize("truth, seen", [
+    ((0.43, 0.0, 2.0), (0.47, 0.0, 2.0)),   # 4 cm at 2 m: tape plus about 1 degree of axis line
+    ((0.21, 0.0, 1.0), (0.18, 0.0, 1.0)),   # 3 cm at 1 m
+])
+def test_honest_lateral_offsets_pass(good: Path, truth: tuple, seen: tuple):
+    name = LOG_2M if truth[2] == 2.0 else "2026-10-30_d1.0_side_yaw0_r1"
+    (good / "aruco" / f"{LOG_2M}.jsonl").unlink()
+    write_log(good / "aruco", name, truth, seen=seen, calibration=good / "aruco" / "calibration-1280x720.json")
+    assert not codes(tool.preflight(good)), "a few cm of honest placement error must not fail"
 
 
 def test_detected_distance_far_from_truth_fails(good: Path):
