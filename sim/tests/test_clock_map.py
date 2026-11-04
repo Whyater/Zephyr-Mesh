@@ -1,0 +1,188 @@
+"""Checks for mapping a device boot clock onto sim time (``sim.clock_map``).
+
+Tolerances come from the hand formulas for a straight-line least-squares fit,
+written out next to the tests that use them.
+"""
+import math
+
+import numpy as np
+import pytest
+
+from sim import clock_map
+from sim.timesync import ClockModel, sync_log
+
+OFFSET_S = 2.0
+DRIFT_PPM = 50.0
+
+
+def device_reading(sim_s, offset_s=OFFSET_S, drift_ppm=DRIFT_PPM):
+    # Written out by hand so the test does not depend on the module under test.
+    return np.asarray(sim_s, dtype=float) * (1.0 + drift_ppm * 1e-6) + offset_s
+
+
+def test_hand_point_after_1000_seconds():
+    # 50 ppm fast means 50 microseconds gained per second, so 0.05 s after 1000 s.
+    # The device reads 1000 + 0.05 + 2 = 1002.05 when the sim reads 1000.
+    m = clock_map.ClockMap(offset_s=OFFSET_S, drift_ppm=DRIFT_PPM)
+    assert m.to_device(1000.0) == pytest.approx(1002.05, abs=1e-12)
+    assert m.to_sim(1002.05) == pytest.approx(1000.0, abs=1e-9)
+
+
+def test_convention_matches_timesync_clock_model():
+    times = np.linspace(0.0, 3600.0, 37)
+    model = ClockModel(offset_s=OFFSET_S, drift_ppm=DRIFT_PPM)
+    m = clock_map.ClockMap(offset_s=OFFSET_S, drift_ppm=DRIFT_PPM)
+    assert np.allclose(m.to_device(times), model.read(times), atol=1e-12, rtol=0)
+
+
+def test_round_trip_is_identity():
+    m = clock_map.ClockMap(offset_s=-12.5, drift_ppm=-30.0)
+    sim_s = np.random.default_rng(0).uniform(0.0, 7200.0, size=500)
+    assert np.max(np.abs(m.to_sim(m.to_device(sim_s)) - sim_s)) < 1e-9
+
+
+def test_noise_free_pairs_recover_offset_and_drift():
+    sim_s = np.linspace(0.0, 100.0, 201)
+    fit = clock_map.fit_clock_map(device_reading(sim_s), sim_s)
+    assert fit.offset_s == pytest.approx(OFFSET_S, abs=1e-12)
+    assert fit.drift_ppm == pytest.approx(DRIFT_PPM, abs=1e-6)
+    assert fit.residual_rms_s < 1e-12
+    assert fit.n_pairs == 201
+    assert fit.span_s == pytest.approx(100.0)
+
+
+# Hand tolerance for the noisy case. 201 pairs, one every 0.5 s over 100 s, and
+# 1 ms of noise (standard deviation sigma) on each device stamp.
+#   spread of the sim times: S = sum (t - mean)^2, about N * T^2 / 12 = 167500 s^2.
+#     Exactly, with t = 0.5 k: S = 0.25 * 2 * (1^2 + ... + 100^2)
+#     = 0.5 * (100 * 101 * 201 / 6) = 169175 s^2
+#   slope error:  sigma / sqrt(S) = 0.001 / 411.3 = 2.43e-6 = 2.43 ppm
+#   offset error at t = 0: sigma * sqrt(1/N + mean^2 / S)
+#     = 0.001 * sqrt(1/201 + 50^2 / 169175) = 0.001 * 0.1405 = 0.14 ms
+# The test allows 4 of those standard errors.
+N_PAIRS = 201
+SPAN_S = 100.0
+SIGMA_S = 1e-3
+SPREAD = float(np.sum((np.linspace(0.0, SPAN_S, N_PAIRS) - SPAN_S / 2) ** 2))
+SE_DRIFT_PPM = SIGMA_S / math.sqrt(SPREAD) * 1e6
+SE_OFFSET_S = SIGMA_S * math.sqrt(1.0 / N_PAIRS + (SPAN_S / 2) ** 2 / SPREAD)
+
+
+def test_hand_standard_errors_are_what_the_comment_says():
+    assert SPREAD == pytest.approx(169175.0, abs=1e-6)
+    assert SE_DRIFT_PPM == pytest.approx(2.43, abs=0.005)
+    assert SE_OFFSET_S == pytest.approx(1.405e-4, abs=0.005e-4)
+
+
+def noisy_pairs(seed):
+    sim_s = np.linspace(0.0, SPAN_S, N_PAIRS)
+    noise = np.random.default_rng(seed).normal(0.0, SIGMA_S, size=N_PAIRS)
+    return device_reading(sim_s) + noise, sim_s
+
+
+def test_noisy_pairs_recover_offset_and_drift_within_hand_tolerance():
+    device_s, sim_s = noisy_pairs(seed=11)
+    fit = clock_map.fit_clock_map(device_s, sim_s)
+    assert abs(fit.drift_ppm - DRIFT_PPM) < 4 * SE_DRIFT_PPM
+    assert abs(fit.offset_s - OFFSET_S) < 4 * SE_OFFSET_S
+    # The leftover scatter is the stamp noise itself.
+    assert fit.residual_rms_s == pytest.approx(SIGMA_S, rel=0.15)
+    # Mapped back, the device stamps land on sim time to within the noise.
+    assert np.sqrt(np.mean((fit.to_sim(device_s) - sim_s) ** 2)) < 1.2 * SIGMA_S
+
+
+def test_spread_of_fits_over_many_seeds_matches_the_hand_formula():
+    # An independent check on the hand formula: refit 400 noise draws and
+    # compare the scatter of the answers with the predicted standard errors.
+    drifts = []
+    offsets = []
+    for seed in range(400):
+        fit = clock_map.fit_clock_map(*noisy_pairs(seed))
+        drifts.append(fit.drift_ppm)
+        offsets.append(fit.offset_s)
+    assert np.std(drifts) == pytest.approx(SE_DRIFT_PPM, rel=0.15)
+    assert np.std(offsets) == pytest.approx(SE_OFFSET_S, rel=0.15)
+    assert np.mean(drifts) == pytest.approx(DRIFT_PPM, abs=4 * SE_DRIFT_PPM / math.sqrt(400))
+
+
+def test_ignoring_drift_leaves_a_growing_error():
+    # Why drift matters: correct only the offset and the error after 1000 s is
+    # 50 ppm * 1000 s = 0.05 s, which at 2 m/s is a 10 cm position error.
+    offset_only = clock_map.ClockMap(offset_s=OFFSET_S, drift_ppm=0.0)
+    assert 1000.0 - offset_only.to_sim(device_reading(1000.0)) == pytest.approx(-0.05, abs=1e-9)
+
+
+def test_pairs_from_symmetric_ntp_exchanges_recover_the_clock():
+    log = sync_log(60.0, {"mode": "ntp", "offset_s": OFFSET_S, "drift_ppm": DRIFT_PPM,
+                          "sync_delay_s": 0.005, "processing_s": 0.001},
+                   {"sync_up": 1, "sync_down": 2})
+    device_s, sim_s = clock_map.pairs_from_sync_log(log)
+    assert len(device_s) == 61
+    fit = clock_map.fit_clock_map(device_s, sim_s)
+    assert fit.offset_s == pytest.approx(OFFSET_S, abs=1e-9)
+    assert fit.drift_ppm == pytest.approx(DRIFT_PPM, abs=1e-4)
+
+
+def test_path_asymmetry_shows_up_as_half_its_size_in_the_offset():
+    # Uplink 7 ms, downlink 3 ms (asymmetry 4 ms). The sensor midpoint happens
+    # (7 - 3) / 2 = 2 ms later than the tracker midpoint, so the fitted offset is
+    # 2 ms too big, times (1 + 50e-6), so 0.0020001 s.
+    log = sync_log(60.0, {"mode": "ntp", "offset_s": OFFSET_S, "drift_ppm": DRIFT_PPM,
+                          "sync_delay_s": 0.005, "sync_asymmetry_s": 0.004, "processing_s": 0.001},
+                   {"sync_up": 1, "sync_down": 2})
+    fit = clock_map.fit_clock_map(*clock_map.pairs_from_sync_log(log))
+    assert fit.offset_s - OFFSET_S == pytest.approx(0.002 * (1 + 50e-6), abs=1e-9)
+
+
+def test_lost_exchanges_are_skipped():
+    log = sync_log(60.0, {"mode": "ntp", "offset_s": OFFSET_S, "drift_ppm": DRIFT_PPM,
+                          "sync_loss_probability": 0.3},
+                   {"sync_up": 3, "sync_down": 4})
+    device_s, sim_s = clock_map.pairs_from_sync_log(log)
+    kept = sum(1 for row in log if not row["lost"])
+    assert 0 < kept < len(log)
+    assert len(device_s) == len(sim_s) == kept
+    assert np.all(np.isfinite(device_s)) and np.all(np.isfinite(sim_s))
+
+
+def test_unwrap_32_bit_microsecond_counter_by_hand():
+    # A uint32 microsecond counter rolls over every 2^32 us = 4294.967296 s.
+    modulus = 2**32
+    ticks = np.array([modulus - 2_000_000, modulus - 1, 5, 1_000_000], dtype=np.int64)
+    unwrapped = clock_map.unwrap_counter(ticks, modulus)
+    assert unwrapped.tolist() == [modulus - 2_000_000, modulus - 1, modulus + 5, modulus + 1_000_000]
+    assert clock_map.ticks_to_seconds(unwrapped, tick_hz=1_000_000)[2] == pytest.approx(4294.967301)
+
+
+def test_unwrap_handles_two_rollovers_and_leaves_a_clean_counter_alone():
+    modulus = 1000
+    raw = np.array([900, 100, 500, 950, 10, 20])
+    assert clock_map.unwrap_counter(raw, modulus).tolist() == [900, 1100, 1500, 1950, 2010, 2020]
+    clean = np.arange(0, 900, 100)
+    assert clock_map.unwrap_counter(clean, modulus).tolist() == clean.tolist()
+
+
+@pytest.mark.parametrize(
+    ("device_s", "sim_s"),
+    [
+        ([1.0], [1.0]),                      # one pair cannot give a drift
+        ([1.0, 2.0], [5.0, 5.0]),            # no time span
+        ([1.0, 2.0, 3.0], [1.0, 2.0]),       # length mismatch
+        ([1.0, float("nan")], [1.0, 2.0]),   # not finite
+    ],
+)
+def test_fit_rejects_unusable_pairs(device_s, sim_s):
+    with pytest.raises(ValueError):
+        clock_map.fit_clock_map(device_s, sim_s)
+
+
+def test_clock_map_rejects_impossible_drift():
+    with pytest.raises(ValueError):
+        clock_map.ClockMap(offset_s=0.0, drift_ppm=-1e6)
+
+
+def test_small_backward_step_is_not_a_wrap():
+    # A reordered packet can arrive with a slightly older stamp. That is not a
+    # rollover, so nothing is added (a wrap needs a drop of more than half the modulus).
+    raw = np.array([100, 200, 190, 300])
+    assert clock_map.unwrap_counter(raw, 1000).tolist() == [100, 200, 190, 300]
