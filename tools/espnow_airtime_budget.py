@@ -154,7 +154,9 @@ def ppdu_us(n_bytes: int, rate_mbps: float, modulation: str, short_preamble: boo
         raise ValueError("n_bytes must be a positive integer")
     if modulation == "dsss":
         pre = C["dsss_short_preamble_us"].value if short_preamble else C["dsss_long_preamble_us"].value
-        return pre + 8 * n_bytes / rate_mbps
+        # 802.11b TXTIME rounds the payload time up to a whole microsecond (Ceiling in
+        # the standard's formula, as quoted in the Linux code cited for this constant)
+        return pre + math.ceil(8 * n_bytes / rate_mbps)
     bits_per_symbol = rate_mbps * C["ofdm_symbol_us"].value
     symbols = math.ceil((C["ofdm_service_tail_bits"].value + 8 * n_bytes) / bits_per_symbol)
     return (C["ofdm_preamble_signal_us"].value + symbols * C["ofdm_symbol_us"].value
