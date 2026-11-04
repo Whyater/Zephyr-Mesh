@@ -47,12 +47,13 @@ def test_one_registered_row_reproduces_as_text(reference):
 
 def test_control_fails_when_a_registered_value_is_changed(reference):
     # Negative control: perturb the stored p95 of the row being rerun; the check must fail.
+    # The nudge is relative 1e-6, far outside the 1e-9 tolerance used off macOS, so it fails on every OS.
     seed = ext.seeds()[0]
     key = ext.row_key("abstract", "ct_r1", "independent", 0.0, "single", 1, 0.3, seed)
     line, values = reference[key]
     p95 = values["p95"]
     altered = dict(reference)
-    altered[key] = (line.replace(p95, repr(float(p95) + 1e-12), 1), values)
+    altered[key] = (line.replace(p95, repr(float(p95) * (1 + 1e-6) + 1e-9), 1), values)
     result = ext.control(processes=1, cells=((0.3, 0.0, 1),), seed_list=[seed], reference=altered)
     assert not result["passed"] and len(result["mismatches"]) == 1
     missing = {k: v for k, v in reference.items() if k != key}
