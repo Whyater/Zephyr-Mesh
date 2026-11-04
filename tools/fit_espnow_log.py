@@ -543,11 +543,15 @@ def fit_echo_trace(trace: EspNowTrace, *, confidence: float = 0.95, n_boot: int 
                   "loss_model": "independent", "burst_mean_length_packets": 1.0}
         LinkConfig(**link_config)  # fail here, not in the caller, if anything is out of range
 
+    source_trace = {"trace_id": trace.trace_id, "status": trace.status, "n_packets": len(trace.packets)}
+    if trace.provenance is not None:
+        # Kept so a reader of this fit can check a measured label against the bench capture.
+        source_trace["provenance"] = trace.provenance
     result = {
         "schema": FIT_SCHEMA,
         "status_note": (f"Trace status: {trace.status}. These numbers are only as real as the trace: a synthetic "
                         "or fixture trace gives synthetic settings, never a radio measurement."),
-        "source_trace": {"trace_id": trace.trace_id, "status": trace.status, "n_packets": len(trace.packets)},
+        "source_trace": source_trace,
         "confidence": confidence,
         "delay": delay,
         "delay_null_reason": delay_reason,

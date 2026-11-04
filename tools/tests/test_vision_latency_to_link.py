@@ -26,16 +26,28 @@ MEASURED_PROVENANCE = {"operator": "bench-test", "captured_at": "2026-10-30T10:0
 EXPOSURE_S = SynthConfig().exposure_s  # the synth default the end-to-end run uses
 
 
-def _latency(low=0.05, high=0.13, jitter=0.008, status="measured"):
-    """A hand-written latency.json with round numbers, for exact hand checks."""
-    return {"schema": "zephyr-vision-latency-1", "status": status,
+def _latency(low=0.05, high=0.13, jitter=0.008, status="measured", bare=False):
+    """A hand-written latency.json with round numbers, for exact hand checks.
+
+    A measured one carries what analyze writes for a recorded run (hashes of the run files and the
+    recorder metadata) unless bare=True; without that the converter calls it unverified."""
+    data = {"schema": "zephyr-vision-latency-1", "status": status,
             "settings": {"display_lag_s": [0.0, 0.06]},
             "apparent_latency_s": {"mean": 0.125, "stated_error": 0.005, "jitter_std_from_straddles": jitter},
             "camera_latency_s": {"low": low, "high": high, "note": "x"}, "warnings": []}
+    if status == "measured" and not bare:
+        data["inputs"] = {"frames.npz": "1" * 64, "display_log.csv": "2" * 64, "run_meta.json": "3" * 64}
+        data["run_meta"] = {"schema": "zephyr-vision-latency-run-1", "status": "measured",
+                            "opencv_version": "4.x", "platform": "bench", "clock": "time.monotonic"}
+    return data
 
 
-def _fit(delay=0.03, jitter=0.006, status="measured"):
-    return {"schema": "zephyr-vision-noise-fit-1", "input": {"status": status},
+def _fit(delay=0.03, jitter=0.006, status="measured", bare=False):
+    """A measured fit carries the detection log's provenance block unless bare=True."""
+    block = {"status": status}
+    if status == "measured" and not bare:
+        block["provenance"] = dict(MEASURED_PROVENANCE)
+    return {"schema": "zephyr-vision-noise-fit-1", "input": block,
             "scenario_delay": {"measurement_delay_s": delay, "measurement_jitter_s": jitter}}
 
 
@@ -121,6 +133,22 @@ def test_display_lag_is_passed_through_as_an_assumption():
 ])
 def test_status_synthetic_stays_synthetic(camera, extra, expected):
     assert tool.build_link(_latency(status=camera), **(extra or {}))["status"] == expected
+
+
+@pytest.mark.parametrize("latency, extra, expected", [
+    (_latency(bare=True), None, "unverified"),
+    (_latency(bare=True), {"processing": dict(PROCESSING, status="measured", provenance=MEASURED_PROVENANCE)},
+     "unverified"),
+    (_latency(), {"vision_fit": _fit(bare=True)}, "unverified"),
+    (_latency(bare=True), {"processing": PROCESSING}, "synthetic"),
+    (_latency(bare=True), {"processing": {k: v for k, v in PROCESSING.items() if k != "status"}}, "unknown"),
+])
+def test_a_measured_input_without_provenance_never_gives_a_measured_link(latency, extra, expected):
+    # Truth: a bare file only says measured; it names no run-file hashes, recorder or operator.
+    link = tool.build_link(latency, **(extra or {}))
+    assert link["status"] == expected
+    if expected == "unverified":
+        assert any("not treated as measured" in w for w in link["warnings"])
 
 
 def test_missing_camera_jitter_is_flagged_not_hidden():

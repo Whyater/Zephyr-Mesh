@@ -235,7 +235,11 @@ def test_the_vision_link_converter_output_passes(tmp_path):
     latency.write_text(json.dumps({
         "schema": "zephyr-vision-latency-1", "status": "measured", "settings": {"display_lag_s": [0.0, 0.06]},
         "apparent_latency_s": {"mean": 0.125, "stated_error": 0.005, "jitter_std_from_straddles": 0.008},
-        "camera_latency_s": {"low": 0.05, "high": 0.13, "note": "x"}, "warnings": []}))
+        "camera_latency_s": {"low": 0.05, "high": 0.13, "note": "x"}, "warnings": [],
+        # what analyze writes for a recorded run; without it the converter calls the link unverified
+        "inputs": {"frames.npz": "1" * 64, "display_log.csv": "2" * 64, "run_meta.json": "3" * 64},
+        "run_meta": {"schema": "zephyr-vision-latency-run-1", "status": "measured", "opencv_version": "4.x",
+                     "platform": "bench", "clock": "time.monotonic"}}))
     link = conv.convert_files(latency, tmp_path / "link.json")
     assert link["status"] == "measured"
     require_measured_provenance(json.loads((tmp_path / "link.json").read_text()))
