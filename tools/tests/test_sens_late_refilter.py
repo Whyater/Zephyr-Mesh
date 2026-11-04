@@ -2,8 +2,10 @@
 
 The registered rows come from sim/runs/s6-recovery and sim/runs/s6-retro (recorded
 on macOS, so compared with the shared platform tolerance elsewhere), which
-were produced by other code. The engine comparison uses the estimation engine's
-own recovery and retrodict arms, a separately written implementation. The
+were produced by other code. The engine comparison runs the estimation engine's
+own recovery and retrodict arms. The wrapper's drop and refilter arms were
+transcribed from that engine code (gating removed) and share its estimator and
+delivery code, so exact agreement checks the transcription, not the algorithm. The
 late-fraction check compares the simulated link with a formula written from the
 lognormal delay model.
 """
