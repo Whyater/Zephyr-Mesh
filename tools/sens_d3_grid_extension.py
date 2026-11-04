@@ -473,6 +473,8 @@ def run(output: Path, processes: int, checkpoint: Path | None, skip_control: boo
         raise ValueError("--checkpoint must be outside --output")
     if target not in TARGET_LABELS:
         raise ValueError(f"unknown target {target!r}")
+    if combined and target != TARGET:
+        raise ValueError("--combined is built and tested for the turn target only")
     output.mkdir(parents=True, exist_ok=True)
     seed_list = seeds()
     reference = load_registered(target=target)

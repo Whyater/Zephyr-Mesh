@@ -157,3 +157,9 @@ def test_combined_edges_read_both_directions_of_one_block():
     assert out["loss_edges_at_delay"]["0.3"]["central|6"]["value"] == 0.1
     assert set(out["loss_edges_at_delay"]["0.1"]) == {
         f"{arm}|{n}" for n in (3, 4, 6) for arm in registered.DISPLAY_ARMS}
+
+
+def test_combined_mode_refuses_the_untested_jinking_target(tmp_path):
+    with pytest.raises(ValueError, match="turn target only"):
+        ext.run(tmp_path / "out", processes=1, checkpoint=None, target="jink", combined=True)
+    assert not (tmp_path / "out").exists()
