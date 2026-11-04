@@ -395,7 +395,7 @@ def test_a_late_delivery_and_a_long_loss_stretch_with_drift_still_import():
     assert sum(p.outcome == "lost" for p in trace.packets) == 3000
 
 
-# ---------------------------------------------------------------- proposal: tell a reboot from a stall with A's round trip
+# ---------------------------------------------------------------- tell a reboot from a stall with A's round trip
 #
 # rx_us - tx_us is (B's clock minus A's clock) + the forward delay. A stall changes the delay; a reboot of A changes
 # the clock difference. Board A's own round trip bounds the delay, so only the second can push the clock difference

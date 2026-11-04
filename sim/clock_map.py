@@ -149,7 +149,8 @@ def unwrap_counter(ticks, modulus: int, max_gap_ticks: int | None = None) -> np.
     """Undo rollovers in a counter that wraps back to zero at ``modulus``.
 
     Example: a 32-bit microsecond counter (``modulus = 2**32``) wraps every
-    4294.97 s, about 71.6 minutes. Samples must be in time order.
+    4294.97 s, about 71.6 minutes. Samples are in arrival order; small
+    reorders are handled as described below.
 
     ``max_gap_ticks`` is the largest plausible gap between two samples, in
     counter ticks. When the counter goes down from one sample to the next,

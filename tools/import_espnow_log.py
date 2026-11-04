@@ -75,7 +75,7 @@ _WRAP_WINDOW_US = 600_000_000
 # A radio duplicate (a MAC retry whose ack was lost) arrives milliseconds after the first copy. A repeat
 # this much later is not a radio duplicate; it is the same seq from another sender session.
 DUPLICATE_WINDOW_US = 1_000_000
-# How the importer tells a sender reboot from a slow link (proposal; see _check_one_sender_session):
+# How the importer tells a sender reboot from a slow link (see _check_one_sender_session):
 # rx_us - tx_us is B's clock minus A's clock, plus the time the packet spent getting to B. A slow link (a stall,
 # a queue, jitter) changes only the second part; a reboot of A restarts A's clock and changes the first part.
 # CLOCK_JUMP_ALLOWANCE_US covers stamping slack (a stamp taken a little before or after the radio event).
@@ -316,6 +316,8 @@ def _check_one_sender_session(sender: SenderLog, echoer: EchoerLog, first: dict[
     cannot see a reboot that moves C by less than the allowance plus the round trip (about 24 ms with a
     4 ms round trip); a reboot moves C by roughly the time from A's first send before it to A's first send
     after it, so that would take a one-packet session at 50 Hz and a restart of about 4 ms.
+    If no packet after a reboot has an echo, this check cannot see the reboot; only the 1 s duplicate
+    window can.
     """
     allowance = CLOCK_JUMP_ALLOWANCE_US * 1_000_000
     # Tightest earlier bounds, stored as (value * 1e6 -/+ ppm * tx_us, seq, value) so that the drift
