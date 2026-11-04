@@ -103,7 +103,7 @@ Here is a header that passes the reader. **All of these values are made up for i
 - a processing time earlier than its capture time on a shared clock
 - an empty file, or a file that starts with a UTF-8 byte order mark (BOM)
 
-If the bad line is the last line and the file doesn't end with a newline, the error adds that the recording was probably cut off mid-write (the camera program stopped or crashed). Delete that last line and read the log again. A bad line anywhere else doesn't get this hint (`_parse` in `sim/detection_log.py`).
+If the last line is not valid JSON and the file doesn't end with a newline, the error adds that the recording was probably cut off mid-write (the camera program stopped or crashed). Delete that last line and read the log again. A bad line anywhere else, or a last line that is valid JSON but breaks a field rule, doesn't get this hint (`_parse` in `sim/detection_log.py`).
 
 The file may end with one final newline. `write_detection_log` writes the same format back, and reading what it writes gives the same trace.
 
@@ -146,7 +146,7 @@ A real webcam log can be wrong in ways the format rules can't see: frames that n
 
 - Two problems are **refused**: positions in the wrong unit stop the whole fit, and a latency over 5 seconds stops the latency part.
 - Everything else is **flagged**: the fit adds a line starting with `WARNING:` to `assumptions`.
-- A check never changes a fitted number. A log with none of these problems fits exactly as it did before the checks existed.
+- Apart from leaving out the latency fit, a check never changes a fitted number. A log with none of these problems fits exactly as it did before the checks existed.
 
 `tools/intake_vision.py` prints every `assumptions` line under "Fit notes" in `INTAKE.md`. When a fit has any `WARNING` lines, its section also gets a `Warnings: N` line near the top. Read those lines before you use the numbers.
 
