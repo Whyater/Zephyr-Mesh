@@ -351,13 +351,14 @@ def test_a_sender_reboot_after_a_very_short_first_session_is_caught():
     The 1 s duplicate window cannot see this. The clock offset can: rx_us - tx_us is B's clock minus
     A's clock plus the one-way delay. A's clock restarts at the reboot, so the offset jumps by the
     0.1 s session plus the 0.5 s reboot = 0.6 s between seq 4 (session 1) and seq 5 (session 2).
+    Seq 5's round trip says at most 4 ms of that can be delay, so the clocks moved at least 0.596 s.
     """
     sender, echoer = _reboot_logs(5, 500_000)
     with pytest.raises(EchoLogError) as exc:
         logs_to_trace_dict(sender, echoer, trace_id="reboot", status="synthetic")
     message = str(exc.value)
     assert message.startswith(f"echoer.csv:{E0 + 5 + 5}:")  # seq 5, the first session-2 arrival
-    assert "0.600 s" in message and "seq 4" in message and "reboot" in message
+    assert "at least 0.596 s" in message and "seq 4" in message and "reboot" in message
 
 
 def test_a_repeat_exactly_one_second_later_is_accepted_and_one_microsecond_more_is_refused():
@@ -392,3 +393,141 @@ def test_a_late_delivery_and_a_long_loss_stretch_with_drift_still_import():
               for r in s_rows]
     trace = _trace(s_rows, rows)
     assert sum(p.outcome == "lost" for p in trace.packets) == 3000
+
+
+# ---------------------------------------------------------------- proposal: tell a reboot from a stall with A's round trip
+#
+# rx_us - tx_us is (B's clock minus A's clock) + the forward delay. A stall changes the delay; a reboot of A changes
+# the clock difference. Board A's own round trip bounds the delay, so only the second can push the clock difference
+# outside the window the earlier packets allow.
+
+def _delayed(out_us, *, period=20_000, tx0=1_000_000, rx0=500_000, hold_us=40, back_us=2_000, clock_step=None):
+    """Rows for a run where packet k takes out_us[k] to reach B (B prints rows in arrival order).
+
+    ``clock_step=(k0, step_us)`` moves B's clock (rx_us and echo_tx_us) forward by step_us from packet k0 on,
+    with no change in any delay: what a clock jump looks like with the delays held fixed.
+    """
+    s_rows, arrivals = [], []
+    for k, out in enumerate(out_us):
+        tx = tx0 + k * period
+        shift = clock_step[1] if clock_step is not None and k >= clock_step[0] else 0
+        rx = rx0 + k * period + out + shift
+        arrivals.append((rx, f"{k},{rx},{rx + hold_us},-45"))
+        s_rows.append(f"{k},{tx},{tx + out + hold_us + back_us}")
+    arrivals.sort(key=lambda a: a[0])
+    return s_rows, [row for _, row in arrivals]
+
+
+def _stall(n, start, peak_us, step_us=20_000, base_us=2_000):
+    """Packet ``start`` waits peak_us; the ones queued behind it each wait step_us less (a FIFO draining)."""
+    out = [base_us] * n
+    for j in range(n - start):
+        out[start + j] = max(base_us, peak_us - j * step_us)
+    return out
+
+
+@pytest.mark.parametrize("name, out_us", [
+    ("150 ms stall, 7 packets queued behind it", _stall(200, 50, 150_000)),
+    ("600 ms stall", _stall(200, 50, 600_000)),
+    ("one packet 150 ms late, overtaken by the next 7", [150_000 if k == 60 else 2_000 for k in range(200)]),
+    ("queue builds to 296 ms over 1 s, then drains at once",
+     [2_000 + (k - 50) * 6_000 if 50 <= k < 100 else 2_000 for k in range(200)]),
+])
+def test_a_link_stall_is_not_mistaken_for_a_reboot(name, out_us):
+    """No reboot here: only the forward delay changes, and A's round trip grows by the same amount."""
+    s_rows, e_rows = _delayed(out_us)
+    trace = _trace(s_rows, e_rows)
+    assert len(trace.packets) == 200 and all(p.outcome == "received" for p in trace.packets)
+
+
+def test_the_generator_at_30_ms_jitter_imports():
+    """The repo's own generator with 30 ms delay spread on both legs (the 100 ms rule refused this, jump 0.161 s)."""
+    from tools.make_espnow_echo_fixture import EchoParams, generate_echo_logs
+    logs = generate_echo_logs(EchoParams(out_delay_std_s=0.03, back_delay_std_s=0.03), 3)
+    trace = logs_to_trace_dict(parse_sender_log(logs.sender_text, "sender.csv"),
+                               parse_echoer_log(logs.echoer_text, "echoer.csv"), trace_id="jitter", status="synthetic")
+    assert len(trace["packets"]) >= 3000
+
+
+def test_ten_minutes_with_the_boards_drifting_200_ppm_apart_imports():
+    """+100 ppm on A and -100 ppm on B: the clock difference slides 0.12 s over 600 s, smoothly."""
+    from tools.make_espnow_echo_fixture import EchoParams, generate_echo_logs
+    logs = generate_echo_logs(EchoParams(n_packets=30_000, sender_drift_ppm=100.0, echoer_drift_ppm=-100.0), 7)
+    trace = logs_to_trace_dict(parse_sender_log(logs.sender_text, "sender.csv"),
+                               parse_echoer_log(logs.echoer_text, "echoer.csv"), trace_id="drift", status="synthetic")
+    assert len(trace["packets"]) >= 30_000
+
+
+@pytest.mark.parametrize("first_session, reboot_us, gap_s", [
+    (5, 500_000, "0.596"),   # brownout in the first 0.1 s, back 0.5 s later
+    (1, 300_000, "0.316"),   # brownout on the very first send
+    (1, 150_000, "0.166"),
+    (1, 50_000, "0.066"),    # back in 0.05 s: the old 100 ms rule missed this
+])
+def test_a_sender_reboot_is_refused_and_named(first_session, reboot_us, gap_s):
+    """Hand numbers: B's clock minus A's clock jumps by first_session * 20 ms + reboot_us (A's clock restarts).
+
+    The first session-2 packet's round trip is 4.040 ms and B held it 40 us, so at most 4 ms of the jump can be
+    forward delay: the unexplained part is first_session * 20 ms + reboot_us - 4 ms.
+    """
+    sender, echoer = _reboot_logs(first_session, reboot_us)
+    with pytest.raises(EchoLogError) as exc:
+        logs_to_trace_dict(sender, echoer, trace_id="reboot", status="synthetic")
+    message = str(exc.value)
+    assert message.startswith(f"echoer.csv:{E0 + 2 * first_session}:")  # the first session-2 arrival
+    assert f"at least {gap_s} s" in message
+    assert f"seq {first_session - 1} and seq {first_session}" in message and "rebooted" in message
+
+
+def test_a_reboot_is_caught_even_when_the_first_echo_after_it_is_lost():
+    """Seq 3 is the first packet after the reboot and its echo never got back, so it has no round trip.
+
+    Comparing only neighbours would miss this: seq 4 would be checked against seq 3, which is already in the
+    new session. The rule keeps the tightest window from every earlier packet, so seq 4 is still checked
+    against seq 2. Unexplained jump: 3 * 20 ms + 0.2 s - 4 ms (seq 4's delay bound) = 0.256 s.
+    """
+    _, e1 = bench(3, rx0=500_000)
+    s2, e2 = bench(40, tx0=300_000, rx0=500_000 + 3 * 20_000 + 200_000, lost_back={3})
+    e2 = [row.split(",") for row in e2]
+    e2 = [f"{seq},{rx},{'' if int(seq) < 3 else etx},{rssi}" for seq, rx, etx, rssi in e2]
+    s2 = [row if int(row.split(",")[0]) >= 3 else ",".join(row.split(",")[:2]) + "," for row in s2]
+    sender = parse_sender_log(_text(SENDER_META, s2), "sender.csv")
+    echoer = parse_echoer_log(_text(ECHOER_META, e1 + e2), "echoer.csv")
+    with pytest.raises(EchoLogError) as exc:
+        logs_to_trace_dict(sender, echoer, trace_id="reboot", status="synthetic")
+    message = str(exc.value)
+    assert message.startswith(f"echoer.csv:{E0 + 3 + 4}:")  # seq 4
+    assert "at least 0.256 s" in message and "seq 2 and seq 4" in message
+
+
+@pytest.mark.parametrize("step_us, refused", [(24_020, False), (24_021, True)])
+def test_the_clock_jump_threshold_by_hand(step_us, refused):
+    """B's clock jumps by step_us at packet 20 with every delay unchanged.
+
+    Packet 20's round trip (4.040 ms) minus B's hold (40 us) lets 4 ms of the jump be delay. On top of that the
+    rule allows 20 ms (stamping slack) plus 1000 ppm of the 20 ms between packets 19 and 20 = 20 us. So
+    24.020 ms is the largest jump accepted. This test pins the constants; it restates the rule's arithmetic.
+    """
+    s_rows, e_rows = _delayed([2_000] * 40, clock_step=(20, step_us))
+    if refused:
+        with pytest.raises(EchoLogError, match="seq 19 and seq 20"):
+            _trace(s_rows, e_rows)
+    else:
+        assert len(_trace(s_rows, e_rows).packets) == 40
+
+
+def test_a_clock_gap_that_falls_too_far_says_the_files_do_not_belong_together():
+    """Packets 20..29 never reach B (0.2 s gap), then B's clock is 0.1 s behind where it was.
+
+    B's rows still go forward (rx_us of packet 30 is 0.1 s after packet 19's), so only this check sees it. Hand
+    numbers: packet 19 pins B's clock minus A's clock to at least -0.502 s; packet 30's offset is -0.598 s, so the
+    gap fell by at least 0.096 s, far past the 20 ms allowance.
+    """
+    s_rows, e_rows = _delayed([2_000] * 40, clock_step=(30, -100_000))
+    e_rows = [r for r in e_rows if not 20 <= int(r.split(",")[0]) < 30]
+    s_rows = [r if not 20 <= int(r.split(",")[0]) < 30 else ",".join(r.split(",")[:2]) + "," for r in s_rows]
+    with pytest.raises(EchoLogError) as exc:
+        _trace(s_rows, e_rows)
+    message = str(exc.value)
+    assert message.startswith(f"echoer.csv:{E0 + 20}:")  # packet 30 is B's 21st row
+    assert "fell by at least 0.096 s between seq 19 and seq 30" in message and "same run" in message

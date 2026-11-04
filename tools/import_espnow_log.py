@@ -75,13 +75,15 @@ _WRAP_WINDOW_US = 600_000_000
 # A radio duplicate (a MAC retry whose ack was lost) arrives milliseconds after the first copy. A repeat
 # this much later is not a radio duplicate; it is the same seq from another sender session.
 DUPLICATE_WINDOW_US = 1_000_000
-# Within one sender session, rx_us - tx_us (B's clock minus A's clock plus the one-way delay) moves only by
-# changes in the delay (milliseconds) and by clock drift (tens of ppm). A sender reboot restarts A's clock, so
-# the offset jumps by the time from A's first boot to its second: at least the reboot time, which for an ESP32
-# that must boot and start Wi-Fi is hundreds of ms. A jump above this limit (plus the drift allowance) means
-# the echoer's first arrivals come from two sender sessions.
-OFFSET_JUMP_US = 100_000
-OFFSET_DRIFT_PPM = 100
+# How the importer tells a sender reboot from a slow link (proposal; see _check_one_sender_session):
+# rx_us - tx_us is B's clock minus A's clock, plus the time the packet spent getting to B. A slow link (a stall,
+# a queue, jitter) changes only the second part; a reboot of A restarts A's clock and changes the first part.
+# CLOCK_JUMP_ALLOWANCE_US covers stamping slack (a stamp taken a little before or after the radio event).
+# CLOCK_DRIFT_PPM is how fast the two clocks may slide apart. Two ESP32 crystals differ by tens of ppm; the
+# allowance is set far above that because it only loosens comparisons with packets long ago, while a reboot is
+# caught against the packets just before it, a few ms earlier, where 1000 ppm adds only microseconds.
+CLOCK_JUMP_ALLOWANCE_US = 20_000
+CLOCK_DRIFT_PPM = 1_000
 
 
 def _error(label: str, line: int, message: str) -> EchoLogError:
@@ -296,25 +298,69 @@ def _check_one_sender_session(sender: SenderLog, echoer: EchoerLog, first: dict[
                               first_line: dict[int, int]) -> None:
     """Refuse an echoer log whose first arrivals come from two sender sessions (a sender reboot).
 
-    This catches reboots the duplicate window misses, such as a first session shorter than 1 s.
-    It cannot see a restart faster than ``OFFSET_JUMP_US``.
+    In plain words: call the clock gap C = B's clock minus A's clock. Each packet gives
+    offset = rx_us - tx_us = C + d_out, where d_out (the trip from A to B) is never negative, so C is at
+    most the offset. If A also got the echo back, A's round trip minus the time B held the packet,
+    (echo_us - tx_us) - (echo_tx_us - rx_us) = d_out + d_back, is at least d_out, so C is at least
+    offset minus that. Each packet therefore pins C inside a window [low, high]. A stall makes the
+    offset bigger but makes the round trip bigger by the same amount, so the window still holds the
+    same C. A reboot of A moves C itself, so the new packet's window no longer overlaps the earlier
+    ones. The check keeps the tightest high and low seen so far (each widened by clock drift since its
+    packet) and refuses when a packet's window misses them by more than CLOCK_JUMP_ALLOWANCE_US.
+
+    A packet without an echo (lost on the way back) gives only its high side; it still counts on that
+    side. This catches reboots the duplicate window misses, such as a first session shorter than 1 s. It
+    cannot see a reboot that moves C by less than the allowance plus the round trip (about 24 ms with a
+    4 ms round trip); a reboot moves C by roughly the time from A's first send before it to A's first send
+    after it, so that would take a one-packet session at 50 Hz and a restart of about 4 ms.
     """
-    previous: tuple[int, int, int] | None = None  # seq, tx_us, offset
-    for seq, tx, _ in sender.rows:
+    allowance = CLOCK_JUMP_ALLOWANCE_US * 1_000_000
+    # Tightest earlier bounds, stored as (value * 1e6 -/+ ppm * tx_us, seq, value) so that the drift
+    # widening for a later packet at time tx is just + ppm * tx (whole numbers, no rounding).
+    high: tuple[int, int, int] | None = None
+    low: tuple[int, int, int] | None = None
+    for seq, tx, echo in sender.rows:
         arrival = first.get(seq)
         if arrival is None:
             continue
-        offset = arrival[0] - tx
-        if previous is not None:
-            jump = offset - previous[2]
-            if abs(jump) > OFFSET_JUMP_US + (tx - previous[1]) * OFFSET_DRIFT_PPM // 1_000_000:
-                raise _error(echoer.label, first_line[seq],
-                             f"the gap between the two boards' clocks (rx_us - tx_us) jumps by {jump / 1e6:.3f} s "
-                             f"between seq {previous[0]} and seq {seq}. Within one sender session it moves only by "
-                             "milliseconds (delay changes and clock drift), so the echoer's arrivals come from two "
-                             "sender sessions: board A most likely rebooted (for example a brownout on its first "
-                             "sends) while board B kept running. Reset both boards together and capture a new pair")
-        previous = (seq, tx, offset)
+        rx, echo_tx, _ = arrival
+        offset = rx - tx
+        bound = None
+        if echo is not None and echo_tx is not None and (echo - tx) - (echo_tx - rx) >= 0:
+            bound = (echo - tx) - (echo_tx - rx)  # d_out + d_back; a negative one is reported later
+        drift = CLOCK_DRIFT_PPM * tx
+        if bound is not None and high is not None and (offset - bound) * 1_000_000 > high[0] + drift + allowance:
+            raise _clock_jump_error(echoer, first_line[seq], high[1], seq, (offset - bound) - high[2], "up",
+                                    echo - tx, bound)
+        if low is not None and offset * 1_000_000 < low[0] - drift - allowance:
+            raise _clock_jump_error(echoer, first_line[seq], low[1], seq, low[2] - offset, "down", None, None)
+        key = offset * 1_000_000 - drift
+        if high is None or key <= high[0]:
+            high = (key, seq, offset)
+        if bound is not None:
+            key = (offset - bound) * 1_000_000 + drift
+            if low is None or key >= low[0]:
+                low = (key, seq, offset - bound)
+
+
+def _clock_jump_error(echoer: EchoerLog, line: int, earlier: int, seq: int, jump_us: int, direction: str,
+                      rtt_us: int | None, bound_us: int | None) -> EchoLogError:
+    head = (f"B's clock minus A's clock {'rose' if direction == 'up' else 'fell'} by at least {jump_us / 1e6:.3f} s "
+            f"between seq {earlier} and seq {seq}")
+    if direction == "up":
+        return _error(echoer.label, line,
+                      f"{head}: rx_us - tx_us moved, and seq {seq}'s own round trip on board A was only "
+                      f"{rtt_us / 1e3:.3f} ms, so at most {bound_us / 1e3:.3f} ms of the change can be a slow link. "
+                      "A stall or a queue on the radio cannot do this (it lengthens the round trip by the same "
+                      "amount), and within one sender session the clocks only drift by microseconds per second. So "
+                      "the echoer's arrivals come from two sender sessions: board A most likely rebooted (for example "
+                      "a brownout on its first sends) while board B kept running. Reset both boards together and "
+                      "capture a new pair")
+    return _error(echoer.label, line,
+                  f"{head}: seq {earlier}'s round trip on board A limits how much of its rx_us - tx_us was a slow "
+                  f"link, and seq {seq} arrived too early for the same clocks. One sender session cannot do this, so "
+                  "the two files do not belong together: check that both come from the same run and that neither "
+                  "board restarted. Reset both boards together and capture a new pair")
 
 
 def logs_to_trace_dict(sender: SenderLog, echoer: EchoerLog | None, *, trace_id: str, status: str,
