@@ -78,12 +78,14 @@ def build_grid() -> list[dict[str, Any]]:
 
 def run_late_arm(bundle, cell: CellSpec, arm: str, config: RecoveryConfig = RecoveryConfig(),
                  settings: EstimatorSettings = EstimatorSettings(),
-                 window_s: float | None = None) -> dict[str, Any]:
+                 window_s: float | None = None, return_filter: bool = False) -> dict[str, Any]:
     """Score one late-packet arm on one delivered bundle.
 
     Queries every 0.02 s; a packet is handled at the first query time at or
     after its arrival; queries before a fusion are answered by the filter as it
     was. The scored window starts at the burn-in. Returns per-seed numbers.
+    With ``return_filter`` the result also holds the final filter under
+    ``"final_filter"`` (for tests); the other entries do not change.
     """
     if arm not in ARMS:
         raise ValueError(f"arm must be one of {ARMS}")
@@ -170,9 +172,12 @@ def run_late_arm(bundle, cell: CellSpec, arm: str, config: RecoveryConfig = Reco
     errors = np.linalg.norm(positions - truth, axis=1)[scored]
     p95 = float(np.percentile(errors, 95))
     maximum = float(np.max(errors))
-    return {"p95_error_m": p95, "max_error_m": maximum, "rmse_m": float(np.sqrt(np.mean(errors ** 2))),
-            **counts, "max_history": max_history,
-            "failed": bool(p95 > config.failure_p95_m or maximum > config.failure_max_m)}
+    result = {"p95_error_m": p95, "max_error_m": maximum, "rmse_m": float(np.sqrt(np.mean(errors ** 2))),
+              **counts, "max_history": max_history,
+              "failed": bool(p95 > config.failure_p95_m or maximum > config.failure_max_m)}
+    if return_filter:
+        result["final_filter"] = est
+    return result
 
 
 def late_census(bundle) -> tuple[int, int]:
