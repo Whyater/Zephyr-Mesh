@@ -648,7 +648,10 @@ def run_grid(output: Path, n_seeds: int = 3, workers: int = 1, delays_s=GRID_DEL
                 handle.write(json.dumps(row) + "\n")
                 handle.flush()
                 rows.append(row)
-    rows.sort(key=key)
+    wanted = set(grid_jobs(n_seeds, delays_s, losses, variants))
+    rows = sorted((r for r in rows if key(r) in wanted), key=key)  # only the requested grid and seeds
+    if not rows:
+        raise SystemExit("no grid rows to write")
     with open(partial / "grid.csv", "w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader()
@@ -665,6 +668,51 @@ def run_grid(output: Path, n_seeds: int = 3, workers: int = 1, delays_s=GRID_DEL
     else:
         partial.rename(output)
     return summary
+
+
+GRID_THRESHOLDS_M = (0.5, 1.0)  # steady p95 median thresholds, beside the fail rule
+
+
+def read_grid_rows(folder: Path) -> list[dict]:
+    """Rows of a finished grid folder (grid.json) or of a stopped one (FOLDER.partial checkpoint)."""
+    folder = Path(folder)
+    if (folder / "grid.json").exists():
+        return json.loads((folder / "grid.json").read_text())["rows"]
+    checkpoint = folder.with_name(folder.name + ".partial") / GRID_CHECKPOINT
+    if folder.name.endswith(".partial"):
+        checkpoint = folder / GRID_CHECKPOINT
+    return [json.loads(line) for line in checkpoint.read_text().splitlines() if line.strip()]
+
+
+def summarize_grid(rows: list[dict], seeds: list[int] | None = None) -> list[dict]:
+    """One entry per (motion, variant, delay, loss): steady p95 median over seeds, seeds failing the
+    steady fail rule, the cell fail label (at least half the seeds fail) and the threshold passes."""
+    groups: dict[tuple, list[dict]] = {}
+    for r in rows:
+        if seeds is None or r["seed"] in seeds:
+            groups.setdefault((r["motion"], r["variant"], r["delay_s"], r["loss_probability"]), []).append(r)
+    out = []
+    for (motion, variant, delay, loss), rs in sorted(groups.items()):
+        median = float(np.median([r["p95_steady_m"] for r in rs]))
+        fails = sum(bool(r["failed_steady"]) for r in rs)
+        entry = {"motion": motion, "variant": variant, "delay_s": delay, "loss_probability": loss,
+                 "n_seeds": len(rs), "steady_p95_median_m": median, "steady_fail_count": fails,
+                 "passes_fail_rule": not (2 * fails >= len(rs))}
+        for t in GRID_THRESHOLDS_M:
+            entry[f"passes_p95_{t:.1f}m"] = median <= t
+        out.append(entry)
+    return out
+
+
+def print_grid_report(folder: Path, n_seeds: int | None = None) -> list[dict]:
+    seeds = seed_list(n_seeds) if n_seeds else None
+    cells = summarize_grid(read_grid_rows(folder), seeds)
+    for c in cells:
+        print(f"{c['motion']:17s} {c['variant']:8s} delay {c['delay_s']:.3f} loss {c['loss_probability']:.2f} "
+              f"p95 {c['steady_p95_median_m']:.3f} fails {c['steady_fail_count']}/{c['n_seeds']} "
+              f"fail_rule {'pass' if c['passes_fail_rule'] else 'FAIL'} "
+              + " ".join(f"{t:.1f}m {'pass' if c[f'passes_p95_{t:.1f}m'] else 'FAIL'}" for t in GRID_THRESHOLDS_M))
+    return cells
 
 
 def _move_into(partial: Path, output: Path) -> None:
@@ -755,7 +803,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--grid", action="store_true",
                         help="run the delay by loss grid (w1 wiring, 0.05 m noise, both goal rules) instead")
     parser.add_argument("--workers", type=int, default=1, help="processes for --grid")
+    parser.add_argument("--grid-report", action="store_true",
+                        help="print cell medians and pass marks of the --output grid folder (finished or stopped)")
     args = parser.parse_args(argv)
+    if args.grid_report:
+        print_grid_report(args.output, args.seeds)
+        return 0
     if args.grid:
         grid = run_grid(args.output, args.seeds, workers=args.workers)
         print(f"grid rows {len(grid['rows'])} in {grid['elapsed_s']:.0f} s")
