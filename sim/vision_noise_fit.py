@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import math
 import operator
+from collections import Counter
 from itertools import pairwise
 from statistics import NormalDist
 from typing import Any
@@ -168,15 +169,155 @@ def _select(trace: VisionTrace, subject_id: str | None) -> tuple[str, list[Visio
     subjects = sorted({item.subject_id for item in trace.observations})
     if subject_id is None:
         if len(subjects) > 1:
-            raise ValueError(f"trace has more than one subject_id ({', '.join(subjects)}); choose one with subject_id")
+            per_subject = Counter(item.subject_id for item in trace.observations)
+            listed = ", ".join(f"{name} ({per_subject[name]} records)" for name in subjects)
+            raise ValueError(f"trace has more than one subject_id ({listed}); choose one with subject_id "
+                             "(--subject on the command line). If one id has only a few records, the detector "
+                             "probably misread the marker id on those frames")
         if not subjects:
-            raise ValueError("trace has no observations to fit")
+            raise ValueError("trace has no observations to fit: the log has a header but no observation lines, "
+                             "so the camera program wrote no frames")
         subject_id = subjects[0]
     elif subject_id not in subjects:
         raise ValueError(f"subject_id {subject_id!r} is not in the trace")
     records = [item for item in trace.observations if item.subject_id == subject_id]
     records.sort(key=lambda item: (item.capture_time_s, item.observation_id))
     return subject_id, records
+
+
+# ---------------------------------------------------------------------------
+# Camera-log quirks
+# ---------------------------------------------------------------------------
+# A real webcam log can be wrong in ways the format cannot see: frames that
+# never got a line, the same frame logged twice, a stream that froze, pose
+# flips, or numbers in the wrong unit. None of these breaks a format rule, so
+# the reader accepts them. The checks below either refuse the fit (units, where
+# the numbers would be meaningless) or add a line starting with "WARNING" to
+# the assumptions (which tools/intake_vision.py prints in INTAKE.md). They never
+# change a fitted number, so a log without these problems fits exactly as before.
+
+MAX_LATENCY_S = 5.0
+_GAP_STEPS = 1.9          # a step this many median steps long means at least one frame is missing
+_MIN_RECORDS_FOR_SHAPE = 20  # outlier and frozen-frame checks need enough frames to mean anything
+_SPREAD_RATIO = 2.0       # std this many times the outlier-resistant spread means wild frames
+_LARGE_DISTANCE_M = 100.0
+_UNITS_MIN_TRUTH_M = 0.05  # closer than this, noise alone can make measured/true distance big
+
+
+def _check_units(measured: np.ndarray, truth: np.ndarray) -> str | None:
+    """Refuse a fit whose positions are clearly not in meters, or not in the units of the truth.
+
+    Returns a note for the assumptions when no frame can be compared, else None.
+    """
+    meas_norm = np.linalg.norm(measured, axis=1)
+    truth_norm = np.linalg.norm(truth, axis=1)
+    # Only frames whose true distance is at least 5 cm count. Nearer than that
+    # (a world-frame target a few mm from the room's origin point), the
+    # measured distance is mostly noise, about sqrt(3) times the noise std, so
+    # the ratio can pass 10 with the units right. Every wrong-units case has a
+    # true distance far above 5 cm, and no camera sees a marker that close.
+    usable = (meas_norm > 1e-6) & (truth_norm >= _UNITS_MIN_TRUTH_M)
+    if not usable.any():
+        return (f"Units check skipped: every true position is closer than {_UNITS_MIN_TRUTH_M:g} m to the frame's "
+                "origin, too close to compare measured and true distance. Check by hand that position_m and "
+                "ground_truth.position_m are both in meters.")
+    hint = ("Check that position_m and ground_truth.position_m are both in meters (the marker length given to "
+            "the detector in meters, such as 0.150, not 150) and in the same frame")
+    ratio = float(np.median(meas_norm[usable] / truth_norm[usable]))
+    if ratio > 10.0 or ratio < 0.1:
+        raise ValueError(f"position_m is probably not in meters, or not in the same units as "
+                         f"ground_truth.position_m: the measured distance is a median {ratio:.3g} times the "
+                         f"true distance (a factor near 1000 means millimeters; pixel coordinates also give a "
+                         f"big factor). {hint}")
+    # Only the distance ratio refuses. A rule like "error bigger than the target
+    # distance" would also refuse a valid log whose truth sits at the origin.
+    return None
+
+
+def _quirk_warnings(trace: VisionTrace, subject_id: str, records: list[VisionObservation], res: np.ndarray,
+                    std: np.ndarray, robust_std: np.ndarray, measured: np.ndarray, truth: np.ndarray,
+                    frames: list[str]) -> list[str]:
+    warnings: list[str] = []
+    n_res = res.shape[0]
+
+    # Frames with no line at all. records are in capture order. The step is the
+    # median step between distinct stamps, not the header frame rate, because a
+    # webcam often runs slower than it says (low light halves the rate).
+    stamps = np.unique([item.capture_time_s for item in records])
+    steps = np.diff(stamps)
+    if steps.size >= 10:
+        step = float(np.median(steps))
+        long_steps = steps[steps > _GAP_STEPS * step] if step > 0 else steps[:0]
+        if long_steps.size:
+            missing = int(sum(round(value / step) - 1 for value in long_steps))
+            warnings.append(
+                f"WARNING: capture_time_s has {long_steps.size} gap(s) longer than {_GAP_STEPS:g} frame steps "
+                f"(median step {step:.4g} s), so about {missing} frames are missing from the log. Frames with no "
+                "line are not counted as missed, so dropout_probability and the burst fit can be too low. A "
+                "capture program should write a line for every frame, misses included.")
+
+    repeats = len(records) - stamps.size
+    if repeats:
+        warnings.append(
+            f"WARNING: {repeats} records share a capture_time_s with another record of this subject. If they are "
+            "the same camera frame logged twice, its residual counts twice and the intervals come out too narrow. "
+            "Remove the repeats or check the time stamps.")
+
+    in_file_order = [item for item in trace.observations if item.subject_id == subject_id]
+    backward = sum(later.capture_time_s < earlier.capture_time_s and later.out_of_order is not True
+                   for earlier, later in pairwise(in_file_order))
+    if backward:
+        warnings.append(
+            f"WARNING: capture_time_s goes backward {backward} time(s) in file order on records not marked "
+            "out_of_order. The fit sorts by capture time, so its numbers do not change, but a monotonic camera "
+            "clock never runs backward; check that every capture_time_s comes from one monotonic clock.")
+
+    own_frames = {item.frame_id for item in records}
+    hidden = {item.frame_id for item in trace.observations if item.subject_id != subject_id} - own_frames
+    if hidden:
+        warnings.append(
+            f"WARNING: {len(hidden)} frames have lines only under other subject_id values. For {subject_id} those "
+            "frames are neither detected nor missed, so dropout_probability does not count them. If the other id "
+            "is a misread of this marker, those frames are really misses.")
+
+    if frames == ["camera"]:
+        behind = int(np.count_nonzero(measured[:, 2] <= 0.0))
+        if behind:
+            warnings.append(
+                f"WARNING: {behind} detections have z <= 0 in the camera frame (OpenCV convention, z points out of "
+                "the lens), which puts the target behind the camera. These are almost always pose flips; they "
+                "inflate noise_std_m and shift bias_m.")
+
+    if n_res >= _MIN_RECORDS_FOR_SHAPE:
+        mean = res.mean(axis=0)
+        flagged = []
+        for i, axis in enumerate(_AXES):
+            beyond = int(np.count_nonzero(np.abs(res[:, i] - mean[i]) > 4.0 * std[i])) if std[i] > 0 else 0
+            wide = robust_std[i] > 0 and std[i] > _SPREAD_RATIO * robust_std[i]
+            if wide or beyond >= 3:
+                flagged.append(f"{axis} (std {std[i]:.4g} m, outlier-resistant spread {robust_std[i]:.4g} m, "
+                               f"{beyond} residuals beyond 4 std)")
+        if flagged:
+            warnings.append(
+                f"WARNING: outliers on axis {'; '.join(flagged)}. noise_std_m is a plain standard deviation, so a "
+                "few wild frames (pose flips, id mix-ups) set its size. Find and explain those frames before using "
+                "noise_std_m from this log.")
+
+        same = int(sum(np.array_equal(a, b) for a, b in pairwise(measured)))
+        if same >= max(3, 0.05 * n_res):
+            warnings.append(
+                f"WARNING: {same} of {n_res} detections repeat the previous position_m exactly. Real sensor noise "
+                "almost never gives the same value to every digit, so this usually means the camera sent the same "
+                "frame again (a frozen or stalled stream). Repeated frames shrink noise_std_m; check the video for "
+                "frozen stretches.")
+
+    distance = float(np.median(np.linalg.norm(truth, axis=1)))
+    if distance > _LARGE_DISTANCE_M:
+        warnings.append(
+            f"WARNING: the median target distance is {distance:.4g} m. If this is a bench run, position_m and "
+            "ground_truth.position_m are probably both pixels or millimeters, not meters, and every fitted "
+            "distance is in the wrong unit.")
+    return warnings
 
 
 # ---------------------------------------------------------------------------
@@ -207,14 +348,19 @@ def fit_vision_noise(trace: VisionTrace, *, subject_id: str | None = None, dropo
 
     residual_rows: list[list[float]] = []
     truth_uncertainty: list[float] = []
+    measured_rows: list[tuple[float, float, float]] = []
+    truth_rows: list[list[float]] = []
     for item in records:
         if item.outcome == "detected" and item.position_m is not None and item.ground_truth is not None:
             truth = item.ground_truth["position_m"]
             residual_rows.append([item.position_m[i] - truth[i] for i in range(3)])
             truth_uncertainty.append(float(item.ground_truth["uncertainty_m"]))
+            measured_rows.append(item.position_m)
+            truth_rows.append(truth)
     n_res = len(residual_rows)
     if n_res < 2:
         raise ValueError(f"need at least 2 detected records with position_m and ground_truth; found {n_res}")
+    units_note = _check_units(np.asarray(measured_rows, dtype=float), np.asarray(truth_rows, dtype=float))
 
     counts = {
         "observed": len(records),
@@ -440,8 +586,17 @@ def fit_vision_noise(trace: VisionTrace, *, subject_id: str | None = None, dropo
     latencies = [item.processing_time_s - item.capture_time_s for item in records if item.processing_time_s is not None]
     scenario_delay = None
     null_reason = None
+    too_slow = [value for value in latencies if value > MAX_LATENCY_S]
     if trace.clock_domain != "shared_monotonic":
         null_reason = f"clock_domain is {trace.clock_domain!r}, so capture and processing times are on different clocks and their difference is not a latency"
+    elif too_slow:
+        # A detector frame that takes more than 5 s is not a measurement delay
+        # the sim can use. One such value moves the mean and the jitter far more
+        # than all the normal frames, so the latency fit is refused, not skewed.
+        null_reason = (f"{len(too_slow)} of {len(latencies)} records have processing_time_s - capture_time_s above "
+                       f"{MAX_LATENCY_S:g} s (largest {max(too_slow):.4g} s). That is not detector latency: usually "
+                       "processing_time_s comes from a different clock than capture_time_s (such as wall-clock "
+                       "time), or the program stalled. Fix the time stamps or remove those frames, then fit again")
     elif len(latencies) < 2:
         null_reason = f"need at least 2 records with processing_time_s, because a standard deviation needs at least 2 records; found {len(latencies)}"
     if null_reason is not None:
@@ -512,6 +667,13 @@ def fit_vision_noise(trace: VisionTrace, *, subject_id: str | None = None, dropo
             "sensor_config uses the SensorConfig default (burst_start_probability 0.0, burst_end_probability 1.0) and the uncertainty record is null. "
             "Do not switch this config to mode 'burst'."
         )
+    if units_note is not None:
+        assumptions.append(units_note)
+    assumptions += _quirk_warnings(trace, subject_id, records, res, std, robust_std,
+                                   np.asarray(measured_rows, dtype=float), np.asarray(truth_rows, dtype=float),
+                                   frames)
+    if too_slow and trace.clock_domain == "shared_monotonic":
+        assumptions.append(f"WARNING: latency not fitted: {null_reason}.")
 
     uncertainty = {
         "noise_std_m": noise_record,
