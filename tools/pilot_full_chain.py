@@ -37,11 +37,23 @@ Wirings:
   w2_truth builds the goal from the true target state instead of the tracker, which leaves only
   the controller and the radio.
 
+Goal rules (goal_rule):
+
+- "velocity" (the default, unchanged): the tracker's own constant-velocity prediction lead_s
+  ahead, which runs along the tangent; from the true state, position + lead_s x velocity;
+- "lead" (option): the target's predicted position lead_s ahead along its curve. From the
+  tracker: a constant-turn-rate prediction from the last fused position and velocity, with the
+  turn rate estimated from how fast the tracker's velocity heading turns (estimate_turn_rate).
+  From the true state: the true position lead_s ahead. The --lead runs use
+  lead_s = setpoint-path radio delay + CONTROLLER_LAG_S. Variants w2_truth_lead, w1_lead and
+  w2_lead run beside the old four.
+
 Scoring: the S6 fail rule (p95 > 0.25 m or max > 0.50 m after the 2 s burn-in) on the follow
 error, the distance from the drone to target + offset. A secondary window (t >= 6 s, chosen after
 the pre-registration) drops the start transient: the target jumps from rest to 1 m/s at t = 0.
 
-    PYTHONPATH=. .venv/Scripts/python.exe tools/pilot_full_chain.py --output DIR [--seeds 5]
+    PYTHONPATH=. .venv/Scripts/python.exe tools/pilot_full_chain.py --output DIR [--seeds 5] [--lead]
+    PYTHONPATH=. .venv/Scripts/python.exe tools/pilot_full_chain.py --output DIR --delay-sweep
 """
 from __future__ import annotations
 
@@ -84,6 +96,20 @@ LEAD_S = 0.75
 OFFSET_M = (0.0, -1.0, 1.0)
 REGISTERED_TRACKER_STD_M = 0.05
 MAX_SPEED_MPS = 1.5  # PhysicsAdapter default capabilities
+
+# Lead goal rule. The horizontal position loop is x'' = Kp (g - x) - Kd x' with Kp = 2, Kd = 1.5.
+# Chasing a straight line g = v t, the steady drone is x = v (t - T): x'' = 0 and x' = v give
+# 0 = Kp v T - Kd v, so T = Kd / Kp = 0.75 s. Aiming that far ahead cancels the lag on a line.
+# On a curve the lag depends on the turn rate (0.98 s at 1 rad/s), so one fixed constant is a
+# compromise; this one is exact for straight lines.
+CONTROLLER_LAG_S = 0.75
+TURN_RATE_WINDOW_S = 0.5  # heading change measured over about this long
+TURN_RATE_MIN_SPEED_MPS = 0.2  # below this the heading means nothing: no turn
+TURN_RATE_MAX_RADPS = 2.0
+GOAL_RULES = ("velocity", "lead")
+LEAD_VARIANTS = ("w2_truth_lead", "w1_lead", "w2_lead")
+SWEEP_DELAYS_S = (0.0, 0.1, 0.2, 0.4)
+SWEEP_VARIANTS = ("w1", "w2_comp", "w2_truth_lead", "w1_lead", "w2_lead")
 
 
 @dataclass(frozen=True)
@@ -146,6 +172,40 @@ def _setpoint_seed(seed: int) -> int:
     return int(np.random.SeedSequence([int(seed), 1]).generate_state(1)[0])
 
 
+def turn_predict(position, velocity, turn_rate_radps: float, horizon_s: float) -> np.ndarray:
+    """Position after horizon_s at constant speed and constant turn rate (left positive).
+
+    The horizontal velocity turns at w, v(s) = cos(w s) v + sin(w s) Jv, where Jv is v turned
+    90 degrees left. Integrating over 0..h gives (sin(w h) v + (1 - cos(w h)) Jv) / w. The
+    vertical part keeps its velocity. With w = 0 this is the straight line p + v h.
+    """
+    p = np.asarray(position, dtype=float)
+    v = np.asarray(velocity, dtype=float)
+    w, h = float(turn_rate_radps), float(horizon_s)
+    if abs(w * h) < 1e-9:
+        return p + v * h
+    flat = np.array([v[0], v[1], 0.0])
+    left = np.array([-v[1], v[0], 0.0])
+    return p + (math.sin(w * h) * flat + (1.0 - math.cos(w * h)) * left) / w + np.array([0.0, 0.0, v[2] * h])
+
+
+def estimate_turn_rate(history: list[tuple[float, float, float]], window_s: float = TURN_RATE_WINDOW_S) -> float:
+    """Turn rate (rad/s, left positive) from (fuse time, vx, vy) entries, oldest first.
+
+    Heading now minus the heading at the entry closest to window_s earlier, wrapped to
+    [-pi, pi), over the time between them. 0 when there is no older entry or either horizontal
+    speed is under TURN_RATE_MIN_SPEED_MPS; clipped to +-TURN_RATE_MAX_RADPS.
+    """
+    if len(history) < 2:
+        return 0.0
+    t1, vx1, vy1 = history[-1]
+    t0, vx0, vy0 = min(history[:-1], key=lambda entry: abs(entry[0] - (t1 - window_s)))
+    if t1 <= t0 or min(math.hypot(vx0, vy0), math.hypot(vx1, vy1)) < TURN_RATE_MIN_SPEED_MPS:
+        return 0.0
+    turn = (math.atan2(vy1, vx1) - math.atan2(vy0, vx0) + math.pi) % (2.0 * math.pi) - math.pi
+    return float(np.clip(turn / (t1 - t0), -TURN_RATE_MAX_RADPS, TURN_RATE_MAX_RADPS))
+
+
 @dataclass
 class LoopResult:
     follow_p95_m: float
@@ -163,16 +223,21 @@ class LoopResult:
 
 def run_loop(motion: str, cell: Cell, *, wiring: str = "w1", lead_s: float = LEAD_S, seed: int,
              config: RecoveryConfig | None = None, keep_trace: bool = False,
-             max_speed_mps: float = MAX_SPEED_MPS, goal_source: str = "tracker"):
+             max_speed_mps: float = MAX_SPEED_MPS, goal_source: str = "tracker",
+             goal_rule: str = "velocity"):
     """Run one closed-loop episode. Returns a LoopResult (and the trace dict when keep_trace).
 
     max_speed_mps is the adapter's carrot speed cap (PhysicsAdapter's default 1.5 m/s); the
     tests lift it to check the linear PD hand value without the cap. goal_source "truth" builds
     the goal from the true position and velocity instead of the tracker (the controller's own
     floor); the camera packets and the tracker still run, so the estimate error is unchanged.
+    goal_rule "velocity" (default) predicts lead_s ahead along the tangent; "lead" predicts
+    lead_s ahead along the curve (see the module docstring).
     """
     if goal_source not in ("tracker", "truth"):
         raise ValueError("goal_source must be tracker or truth")
+    if goal_rule not in GOAL_RULES:
+        raise ValueError(f"goal_rule must be one of {GOAL_RULES}")
     config = config or RecoveryConfig()
     if wiring == "w1":
         cam = deliver(motion, delay_s=cell.total_delay_s, loss_probability=cell.loss_probability,
@@ -203,7 +268,8 @@ def run_loop(motion: str, cell: Cell, *, wiring: str = "w1", lead_s: float = LEA
     cursor = 0
     last_capture = -np.inf
     est_times, est_err = [], []
-    times, follow, separation, nominal = [], [], [], []
+    times, follow, separation, nominal, positions = [], [], [], [], []
+    headings: list[tuple[float, float, float]] = []  # (fuse time, vx, vy) for the lead rule
     landed = False
     for i in range(-n_pre, n_run):
         t = i * DT_S
@@ -219,11 +285,22 @@ def run_loop(motion: str, cell: Cell, *, wiring: str = "w1", lead_s: float = LEA
                         continue  # late: the recovery arm drops it
                     tracker.update(np.asarray(packet.measurement_m, dtype=float), packet.capture_time_s)
                     last_capture = packet.capture_time_s
+                    if goal_rule == "lead":
+                        fused = tracker.predict_at(tracker.timestamp_s).velocity_mps
+                        headings.append((tracker.timestamp_s, fused[0], fused[1]))
+                        while headings[0][0] < tracker.timestamp_s - 2.0 * TURN_RATE_WINDOW_S:
+                            headings.pop(0)
                 now = max(t, tracker.timestamp_s)
                 estimate = np.asarray(tracker.predict_at(now).position_m)
                 est_times.append(t)
                 est_err.append(float(np.linalg.norm(estimate - truth_position(motion, [t], config)[0])))
-                if goal_source == "truth":
+                if goal_rule == "lead" and goal_source == "truth":
+                    goal = truth_position(motion, [t + lead_s], config)[0] + offset
+                elif goal_rule == "lead":
+                    fused = tracker.predict_at(tracker.timestamp_s)
+                    goal = turn_predict(fused.position_m, fused.velocity_mps, estimate_turn_rate(headings),
+                                        t + lead_s - tracker.timestamp_s) + offset
+                elif goal_source == "truth":
                     goal = truth_position(motion, [t], config)[0] + lead_s * _truth_velocity(motion, t, config) + offset
                 else:
                     goal = np.asarray(tracker.predict_at(max(t + lead_s, tracker.timestamp_s)).position_m) + offset
@@ -242,6 +319,7 @@ def run_loop(motion: str, cell: Cell, *, wiring: str = "w1", lead_s: float = LEA
             target = truth_position(motion, [t_end], config)[0]
             position = np.asarray(state.position_m)
             times.append(t_end)
+            positions.append(position)
             follow.append(float(np.linalg.norm(position - (target + offset))))
             separation.append(float(np.linalg.norm(position - target)))
             nominal.append(state.failsafe_state == "nominal")
@@ -268,7 +346,8 @@ def run_loop(motion: str, cell: Cell, *, wiring: str = "w1", lead_s: float = LEA
         failed=bool(p95 > config.failure_p95_m or maximum > config.failure_max_m),
     )
     if keep_trace:
-        return result, {"times_s": times_a, "follow_m": follow_a, "estimate_times_s": est_t, "estimate_m": est_a}
+        return result, {"times_s": times_a, "follow_m": follow_a, "estimate_times_s": est_t, "estimate_m": est_a,
+                        "position_m": np.asarray(positions)}
     return result
 
 
@@ -285,13 +364,15 @@ def _label(failures: int, n: int) -> str:
     return "fails" if 2 * failures >= n else "passes"
 
 
-def summarize(rows: list[dict]) -> list[dict]:
+def summarize(rows: list[dict], variants: tuple[str, ...] = VARIANTS, cells=None) -> list[dict]:
     """One entry per (cell, motion, variant): medians and ranges over seeds, fail counts, labels."""
     summary_cells = []
-    for cell in CELLS:
+    for cell in (cells or CELLS):
         for motion in MOTIONS:
-            for variant in ("tracker_only",) + VARIANTS:
+            for variant in ("tracker_only",) + tuple(variants):
                 sub = [r for r in rows if r["cell"] == cell and r["motion"] == motion and r["variant"] == variant]
+                if not sub:
+                    continue  # e.g. the delay sweep has no tracker_only rows
                 fails = sum(r["failed"] for r in sub)
                 steady_fails = int(sum(r["failed_steady"] for r in sub))
                 nn = [r["non_nominal_fraction"] for r in sub if r["non_nominal_fraction"] is not None]
@@ -342,13 +423,41 @@ def replot(folder: Path) -> dict:
     """Rebuild cells_summary and the figure of a finished pilot folder from its per_run.csv."""
     folder = Path(folder)
     summary = json.loads((folder / "summary.json").read_text())
-    summary["cells_summary"] = summarize(read_rows(folder / "per_run.csv"))
+    variants = tuple(summary.get("variant_order", VARIANTS))
+    summary["cells_summary"] = summarize(read_rows(folder / "per_run.csv"), variants)
     (folder / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
-    _plot(summary["cells_summary"], folder / "pilot_full_chain.png")
+    _plot(summary["cells_summary"], folder / "pilot_full_chain.png", variants)
     return summary
 
 
-def run_pilot(output: Path, n_seeds: int = 5) -> dict:
+def variant_settings(variant: str, cell: Cell) -> dict:
+    """run_loop keyword arguments for one variant in one cell."""
+    radio = cell.radio_delay_s
+    table = {
+        "w2_truth": dict(wiring="w2", lead_s=LEAD_S, goal_source="truth", goal_rule="velocity"),
+        "w1": dict(wiring="w1", lead_s=LEAD_S, goal_source="tracker", goal_rule="velocity"),
+        "w2": dict(wiring="w2", lead_s=LEAD_S, goal_source="tracker", goal_rule="velocity"),
+        "w2_comp": dict(wiring="w2", lead_s=LEAD_S + radio, goal_source="tracker", goal_rule="velocity"),
+        # lead rule: aim the setpoint-path radio delay + the controller lag ahead along the curve
+        # (in w1 the delay is on the camera path, which the tracker already predicts across)
+        "w2_truth_lead": dict(wiring="w2", lead_s=CONTROLLER_LAG_S + radio, goal_source="truth", goal_rule="lead"),
+        "w1_lead": dict(wiring="w1", lead_s=CONTROLLER_LAG_S, goal_source="tracker", goal_rule="lead"),
+        "w2_lead": dict(wiring="w2", lead_s=CONTROLLER_LAG_S + radio, goal_source="tracker", goal_rule="lead"),
+    }
+    return table[variant]
+
+
+def _loop_row(cell: Cell, motion: str, variant: str, seed: int) -> dict:
+    r = run_loop(motion, cell, seed=seed, **variant_settings(variant, cell))
+    return {"cell": cell.name, "motion": motion, "variant": variant, "seed": seed,
+            "p95_m": r.follow_p95_m, "max_m": r.follow_max_m, "median_m": r.follow_median_m,
+            "p95_steady_m": r.follow_p95_steady_m, "failed_steady": r.failed_steady,
+            "estimate_p95_m": r.estimate_p95_m, "min_separation_m": r.min_separation_m,
+            "non_nominal_fraction": r.non_nominal_fraction, "landed": r.landed,
+            "failed": r.failed}
+
+
+def run_pilot(output: Path, n_seeds: int = 5, with_lead: bool = False) -> dict:
     output = Path(output)
     if output.exists() and any(output.iterdir()):
         raise SystemExit(f"{output} exists and is not empty; pick a new folder")
@@ -357,6 +466,7 @@ def run_pilot(output: Path, n_seeds: int = 5) -> dict:
     partial = output.with_name(output.name + ".partial")
     partial.mkdir(parents=True, exist_ok=True)
     seeds = seed_list(n_seeds)
+    variants = VARIANTS + (LEAD_VARIANTS if with_lead else ())
     # Checkpoint: one JSON line per finished (cell, motion) group. A rerun with the same output
     # resumes from it; the finished folder only appears when every group is done.
     checkpoint = partial / CHECKPOINT
@@ -367,6 +477,8 @@ def run_pilot(output: Path, n_seeds: int = 5) -> dict:
             record = json.loads(line)
             if record["seeds"] != seeds:
                 raise SystemExit(f"{checkpoint} was made with other seeds; use a new output folder")
+            if record.get("variants", list(VARIANTS)) != list(variants):
+                raise SystemExit(f"{checkpoint} was made with other variants; use a new output folder")
             rows.extend(record["rows"])
             done.add((record["cell"], record["motion"]))
         print(f"resuming: {len(done)} groups already in {checkpoint}", flush=True)
@@ -386,23 +498,16 @@ def run_pilot(output: Path, n_seeds: int = 5) -> dict:
                               "failed_steady": bool(late_p95 > 0.25 or float(np.max(late)) > 0.5),
                               "estimate_p95_m": s6.p95_error_m, "min_separation_m": None,
                               "non_nominal_fraction": None, "landed": None, "failed": s6.failed})
-                for variant in VARIANTS:
-                    wiring = "w1" if variant == "w1" else "w2"
-                    lead = LEAD_S + (cell.radio_delay_s if variant == "w2_comp" else 0.0)
-                    source = "truth" if variant == "w2_truth" else "tracker"
-                    r = run_loop(motion, cell, wiring=wiring, lead_s=lead, seed=seed, goal_source=source)
-                    group.append({"cell": cell.name, "motion": motion, "variant": variant, "seed": seed,
-                                  "p95_m": r.follow_p95_m, "max_m": r.follow_max_m, "median_m": r.follow_median_m,
-                                  "p95_steady_m": r.follow_p95_steady_m, "failed_steady": r.failed_steady,
-                                  "estimate_p95_m": r.estimate_p95_m, "min_separation_m": r.min_separation_m,
-                                  "non_nominal_fraction": r.non_nominal_fraction, "landed": r.landed,
-                                  "failed": r.failed})
+                for variant in variants:
+                    group.append(_loop_row(cell, motion, variant, seed))
             with open(checkpoint, "a") as handle:
                 record = {"cell": cell.name, "motion": motion, "seeds": seeds, "rows": group}
+                if with_lead:
+                    record["variants"] = list(variants)
                 handle.write(json.dumps(record) + "\n")
             rows.extend(group)
             print(f"done {cell.name} {motion} ({time.perf_counter() - started:.0f} s)", flush=True)
-    summary_cells = summarize(rows)
+    summary_cells = summarize(rows, variants)
     summary = {
         "schema": SCHEMA, "status": "pilot; synthetic inputs; simulated only; not registered",
         "seeds": seeds, "cells": {name: asdict(c) for name, c in CELLS.items()},
@@ -424,12 +529,16 @@ def run_pilot(output: Path, n_seeds: int = 5) -> dict:
         "cells_summary": summary_cells,
         "elapsed_s_last_invocation": time.perf_counter() - started,
     }
+    if with_lead:
+        summary["variant_order"] = list(variants)
+        summary["settings"]["lead_rule"] = _LEAD_RULE_SETTINGS
+        summary["variants"].update(_LEAD_VARIANT_TEXT)
     with open(partial / "per_run.csv", "w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
     (partial / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
-    _plot(summary_cells, partial / "pilot_full_chain.png")
+    _plot(summary_cells, partial / "pilot_full_chain.png", variants)
     checkpoint.unlink()  # per_run.csv now holds the same rows
     if output.exists():
         _move_into(partial, output)  # an empty folder was given
@@ -444,7 +553,17 @@ def _move_into(partial: Path, output: Path) -> None:
     partial.rmdir()
 
 
-def _plot(cells: list[dict], path: Path) -> None:
+_LEAD_RULE_SETTINGS = {
+    "controller_lag_s": CONTROLLER_LAG_S, "turn_rate_window_s": TURN_RATE_WINDOW_S,
+    "turn_rate_min_speed_mps": TURN_RATE_MIN_SPEED_MPS, "turn_rate_max_radps": TURN_RATE_MAX_RADPS,
+    "lead_s": "setpoint-path radio delay + controller_lag_s (radio delay is 0 in w1)"}
+_LEAD_VARIANT_TEXT = {
+    "w2_truth_lead": "w2 wiring, lead rule from the true state: the true position lead_s ahead on the path",
+    "w1_lead": "w1 wiring, lead rule: constant-turn prediction from the tracker, controller_lag_s ahead",
+    "w2_lead": "w2 wiring, lead rule: constant-turn prediction, radio delay + controller_lag_s ahead"}
+
+
+def _plot(cells: list[dict], path: Path, plot_variants: tuple[str, ...] = VARIANTS) -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -453,15 +572,19 @@ def _plot(cells: list[dict], path: Path) -> None:
     colors = apply_style("light")
     # Red and amber stay reserved for alerts, so no variant uses them (or the orange target colour).
     shades = {"tracker_only": colors["textSecondary"], "w2_truth": colors["lineStrong"], "w1": colors["accent"],
-              "w2": colors["keepOut"], "w2_comp": colors["ok"]}
+              "w2": colors["keepOut"], "w2_comp": colors["ok"],
+              "w2_truth_lead": colors["lineStrong"], "w1_lead": colors["accent"], "w2_lead": colors["ok"]}
     names = {"tracker_only": "tracker only (the S6 score)", "w2_truth": "loop, goal from the true state",
              "w1": "loop, delay and loss on the camera path",
-             "w2": "loop, radio on the setpoints", "w2_comp": "loop, radio on the setpoints, lead + radio delay"}
+             "w2": "loop, radio on the setpoints", "w2_comp": "loop, radio on the setpoints, lead + radio delay",
+             "w2_truth_lead": "lead rule (hatched), goal from the true state",
+             "w1_lead": "lead rule, delay and loss on the camera path",
+             "w2_lead": "lead rule, radio on the setpoints"}
     windows = (("", "pre-registered window, t >= 2 s"), ("steady_", "steady window, t >= 6 s (post hoc)"))
     top = 3.0
     fig, axes = plt.subplots(2, 2, figsize=(11, 7.4), sharey=True)
-    variants = ("tracker_only",) + VARIANTS
-    width = 0.16
+    variants = ("tracker_only",) + tuple(plot_variants)
+    width = 0.8 / len(variants)
     for row, (prefix, window) in enumerate(windows):
         for col, motion in enumerate(MOTIONS):
             ax = axes[row, col]
@@ -472,7 +595,11 @@ def _plot(cells: list[dict], path: Path) -> None:
                 low = np.array([c[f"{prefix}p95_min_m"] for c in sub])
                 high = np.array([c[f"{prefix}p95_max_m"] for c in sub])
                 shown = np.minimum(mid, top)
-                ax.bar(x, shown, width, color=shades[variant], label=names[variant])
+                if variant.endswith("_lead"):
+                    ax.bar(x, shown, width, color=shades[variant], label=names[variant], hatch="////",
+                           edgecolor=colors["surface"], linewidth=0)
+                else:
+                    ax.bar(x, shown, width, color=shades[variant], label=names[variant])
                 ax.errorbar(x, shown, yerr=[shown - np.minimum(low, top), np.minimum(high, top) - shown],
                             fmt="none", ecolor=colors["text"], capsize=2, lw=0.8)
                 for xi, hi_value in zip(x, high):
