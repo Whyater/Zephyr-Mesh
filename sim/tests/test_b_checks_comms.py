@@ -38,19 +38,23 @@ def _sobol_g(x):
     return np.prod((np.abs(4 * x - 2) + a) / (1 + a), axis=1)
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason='Hand input slip: t4 is the TRACKER clock at reply arrival, so with t1 = 0, 10 ms each way and 1 ms processing t4 = 0.021, not 0.071 (0.071 wrongly adds the 0.05 s sensor offset). With t4 = 0.071 the formula correctly gives ((0.06 - 0) + (0.061 - 0.071)) / 2 = 0.025, i.e. a 60 ms downlink. With t4 = 0.021 it gives 0.05, and ntp_exchange on the same setup returns t4 = 0.021 and theta_s = 0.05 exactly.')
+# History: this check first used t4 = 0.071, which wrongly added the 0.05 s sensor offset to a
+# TRACKER clock reading; it ran as a strict xfail until the hand input was fixed.
 def test_b4_symmetric_clock_sync_is_exact():
-    """With equal ten millisecond delays, the hand calculation gives offset 0.05 seconds exactly."""
-    assert offset_from_timestamps(0.0, 0.06, 0.061, 0.071) == pytest.approx(0.05, abs=1e-12)
-    sample = ntp_exchange(
-        0.0,
-        ClockModel(offset_s=0.05),
-        SimulatedLink(LinkConfig(delay_s=0.01, delay_jitter_s=0.0, loss_model="none", loss_probability=0.0), seed=1),
-        SimulatedLink(LinkConfig(delay_s=0.01, delay_jitter_s=0.0, loss_model="none", loss_probability=0.0), seed=2),
-        seq=0,
-        processing_s=0.001,
-    )
+    """With equal ten millisecond delays, the hand calculation gives offset 0.05 seconds exactly.
+
+    Tracker clock = true time, sensor clock = true time + 0.05. The request leaves at t1 = 0
+    (tracker clock), lands 0.01 s later, so the sensor stamps t2 = 0.01 + 0.05 = 0.06. The sensor
+    waits 1 ms and replies at t3 = 0.061 (sensor clock). The reply lands at true time
+    0 + 0.01 + 0.001 + 0.01 = 0.021, and t4 is read on the TRACKER clock, so t4 = 0.021.
+    theta = ((t2 - t1) + (t3 - t4)) / 2 = (0.06 + 0.04) / 2 = 0.05, the true offset.
+    """
+    assert offset_from_timestamps(0.0, 0.06, 0.061, 0.021) == pytest.approx(0.05, abs=1e-12)
+    link = LinkConfig(delay_s=0.01, delay_jitter_s=0.0, loss_model="none", loss_probability=0.0)
+    sample = ntp_exchange(0.0, ClockModel(offset_s=0.05), SimulatedLink(link, seed=1), SimulatedLink(link, seed=2),
+                          seq=0, processing_s=0.001)
     assert sample is not None
+    assert (sample.t1, sample.t2, sample.t3, sample.t4) == pytest.approx((0.0, 0.06, 0.061, 0.021), abs=1e-12)
     assert sample.theta_s == pytest.approx(0.05, abs=1e-12)
 
 
@@ -65,31 +69,66 @@ def test_b4_asymmetric_delay_has_half_difference_error():
         assert theta == pytest.approx(expected, abs=1e-12)
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="NTP expectation ignores two things the clock model requires: (1) a capture at t uses the latest exchange whose reply ARRIVED by t; the exchange started at t = 2k arrives at 2k + 0.021, so captures at t = 2k still use the previous sync and have error about 2e-4, not 0; (2) the sync's own error: theta = r (T + 0.0105) for an exchange started at T (offset at the exchange midpoint), so error = r (t - T - 0.0105), off from r (t - T) by 1.05e-6 > atol 1e-6. Correct values: 0 at t = 0, then 9.895e-5 at odd t and 1.9895e-4 at even t. The unsynced half passes.")
+# History: the NTP half first expected 100e-6 * (t - time of the last exchange START). That skips
+# two things: a capture can only use a reply that has already ARRIVED, and the sync itself measures
+# the clock at the exchange midpoint, not at its start. It ran as a strict xfail until fixed.
 def test_b4_clock_drift_unsynced_and_ntp():
-    """A one hundred ppm unsynced clock has error 100e-6 times t, while NTP error is drift times time since the last sync."""
+    """A one hundred ppm unsynced clock has error 100e-6 times t, while NTP error is drift times time since the clock was last measured.
+
+    Drift r = 100e-6 s per s, so the sensor clock reads t (1 + r). Exchanges start at T = 0, 2, 4,
+    ... (tracker clock = true time), 10 ms each way, 1 ms processing (real time on the sensor):
+      t1 = T, t2 = (T + 0.01)(1 + r), t3 = (T + 0.011)(1 + r), t4 = T + 0.021.
+      theta = ((t2 - t1) + (t3 - t4)) / 2 = (0.01 + 0.011 - 0.021 + r (2T + 0.021)) / 2 = r (T + 0.0105).
+    So a sync measures the clock error at the midpoint T + 0.0105 of its two sensor stamps.
+    A capture at t uses the newest exchange whose reply arrived by t (arrival T + 0.021).
+      error(t) = r t - theta = r (t - T - 0.0105), or r t if no reply has arrived yet.
+    t = 0: no reply yet, error 0. t = 1: uses T = 0, error 100e-6 * 0.9895 = 9.895e-5.
+    t = 2: the T = 2 reply only lands at 2.021, so still T = 0, error 100e-6 * 1.9895 = 1.9895e-4.
+    """
+    r = 100e-6
     times = np.arange(0.0, 10.0 + 1.0, 1.0)
     unsynced = stamp_errors(times, {"mode": "unsynced", "offset_s": 0.0, "drift_ppm": 100.0}, {})
-    np.testing.assert_allclose(unsynced, 100e-6 * times, atol=1e-12)
+    np.testing.assert_allclose(unsynced, r * times, atol=1e-12)
     ntp = stamp_errors(
         times,
         {"mode": "ntp", "offset_s": 0.0, "drift_ppm": 100.0, "sync_interval_s": 2.0, "sync_delay_s": 0.01, "sync_jitter_s": 0.0, "sync_loss_probability": 0.0},
         {"sync_up": 11, "sync_down": 12},
     )
-    expected = 100e-6 * (times - 2.0 * np.floor(times / 2.0))
-    np.testing.assert_allclose(ntp, expected, atol=1e-6)
+    expected = []
+    for t in times:
+        # Captures are whole seconds and arrivals end in .021, so these float comparisons have no ties.
+        arrived = [start for start in np.arange(0.0, 11.0, 2.0) if start + 0.021 <= t]
+        expected.append(r * t if not arrived else r * (t - max(arrived) - 0.0105))
+    # Errors are about 1e-4 s and rounding in them is about 1e-20 s, so 1e-12 is a loose bound
+    # that still fails on the old 1.05e-6 slip by a factor of a million.
+    np.testing.assert_allclose(ntp, expected, atol=1e-12)
+    assert ntp[0] == 0.0
+    assert ntp[1] == pytest.approx(9.895e-5, abs=1e-12)
+    assert ntp[2] == pytest.approx(1.9895e-4, abs=1e-12)
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason='Expectation equates the WHOLE p95 error with the clock shift v e = 0.05 m and ignores the noise floor: with the default 0.05 m sensor noise and perfect clocks this cell already has median p95 0.110 m, and with offset +/-0.05 s it is 0.128 / 0.140 m. the clock model says the shift is about v e, which holds: with noise_std_m = 1e-6 the median p95 is 0.050009 (+0.05 s) and 0.050001 (-0.05 s), and the noisy RMSE (0.0804, 0.0929) averages to sqrt(0.0706^2 + 0.05^2) = 0.0866.')
+# History: this check first used the default 0.05 m sensor noise and expected the WHOLE p95 error
+# to be the clock shift 0.05 m; the noise alone already gives about 0.11 m. It ran as a strict xfail
+# until the noise was taken out so only the clock shift is left.
 def test_b4_prediction_error_matches_speed_times_clock_offset():
-    """A one metre per second target with a 0.05 second clock offset should have median p95 position error about 0.05 metres."""
+    """A one metre per second target with a 0.05 second clock offset should have median p95 position error about 0.05 metres.
+
+    The cv target moves in a straight line at 1 m/s. A stamp that is wrong by e seconds tells the
+    tracker the target was there e seconds earlier or later than it really was, so on a straight line
+    the estimate slides by v e = 1 * 0.05 = 0.05 m along the path, for either sign of e.
+    Sensor noise is set to 1 micrometre so that shift is the only error left. Limiting case: with
+    e = 0 the error should be almost nothing, which rules out the 0.05 m coming from somewhere else
+    (the 0.1 s link delay times 1 m/s divided by 2 is also 0.05, for example).
+    Tolerance: 1 mm, a thousand times the noise; the filter's start-up samples are a small share of
+    each run, so they do not move the 95th percentile.
+    """
     from sim.s6_recovery import RecoveryConfig
 
     config = RecoveryConfig()
-    for offset in (0.05, -0.05):
-        cell = CellSpec(target="cv", delay_s=0.1, clock=(("mode", "unsynced"), ("offset_s", offset)))
+    for offset, expected in ((0.05, 0.05), (-0.05, 0.05), (0.0, 0.0)):
+        cell = CellSpec(target="cv", delay_s=0.1, noise_std_m=1e-6, clock=(("mode", "unsynced"), ("offset_s", offset)))
         result = run_cell(cell, [RECOVERY_V1], [1, 2, 3], config)
-        assert _summary_median_p95(result) == pytest.approx(0.05, rel=0.10)
+        assert _summary_median_p95(result) == pytest.approx(expected, abs=0.001)
 
 
 def test_b5_quantization_uniform_error_and_int16_codes():
@@ -142,12 +181,21 @@ def test_b6_gate_rejects_outliers_and_keeps_most_clean_packets():
     assert chi2.ppf(0.99, 3) == pytest.approx(11.34, abs=0.01)
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="sigma is zero in exact arithmetic but not bitwise in IEEE doubles: the p = 4 grid values 1/3 and 2/3 are not representable and fn's sum rounds, so single elementary effects differ by 1 to 2 ulp (x0: 3.999999999999999 to 4.000000000000002), giving sigma about 6e-16, 5e-16, 0, 3e-16. assert_array_equal demands exact 0. mu_star equals [4, 2, 0, 1] exactly and the ranking assertion passes.")
+# History: this check first demanded sigma == 0 bit for bit. In exact arithmetic it is 0, but the
+# grid values 1/3 and 2/3 are not exact in binary, so single effects differ in the last digit.
+# It ran as a strict xfail until the exact compare got a rounding tolerance.
 def test_b7_morris_linear_effects_are_exact():
-    """For y = 4x0 + 2x1 + x3, Morris gives mu star four, two, zero, one, all sigma zero, ranked zero one three two."""
+    """For y = 4x0 + 2x1 + x3, Morris gives mu star four, two, zero, one, all sigma zero, ranked zero one three two.
+
+    Every elementary effect of input i is (y(x + Delta e_i) - y(x)) / Delta, which for a straight-line
+    y is exactly its slope, so mu star = (4, 2, 0, 1) and sigma = 0. Tolerance: y is at most 7, where
+    one rounding step is about 9e-16; a difference of two rounded values divided by Delta = 2/3
+    (levels 4) is off by at most about 1e-14. 1e-12 covers that and is still a trillion times smaller
+    than the smallest nonzero effect (1).
+    """
     result = morris_screen(_rowwise(_linear_y), k=4, r=20, levels=4, seed=0)
-    np.testing.assert_array_equal(result["mu_star"], [4.0, 2.0, 0.0, 1.0])
-    np.testing.assert_array_equal(result["sigma"], np.zeros(4))
+    np.testing.assert_allclose(result["mu_star"], [4.0, 2.0, 0.0, 1.0], rtol=0, atol=1e-12)
+    np.testing.assert_allclose(result["sigma"], np.zeros(4), rtol=0, atol=1e-12)
     np.testing.assert_array_equal(np.argsort(-result["mu_star"]), [0, 1, 3, 2])
 
 
@@ -162,63 +210,3 @@ def test_b7_morris_sobol_g_function_ranking():
     """For the Sobol g function with a equal to zero, one, 4.5, 9, 99, the mu star ranking is zero one two three four."""
     result = morris_screen(_rowwise(_sobol_g), k=5, r=100, levels=4, seed=0)
     np.testing.assert_array_equal(np.argsort(-result["mu_star"]), [0, 1, 2, 3, 4])
-
-
-
-# ---- Corrected versions of the four checks above whose hand inputs were wrong ----
-# The originals stay as strict xfails (the record of the slip). These siblings keep the same
-# physical question and the same tolerances, with the hand derivation fixed.
-
-def test_b4_symmetric_clock_sync_is_exact_corrected():
-    """t4 is the TRACKER clock at reply arrival: 0 + 0.01 up + 0.001 processing + 0.01 down = 0.021.
-    Then theta = ((0.06 - 0) + (0.061 - 0.021)) / 2 = 0.05 exactly, the true offset."""
-    assert offset_from_timestamps(0.0, 0.06, 0.061, 0.021) == pytest.approx(0.05, abs=1e-12)
-    link = LinkConfig(delay_s=0.01, delay_jitter_s=0.0, loss_model="none", loss_probability=0.0)
-    sample = ntp_exchange(0.0, ClockModel(offset_s=0.05), SimulatedLink(link, seed=1), SimulatedLink(link, seed=2),
-                          seq=0, processing_s=0.001)
-    assert sample is not None
-    assert sample.theta_s == pytest.approx(0.05, abs=1e-12)
-
-
-def test_b4_clock_drift_ntp_corrected():
-    """Drift r = 100 ppm, exchanges started at T = 0, 2, 4, ..., 10 ms each way, 1 ms processing.
-    The reply of the exchange started at T arrives at T + 0.021, and the offset it measures is the
-    sensor offset at the midpoint of the two sensor stamps: theta = r (T + 0.0105). A capture at t uses
-    the latest exchange whose reply arrived by t, so its error is r (t - T - 0.0105) (0 before any reply).
-    Hand values: t = 1 gives 9.895e-5; t = 2 still uses T = 0 (reply only at 2.021), giving 1.9895e-4."""
-    r = 100e-6
-    times = np.arange(0.0, 10.0 + 1.0, 1.0)
-    ntp = stamp_errors(
-        times,
-        {"mode": "ntp", "offset_s": 0.0, "drift_ppm": 100.0, "sync_interval_s": 2.0, "sync_delay_s": 0.01,
-         "sync_jitter_s": 0.0, "sync_loss_probability": 0.0},
-        {"sync_up": 11, "sync_down": 12},
-    )
-    expected = []
-    for t in times:
-        arrived = [T for T in np.arange(0.0, t + 1e-9, 2.0) if T + 0.021 <= t + 1e-12]
-        expected.append(0.0 if not arrived else r * (t - max(arrived) - 0.0105))
-    np.testing.assert_allclose(ntp, expected, atol=1e-12)
-    assert ntp[1] == pytest.approx(9.895e-5, abs=1e-12) and ntp[2] == pytest.approx(1.9895e-4, abs=1e-12)
-
-
-def test_b4_prediction_error_matches_speed_times_clock_offset_corrected():
-    """With sensor noise removed (1 micrometre), the only error left on a 1 m/s straight line is the
-    clock shift: a stamp off by e = +-0.05 s moves the predict-forward estimate by v e = 0.05 m."""
-    from sim.s6_recovery import RecoveryConfig
-
-    config = RecoveryConfig()
-    for offset in (0.05, -0.05):
-        cell = CellSpec(target="cv", delay_s=0.1, noise_std_m=1e-6, clock=(("mode", "unsynced"), ("offset_s", offset)))
-        result = run_cell(cell, [RECOVERY_V1], [1, 2, 3], config)
-        assert _summary_median_p95(result) == pytest.approx(0.05, rel=0.02)
-
-
-def test_b7_morris_linear_effects_corrected():
-    """For y = 4 x0 + 2 x1 + x3 every elementary effect of input i is exactly its slope, so mu star is
-    (4, 2, 0, 1) and sigma is 0. Levels like 1/3 are not exact in binary, so sigma is zero only to
-    rounding (about 1e-15), hence a 1e-12 tolerance instead of exact equality."""
-    result = morris_screen(_rowwise(_linear_y), k=4, r=20, levels=4, seed=0)
-    np.testing.assert_allclose(result["mu_star"], [4.0, 2.0, 0.0, 1.0], atol=1e-12)
-    np.testing.assert_allclose(result["sigma"], np.zeros(4), atol=1e-12)
-    np.testing.assert_array_equal(np.argsort(-result["mu_star"]), [0, 1, 3, 2])
