@@ -141,19 +141,47 @@ def pairs_from_sync_log(log: Iterable[Mapping[str, float] | object]) -> tuple[np
     return np.asarray(device, dtype=float), np.asarray(sim, dtype=float)
 
 
-def unwrap_counter(ticks, modulus: int) -> np.ndarray:
+DEFAULT_MAX_GAP_TICKS = 5_000_000
+"""Default largest gap between samples: 5 s of a microsecond counter."""
+
+
+def unwrap_counter(ticks, modulus: int, max_gap_ticks: int | None = None) -> np.ndarray:
     """Undo rollovers in a counter that wraps back to zero at ``modulus``.
 
     Example: a 32-bit microsecond counter (``modulus = 2**32``) wraps every
-    4294.97 s, about 71.6 minutes. When the counter drops by more than half
-    the modulus from one sample to the next, that is counted as one wrap and
-    ``modulus`` is added to every later sample. Samples must be in time order
-    and closer together than half a wrap period. A small backwards step (a
-    reordered packet) is left alone rather than treated as a wrap.
+    4294.97 s, about 71.6 minutes. Samples must be in time order.
+
+    ``max_gap_ticks`` is the largest plausible gap between two samples, in
+    counter ticks. When the counter goes down from one sample to the next,
+    the drop is judged with it:
+
+    * Drop of at most ``max_gap_ticks``: a reordered packet. Left alone.
+    * A rollover: the step forward across the wrap,
+      ``(modulus - previous) + next``, is at most ``max_gap_ticks``. That
+      means the previous value was near the top AND the next is near zero.
+      ``modulus`` is added to that sample and every later one.
+    * Anything else raises ``ValueError`` naming the sample index. The usual
+      cause is a device reboot (the counter restarted at zero). Split the log
+      at that index and fit each piece on its own.
+
+    A reboot can still pass as a rollover if it happens within
+    ``max_gap_ticks`` of the top of the range, because the two look the same
+    in the counter alone. A tight gap keeps that window small.
+
+    The default is the smaller of ``DEFAULT_MAX_GAP_TICKS`` (5,000,000 ticks,
+    which is 5 s of a microsecond counter, 5000 s of a millisecond one) and
+    ``modulus // 4`` (so small counters still work). The gap must be positive
+    and less than half the modulus, so a reordered packet and a rollover can
+    never both explain the same drop.
     """
     modulus = int(modulus)
     if modulus <= 0:
         raise ValueError("modulus must be positive")
+    if max_gap_ticks is None:
+        max_gap_ticks = min(DEFAULT_MAX_GAP_TICKS, modulus // 4)
+    max_gap_ticks = int(max_gap_ticks)
+    if max_gap_ticks <= 0 or 2 * max_gap_ticks >= modulus:
+        raise ValueError("max_gap_ticks must be positive and less than half the modulus")
     raw = np.asarray(ticks)
     if raw.ndim != 1:
         raise ValueError("ticks must be 1-D")
@@ -165,8 +193,21 @@ def unwrap_counter(ticks, modulus: int) -> np.ndarray:
         raise ValueError("ticks must be in [0, modulus)")
     if values.size < 2:
         return values.copy()
-    drops = np.diff(values) < -(modulus // 2)
-    wraps = np.concatenate(([0], np.cumsum(drops)))
+    prev = values[:-1]
+    nxt = values[1:]
+    drop = prev - nxt
+    backward = drop > max_gap_ticks
+    wraps_here = backward & ((modulus - prev) + nxt <= max_gap_ticks)
+    bad = np.flatnonzero(backward & ~wraps_here)
+    if bad.size:
+        i = int(bad[0]) + 1
+        raise ValueError(
+            f"counter went backward by {int(drop[i - 1])} ticks at index {i} "
+            f"({int(values[i - 1])} -> {int(values[i])}), which is neither a reordered packet "
+            f"nor a rollover within max_gap_ticks={max_gap_ticks}: likely a device reboot. "
+            "Split the log at this index."
+        )
+    wraps = np.concatenate(([0], np.cumsum(wraps_here)))
     return values + wraps.astype(np.int64) * modulus
 
 

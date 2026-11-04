@@ -186,3 +186,60 @@ def test_small_backward_step_is_not_a_wrap():
     # rollover, so nothing is added (a wrap needs a drop of more than half the modulus).
     raw = np.array([100, 200, 190, 300])
     assert clock_map.unwrap_counter(raw, 1000).tolist() == [100, 200, 190, 300]
+
+
+# Reboots versus rollovers. An ESP32 running Arduino micros() has a 32-bit
+# microsecond counter. If it reboots after more than half a wrap period
+# (2^31 us = 35.8 min), the counter drops from above 2^31 to near zero. The
+# old rule (any drop bigger than half the modulus is a wrap) read that as a
+# rollover and silently moved time forward by (2^32 - previous) ticks.
+US_32 = 2**32
+
+
+@pytest.mark.parametrize("before_reboot", [2_100_000_000, 2_200_000_000, 3_000_000_000])
+def test_reboot_after_half_a_wrap_period_is_not_read_as_a_rollover(before_reboot):
+    # 2.1e9 us is 35 min (just under half, 2^31 = 2.147e9: the old rule let
+    # time run backward with no error), 2.2e9 us is 36.7 min and 3.0e9 us is
+    # 50 min (the old rule jumped time forward 2095 s and 1295 s). After the
+    # reboot the counter restarts near zero. A real rollover would need the
+    # counter to be within a few seconds of 2^32 first, and here it is at
+    # least 1295 s short of it, so every case must raise.
+    ticks = np.array([before_reboot - 100_000, before_reboot, 1_000, 2_000], dtype=np.int64)
+    with pytest.raises(ValueError, match="reboot"):
+        clock_map.unwrap_counter(ticks, US_32)
+
+
+def test_wrap_just_inside_the_gap_unwraps_and_reboot_just_outside_raises():
+    # The rule: a drop counts as a wrap only when the step forward across the
+    # wrap, (modulus - previous) + next, is at most max_gap_ticks. With the
+    # default of 5,000,000 ticks (5 s of a microsecond counter):
+    #   3,000,000 ticks before the top, then 1,999,999: step 4,999,999, a wrap.
+    #   3,000,000 ticks before the top, then 2,000,001: step 5,000,001, refused.
+    top = US_32 - 3_000_000
+    inside = clock_map.unwrap_counter(np.array([top, 1_999_999]), US_32)
+    assert inside.tolist() == [top, US_32 + 1_999_999]
+    assert (inside[1] - inside[0]) == 4_999_999
+    with pytest.raises(ValueError, match="reboot"):
+        clock_map.unwrap_counter(np.array([top, 2_000_001]), US_32)
+    # Passing the default explicitly changes nothing.
+    same = clock_map.unwrap_counter(np.array([top, 1_999_999]), US_32, max_gap_ticks=5_000_000)
+    assert same.tolist() == inside.tolist()
+    # A caller with sparser samples can widen the gap, and then it is a wrap.
+    wide = clock_map.unwrap_counter(np.array([top, 2_000_001]), US_32, max_gap_ticks=6_000_000)
+    assert wide.tolist() == [top, US_32 + 2_000_001]
+
+
+def test_large_backward_step_that_is_not_a_wrap_raises():
+    # Modulus 1000, default gap = 1000 // 4 = 250 ticks. A drop of 300 is too
+    # big to be a reordered packet and the forward step across the wrap,
+    # (1000 - 600) + 300 = 700, is too big to be a rollover.
+    with pytest.raises(ValueError, match="index 2"):
+        clock_map.unwrap_counter(np.array([500, 600, 300]), 1000)
+
+
+@pytest.mark.parametrize("gap", [0, -5, 500, 600])
+def test_unwrap_rejects_a_gap_that_makes_wraps_and_backsteps_overlap(gap):
+    # The gap must be positive and under half the modulus, so that a small
+    # backward step and a rollover can never both explain the same drop.
+    with pytest.raises(ValueError):
+        clock_map.unwrap_counter(np.array([1, 2]), 1000, max_gap_ticks=gap)
