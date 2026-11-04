@@ -15,6 +15,7 @@ from tools import pilot_full_chain as pilot
 
 KP, KD = 2.0, 1.5  # Crazyflie-class v2 profile position loop, x and y axes
 SEED = seed_list(1)[0]
+GOLDEN_W1_S6_PASS_TURN_STEADY_P95_M = 1.3957818145058185  # old w1 row, s6_pass turn, first S6 seed
 
 
 def _settled(trace, after_s=8.0):
@@ -269,3 +270,44 @@ def test_delay_sweep_refuses_nonempty_output(tmp_path):
     (tmp_path / "old.txt").write_text("x")
     with pytest.raises(SystemExit):
         pilot.run_delay_sweep(tmp_path)
+
+
+# Switching rule. The two limiting cases are the rule's definition checked end to end: with no
+# camera noise the turn-rate estimate is exact, so on a 1 rad/s circle the latch turns on and
+# stays on (switch = lead), and on a straight line it is exactly 0 (switch = the old goal).
+
+def test_switch_on_a_constant_rate_circle_equals_the_lead_rule():
+    cell = pilot.CELLS["zero"]
+    lead = pilot.run_loop("constant_turn", cell, seed=SEED, **pilot.variant_settings("w1_lead", cell))
+    switch, trace = pilot.run_loop("constant_turn", cell, seed=SEED, keep_trace=True,
+                                   **pilot.variant_settings("w1_switch", cell))
+    # The latch needs |w| >= 0.80 rad/s first, so it turns on a little later than the lead rule's
+    # estimate starts; that start difference is still about 0.003 m at 6 s.
+    assert switch.follow_p95_steady_m == pytest.approx(lead.follow_p95_steady_m, abs=0.01)
+    assert all(on for t, _, on in trace["turn_trace"] if t >= 2.0)
+
+
+def test_switch_on_a_straight_line_equals_the_default_rule():
+    cell = pilot.CELLS["zero"]
+    for switch_variant, old_variant in (("w1_switch", "w1"), ("w2_switch", "w2_comp")):
+        old = pilot.run_loop("constant_velocity", cell, seed=SEED, **pilot.variant_settings(old_variant, cell))
+        switch, trace = pilot.run_loop("constant_velocity", cell, seed=SEED, keep_trace=True,
+                                       **pilot.variant_settings(switch_variant, cell))
+        assert switch == old
+        assert not any(on for _, _, on in trace["turn_trace"])
+
+
+def test_switch_thresholds_must_leave_a_hysteresis_band():
+    assert 0.0 < pilot.SWITCH_OFF_RADPS < pilot.SWITCH_ON_RADPS
+    with pytest.raises(ValueError):
+        pilot.run_loop("constant_velocity", pilot.CELLS["zero"], seed=SEED, goal_rule="switch",
+                       switch_on_radps=0.5, switch_off_radps=0.5)
+
+
+def test_default_noisy_cell_output_is_unchanged():
+    # Golden value: the old velocity rule (w1) on the s6_pass turn, first S6 seed, from the code
+    # before the switching rule existed. Restates the old output on purpose, to catch any change.
+    cell = pilot.CELLS["s6_pass"]
+    result = pilot.run_loop("constant_turn", cell, seed=SEED, **pilot.variant_settings("w1", cell))
+    assert result.follow_p95_steady_m == pytest.approx(GOLDEN_W1_S6_PASS_TURN_STEADY_P95_M, abs=1e-12)
+    assert pilot.SWITCH_VARIANTS[0] not in pilot.VARIANTS  # the default run never adds switch rows
