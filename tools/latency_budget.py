@@ -178,10 +178,15 @@ def _row_cells(summary: dict[str, Any], noise_std_m: float) -> list[dict[str, An
     cells = summary.get("cells")
     if not isinstance(cells, list):
         raise LatencyBudgetError("S6 summary has no cells list")
-    return [c for c in cells
-            if isinstance(c, dict) and c.get("slice") == "main" and c.get("loss_model") == "independent"
-            and c.get("loss_probability") == 0.0 and c.get("jitter_s") == 0.0
-            and math.isclose(c.get("noise_std_m", -1.0), noise_std_m, abs_tol=1e-12)]
+    row = [c for c in cells
+           if isinstance(c, dict) and c.get("slice") == "main" and c.get("loss_model") == "independent"
+           and c.get("loss_probability") == 0.0 and c.get("jitter_s") == 0.0]
+    for c in row:
+        noise = c.get("noise_std_m")
+        if isinstance(noise, bool) or not isinstance(noise, (int, float)) or not math.isfinite(noise):
+            raise LatencyBudgetError(f"S6 summary cell {c.get('cell_id')!r} has noise_std_m {noise!r}, which is "
+                                     "not a number, so its row cannot be matched; check the summary file")
+    return [c for c in row if math.isclose(c["noise_std_m"], noise_std_m, abs_tol=1e-12)]
 
 
 def delay_grid(summary: dict[str, Any], noise_std_m: float) -> tuple[float, ...]:
@@ -223,6 +228,12 @@ def budget(latency: Any, processing: Any = None, fit: Any = None, *, summary: di
            summary_sha256: str | None = None, noise_std_m: float = 0.05,
            processing_term_override: dict[str, Any] | None = None) -> dict[str, Any]:
     """Compute D and read its S6 row. See the module docstring."""
+    if isinstance(noise_std_m, bool) or not isinstance(noise_std_m, (int, float)) or not math.isfinite(noise_std_m):
+        raise LatencyBudgetError(f"noise_std_m must be a finite number in metres (the S6 rows are 0, 0.02, 0.05 "
+                                 f"and 0.10), got {noise_std_m!r}")
+    if noise_std_m < 0:
+        raise LatencyBudgetError(f"noise_std_m must be zero or more (it is a standard deviation in metres), "
+                                 f"got {noise_std_m!r}")
     camera = camera_term(latency)
     proc = processing_term_override if processing_term_override is not None else processing_term(processing)
     radio = radio_term(fit)

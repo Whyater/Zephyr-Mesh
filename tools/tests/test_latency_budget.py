@@ -337,3 +337,50 @@ def test_command_line_refuses_a_bare_measured_processing_file(tmp_path, capsys):
     assert lb.main(["--latency", str(lat), "--processing", str(proc), "--out", str(out)]) == 2
     assert "provenance" in capsys.readouterr().err
     assert not out.exists()
+
+
+# noise_std_m picks which S6 row is read. A typo there must stop the lookup with a plain message,
+# never crash it or silently read nothing.
+
+@pytest.mark.parametrize("bad", ["0.05", None, True, float("nan"), float("inf")])
+def test_noise_level_must_be_a_finite_number(bad):
+    with pytest.raises(lb.LatencyBudgetError, match="noise_std_m must be a finite number"):
+        lb.budget(_latency(0.050), _processing(0.010), noise_std_m=bad)
+
+
+def test_noise_level_must_not_be_negative():
+    with pytest.raises(lb.LatencyBudgetError, match="noise_std_m must be zero or more"):
+        lb.budget(_latency(0.050), _processing(0.010), noise_std_m=-0.05)
+
+
+def test_zero_noise_row_is_still_allowed():
+    # Truth: the registered S6 summary has a 0 cm noise row (noise levels 0, 2, 5 and 10 cm).
+    result = lb.budget(_latency(0.100), _processing(0.010), noise_std_m=0.0)
+    assert result["noise_std_m"] == 0.0 and result["on_grid"]
+
+
+def test_command_line_refuses_a_negative_noise_level(tmp_path, capsys):
+    lat = tmp_path / "latency.json"
+    lat.write_text(json.dumps(_latency(0.050)))
+    assert lb.main(["--latency", str(lat), "--processing-median-ms", "10", "--noise-std-m", "-0.05"]) == 2
+    assert "noise_std_m must be zero or more" in capsys.readouterr().err
+
+
+_ROW_CELL = {"slice": "main", "loss_model": "independent", "loss_probability": 0.0, "jitter_s": 0.0,
+             "delay_s": 0.1, "cell_id": "main/constant_velocity/typo"}
+
+
+@pytest.mark.parametrize("noise", ["0.05", None, True, float("nan")])
+def test_summary_cell_with_a_non_numeric_noise_is_an_error_not_a_traceback(noise):
+    summary = {"schema": "zephyr-s6-recovery-1", "cells": [{**_ROW_CELL, "noise_std_m": noise}]}
+    with pytest.raises(lb.LatencyBudgetError, match="main/constant_velocity/typo"):
+        lb.budget(_latency(0.050), _processing(0.010), summary=summary)
+
+
+def test_command_line_reports_a_summary_cell_with_a_text_noise(tmp_path, capsys):
+    lat = tmp_path / "latency.json"
+    lat.write_text(json.dumps(_latency(0.050)))
+    bad = tmp_path / "summary.json"
+    bad.write_text(json.dumps({"schema": "zephyr-s6-recovery-1", "cells": [{**_ROW_CELL, "noise_std_m": "0.05"}]}))
+    assert lb.main(["--latency", str(lat), "--processing-median-ms", "10", "--summary", str(bad)]) == 2
+    assert "noise_std_m" in capsys.readouterr().err

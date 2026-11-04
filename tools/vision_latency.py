@@ -34,6 +34,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -82,8 +83,23 @@ def load_run(run_dir: Path) -> tuple[np.ndarray, np.ndarray, dict]:
     return data["frames"], data["t_read_s"], meta
 
 
+def recorded_refresh_hz(meta: dict) -> float | None:
+    """The screen refresh rate the run folder recorded (``display_refresh_hz``), or None if it has none."""
+    value = meta.get("display_refresh_hz")
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+        raise ValueError(f"run_meta.json has display_refresh_hz {value!r}; it must be a positive number of Hz "
+                         "(for example 60) or be left out")
+    return float(value)
+
+
 def cmd_analyze(args: argparse.Namespace) -> int:
     frames, t_read, meta = load_run(args.run_dir)
+    recorded_hz = recorded_refresh_hz(meta)
+    if recorded_hz is not None and args.refresh_hz is not None and args.refresh_hz != recorded_hz:
+        raise ValueError(f"--refresh-hz {args.refresh_hz:g} disagrees with run_meta.json, which records a "
+                         f"{recorded_hz:g} Hz screen; pass the screen's real rate")
     n_bits = args.bits or int(meta.get("n_bits", 8))
     log = read_display_log(args.run_dir / LOG_FILE, n_bits)
     settings = Settings(n_bits=n_bits, roi=args.roi, mirror=args.mirror,
@@ -105,6 +121,10 @@ def cmd_analyze(args: argparse.Namespace) -> int:
             writer.writerow([s["frame"], f"{s['t_read_s']:.6f}", s["seq"], int(s["straddle"]),
                              f"{s['lo_s']:.6f}", f"{s['hi_s']:.6f}", f"{s['mid_s']:.6f}"])
     print(summary_text(result))
+    if recorded_hz is not None and args.refresh_hz is None:
+        print(f"WARNING: run_meta.json records a {recorded_hz:g} Hz screen but --refresh-hz was not given, so the "
+              f"+/- leaves out the refresh-phase term ({500 / recorded_hz:.1f} ms). Rerun with "
+              f"--refresh-hz {recorded_hz:g}.")
     return 0 if "error" not in result else 1
 
 
@@ -156,6 +176,7 @@ def cmd_synth(args: argparse.Namespace) -> int:
                          "true_mean_latency_ms": 1000 * float(np.mean(rec.true_latency_s))}}
     if args.vsync_hz is not None:
         meta["injected"]["vsync_hz"] = args.vsync_hz
+        meta["display_refresh_hz"] = args.vsync_hz  # the field a recorder writes for the screen's rate
     (args.run_dir / META_FILE).write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(f"Wrote a SYNTHETIC recording ({len(rec.frames)} frames) to {args.run_dir}")
     return 0
