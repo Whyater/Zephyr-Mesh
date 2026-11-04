@@ -140,7 +140,7 @@ def test_formula_residuals_pick_the_matching_formula():
     p = np.array([0.02, 0.04, 0.06])
     d = 0.338 - (p - 0.01) / 2
     res = shc.formula_residuals(p, d, 0.338)
-    assert res["dc_fix_P_minus_c_over_2"]["max_abs_s"] == pytest.approx(0.0, abs=1e-12)
+    assert res["p_minus_c_over_2"]["max_abs_s"] == pytest.approx(0.0, abs=1e-12)
     # The current file's hold is 10 ms bigger, so the sim sits 10 ms above it.
     assert res["main_P_over_2_plus_c_over_2"]["mean_s"] == pytest.approx(0.01)
 
@@ -163,8 +163,20 @@ def test_zero_crossing_interpolates_between_the_bracketing_delays():
     assert shc.zero_crossing_edge([0.32, 0.33], [-0.05, -0.02])["edge_s"] is None
 
 
-def test_small_step_controller_is_the_period_controller():
-    errors = shc.small_step_errors(PROFILE, 0.1, 0.05, duration_s=2.0)
-    assert errors.shape == (200,)
-    assert np.all(np.isfinite(errors))
-    assert errors.max() < 0.05
+def test_small_step_run_matches_the_long_check_at_20ms(monkeypatch):
+    # The long check flies the stock controller; at the stock 20 ms period the
+    # small-step loop here must give the same window peaks.
+    from tools import a_make_dcrit_long_check as lc
+
+    monkeypatch.setattr(lc, "DURATION_S", 30.0)
+    stock = lc.fly(("esp-fly-class", "b", 0.33, 0.01))["window_peak_error_m"]
+    errors = shc.small_step_errors(PROFILE, 0.33, 0.02, duration_s=30.0)
+    ours = [float(np.max(errors[w * 1000:(w + 1) * 1000])) for w in range(3)]
+    assert ours == stock
+
+
+def test_small_step_run_differs_at_another_period():
+    a = shc.small_step_errors(PROFILE, 0.1, 0.05, duration_s=3.0)
+    b = shc.small_step_errors(PROFILE, 0.1, 0.02, duration_s=3.0)
+    assert a.shape == b.shape == (300,)
+    assert not np.array_equal(a, b)

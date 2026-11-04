@@ -192,7 +192,8 @@ def small_step_errors(profile, delay_s: float, period_s: float, *, duration_s: f
         goal = np.array((step_m if t >= 1.0 else 0.0, 0.0, 1.0))
         vehicle.step(tuple(goal), CONTROL_DT_S)
         err = float(np.linalg.norm(vehicle.drone.position - goal))
-        if not np.isfinite(err):
+        # Same stop rule as the long check: non-finite or more than 5 x max(step, 1 m) away.
+        if not np.isfinite(err) or err > 5.0 * max(step_m, 1.0):
             break
         errors.append(err)
     return np.asarray(errors)
@@ -249,11 +250,19 @@ def run_growth_edges(output_dir, hold_scan: dict[str, Any], *, profile=DEFAULT_P
             rows.append({"period_s": period, "delays_s": delays, "growth_rates_per_s": rates,
                          **zero_crossing_edge(delays, rates)})
     usable = [r for r in rows if r["edge_s"] is not None]
+    missing = [r["period_s"] for r in rows if r["edge_s"] is None]
+    if len(usable) < 3:
+        raise ValueError(f"too few periods with a growth-rate sign change; missing {missing}")
     ps = [r["period_s"] for r in usable]
     es = [r["edge_s"] for r in usable]
+    es_line = [r["edge_line_fit_s"] for r in usable]
     result = {"schema": SCHEMA, "profile": pid, "duration_s": duration_s, "d_hand_continuous_s": d_hand,
-              "synthetic": True, "per_period": rows, "fit": fit_hold(ps, es, d_hand),
-              "formula_residuals": formula_residuals(ps, es, d_hand)}
+              "synthetic": True, "linear_regime_step_m": SMALL_STEP_M,
+              "periods_without_sign_change_s": missing, "per_period": rows,
+              "fit": fit_hold(ps, es, d_hand, on_grid=False),
+              "formula_residuals": formula_residuals(ps, es, d_hand),
+              "fit_line_fit_edges": fit_hold(ps, es_line, d_hand, on_grid=False),
+              "formula_residuals_line_fit_edges": formula_residuals(ps, es_line, d_hand)}
     (out / f"hold_{tag}.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return result
 
@@ -278,8 +287,14 @@ def summarize_scan(verdicts: dict[float, bool]) -> dict[str, Any]:
             "stable_above_first_unstable_s": islands}
 
 
-def fit_hold(periods_s: Iterable[float], d_crit_s: Iterable[float], d_hand_s: float) -> dict[str, float]:
-    """Least-squares line d_crit = A - m P, reported as hold(P) = m P + b with b = d_hand - A."""
+def fit_hold(periods_s: Iterable[float], d_crit_s: Iterable[float], d_hand_s: float, *,
+             on_grid: bool = True) -> dict[str, float | None]:
+    """Least-squares line d_crit = A - m P, reported as hold(P) = m P + b with b = d_hand - A.
+
+    ``hold_slope_se`` counts scatter about the line only, not any bias shared by every point.
+    ``on_grid`` says the edges are rounded to the 10 ms grid; only then is the
+    grid-rounding slope error reported.
+    """
     p = np.asarray(list(periods_s), dtype=float)
     d = np.asarray(list(d_crit_s), dtype=float)
     if p.size < 3 or p.size != d.size:
@@ -294,7 +309,7 @@ def fit_hold(periods_s: Iterable[float], d_crit_s: Iterable[float], d_hand_s: fl
     return {
         "hold_slope": float(-slope),
         "hold_slope_se": float(se_slope),
-        "hold_slope_se_from_grid_only": float(se_slope_grid),
+        "hold_slope_se_from_grid_only": float(se_slope_grid) if on_grid else None,
         "hold_intercept_s": float(d_hand_s - intercept),
         "d_crit_at_zero_period_s": float(intercept),
         "max_abs_residual_s": float(np.max(np.abs(resid))),
@@ -307,7 +322,7 @@ def formula_residuals(periods_s, d_crit_s, d_hand_s) -> dict[str, dict[str, floa
     d = np.asarray(list(d_crit_s), dtype=float)
     candidates = {
         "main_P_over_2_plus_c_over_2": d_hand_s - (p / 2.0 + CONTROL_DT_S / 2.0),
-        "dc_fix_P_minus_c_over_2": d_hand_s - (p - CONTROL_DT_S) / 2.0,
+        "p_minus_c_over_2": d_hand_s - (p - CONTROL_DT_S) / 2.0,
         "no_hold": np.full_like(p, d_hand_s),
     }
     out = {}
