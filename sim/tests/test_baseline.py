@@ -8,6 +8,7 @@ import pytest
 from sim.baseline import BaselineConfig, build_manifest, run_baseline, write_baseline
 from sim.controller import GeometricFlightController
 from sim.drone import SixDOFInterceptor
+from sim.tests.platform_compare import same_array
 
 
 def test_baseline_is_deterministic_and_has_expected_samples():
@@ -71,7 +72,9 @@ def test_retained_default_baseline_matches_fresh_rerun():
     fresh = run_baseline(BaselineConfig())
     assert tuple(retained.dtype.names) == tuple(fresh)
     for name in fresh:
-        assert np.array_equal(retained[name], fresh[name]), name
+        # Exact on macOS, where the file was recorded; the shared 1e-9 relative tolerance elsewhere,
+        # because NumPy picks different SIMD code paths on different CPUs.
+        assert same_array(retained[name], fresh[name]), name
 
     manifest_path = artifact.with_name("manifest.json")
     manifest = json.loads(manifest_path.read_text())

@@ -9,6 +9,7 @@ import pytest
 
 from sim.missions import monitor
 from sim.sensor import SensorConfig, SensorModel
+from sim.tests.platform_compare import EXACT, same_text
 from tools import sens_monitor_noise as sens
 from tools.e_common import seeds_for
 
@@ -61,7 +62,7 @@ def test_patched_sensor_noise_has_the_requested_spread():
     assert np.std(errors) == pytest.approx(2.0, rel=0.05)
 
 
-def test_one_run_records_effective_sigma_and_matches_registered_row():
+def test_one_run_records_effective_sigma_and_matches_registered_row(monkeypatch):
     """A sigma 0.5 run equals its registered row; a sigma 2.0 run of the same seed records 2.0 for both values."""
     jobs = [job for job in sens.build_noise_jobs(include_posthoc=False, n_seeds=1)
             if job["labels"]["path"] == "crossing" and job["labels"]["preset"] == "clean"]
@@ -71,6 +72,10 @@ def test_one_run_records_effective_sigma_and_matches_registered_row():
     assert by_sigma[2.0]["effective_estimator_sigma_m"] == 2.0
     assert by_sigma[2.0]["n_sensor_configs_built"] == 2
     assert sens.effective_sigma_check(rows)["passed"]
+    # The registered rows were saved on macOS: exact text there, the shared float tolerance elsewhere,
+    # because NumPy picks different SIMD code paths on different CPUs.
+    if not EXACT:
+        monkeypatch.setattr(sens, "_same_text", same_text)
     control = sens.control_check(rows)
     assert control["n_control_rows"] == 1 and control["passed"]
     assert control["registered_csv_sha256"] == sens.REGISTERED_CSV_SHA256
