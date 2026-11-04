@@ -178,6 +178,11 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def _same_text(ours: str, registered: str) -> bool:
+    """How the control compares a value with the registered text: character for character."""
+    return ours == registered
+
+
 def control_check(rows: list[dict], registered_csv: Path = REGISTERED_CSV) -> dict:
     """Planned sigma 0.5 rows against the registered rows, column by column, as CSV text."""
     with open(registered_csv, encoding="utf-8", newline="") as handle:
@@ -195,7 +200,7 @@ def control_check(rows: list[dict], registered_csv: Path = REGISTERED_CSV) -> di
             continue
         for column in columns:
             ours = _cell_text(row.get(column))
-            if ours != reference[column]:
+            if not _same_text(ours, reference[column]):
                 mismatches.append({"key": list(key), "column": column, "ours": ours, "registered": reference[column]})
     return {
         "registered_csv": str(Path(registered_csv).relative_to(ROOT)) if Path(registered_csv).is_relative_to(ROOT)
