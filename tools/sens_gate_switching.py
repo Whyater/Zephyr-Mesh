@@ -109,8 +109,10 @@ def paired_gate_cost(rows: list[dict]) -> list[dict]:
     for plain, gated in PAIRS:
         a = {r["seed"]: r for r in rows if r["arm"] == plain}
         b = {r["seed"]: r for r in rows if r["arm"] == gated}
-        if not a or set(a) != set(b):
+        if not a and not b:
             continue
+        if set(a) != set(b):
+            raise ValueError(f"{plain} and {gated} rows cover different seeds")
         seeds = sorted(a)
         out.append({
             "model": MODEL_LABEL[plain], "ungated_fails": sum(bool(a[s]["failed"]) for s in seeds),
@@ -210,7 +212,8 @@ def main(argv=None) -> int:
     # One checkpoint file per finished cell; rerunning the same command resumes.
     ckpt = out.with_name(out.name + ".ckpt")
     ckpt.mkdir(parents=True, exist_ok=True)
-    stamp = {"n_seeds": args.seeds, "n_cells": len(jobs), "arms": [a.name for a in ARMS], "targets": list(TARGETS)}
+    stamp = {"n_seeds": args.seeds, "arms": [a.name for a in ARMS],
+             "jobs": [[t, d, s.kind, s.probability] for t, d, s in jobs], "git_revision": _git_revision()}
     stamp_path = ckpt / "plan.json"
     if stamp_path.exists() and json.loads(stamp_path.read_text()) != stamp:
         raise SystemExit(f"{ckpt} holds a different plan; delete it to start over")

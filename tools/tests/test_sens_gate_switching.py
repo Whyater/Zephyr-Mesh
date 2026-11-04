@@ -72,6 +72,13 @@ def test_paired_gate_cost_hand_values():
                     "only_ungated_fails": 1, "median_p95_diff_m": pytest.approx(0.01)}
 
 
+def test_paired_gate_cost_refuses_mismatched_seeds():
+    rows = [{"arm": "recovery", "seed": 1, "failed": False, "p95_error_m": 0.1},
+            {"arm": "recovery_gated", "seed": 2, "failed": False, "p95_error_m": 0.1}]
+    with pytest.raises(ValueError, match="different seeds"):
+        sw.paired_gate_cost(rows)
+
+
 def test_plan_is_the_preregistered_grid():
     jobs = sw.plan()
     assert len(jobs) == 2 * 3 * 3
