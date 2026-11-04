@@ -547,6 +547,47 @@ def run_pilot(output: Path, n_seeds: int = 5, with_lead: bool = False) -> dict:
     return summary
 
 
+def run_delay_sweep(output: Path, delays_s: tuple[float, ...] = SWEEP_DELAYS_S) -> dict:
+    """Pure delay: no noise, no loss, no jitter, one seed (the runs are deterministic).
+
+    Each delay sits on the camera path for the w1 arms and on the setpoint link for the w2 arms,
+    so the sweep shows how each goal rule copes as the delay grows, with nothing else in the way.
+    """
+    output = Path(output)
+    if output.exists() and any(output.iterdir()):
+        raise SystemExit(f"{output} exists and is not empty; pick a new folder")
+    if "sim" in output.resolve().parts and "runs" in output.resolve().parts:
+        raise SystemExit("this pilot never writes under sim/runs")
+    seed = seed_list(1)[0]
+    started = time.perf_counter()
+    rows = []
+    for delay in delays_s:
+        cell = Cell(f"delay_{int(round(delay * 1000))}ms", radio_delay_s=delay)
+        for motion in MOTIONS:
+            for variant in SWEEP_VARIANTS:
+                row = _loop_row(cell, motion, variant, seed)
+                row["delay_s"] = delay
+                rows.append(row)
+            print(f"done {cell.name} {motion} ({time.perf_counter() - started:.0f} s)", flush=True)
+    partial = output.with_name(output.name + ".partial")
+    partial.mkdir(parents=True, exist_ok=True)
+    with open(partial / "delay_sweep.csv", "w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    summary = {"schema": SCHEMA + "-delay-sweep", "status": "pilot; synthetic; simulated only; not registered",
+               "seed": seed, "delays_s": list(delays_s), "variants": list(SWEEP_VARIANTS),
+               "settings": {"lead_rule": _LEAD_RULE_SETTINGS, "velocity_rule_lead_s": LEAD_S,
+                            "noise_std_m": 0.0, "loss_probability": 0.0, "jitter_s": 0.0},
+               "rows": rows, "elapsed_s": time.perf_counter() - started}
+    (partial / "delay_sweep.json").write_text(json.dumps(summary, indent=2) + "\n")
+    if output.exists():
+        _move_into(partial, output)
+    else:
+        partial.rename(output)
+    return summary
+
+
 def _move_into(partial: Path, output: Path) -> None:
     for item in partial.iterdir():
         item.rename(output / item.name)
@@ -628,8 +669,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seeds", type=int, default=5)
     parser.add_argument("--replot", action="store_true",
                         help="rebuild the summary table and figure of a finished --output folder from per_run.csv")
+    parser.add_argument("--lead", action="store_true",
+                        help="also run the lead goal rule variants (w2_truth_lead, w1_lead, w2_lead)")
+    parser.add_argument("--delay-sweep", action="store_true",
+                        help="run the pure delay sweep (no noise or loss, one seed) instead of the cells")
     args = parser.parse_args(argv)
-    summary = replot(args.output) if args.replot else run_pilot(args.output, args.seeds)
+    if args.delay_sweep:
+        sweep = run_delay_sweep(args.output)
+        for r in sweep["rows"]:
+            print(f"{r['delay_s']:.2f} s {r['motion']:18s} {r['variant']:14s} p95 {r['p95_m']:.3f} "
+                  f"steady p95 {r['p95_steady_m']:.3f} max {r['max_m']:.3f}")
+        return 0
+    summary = replot(args.output) if args.replot else run_pilot(args.output, args.seeds, with_lead=args.lead)
     for c in summary["cells_summary"]:
         print(f"{c['cell']:10s} {c['motion']:18s} {c['variant']:13s} p95 {c['p95_median_m']:.3f} "
               f"[{c['p95_min_m']:.3f}, {c['p95_max_m']:.3f}] fails {c['fail_count']}/{c['n_seeds']} {c['label']}"
