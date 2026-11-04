@@ -7,7 +7,9 @@ own recovery and retrodict arms. The wrapper's drop and refilter arms were
 transcribed from that engine code (gating removed) and share its estimator and
 delivery code, so exact agreement checks the transcription, not the algorithm. The
 late-fraction check compares the simulated link with a formula written from the
-lognormal delay model.
+lognormal delay model. The from-scratch check below is independent of the
+engine: with a window longer than the run, re-filtering must leave the same
+filter as a fresh one fed every fused packet in capture-time order.
 """
 from __future__ import annotations
 
@@ -19,7 +21,8 @@ from pathlib import Path
 import pytest
 
 from sim.estimation.base import EstimatorSettings, RECOVERY_V1
-from sim.estimation.engine import deliver_cell, run_arm
+from sim.estimation.engine import TIME_TOLERANCE_S, deliver_cell, run_arm
+from sim.estimation.factory import make_estimator
 from sim.s6_recovery import RecoveryConfig, seed_list
 from sim.tests.platform_compare import same_tree
 from tools.sens_late_refilter import (ARMS, ENGINE_RETRO, build_grid, hand_late_fraction, late_census,
@@ -106,3 +109,32 @@ def test_hand_formula_matches_simulated_late_fraction_at_heavy_jitter(ratio):
         late += n_late
         delivered += n_delivered
     assert late / delivered == pytest.approx(hand_late_fraction(0.3, 0.3 * ratio, 0.0), abs=0.03)
+
+
+@pytest.mark.parametrize("target, delay_s, ratio, loss", [("ct", 0.3, 3.0, 0.3), ("cv", 0.1, 2.0, 0.0)])
+def test_refilter_with_unlimited_window_equals_a_fresh_filter_in_capture_order(target, delay_s, ratio, loss):
+    # Reference built here from the estimator's public update/predict calls only.
+    # With nothing ever pruned, the order packets arrived in should not matter:
+    # the end state must equal fusing every packet once, sorted by capture time.
+    cell = make_cell(target, delay_s, ratio, loss)
+    bundle = deliver_cell(cell, seed_list(1)[0], CONFIG, SETTINGS)
+    run_s = CONFIG.duration_s
+    ours = run_late_arm(bundle, cell, "refilter", CONFIG, SETTINGS, window_s=10.0 * run_s, return_filter=True)
+    assert ours["refiltered_count"] > 10  # the rollback path really ran
+
+    arrived = [d for d in bundle.deliveries if d.receive_time_s <= run_s + TIME_TOLERANCE_S]
+    first_by_stamp = {}
+    for d in arrived:  # deliveries are in arrival order; a repeated capture stamp keeps the first
+        first_by_stamp.setdefault(float(d.stamp_s), d)
+    fresh = make_estimator("cv", SETTINGS, bundle.target.start_position)
+    for stamp in sorted(first_by_stamp):
+        fresh.update(first_by_stamp[stamp].measurement_m, stamp)
+
+    assert ours["fused_count"] == len(first_by_stamp)
+    assert ours["dropped_count"] == len(arrived) - len(first_by_stamp)
+    final = ours["final_filter"]
+    assert final.timestamp_s == fresh.timestamp_s
+    a, b = final.predict_at(fresh.timestamp_s), fresh.predict_at(fresh.timestamp_s)
+    assert a.position_m == pytest.approx(b.position_m, rel=0, abs=1e-9)
+    assert a.velocity_mps == pytest.approx(b.velocity_mps, rel=0, abs=1e-9)
+    assert a.position_cov == pytest.approx(b.position_cov, rel=0, abs=1e-12)
