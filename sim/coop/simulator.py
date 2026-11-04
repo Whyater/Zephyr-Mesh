@@ -113,6 +113,13 @@ class CoopSwarmConfig:
             raise ValueError("time and rate values must be positive")
         if self.estimator not in MODELS or self.fusion not in {"none", "ci", "naive", "central"}:
             raise ValueError("unsupported estimator or fusion mode")
+        if self.estimator != "cv":
+            # Only CV exposes the full 6-state covariance that _full_track
+            # shares and fuses; other models would get a placeholder velocity
+            # covariance, so refuse them instead of mislabelling the run.
+            raise ValueError(
+                f"the moving coop simulator only supports estimator 'cv' (got {self.estimator!r})"
+            )
         if self.decision not in {"onboard", "ground"}:
             raise ValueError("decision must be onboard or ground")
         if self.ci_mode not in {"fast", "exact"}:
