@@ -136,10 +136,14 @@ def figure(summary: list[dict], path: Path, n_seeds: int, delay: float = 0.2) ->
     from tools import horizon_mpl
 
     pal = horizon_mpl.apply_style("light")
-    fig, axes = plt.subplots(2, 2, figsize=(9, 6.2), sharex=True, constrained_layout=True)
+    fig, axes = plt.subplots(2, 2, figsize=(9, 6.6), sharex=True, constrained_layout=True)
     xs = [100 * p for p in PROBABILITIES]
+    # Arms often land on the same value (all ungated arms fail together); a small
+    # sideways offset per arm keeps every line visible. Ticks stay at the true rates.
+    dodge = np.linspace(-0.12, 0.12, len(ARMS))
     for col, motion in enumerate(MOTIONS):
-        for arm in ARMS:
+        for k, arm in enumerate(ARMS):
+            xd = [x + dodge[k] for x in xs]
             style = horizon_mpl.arm_style(arm.name, pal)
             rows = [next(r for r in summary if r["motion"] == motion and r["delay_s"] == delay
                          and r["probability"] == p and r["arm"] == arm.name) for p in PROBABILITIES]
@@ -149,22 +153,23 @@ def figure(summary: list[dict], path: Path, n_seeds: int, delay: float = 0.2) ->
             label = MODEL_LABEL.get(arm.name.split("_")[0], arm.name) + (", gate on" if arm.gate_probability else "")
             kw = dict(color=style["color"], linestyle=style["linestyle"], marker=style["marker"],
                       label=label, linewidth=1.6)
-            axes[0, col].plot(xs, [r["fail_count"] for r in rows], **kw)
-            axes[1, col].errorbar(xs, med, yerr=[med - lo, hi - med], capsize=2, **kw)
+            axes[0, col].plot(xd, [r["fail_count"] for r in rows], **kw)
+            axes[1, col].errorbar(xd, med, yerr=[med - lo, hi - med], capsize=2, **kw)
         title = "straight line, 1 m/s" if motion == "constant_velocity" else "circle, 1 m radius"
         axes[0, col].set_title(f"{title}, delay {delay:g} s")
         axes[0, col].set_ylabel(f"failing seeds (of {n_seeds})")
         axes[0, col].set_ylim(-0.04 * n_seeds, 1.04 * n_seeds)
         axes[1, col].axhline(0.25, color=pal["lineStrong"], linewidth=0.8, linestyle="--")
-        axes[1, col].annotate("S6 fail line (p95 0.25 m)", (xs[-1], 0.25), xytext=(0, 3),
-                              textcoords="offset points", ha="right", va="bottom", fontsize=8,
+        axes[1, col].annotate("S6 fail line (p95 0.25 m)", (xs[0], 0.25), xytext=(0, 3),
+                              textcoords="offset points", ha="left", va="bottom", fontsize=8,
                               color=pal["textSecondary"])
         axes[1, col].set_ylabel("median p95 error (m)")
         axes[1, col].set_xlabel("outlier frames (%)")
         axes[1, col].set_xticks(xs)
-    axes[0, 0].legend(loc="center right", fontsize=8)
-    fig.suptitle("1 m outliers: CV, CT and IMM trackers with and without the 0.99 NIS gate (synthetic)",
-                 fontsize=10)
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="outside lower center", ncol=len(ARMS), fontsize=8)
+    fig.suptitle("1 m outliers: CV, CT and IMM trackers with and without the 0.99 NIS gate (synthetic; "
+                 "points nudged sideways so equal values stay visible)", fontsize=9)
     fig.savefig(path, dpi=150)
     plt.close(fig)
 
