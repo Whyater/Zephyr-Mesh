@@ -388,7 +388,9 @@ def seed_error_floor(variant: str, noise_std_m: float, motion: str, seeds: list[
     For white_iso the draws are statistically the same but not identical
     (``SensorModel`` interleaves a dropout draw). No filter removes a bias,
     so a seed whose raw p95 is above ``threshold_m`` is expected to fail at any
-    delay; the filter's own error only adds to it.
+    delay; the filter's own error usually adds to it (on a turn it can
+    occasionally pull a seed's p95 a few centimetres below the raw value).
+    Raw errors are taken at the 10 Hz capture times; S6 scores 20 ms queries.
     """
     config = RecoveryConfig()
     model, _, extra = variant.partition("_tau") if "_tau" in variant else variant.partition("_L")
