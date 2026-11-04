@@ -76,7 +76,7 @@ def test_b4_clock_drift_unsynced_and_ntp():
     """A one hundred ppm unsynced clock has error 100e-6 times t, while NTP error is drift times time since the clock was last measured.
 
     Drift r = 100e-6 s per s, so the sensor clock reads t (1 + r). Exchanges start at T = 0, 2, 4,
-    ... (tracker clock = true time), 10 ms each way, 1 ms processing (real time on the sensor):
+    ... (tracker clock = true time), 10 ms each way, 1 ms processing (in true time, not sensor clock time):
       t1 = T, t2 = (T + 0.01)(1 + r), t3 = (T + 0.011)(1 + r), t4 = T + 0.021.
       theta = ((t2 - t1) + (t3 - t4)) / 2 = (0.01 + 0.011 - 0.021 + r (2T + 0.021)) / 2 = r (T + 0.0105).
     So a sync measures the clock error at the midpoint T + 0.0105 of its two sensor stamps.
@@ -99,8 +99,9 @@ def test_b4_clock_drift_unsynced_and_ntp():
         # Captures are whole seconds and arrivals end in .021, so these float comparisons have no ties.
         arrived = [start for start in np.arange(0.0, 11.0, 2.0) if start + 0.021 <= t]
         expected.append(r * t if not arrived else r * (t - max(arrived) - 0.0105))
-    # Errors are about 1e-4 s and rounding in them is about 1e-20 s, so 1e-12 is a loose bound
-    # that still fails on the old 1.05e-6 slip by a factor of a million.
+    # Errors are about 1e-4 s. The code gets them as t (1 + r) - t with t up to 10, and the gap
+    # between neighbouring floats near 10 is about 1.8e-15, so rounding is about 1e-15 s. 1e-12 is a
+    # loose bound on that and still fails on the old 1.05e-6 slip by a factor of a million.
     np.testing.assert_allclose(ntp, expected, atol=1e-12)
     assert ntp[0] == 0.0
     assert ntp[1] == pytest.approx(9.895e-5, abs=1e-12)
@@ -119,8 +120,9 @@ def test_b4_prediction_error_matches_speed_times_clock_offset():
     Sensor noise is set to 1 micrometre so that shift is the only error left. Limiting case: with
     e = 0 the error should be almost nothing, which rules out the 0.05 m coming from somewhere else
     (the 0.1 s link delay times 1 m/s divided by 2 is also 0.05, for example).
-    Tolerance: 1 mm, a thousand times the noise; the filter's start-up samples are a small share of
-    each run, so they do not move the 95th percentile.
+    Tolerance: 1 mm. With e = 0 the leftover error measured about 0.01 mm, so 1 mm
+    has a wide margin and still fails on the old noise-floor slip (about 0.13 m). The filter's
+    start-up samples are left out of scoring by the engine's burn-in, so they do not count.
     """
     from sim.s6_recovery import RecoveryConfig
 
