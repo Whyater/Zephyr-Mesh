@@ -93,12 +93,12 @@ def test_unicast_holds_the_air_longer_than_broadcast():
     assert u["aloha_collision"] > b["aloha_collision"]
 
 
-def test_crosscheck_dsss_matches_sim_radio_and_ofdm_differs_by_signal_extension():
+def test_crosscheck_matches_sim_radio_for_dsss_and_ofdm():
+    # sim/radio/mac.py now includes the 6 us ERP signal extension, so OFDM matches too
     for r in ab.crosscheck_sim_radio():
         if "OFDM" in r["mode"]:
-            # sim/radio/mac.py leaves out the 6 us ERP signal extension
-            assert r["data_us_here"] - r["data_us_sim_radio"] == pytest.approx(6.0)
-            assert r["ack_us_here"] - r["ack_us_sim_radio"] == pytest.approx(6.0)
+            assert r["data_us_here"] == pytest.approx(r["data_us_sim_radio"])
+            assert r["ack_us_here"] == pytest.approx(r["ack_us_sim_radio"])
         else:
             # this file rounds DSSS/CCK frame time up to a whole microsecond and
             # sim/radio/mac.py does not, so they can differ by less than 1 us

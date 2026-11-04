@@ -54,7 +54,7 @@ def test_d6_airtime_hand_numbers():
     assert math.isclose(airtime_s(293, 1.0, p), 2536e-6, rel_tol=0, abs_tol=1e-15)
     assert math.isclose(ack_airtime_s(p), 304e-6, rel_tol=0, abs_tol=1e-15)
     ofdm = PhyConfig(modulation="ofdm", rate_mbps=6.0)
-    assert math.isclose(airtime_s(75, 6.0, ofdm), 124e-6, rel_tol=0, abs_tol=1e-15)
+    assert math.isclose(airtime_s(75, 6.0, ofdm), 130e-6, rel_tol=0, abs_tol=1e-15)  # incl. 6 us signal extension
     short = PhyConfig(rate_mbps=2.0, preamble="short")
     assert math.isclose(airtime_s(75, 2.0, short), 396e-6, rel_tol=0, abs_tol=1e-15)
 
