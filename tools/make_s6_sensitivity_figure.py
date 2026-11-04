@@ -509,7 +509,7 @@ def update_manifest(output_dir: Path, paths: list[Path]) -> bool:
     outputs = manifest.setdefault("outputs", {})
     for path in paths:
         outputs[path.name] = sha256_file(path)
-    with manifest_path.open("w", encoding="utf-8") as handle:
+    with manifest_path.open("w", encoding="utf-8", newline="\n") as handle:
         json.dump(manifest, handle, indent=2, sort_keys=True)
         handle.write("\n")
     return True

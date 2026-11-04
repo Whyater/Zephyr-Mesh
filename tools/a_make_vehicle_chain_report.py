@@ -162,7 +162,7 @@ def generate(output_dir:Path, *, durations=None):
         p=_profile(name); data[name]={"hover":check_hover(p),"motor_step":check_motor_step(p,duration=(durations or {}).get("motor_step")),"max_climb":check_max_climb(p),"yaw_trim":check_yaw_trim(p),"hover_hold":check_hover_hold(p,durations=((durations or {}).get("hover_hold",30.0),)),"substeps":check_substeps(p,duration=(durations or {}).get("substeps",10.0))}
     data["battery_sag"]=check_battery_sag(_profile("crazyflie-class"),duration=(durations or {}).get("battery",2.0))
     report=_round({"schema":"zephyr-exp-020-vehicle-chain-report-1","profiles":data,"notes":["simulated only","literature-derived profiles","illustrative battery","50 substeps of a 10 ms control step gives a 0.2 ms reference, finer than the preregistered 1 ms reference"]})
-    (output_dir/"report.json").write_text(json.dumps(report,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+    (output_dir/"report.json").write_text(json.dumps(report,indent=2,sort_keys=True)+"\n",encoding="utf-8", newline="\n")
     _figure({k:data[k] for k in PROFILE_NAMES}, output_dir/"a4_vehicle_chain.png")
     write_manifest(output_dir/"manifest.json",schema="zephyr-exp-020-vehicle-chain-manifest-1",argv=sys.argv[1:],config={"profiles":PROFILE_NAMES},seeds=[],limits=["simulated only","literature-derived profiles","illustrative battery"],outputs=[output_dir/"report.json",output_dir/"a4_vehicle_chain.png"],output_dir=output_dir,runtime_s=time.perf_counter()-started)
     return report

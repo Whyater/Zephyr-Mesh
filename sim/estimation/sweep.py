@@ -134,7 +134,7 @@ def _library_stamp() -> str:
 def _write_atomic(path: Path, text: str) -> None:
     tmp = path.with_name(f".{path.name}.{os.getpid()}.{uuid.uuid4().hex[:8]}.tmp")
     try:
-        tmp.write_text(text)
+        tmp.write_text(text, newline="\n")
         os.replace(tmp, path)
     finally:
         if tmp.exists():
@@ -272,7 +272,7 @@ def write_json(path: str | os.PathLike[str], obj: Any) -> None:
     """Key-sorted, 2-space-indented JSON with a trailing newline."""
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(obj, indent=2, sort_keys=True) + "\n")
+    target.write_text(json.dumps(obj, indent=2, sort_keys=True) + "\n", newline="\n")
 
 
 def _csv_value(value: Any) -> str:

@@ -350,14 +350,14 @@ def run_sweep(output: str | Path, pilot: bool = False, workers: int | None = Non
                 if len(completed[key]) == expected_counts[key]:
                     cell_rows = sorted(completed[key], key=lambda r: (r["seed"], r["profile_id"]))
                     (cells_dir / f"{key}.json").write_text(
-                        json.dumps({"cell": pending_cells[key], "rows": cell_rows}, sort_keys=True, indent=2) + "\n", encoding="utf-8"
+                        json.dumps({"cell": pending_cells[key], "rows": cell_rows}, sort_keys=True, indent=2) + "\n", encoding="utf-8", newline="\n"
                     )
     for key, cell in pending_cells.items():
         if (cells_dir / f"{key}.json").is_file():
             continue
         cell_rows = sorted(completed[key], key=lambda r: (r["seed"], r["profile_id"]))
         (cells_dir / f"{key}.json").write_text(
-            json.dumps({"cell": cell, "rows": cell_rows}, sort_keys=True, indent=2) + "\n", encoding="utf-8"
+            json.dumps({"cell": cell, "rows": cell_rows}, sort_keys=True, indent=2) + "\n", encoding="utf-8", newline="\n"
         )
     keys = ("profile_id", "reference", "arm", "delay_s", "loss_probability", "seed")
     rows.sort(key=lambda r: tuple(r[k] for k in keys))
@@ -375,13 +375,13 @@ def run_sweep(output: str | Path, pilot: bool = False, workers: int | None = Non
     (output / "summary.json").write_text(
         json.dumps({"schema": "zephyr-a6-control-tolerance-summary-1", "pilot": pilot,
                     "median_interval_method": "order-statistic (binomial) interval, sim.s6_recovery.median_interval",
-                    "rows": summaries}, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+                    "rows": summaries}, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n"
     )
     dcrit = _dcrit(rows, pilot)
     schema_path = ROOT / "sim" / "physics" / "d_crit_schema.json"
     import jsonschema
     jsonschema.validate(dcrit, json.loads(schema_path.read_text(encoding="utf-8")))
-    (output / "d_crit.json").write_text(json.dumps(dcrit, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (output / "d_crit.json").write_text(json.dumps(dcrit, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     _write_plot(output, summaries, dcrit)
     elapsed = time.perf_counter() - started
     manifest = write_manifest(

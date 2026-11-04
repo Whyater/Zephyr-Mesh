@@ -258,7 +258,7 @@ def main(argv=None):
     out.mkdir(parents=True, exist_ok=True)
     started = perf_counter()
     checks = _round(build_checks(workers=args.workers))
-    (out / "model_checks.json").write_text(json.dumps(checks, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (out / "model_checks.json").write_text(json.dumps(checks, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     write_manifest(out / "manifest.json", schema="a7-disturbance-model-checks-manifest-v1", argv=sys.argv[1:],
                    config={"ou_n": 100000, "mc_n": 2000000, "mc_seed": 20261014}, seeds=[0, 1, 2, 20261014] + list(range(50)),
                    limits=["simulated only", "literature-derived profiles", "assumed drag area"],

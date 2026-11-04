@@ -194,7 +194,7 @@ def generate(output_dir: Path, workers=None):
         for metric in OUTPUTS:
             ranking[metric] = sorted(({"parameter": p, "max_abs_relative": max(abs(param_results[p]["relative"][metric][x] or 0) for x in ("low", "high")), "matters": max(abs(param_results[p]["relative"][metric][x] or 0) for x in ("low", "high")) > .05} for p in PARAMETERS), key=lambda x: (-x["max_abs_relative"], x["parameter"]))
         result["profiles"][name] = {"nominal": nominal[name], "parameter_results": param_results, "parameters": [{"parameter": p, "relative": param_results[p]["relative"]} for p in PARAMETERS], "ranking": ranking}
-    (output_dir / "sensitivity.json").write_text(json.dumps(_round(result), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (output_dir / "sensitivity.json").write_text(json.dumps(_round(result), indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     fields = ["profile", "parameter", "level"] + [f"{m}_relative" for m in OUTPUTS]
     with (output_dir / "sensitivity.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields); writer.writeheader()
