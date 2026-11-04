@@ -168,10 +168,13 @@ def run_case(truth_kind, seed, duration_s, *, q=w20.TRACKER_Q_PSD, variants=("ex
     for v in variants:
         tf, pos, vel = fast_filter(fuse[v], z, q=q, r_var=0.05**2, x0=x0)
         for s in scorings:
-            err = np.linalg.norm(estimates_at(grids[s], tf, pos, vel) - truths[s], axis=1)
+            diff = estimates_at(grids[s], tf, pos, vel) - truths[s]
+            err = np.linalg.norm(diff, axis=1)
             out.append({"truth": truth_kind, "seed": int(seed), "q": float(q), "variant": v, "scoring": s,
                         "duration_s": float(duration_s), "p95_m": float(np.percentile(err, 95)),
-                        "rmse_m": float(np.sqrt(np.mean(err**2)))})
+                        "rmse_m": float(np.sqrt(np.mean(err**2))),
+                        "mse_axis_m2": [float(v) for v in np.mean(diff**2, axis=0)],
+                        "mean_err_axis_m": [float(v) for v in np.mean(diff, axis=0)]})
     return out
 
 
@@ -278,6 +281,19 @@ def run_all(n_seeds, duration_s, w20_runs=None, log=print):
                 ci = paired(rows, truth=truth, q=q, scoring=s, variant=v, metric=metric)
                 summary.append({"truth": truth, "q": q, "variant": v, "scoring": s, "metric": metric, **ci})
     res["summary"] = summary
+    # Per-axis split (straight line, filter q 0.1): x is the moving axis, y and z never move.
+    axis = []
+    for s in ("tick", "ms"):
+        by = {}
+        for r in rows:
+            if r["truth"] == "straight" and r["q"] == w20.TRACKER_Q_PSD and r["scoring"] == s:
+                by.setdefault(r["seed"], {})[r["variant"]] = r
+        for i, name in enumerate("xyz"):
+            rel = np.array([(g["next"]["mse_axis_m2"][i] - g["exact"]["mse_axis_m2"][i]) / g["exact"]["mse_axis_m2"][i]
+                            for g in by.values()])
+            bias = np.array([g["next"]["mean_err_axis_m"][i] - g["exact"]["mean_err_axis_m"][i] for g in by.values()])
+            axis.append({"scoring": s, "axis": name, "mean_bias_shift_m": float(np.mean(bias)), **interval(rel)})
+    res["axis_split"] = axis
     return res
 
 
@@ -288,6 +304,11 @@ def write_table(res, path: Path):
         lines.append(f"| {r['truth']} | {r['q']:g} | {r['variant']} | {r['scoring']} | {r['metric'][:-2]} | "
                      f"{r['mean'] * 100:+.3f} % | {r['lo'] * 100:+.3f} to {r['hi'] * 100:+.3f} % | "
                      f"{r['n_negative']}/{r['n']} |")
+    lines += ["", "Per-axis mean squared error, next vs exact (straight, filter q 0.1):", ""]
+    for r in res.get("axis_split", []):
+        lines.append(f"- {r['scoring']} scoring, axis {r['axis']}: MSE change {r['mean'] * 100:+.3f} % "
+                     f"({r['lo'] * 100:+.3f} to {r['hi'] * 100:+.3f} %, negative {r['n_negative']}/{r['n']}); "
+                     f"mean error shift {r['mean_bias_shift_m'] * 1000:+.2f} mm")
     lines += ["", "X0 (max abs difference over the tick trace, metres):", ""]
     for r in res["x0"]:
         lines.append(f"- {r['scenario']} seed {r['seed']} {r['duration_s']:g} s: fast exact vs W20 f64_exact "
