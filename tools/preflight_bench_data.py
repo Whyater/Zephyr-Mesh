@@ -74,8 +74,8 @@ MAX_SESSION_SPAN_H = 12.0
 CENTER_TOLERANCE_M = 0.0005        # the runbook types LAT=0 for a center cross
 RADIO_SUFFIXES = {".csv", ".txt", ".raw", ".log"}
 RADIO_FORMAT = import_espnow_log.FORMAT_LINE
-MIN_RADIO_ROUND_TRIP_S = 200e-6      # one ESP-NOW frame alone takes well over 0.2 ms on the air, so a
-                                     # median round trip under 0.2 ms means the times are not microseconds
+MIN_RADIO_ROUND_TRIP_S = 200e-6      # at the default 1 Mbit/s rate one ESP-NOW frame takes well over 0.2 ms on
+                                     # the air, so a median round trip under 0.2 ms means the times are not microseconds
 FRAMES_NOTE = re.compile(r"The frames file (\S+) has SHA-256 ([0-9a-f]{64})")
 NEVER_EDIT = "never edit a bench file by hand"
 
@@ -563,7 +563,8 @@ def check_radio(found: Found, report: Report) -> int:
                  for p in raw["packets"] if "echo_time_s" in p]
         if trips and statistics.median(trips) < MIN_RADIO_ROUND_TRIP_S:
             report.fail("radio-round-trip-too-short", rel, f"the median round trip is {1e6 * statistics.median(trips):.0f} "
-                        f"us, under the {1e6 * MIN_RADIO_ROUND_TRIP_S:.0f} us that one ESP-NOW frame alone needs, so "
+                        f"us, under the {1e6 * MIN_RADIO_ROUND_TRIP_S:.0f} us floor (a real ESP-NOW round trip is milliseconds at the "
+                        "default 1 Mbit/s rate), so "
                         "the time columns are probably not microseconds (for example millis() printed into a _us column)",
                         "make both boards print esp_timer_get_time() microseconds in every _us column, then capture "
                         "both logs again")

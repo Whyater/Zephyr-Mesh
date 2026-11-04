@@ -490,7 +490,7 @@ def _times_to_millis(path: Path) -> None:
 
 def test_millisecond_times_in_microsecond_columns_fail(good: Path):
     # The good fixture's round trips are a few ms; read as microseconds they become a few us,
-    # which no ESP-NOW frame can do (one frame alone needs about 1.8 ms on the air).
+    # which no ESP-NOW frame can do (at the default 1 Mbit/s rate one frame needs about 1.8 ms on the air).
     _times_to_millis(good / "radio" / "sender.csv")
     _times_to_millis(good / "radio" / "echoer.csv")
     report = tool.preflight(good)
