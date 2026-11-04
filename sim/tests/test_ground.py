@@ -98,7 +98,7 @@ def test_thrust_above_weight_lifts_off_the_ground():
 
 def test_hovering_vehicle_never_touches_the_ground():
     ground = GroundPlane()
-    vehicle = ActuatedQuadrotor(default_hardware_profile("w21-ground"), initial_position=(0.0, 0.0, 1.0), ground=ground)
+    vehicle = ActuatedQuadrotor(default_hardware_profile("ground-plane-test"), initial_position=(0.0, 0.0, 1.0), ground=ground)
     heights = [vehicle.step((0.0, 0.0, 1.0), DT).position_m[2] for _ in range(300)]
     assert ground.touchdowns == []
     assert not ground.in_contact
@@ -110,7 +110,7 @@ def test_hovering_vehicle_never_touches_the_ground():
 
 def test_vehicle_takeoff_from_floor_never_goes_below_it():
     ground = GroundPlane()
-    vehicle = ActuatedQuadrotor(default_hardware_profile("w21-ground"), ground=ground)
+    vehicle = ActuatedQuadrotor(default_hardware_profile("ground-plane-test"), ground=ground)
     heights = [vehicle.step((0.3, -0.2, 1.0), DT).position_m[2] for _ in range(300)]
     assert min(heights) >= 0.0
     assert ground.touchdowns == []
@@ -119,7 +119,7 @@ def test_vehicle_takeoff_from_floor_never_goes_below_it():
 
 def test_vehicle_reset_clears_ground_history():
     ground = GroundPlane()
-    vehicle = ActuatedQuadrotor(default_hardware_profile("w21-ground"), initial_position=(0.0, 0.0, 0.2), ground=ground)
+    vehicle = ActuatedQuadrotor(default_hardware_profile("ground-plane-test"), initial_position=(0.0, 0.0, 0.2), ground=ground)
     for _ in range(100):
         vehicle.drone.step_physics(np.zeros(3), np.zeros(3), DT)
     assert ground.touchdowns
@@ -142,7 +142,7 @@ def test_provenance_labels_crash_threshold_as_placeholder():
 
 def test_provenance_records_ground_only_when_attached():
     assert "ground" not in SixDOFInterceptor().model_provenance()
-    record = ActuatedQuadrotor(default_hardware_profile("w21-ground"), ground=GroundPlane()).model_provenance()
+    record = ActuatedQuadrotor(default_hardware_profile("ground-plane-test"), ground=GroundPlane()).model_provenance()
     assert record["dynamics"]["ground"]["model"] == "ground_plane_clamp"
 
 
@@ -180,7 +180,7 @@ def _bare_history(**drone_kwargs):
 
 
 def _vehicle_history(**vehicle_kwargs):
-    vehicle = ActuatedQuadrotor(default_hardware_profile("w21-ground"), **vehicle_kwargs)
+    vehicle = ActuatedQuadrotor(default_hardware_profile("ground-plane-test"), **vehicle_kwargs)
     rows = []
     for _ in range(300):
         vehicle.step((0.3, -0.2, 1.0), 0.01)

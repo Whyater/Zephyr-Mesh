@@ -35,7 +35,7 @@ folder resumes.  Outputs are simulated only and go outside sim/runs.
 on the same scale grid, plus a zero-delay stock-gain scan from 0.100 to
 0.160 s in 2 ms steps, and reports for each lag the largest grid scale that
 flies and the largest that keeps a 10 degree hand margin, with the delay
-limits at each.  The default mode (``--mode n18``) is unchanged.
+limits at each.  The default mode (``--mode scale``) is unchanged.
 """
 from __future__ import annotations
 
@@ -661,8 +661,8 @@ def run_gap(output_dir: Path, *, taus=GAP_TAUS_S, scales=SCALES, fine_taus=GAP_F
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--mode", choices=("n18", "lag-gap"), default="n18",
-                        help="n18: the original scale sweep (default); lag-gap: lags 0.10 to 0.15 s")
+    parser.add_argument("--mode", choices=("scale", "lag-gap"), default="scale",
+                        help="scale: the original scale sweep (default); lag-gap: lags 0.10 to 0.15 s")
     args = parser.parse_args(argv)
     if args.mode == "lag-gap":
         result = run_gap(args.output_dir)

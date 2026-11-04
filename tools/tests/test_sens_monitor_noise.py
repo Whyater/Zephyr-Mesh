@@ -116,5 +116,5 @@ def test_first_failing_sigma():
 
 def test_refuses_output_inside_sim_runs():
     with pytest.raises(SystemExit):
-        sens.run_sweep(sens.ROOT / "sim" / "runs" / "n11-should-not-exist")
-    assert not (sens.ROOT / "sim" / "runs" / "n11-should-not-exist").exists()
+        sens.run_sweep(sens.ROOT / "sim" / "runs" / "monitor-noise-should-not-exist")
+    assert not (sens.ROOT / "sim" / "runs" / "monitor-noise-should-not-exist").exists()

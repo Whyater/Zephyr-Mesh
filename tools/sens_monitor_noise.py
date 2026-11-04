@@ -290,7 +290,7 @@ def run_sweep(output: Path, *, include_posthoc: bool = True, n_seeds: int = N_SE
     summary = summarize(rows)
     write_json(output / "summary.json", summary)
     raw_argv = list(argv or [])
-    write_manifest(output, schema="zephyr-n11-monitor-noise-1", argv=raw_argv,
+    write_manifest(output, schema="zephyr-monitor-noise-1", argv=raw_argv,
                    command=replay_command("tools/sens_monitor_noise.py", raw_argv),
                    config={"include_posthoc": include_posthoc, "n_seeds": n_seeds, "delay_s": DELAY_S,
                            "arms": [list(arm) for arm in arms(include_posthoc)]},
