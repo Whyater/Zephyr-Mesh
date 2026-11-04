@@ -58,6 +58,7 @@ from sim.s6_recovery import (
     truth_position,
 )
 from sim.sensor import SensorConfig, SensorModel
+from sim.tests.platform_compare import same_text
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REGISTERED_CSV = REPO_ROOT / "sim" / "runs" / "s6-recovery" / "per_seed.csv"
@@ -297,7 +298,11 @@ def run_cell(cell: dict[str, Any], seeds: list[int]) -> dict[str, Any]:
 
 def control_check(cells: list[dict[str, Any]], results: dict[str, dict], seeds: list[int],
                   registered_csv: Path = REGISTERED_CSV) -> dict[str, Any]:
-    """Compare every white_iso cell with the registered S6 rows for the same seeds, value for value."""
+    """Compare every white_iso cell with the registered S6 rows for the same seeds, value for value.
+
+    Exact on macOS, where the rows were recorded; elsewhere numbers may differ in the last digits, so
+    the repo-wide platform rule (sim/tests/platform_compare.py) is used.
+    """
     wanted = {c["s6_cell_id"]: c["cell_id"] for c in cells if c["model"] == WHITE_ISO}
     registered: dict[tuple[str, str, int], dict[str, str]] = {}
     with registered_csv.open(newline="") as handle:
@@ -325,7 +330,7 @@ def control_check(cells: list[dict[str, Any]], results: dict[str, dict], seeds: 
                     text = "" if value is None else ("true" if value is True else "false" if value is False
                                                      else repr(float(value)) if isinstance(value, float)
                                                      else str(value))
-                    if text != reg[key]:
+                    if not same_text(text, reg[key]):  # exact on macOS, float tolerance elsewhere
                         mismatched += 1
                         if len(examples) < 10:
                             examples.append(f"{s6_id} {arm} seed {index} {key}: {text} vs {reg[key]}")
