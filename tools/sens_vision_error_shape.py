@@ -353,7 +353,7 @@ def tolerance_rows(cells: list[dict[str, Any]], results: dict[str, dict]) -> lis
                 if delay not in by_delay or by_delay[delay]["arms"][arm]["label"] != "passes":
                     break
                 tolerated = float(delay)
-            zero = by_delay.get(0.0) or by_delay.get(0)
+            zero = by_delay.get(0.0)
             rows.append({
                 "variant": variant, "motion": motion, "loss_probability": loss, "noise_std_m": noise, "arm": arm,
                 "tolerated_delay_s": "" if tolerated is None else tolerated,
@@ -377,6 +377,39 @@ def bias_floor(model: str, noise_std_m: float, threshold_m: float = 0.25, n: int
     lengths = np.linalg.norm(np.random.default_rng(seed).normal(size=(n, 3)) * bias_std, axis=1)
     return {"p50_m": float(np.percentile(lengths, 50)), "p95_m": float(np.percentile(lengths, 95)),
             "share_over_threshold": float(np.mean(lengths > threshold_m))}
+
+
+def seed_error_floor(variant: str, noise_std_m: float, motion: str, seeds: list[int],
+                     threshold_m: float = 0.25) -> dict[str, float]:
+    """Each seed's own p95 of the raw vision error over the scored window, before any filter.
+
+    For the biased models it uses the same seed split, capture times and draws
+    as ``deliver_shaped``, so the error is exactly what the tracker was fed.
+    For white_iso the draws are statistically the same but not identical
+    (``SensorModel`` interleaves a dropout draw). No filter removes a bias,
+    so a seed whose raw p95 is above ``threshold_m`` is expected to fail at any
+    delay; the filter's own error only adds to it.
+    """
+    config = RecoveryConfig()
+    model, _, extra = variant.partition("_tau") if "_tau" in variant else variant.partition("_L")
+    value = float(extra) if extra else None
+    n_captures = round(config.duration_s / config.observation_period_s)
+    times = np.arange(n_captures + 1) * config.observation_period_s
+    truth = truth_position(motion, times, config)
+    scored = times >= config.burn_in_s - 1e-9
+    p95s = []
+    for seed in seeds:
+        _, sensor_seed = (int(v) for v in np.random.SeedSequence(seed).generate_state(2))
+        rng = np.random.default_rng(sensor_seed)
+        if model == WHITE_ISO:
+            raw = rng.normal(0.0, float(noise_std_m), size=truth.shape)
+        else:
+            raw = error_series(model, noise_std_m, times.size, config.observation_period_s, rng,
+                               value if model == OU_BIAS else MAIN_TAU_S, truth,
+                               value if model == POS_BIAS else MAIN_WAVELENGTH_M)
+        p95s.append(float(np.percentile(np.linalg.norm(raw[scored], axis=1), 95)))
+    arr = np.asarray(p95s)
+    return {"median_seed_p95_m": float(np.median(arr)), "share_seeds_over_threshold": float(np.mean(arr > threshold_m))}
 
 
 FIGURE_VARIANTS = (
@@ -445,12 +478,14 @@ def run(output: Path, *, seeds_count: int, taus: tuple[float, ...], processes: i
     cells = build_cells(taus, wavelengths=wavelengths)
     seeds = seed_list(seeds_count)
     checkpoint = output / "checkpoint.jsonl"
+    # A checkpoint line is reused only if it came from this exact tool file.
+    code_sha = _sha256(Path(__file__))
     results: dict[str, dict] = {}
     if checkpoint.exists():
         for line in checkpoint.read_text().splitlines():
             if line.strip():
                 record = json.loads(line)
-                if record.get("n_seeds") == seeds_count:
+                if record.get("n_seeds") == seeds_count and record.get("code_sha256") == code_sha:
                     results[record["cell_id"]] = record
     todo = [c for c in cells if c["cell_id"] not in results]
     print(f"cells: {len(cells)} (done {len(results)}, to run {len(todo)}), seeds {seeds_count}", file=sys.stderr)
@@ -461,6 +496,7 @@ def run(output: Path, *, seeds_count: int, taus: tuple[float, ...], processes: i
             for done, future in enumerate(as_completed(futures), 1):
                 record = future.result()
                 record["n_seeds"] = seeds_count
+                record["code_sha256"] = code_sha
                 results[record["cell_id"]] = record
                 sink.write(json.dumps(record) + "\n")
                 sink.flush()
@@ -495,7 +531,7 @@ def run(output: Path, *, seeds_count: int, taus: tuple[float, ...], processes: i
     (output / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
     manifest = {
         "argv": argv, "python": sys.version.split()[0], "numpy": np.__version__, "platform": platform.platform(),
-        "runtime_s_this_call": runtime, "n_cells": len(cells), "n_seeds": seeds_count, "processes": processes,
+        "runtime_s_this_call": runtime, "tool_sha256": code_sha, "n_cells": len(cells), "n_seeds": seeds_count, "processes": processes,
         "outputs": {name: _sha256(output / name) for name in ("summary.json", "tolerance.csv")},
     }
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
@@ -518,8 +554,15 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.figure_only:
         make_figure(args.output / "summary.json", args.output / "vision_error_shape.png")
-        floors = {f"{m}/n{n:.3f}": bias_floor(m, n) for m in (CONST_BIAS,) for n in NOISES if n > 0}
+        # The jitter/bias split is the same for every biased model, so one bias floor covers b, c and d.
+        floors = {f"biased_models/n{n:.3f}": bias_floor(CONST_BIAS, n) for n in NOISES if n > 0}
         (args.output / "bias_floor.json").write_text(json.dumps(floors, indent=2, sort_keys=True) + "\n")
+        summary = json.loads((args.output / "summary.json").read_text())
+        seeds = summary["design"]["seeds"]
+        variants = sorted({c["variant"] for c in summary["cells"]})
+        seed_floor = {f"{v}/{m}/n{n:.3f}": seed_error_floor(v, n, m, seeds)
+                      for v in variants for m in MOTIONS for n in (0.05, 0.10)}
+        (args.output / "seed_floor.json").write_text(json.dumps(seed_floor, indent=2, sort_keys=True) + "\n")
         print(json.dumps(floors, indent=2))
         return 0
     summary = run(args.output, seeds_count=args.seeds, taus=tuple(args.taus), processes=args.processes,

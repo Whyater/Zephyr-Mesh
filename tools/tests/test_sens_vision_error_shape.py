@@ -131,3 +131,39 @@ def test_control_check_matches_registered_rows():
     report = ves.control_check(cells, results, seeds)
     assert report["values_compared"] == len(cells) * 2 * 2 * len(ves.PER_SEED_KEYS)
     assert report["mismatches"] == 0, report["examples"]
+
+
+def test_seed_floor_for_a_constant_bias_is_the_bias_length():
+    # Hand check: with a constant bias and 1 to 2 mm jitter, a seed's p95 of |error| is its
+    # bias length to within a few millimetres, so the share over 0.25 m matches the bias draws.
+    seeds = seed_list(5)
+    for seed in seeds:
+        floor = ves.seed_error_floor(ves.CONST_BIAS, 0.10, "constant_velocity", [seed])
+        _, sensor_seed = (int(v) for v in np.random.SeedSequence(seed).generate_state(2))
+        _, bias_std = ves.jitter_and_bias_std(ves.CONST_BIAS, 0.10)
+        bias = np.random.default_rng(sensor_seed).normal(0.0, 1.0, size=3) * bias_std
+        assert floor["median_seed_p95_m"] == pytest.approx(float(np.linalg.norm(bias)), abs=0.005)
+
+
+def _fake_result(labels_by_arm, fail_rate=0.0):
+    return {"arms": {arm: {"label": label, "fail_rate": fail_rate, "p95_median_m": 0.1}
+                     for arm, label in labels_by_arm.items()}}
+
+
+def test_tolerance_rows_on_a_hand_made_pattern():
+    # Recovery passes up to 100 ms then fails; naive already fails at 0 ms.
+    # A later pass after a failure must not count. Noise 0 is shared by every variant.
+    cells = [c for c in ves.build_cells(models=(ves.WHITE_ISO, ves.CONST_BIAS))
+             if c["motion"] == "constant_velocity" and c["loss_probability"] == 0.0
+             and c["noise_std_m"] in (0.0, 0.05)]
+    results = {}
+    for c in cells:
+        rec = "passes" if c["delay_s"] <= 0.10 or c["delay_s"] == 0.30 else "fails"
+        results[c["cell_id"]] = _fake_result({"naive": "fails", "recovery": rec})
+    rows = ves.tolerance_rows(cells, results)
+    by = {(r["variant"], r["noise_std_m"], r["arm"]): r["tolerated_delay_s"] for r in rows}
+    assert by[(ves.WHITE_ISO, 0.05, "recovery")] == 0.10
+    assert by[(ves.CONST_BIAS, 0.05, "recovery")] == 0.10
+    assert by[(ves.WHITE_ISO, 0.05, "naive")] == ""
+    # The noise-0 row exists for the biased variant too, built from the white_iso cells.
+    assert by[(ves.CONST_BIAS, 0.0, "recovery")] == 0.10
