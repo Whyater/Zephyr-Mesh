@@ -336,6 +336,24 @@ def test_refuses_a_log_in_millimetres(tmp_path: Path) -> None:
         fcb.fit_camera_bias_field([log], fcb.read_spots_csv(spot_file))
 
 
+def test_refuses_one_millimetre_spot_among_metre_logs(tmp_path: Path) -> None:
+    # One log per spot, as capture_aruco writes them. Spot 4's log has positions 1000 x too big (the marker
+    # length typed as 150 for that one placement); the other nine are fine. Pooled, nine good logs would
+    # outvote it, so the check has to run on each log on its own and name the spot.
+    logs = []
+    for k, spot in enumerate(GRID):
+        path = tmp_path / f"spot{k}.jsonl"
+        if k == 4:
+            _write_log(path, [spot], lambda p: 999.0 * np.asarray(p), seed=k)
+        else:
+            _write_log(path, [spot], lambda p: (0.0, 0.0, 0.03), seed=k)
+        logs.append(path)
+    spot_file = tmp_path / "spots.csv"
+    _write_spots(spot_file, GRID)
+    with pytest.raises(fcb.BiasFieldError, match=rf"spot {GRID[4][0]} in spot4\.jsonl.*not in meters"):
+        fcb.fit_camera_bias_field(logs, fcb.read_spots_csv(spot_file))
+
+
 def test_refuses_log_and_spots_both_in_millimetres(tmp_path: Path) -> None:
     mm_grid = [(k, tuple(1000.0 * v for v in p)) for k, p in GRID]
     with pytest.raises(fcb.BiasFieldError, match="millimet"):

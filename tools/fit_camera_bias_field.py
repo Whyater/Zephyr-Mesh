@@ -120,9 +120,9 @@ Refusals (exit code 2, with the reason)
     a detection with no ground truth.
 - More than one ``subject_id`` without ``--subject``, mixed ``position_frame``
   values, or time windows with more than one log.
-- Wrong units: the measured distance is over 10 or under 0.1 times the known
-  distance (``sim.vision_noise_fit._check_units``, reused read-only; a factor
-  near 1000 means millimetres), or the spots' median distance is over 100 m
+- Wrong units: at any one spot in any one log, the measured distance is over
+  10 or under 0.1 times the known distance (``sim.vision_noise_fit._check_units``,
+  reused read-only, run per spot and log; a factor near 1000 means millimetres), or the spots' median distance is over 100 m
   (the spots file itself is in millimetres or pixels).
 - Pose flips: any detection with z <= 0 in the camera frame.
 
@@ -504,10 +504,15 @@ def fit_camera_bias_field(log_paths: Sequence[str | Path], spots: Sequence[Spot]
     if used:
         known = np.concatenate([np.tile(positions[k], (len(errors[k]), 1)) for k in used])
         measured_all = known + np.concatenate([np.array(errors[k]) for k in used])
-        try:
-            vnf._check_units(measured_all, known)
-        except ValueError as exc:
-            raise BiasFieldError(f"{exc}; the spots file must be in metres too") from exc
+        # One check per spot and log, so a single wrong-units placement cannot be outvoted by the others
+        # (the check takes a median).
+        for (spot_id, log_index), recs in records.items():
+            group = np.array([o.position_m for o in recs], dtype=float)
+            try:
+                vnf._check_units(group, np.tile(positions[spot_id], (len(recs), 1)))
+            except ValueError as exc:
+                raise BiasFieldError(f"spot {spot_id} in {traces[log_index][0].name}: {exc}; the spots file must "
+                                     "be in metres too") from exc
         if frames_seen == {"camera"}:
             behind = int(np.count_nonzero(measured_all[:, 2] <= 0.0))
             if behind:
