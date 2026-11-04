@@ -76,6 +76,22 @@ measured position minus the spot's known position. Then:
   the per-spot means if frames were independent. Still frames are usually
   correlated, so the real floor is higher; treat a varying part near this
   number as zero.
+- ``raw_p95_3d_m`` (per spot): the 95th percentile over that spot's frames of
+  the length of the 3D frame error (bias and jitter, before any filter).
+  ``pooled_raw_p95_3d_m``: the same over all frames, each spot weighted
+  equally (each frame weighs 1 / n_i). The 95th percentile here is the first
+  value, in sorted order, whose cumulative weight reaches 95 %.
+
+The verdict
+-----------
+It reports this session's numbers first, then names the study regime they fall
+in (by total size and depth share), then gives a simulation-based expectation.
+The study found that which simulated runs failed S6 was set by each run's own
+raw error p95 against S6's 0.25 m line, not by the ensemble's share of failing
+seeds. A measured camera is one such run with a known field, so the
+expectation compares ``pooled_raw_p95_3d_m`` with 0.25 m (within 10 % counts
+as "either way"). It is an expectation from simulation, not a measured result,
+and it assumes a run sweeps the area the spots cover.
 
 Refusals (exit code 2, with the reason)
 ---------------------------------------
@@ -104,6 +120,16 @@ Refusals (exit code 2, with the reason)
     a detection with no ground truth.
 - More than one ``subject_id`` without ``--subject``, mixed ``position_frame``
   values, or time windows with more than one log.
+- Wrong units: the measured distance is over 10 or under 0.1 times the known
+  distance (``sim.vision_noise_fit._check_units``, reused read-only; a factor
+  near 1000 means millimetres), or the spots' median distance is over 100 m
+  (the spots file itself is in millimetres or pixels).
+- Pose flips: any detection with z <= 0 in the camera frame.
+
+The other camera-log checks of ``sim.vision_noise_fit`` (``_quirk_warnings``:
+gaps, repeated time stamps, frozen frames, outliers) run on each spot's frames
+and their warnings are added to ``notes``, prefixed with the spot id. Their
+text was written for the noise fit, so it names that fit's outputs.
 
 Limits
 ------
@@ -136,6 +162,7 @@ from typing import Any
 
 import numpy as np
 
+from sim import vision_noise_fit as vnf
 from sim.detection_log import DetectionLogError, read_detection_log
 
 SCHEMA = "zephyr-camera-bias-field-1"
@@ -152,6 +179,11 @@ CELL_5CM_TOTAL_RMS_M = math.sqrt(3.0) * 0.05
 CELL_10CM_TOTAL_RMS_M = math.sqrt(3.0) * 0.10
 SIM_MAIN_SHARE_MAX = 0.28      # main camera model: 16 % (turn) to 28 % (line) of depth variance varying
 SIM_BRACKET_SHARE_MIN = 0.79   # bracket model: 79 % (line) to 90 % (turn)
+
+S6_P95_LINE_M = 0.25           # S6 failure rule: a run fails when its error p95 is over 0.25 m
+NEAR_LINE_FRACTION = 0.10      # pooled p95 within 10 % of the line: called 'either way'
+# Spread of x / z the study's camera swept, assuming its 70 degree field of view (tan 35 deg = 0.70).
+SIM_COVERAGE_TEXT = "about -0.70 to +0.70 on the line and -0.35 to +0.35 on the turn"
 
 SIM_SOURCE = ("simulation results from tools/sens_vision_bias_camera.py on synthetic data, 30 seeds, "
               "S6 failure rule; not measured")
@@ -276,50 +308,93 @@ def decompose_bias_field(errors_by_spot: Mapping[str, np.ndarray], *, depth_axis
     }
 
 
+def weighted_p95(values: np.ndarray, weights: np.ndarray) -> float:
+    """The first value, in sorted order, whose cumulative weight reaches 95 % of the total weight."""
+    values = np.asarray(values, dtype=float)
+    weights = np.asarray(weights, dtype=float)
+    order = np.argsort(values, kind="stable")
+    cumulative = np.cumsum(weights[order])
+    index = int(np.searchsorted(cumulative, 0.95 * cumulative[-1] * (1.0 - 1e-12)))
+    return float(values[order][index])
+
+
 # ---------------------------------------------------------------- verdict
 
 
+def _expectation(result: Mapping[str, Any]) -> tuple[str | None, str]:
+    p95 = result.get("pooled_raw_p95_3d_m")
+    if p95 is None:
+        return None, ""
+    line = S6_P95_LINE_M
+    if p95 > line * (1.0 + NEAR_LINE_FRACTION):
+        key, outcome, where = "fail_on_bias", "fail S6 at every delay on bias alone", "over"
+    elif p95 < line * (1.0 - NEAR_LINE_FRACTION):
+        key, outcome, where = "pass_on_bias", "pass on bias alone (delay and loss limits still apply)", "under"
+    else:
+        key, outcome, where = "near_the_line", "go either way", f"within {100 * NEAR_LINE_FRACTION:.0f} % of"
+    text = (f"Simulation-based expectation, not a measured result: the pooled raw 3D error p95 is "
+            f"{p95:.3f} m, {where} S6's {line:.2f} m p95 line. In the study that number decided which runs "
+            "failed: on the line every seed whose raw p95 was over 0.25 m failed and none under it did; on the "
+            "turn 9 of 10 over it failed, plus 1 under it. So a tracked run across the area these spots cover "
+            f"would be expected to {outcome}, assuming the study's tracker and a run that sweeps that area.")
+    return key, text
+
+
 def verdict(result: Mapping[str, Any]) -> dict[str, Any]:
-    """Place the bench numbers on the camera-shaped bias simulation's regimes."""
+    """Report this session's numbers, the study regime they fall in, and a labelled p95 expectation."""
     total = float(result["total_rms_3d_m"])
     share = result["varying_share_depth"]
-    cm = f"{100 * total:.1f} cm"
-    lead = f"Verdict ({SIM_SOURCE}): total 3D error RMS {cm}"
-    if total <= CELL_5CM_TOTAL_RMS_M:
-        text = (f"{lead} is at or below the simulated 5 cm cell (8.7 cm). There, every camera-shaped bias "
-                "version passed S6's majority rule with the same tolerated delay as a constant bias to within "
-                "one step (300 ms line, 200 ms turn, recovery arm, no loss), so the shape does not matter at "
-                "this size.")
-        return {"size_band": "at_or_below_5cm_cell", "regime": "shape_does_not_matter", "text": text}
+    p95 = result.get("pooled_raw_p95_3d_m")
+    measured = f"Measured (this session): total 3D error RMS {100 * total:.1f} cm (bias and jitter)"
+    measured += ", depth varying share " + ("n/a" if share is None else f"{100 * share:.0f} %")
+    if p95 is not None:
+        measured += (f", pooled raw 3D error p95 {100 * p95:.1f} cm, {result.get('spots_over_p95_line', 0)} of "
+                     f"{result.get('spot_count', 0)} spots over 25 cm")
+    coverage = result.get("coverage_x_over_z")
+    if coverage is not None:
+        measured += (f"; the spots span x / z from {coverage[0]:+.2f} to {coverage[1]:+.2f} (the study swept "
+                     f"{SIM_COVERAGE_TEXT})")
+    measured += "."
+    key, expectation = _expectation(result)
+    regime_lead = f"Regime ({SIM_SOURCE}):"
+    draw = ("This camera is one such draw with a known field, so that share is not its chance of failing; the "
+            "expectation below is the per-run test.")
 
+    def done(size_band: str, regime: str, regime_text: str) -> dict[str, Any]:
+        text = " ".join(part for part in (measured, f"{regime_lead} {regime_text}", expectation) if part)
+        return {"size_band": size_band, "regime": regime, "expectation": key, "text": text}
+
+    if total <= CELL_5CM_TOTAL_RMS_M:
+        return done("at_or_below_5cm_cell", "shape_does_not_matter",
+                    "at or below the simulated 5 cm cell (8.7 cm). There every camera-shaped version passed S6 "
+                    "with the same tolerated delay as a constant bias to within one step (300 ms line, 200 ms "
+                    "turn, recovery arm, no loss), so the shape does not matter at this size.")
     if total <= CELL_10CM_TOTAL_RMS_M:
         size_band = "between_cells"
-        size = ("is between the simulated 5 cm cell (8.7 cm) and 10 cm cell (17.3 cm); this size was not "
-                "simulated, so read the 10 cm results below as a worst case")
+        size = ("between the simulated 5 cm cell (8.7 cm) and 10 cm cell (17.3 cm); this size was not simulated, "
+                "so the 10 cm results are an upper reference.")
     else:
         size_band = "above_10cm_cell"
-        size = ("is above the simulated 10 cm cell (17.3 cm); this size was not simulated, so expect worse "
-                "than the 10 cm results below")
+        size = ("above the largest simulated cell (17.3 cm); the study has no regime for this size, so only the "
+                "p95 expectation applies.")
 
     if share is None:
-        text = (f"{lead} {size}. The spots show no bias at all, so the error is jitter only; the camera-shaped "
-                "bias simulation does not cover that case (the white-noise rows of the S6 grid do).")
-        return {"size_band": size_band, "regime": "no_bias", "text": text}
-    pct = f"{100 * share:.0f} %"
+        return done(size_band, "no_bias", f"{size} The spots show no bias at all, so the error is jitter only; "
+                    "the camera-shaped bias study does not cover that case (the S6 white-noise rows do).")
+    if result.get("share_is_noise"):
+        return done(size_band, "share_is_noise", f"{size} The depth bias is within the jitter noise floor, so its "
+                    "share is noise and no shape regime applies.")
     if share <= SIM_MAIN_SHARE_MAX:
-        regime = "mostly_offset"
-        shape = (f"The depth bias is {pct} varying, in the mostly-offset range (0 to 28 %). At the 10 cm cell a "
-                 "constant bias and the main camera field (16 to 28 % varying) both passed S6's majority rule at "
-                 "0 ms delay, but 20 to 33 % of seeds failed at every delay on bias alone.")
-    elif share >= SIM_BRACKET_SHARE_MIN:
-        regime = "mostly_varying"
-        shape = (f"The depth bias is {pct} varying, in the bracket's range (79 to 90 %). At the 10 cm cell that "
-                 "field failed at 0 ms delay on a coin flip: 15 of 30 seeds on the line, 16 of 30 on the turn.")
-    else:
-        regime = "share_not_simulated"
-        shape = (f"The depth bias is {pct} varying, between the simulated shares (28 % and 79 %). That share "
-                 "was not simulated, so at the 10 cm cell the pass or fail label could go either way.")
-    return {"size_band": size_band, "regime": regime, "text": f"{lead} {size}. {shape}"}
+        return done(size_band, "mostly_offset", f"{size} Shape: mostly offset (0 to 28 % varying). In the study, "
+                    "random simulated cameras of the 10 cm size with this shape (a constant bias, or 16 to 28 % "
+                    "varying) passed S6's majority rule at 0 ms, while 20 to 33 % of them failed at every delay on "
+                    f"bias alone. {draw}")
+    if share >= SIM_BRACKET_SHARE_MIN:
+        return done(size_band, "mostly_varying", f"{size} Shape: mostly varying (79 to 90 % in the study's "
+                    "bracket). In the study, random simulated cameras of the 10 cm size with this shape failed the "
+                    f"majority rule at 0 ms on a coin flip (15 of 30 on the line, 16 of 30 on the turn). {draw}")
+    return done(size_band, "share_not_simulated", f"{size} Shape: between the simulated shares (28 % and 79 %); "
+                "that share was not simulated.")
 
 
 # ---------------------------------------------------------------- whole logs
@@ -338,6 +413,10 @@ def fit_camera_bias_field(log_paths: Sequence[str | Path], spots: Sequence[Spot]
     if len(spots) < MIN_SPOTS:
         raise BiasFieldError(f"need at least {MIN_SPOTS} distinct spots, the spots file has {len(spots)}")
     positions = {s.spot_id: np.array(s.position_m) for s in spots}
+    median_distance = float(np.median([np.linalg.norm(v) for v in positions.values()]))
+    if median_distance > vnf._LARGE_DISTANCE_M:
+        raise BiasFieldError(f"the spots' median distance is {median_distance:.4g}, far beyond a bench: the spots "
+                             "file (and probably the log) is in millimetres or pixels, not metres")
     for a in range(len(spots)):
         for b in range(a + 1, len(spots)):
             gap = float(np.linalg.norm(positions[spots[a].spot_id] - positions[spots[b].spot_id]))
@@ -360,6 +439,7 @@ def fit_camera_bias_field(log_paths: Sequence[str | Path], spots: Sequence[Spot]
                                      "not distinguishable")
 
     errors: dict[str, list[np.ndarray]] = {s.spot_id: [] for s in spots}
+    records: dict[tuple[str, int], list[Any]] = {}
     skipped = {"not_detected": 0, "no_position": 0, "outside_windows": 0, "other_subject": 0}
     frames_seen: set[str] = set()
     truth_uncertainty = None
@@ -378,7 +458,7 @@ def fit_camera_bias_field(log_paths: Sequence[str | Path], spots: Sequence[Spot]
     elif subject not in subjects:
         raise BiasFieldError(f"subject {subject!r} not in the logs (found {subjects})")
 
-    for path, trace in traces:
+    for log_index, (path, trace) in enumerate(traces):
         for obs in trace.observations:
             if obs.subject_id != subject:
                 skipped["other_subject"] += 1
@@ -412,12 +492,29 @@ def fit_camera_bias_field(log_paths: Sequence[str | Path], spots: Sequence[Spot]
                 hits = [s for s in spots if np.linalg.norm(truth - positions[s.spot_id]) <= GT_MATCH_TOL_M]
                 if not hits:
                     raise BiasFieldError(f"{where}: ground truth {truth.tolist()} matches no spot in the spots "
-                                         f"file (within {1000 * GT_MATCH_TOL_M:.0f} mm)")
+                                         f"file (within {1000 * GT_MATCH_TOL_M:.0f} mm); if the numbers are "
+                                         "about 1000 times apart, one of them is in millimetres, not metres")
                 spot = hits[0]
             errors[spot.spot_id].append(np.array(obs.position_m, dtype=float) - positions[spot.spot_id])
+            records.setdefault((spot.spot_id, log_index), []).append(obs)
 
     if len(frames_seen) > 1:
         raise BiasFieldError(f"detections use several position_frame values {sorted(frames_seen)}")
+    used = [k for k, v in errors.items() if v]
+    if used:
+        known = np.concatenate([np.tile(positions[k], (len(errors[k]), 1)) for k in used])
+        measured_all = known + np.concatenate([np.array(errors[k]) for k in used])
+        try:
+            vnf._check_units(measured_all, known)
+        except ValueError as exc:
+            raise BiasFieldError(f"{exc}; the spots file must be in metres too") from exc
+        if frames_seen == {"camera"}:
+            behind = int(np.count_nonzero(measured_all[:, 2] <= 0.0))
+            if behind:
+                raise BiasFieldError(
+                    f"{behind} detections have z <= 0 in the camera frame (behind the lens): pose flips. They "
+                    "would move the spot means by centimetres. Check the frames file, drop or re-record those "
+                    "frames (a flatter, matte marker and better light make flips rarer)")
     short = {k: len(v) for k, v in errors.items() if len(v) < MIN_FRAMES_PER_SPOT}
     if short:
         listed = ", ".join(f"{k} ({n})" for k, n in short.items())
@@ -439,8 +536,34 @@ def fit_camera_bias_field(log_paths: Sequence[str | Path], spots: Sequence[Spot]
                     f"measured positions at spots {ids[a]!r} and {ids[b]!r} are {100 * gap:.1f} cm apart, under "
                     f"{CLUSTER_SEPARATION_JITTERS:g} x their {100 * spread:.1f} cm jitter: not distinguishable")
 
+    pooled_values = []
+    pooled_weights = []
     for s in result["spots"]:
         s["known_position_m"] = [float(v) for v in positions[s["spot_id"]]]
+        norms = np.linalg.norm(np.array(errors[s["spot_id"]]), axis=1)
+        s["raw_p95_3d_m"] = weighted_p95(norms, np.ones(norms.size))
+        pooled_values.append(norms)
+        pooled_weights.append(np.full(norms.size, 1.0 / norms.size))
+    result["pooled_raw_p95_3d_m"] = weighted_p95(np.concatenate(pooled_values), np.concatenate(pooled_weights))
+    result["spots_over_p95_line"] = int(sum(s["raw_p95_3d_m"] > S6_P95_LINE_M for s in result["spots"]))
+    result["coverage_x_over_z"] = None
+    if depth_axis == "z" and all(v[2] > 0 for v in positions.values()):
+        ratios = [v[0] / v[2] for v in positions.values()]
+        result["coverage_x_over_z"] = [float(min(ratios)), float(max(ratios))]
+    depth = result["per_axis"][depth_axis]
+    result["share_is_noise"] = bool(depth["bias_rms_m"] <= 3.0 * depth["varying_noise_floor_m"])
+    quirks = []
+    for (spot_id, log_index), recs in records.items():
+        trace = traces[log_index][1]
+        recs = sorted(recs, key=lambda o: (o.capture_time_s, o.observation_id))
+        measured = np.array([o.position_m for o in recs], dtype=float)
+        known = np.tile(positions[spot_id], (len(recs), 1))
+        res = measured - known
+        std = res.std(axis=0, ddof=1) if len(recs) > 1 else np.zeros(3)
+        robust = 1.4826 * np.median(np.abs(res - np.median(res, axis=0)), axis=0)
+        for warning in vnf._quirk_warnings(trace, subject, recs, res, std, robust, measured, known,
+                                           sorted(frames_seen)):
+            quirks.append(f"spot {spot_id}: {warning}")
     result.update({
         "schema": SCHEMA,
         "status": "proposal; scored by a tool tested on synthetic logs only",
@@ -454,7 +577,7 @@ def fit_camera_bias_field(log_paths: Sequence[str | Path], spots: Sequence[Spot]
                   "min_spot_separation_m": MIN_SPOT_SEPARATION_M, "gt_match_tol_m": GT_MATCH_TOL_M,
                   "cluster_separation_jitters": CLUSTER_SEPARATION_JITTERS},
     })
-    result["notes"] = _notes(result)
+    result["notes"] = quirks + _notes(result)
     result["verdict"] = verdict(result)
     return result
 
@@ -472,6 +595,11 @@ def _notes(result: Mapping[str, Any]) -> list[str]:
     if u is not None and depth["varying_m"] <= 2.0 * u:
         notes.append(f"depth varying part ({_mm(depth['varying_m'])} mm) is not above 2 x the ground-truth "
                      f"uncertainty ({_mm(u)} mm), so it could be mostly tape error")
+    depth_k = AXES.index(result["depth_axis"])
+    ranges = [s["known_position_m"][depth_k] for s in result["spots"]]
+    if max(ranges) - min(ranges) < MIN_SPOT_SEPARATION_M:
+        notes.append("all spots are at one range (within 5 cm), so the part of the field that changes with range "
+                     "is not sampled; add a second range")
     jitter_sq = sum(result["per_axis"][n]["jitter_rms_m"] ** 2 for n in AXES)
     if jitter_sq > result["accuracy_rms_3d_m"] ** 2:
         notes.append("jitter is larger than the bias; the camera-shaped bias simulation assumed mm-level jitter, "
@@ -490,11 +618,11 @@ def summary_text(result: Mapping[str, Any]) -> str:
     statuses = sorted({log["status"] for log in result["logs"]})
     lines = [f"Camera bias field: {result['spot_count']} spots, logs {', '.join(statuses)} "
              f"(assignment by {result['assignment'].replace('_', ' ')}), frame {result['position_frame']}",
-             "", "spot              frames   mean error x y z (mm)        jitter x y z (mm)"]
+             "", "spot              frames   mean error x y z (mm)        jitter x y z (mm)    raw p95 3D (mm)"]
     for s in result["spots"]:
         mean = " ".join(f"{1000 * v:7.1f}" for v in s["mean_error_m"])
         jit = " ".join(f"{1000 * v:6.1f}" for v in s["jitter_m"])
-        lines.append(f"{s['spot_id']:<17} {s['frames']:>6}   {mean}   {jit}")
+        lines.append(f"{s['spot_id']:<17} {s['frames']:>6}   {mean}   {jit}   {1000 * s['raw_p95_3d_m']:8.1f}")
     lines += ["", "axis  common (mm)  varying (mm)  varying share  jitter RMS (mm)  noise floor (mm)"]
     for name in AXES:
         a = result["per_axis"][name]
@@ -510,7 +638,7 @@ def summary_text(result: Mapping[str, Any]) -> str:
               f"largest ground-truth uncertainty in the lines: {_mm(result['truth_uncertainty_m'])} mm "
               "(tape error lands in the varying part)",
               *(f"note: {note}" for note in result["notes"]),
-              "", result["verdict"]["text"]]
+              "", "Verdict:", result["verdict"]["text"]]
     return "\n".join(lines) + "\n"
 
 

@@ -192,27 +192,70 @@ def test_several_logs_one_per_spot(tmp_path: Path) -> None:
 # ---------------------------------------------------------------- verdict
 
 
+def _v(total, share, p95=0.10, over=0, spots=10, share_is_noise=False):
+    return fcb.verdict({"total_rms_3d_m": total, "varying_share_depth": share, "pooled_raw_p95_3d_m": p95,
+                        "spots_over_p95_line": over, "spot_count": spots, "share_is_noise": share_is_noise})
+
+
 def test_verdict_regimes() -> None:
-    small = fcb.verdict({"total_rms_3d_m": 0.07, "varying_share_depth": 0.9})
+    small = _v(0.07, 0.9)
     assert small["size_band"] == "at_or_below_5cm_cell" and small["regime"] == "shape_does_not_matter"
     assert "shape does not matter" in small["text"]
-    mostly_offset = fcb.verdict({"total_rms_3d_m": 0.17, "varying_share_depth": 0.2})
+    mostly_offset = _v(0.17, 0.2)
     assert mostly_offset["regime"] == "mostly_offset" and mostly_offset["size_band"] == "between_cells"
-    assert "20 to 33 %" in mostly_offset["text"]
-    mostly_varying = fcb.verdict({"total_rms_3d_m": 0.17, "varying_share_depth": 0.85})
+    mostly_varying = _v(0.17, 0.85)
     assert mostly_varying["regime"] == "mostly_varying"
-    assert "15 of 30" in mostly_varying["text"]
-    between = fcb.verdict({"total_rms_3d_m": 0.17, "varying_share_depth": 0.5})
+    between = _v(0.17, 0.5)
     assert between["regime"] == "share_not_simulated"
-    big = fcb.verdict({"total_rms_3d_m": 0.25, "varying_share_depth": 0.2})
+    big = _v(0.25, 0.2)
     assert big["size_band"] == "above_10cm_cell"
-    no_bias = fcb.verdict({"total_rms_3d_m": 0.12, "varying_share_depth": None})
+    no_bias = _v(0.12, None)
     assert no_bias["regime"] == "no_bias"
-    for v in (small, mostly_offset, mostly_varying, between, big, no_bias):
+    noise = _v(0.12, 0.6, share_is_noise=True)
+    assert noise["regime"] == "share_is_noise"
+    for v in (small, mostly_offset, mostly_varying, between, big, no_bias, noise):
         assert "simulation" in v["text"] and "not measured" in v["text"]
+        # The verdict leads with this camera's own numbers.
+        assert v["text"].startswith("Measured (this session):")
+        assert "expect worse" not in v["text"]
+    # The study's seed shares are described as random simulated cameras, not as this camera's chance.
+    assert "random simulated cameras" in mostly_offset["text"] and "one such draw" in mostly_offset["text"]
+    assert "15 of 30" in mostly_varying["text"]
     # The thresholds are the study's cell sizes: sqrt(3) x 5 cm and sqrt(3) x 10 cm.
     assert fcb.CELL_5CM_TOTAL_RMS_M == pytest.approx(0.0866025, abs=1e-7)
     assert fcb.CELL_10CM_TOTAL_RMS_M == pytest.approx(0.1732051, abs=1e-7)
+
+
+def test_verdict_expectation_uses_raw_p95_against_25_cm() -> None:
+    under = _v(0.25, 0.2, p95=0.20, over=0)
+    assert under["expectation"] == "pass_on_bias"
+    over = _v(0.17, 0.2, p95=0.31, over=4)
+    assert over["expectation"] == "fail_on_bias"
+    close = _v(0.17, 0.2, p95=0.24, over=1)
+    assert close["expectation"] == "near_the_line"
+    for v in (under, over, close):
+        assert "Simulation-based expectation, not a measured result" in v["text"]
+        assert "0.25 m" in v["text"]
+
+
+def test_weighted_p95_by_hand() -> None:
+    # Values 1..20 with equal weight: the 95th percentile (first value whose cumulative weight reaches 95 %) is 19.
+    assert fcb.weighted_p95(np.arange(1.0, 21.0), np.ones(20)) == 19.0
+    # Two spots weighted equally: spot A has 2 frames at 0.1, spot B 8 frames at 0.3. Each frame of A weighs 1/2
+    # of a spot, each of B 1/8. Sorted: 0.1, 0.1 (cumulative 0.5 of 1.0), then 0.3 frames reach 0.95 at the 8th.
+    values = np.array([0.1, 0.1] + [0.3] * 8)
+    weights = np.array([0.5, 0.5] + [0.125] * 8) / 2.0
+    assert fcb.weighted_p95(values, weights) == 0.3
+
+
+def test_raw_p95_per_spot_and_pooled(tmp_path: Path) -> None:
+    # Half the columns (x > 0 and x = 0 alike) read 30 cm off in depth, the others 0: with jitter 2 mm the
+    # spots over the line are exactly the 30 cm ones, and the pooled p95 is about 0.30 m.
+    out = _fit(tmp_path, error_fn=lambda p: (0.0, 0.0, 0.30 if p[0] >= 0 else 0.0))
+    over = [s["spot_id"] for s in out["spots"] if s["raw_p95_3d_m"] > 0.25]
+    assert len(over) == 6 and out["spots_over_p95_line"] == 6
+    assert out["pooled_raw_p95_3d_m"] == pytest.approx(0.30, abs=0.01)
+    assert out["verdict"]["expectation"] == "fail_on_bias"
 
 
 def test_notes_flag_a_share_inside_the_jitter_floor(tmp_path: Path) -> None:
@@ -279,6 +322,63 @@ def test_refuses_ground_truth_not_in_spot_file(tmp_path: Path) -> None:
     _write_spots(spot_file, GRID[:-1] + [("moved", (0.9, 0.0, 2.5))])
     with pytest.raises(fcb.BiasFieldError, match="no spot"):
         fcb.fit_camera_bias_field([log], fcb.read_spots_csv(spot_file))
+
+
+def test_refuses_a_log_in_millimetres(tmp_path: Path) -> None:
+    # The detector was given the marker length as 150 instead of 0.150: every position is 1000 x too big,
+    # while the spots file (and the ground truth) are in metres. Matched by time so the ground truth cannot
+    # catch it first.
+    log = tmp_path / "run.jsonl"
+    windows = _write_log(log, GRID, lambda p: 999.0 * np.asarray(p), ground_truth=False)
+    spot_file = tmp_path / "spots.csv"
+    _write_spots(spot_file, GRID, windows)
+    with pytest.raises(fcb.BiasFieldError, match="not in meters"):
+        fcb.fit_camera_bias_field([log], fcb.read_spots_csv(spot_file))
+
+
+def test_refuses_log_and_spots_both_in_millimetres(tmp_path: Path) -> None:
+    mm_grid = [(k, tuple(1000.0 * v for v in p)) for k, p in GRID]
+    with pytest.raises(fcb.BiasFieldError, match="millimet"):
+        _fit(tmp_path, spots=mm_grid, jitter_m=2.0)
+
+
+def test_refuses_pose_flips(tmp_path: Path) -> None:
+    log = tmp_path / "run.jsonl"
+    _write_log(log, GRID, lambda p: (0.0, 0.0, 0.0))
+    lines = log.read_text(encoding="utf-8").splitlines()
+    for k in (5, 6, 7):  # three frames of the first spot come back behind the camera
+        obs = json.loads(lines[k])
+        obs["position_m"][2] = -obs["position_m"][2]
+        lines[k] = json.dumps(obs)
+    log.write_bytes(("\n".join(lines) + "\n").encode("utf-8"))
+    spot_file = tmp_path / "spots.csv"
+    _write_spots(spot_file, GRID)
+    with pytest.raises(fcb.BiasFieldError, match="pose flip"):
+        fcb.fit_camera_bias_field([log], fcb.read_spots_csv(spot_file))
+
+
+def test_quirk_warnings_reach_the_notes(tmp_path: Path) -> None:
+    # A frozen stream: every frame at one spot repeats the same position_m exactly.
+    log = tmp_path / "run.jsonl"
+    _write_log(log, GRID, lambda p: (0.0, 0.0, 0.02))
+    lines = log.read_text(encoding="utf-8").splitlines()
+    frozen = json.loads(lines[1])["position_m"]
+    for k in range(1, 61):
+        obs = json.loads(lines[k])
+        obs["position_m"] = frozen
+        lines[k] = json.dumps(obs)
+    log.write_bytes(("\n".join(lines) + "\n").encode("utf-8"))
+    spot_file = tmp_path / "spots.csv"
+    _write_spots(spot_file, GRID)
+    out = fcb.fit_camera_bias_field([log], fcb.read_spots_csv(spot_file))
+    assert any(note.startswith(f"spot {GRID[0][0]}:") and "repeat the previous position_m" in note
+               for note in out["notes"])
+
+
+def test_note_when_all_spots_at_one_range(tmp_path: Path) -> None:
+    one_range = [(k, p) for k, p in GRID if p[2] == 1.5]
+    out = _fit(tmp_path, spots=one_range, error_fn=lambda p: (0.0, 0.0, 0.03))
+    assert any("one range" in note for note in out["notes"])
 
 
 def test_cli_refusal_exits_2(tmp_path: Path, capsys) -> None:
