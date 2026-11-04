@@ -561,7 +561,7 @@ def write_gap_figure(cells, rows, fine, headline_s: float, path: Path) -> None:
     for name, color, marker, label in (("s_fly", pal["accent"], "o", "largest grid scale that flies"),
                                        ("s_margin", pal["text"], "s", "largest with 10 deg hand margin")):
         ys = [r[name]["scale"] for r in rows]
-        ax.plot(taus, ys, marker + "-", color=color, lw=1.6, ms=5, label=label, drawstyle="steps-mid")
+        ax.plot(taus, ys, marker + "-", color=color, lw=1.6, ms=5, label=label)
     if edge["first_failing_s"] is not None:
         ax.axvline(edge["first_failing_s"], color=pal["textSecondary"], lw=1, ls="--",
                    label=f"stock gains first fail at {edge['first_failing_s']:.3f} s")
