@@ -57,10 +57,64 @@ _RSSI = re.compile(r"0|-[1-9][0-9]{0,2}")
 _RATE = re.compile(r"[0-9]{1,9}(\.[0-9]{1,9})?")
 _SENDER_COLS = "seq,tx_us,echo_us"
 _ECHOER_COLS = "seq,rx_us,echo_tx_us,rssi_dbm"
+# A data row holds only these characters.
+_ROW_CHARS = re.compile(r"[0-9,-]*")
+# A row of only these characters is a data row printed in the wrong format (spaces, decimals, + signs, an extra
+# \r). A row with anything else (letters, brackets, colons) is other serial output mixed into the log.
+_FORMAT_CHARS = re.compile(r"[0-9,.+ \r-]*")
+_FORMAT_FAULTS = ((" ", "a space"), (".", "a decimal point (stamps are whole microseconds, not seconds)"),
+                  ("+", "a + sign"), ("\r", "a stray \\r (the line ends \\r\\r\\n; check the serial monitor's "
+                                      "line-ending setting)"))
+_NOT_A_ROW = ("this is not a data row: it holds text other than digits, commas and minus signs, so other "
+              "serial output (for example an ESP-IDF log line such as 'W (1234) wifi: ...' or a boot message) "
+              "got mixed into the log. Turn other output off during the test (esp_log_level_set(\"*\", ESP_LOG_NONE)) and "
+              "capture again; the tools never skip a line")
+# A 32-bit microsecond counter wraps every 2**32 us = 4294.967296 s = 71.58 min.
+_WRAP_US = 1 << 32
+_WRAP_WINDOW_US = 600_000_000
+# A radio duplicate (a MAC retry whose ack was lost) arrives milliseconds after the first copy. A repeat
+# this much later is not a radio duplicate; it is the same seq from another sender session.
+DUPLICATE_WINDOW_US = 1_000_000
+# How the importer tells a sender reboot from a slow link (proposal; see _check_one_sender_session):
+# rx_us - tx_us is B's clock minus A's clock, plus the time the packet spent getting to B. A slow link (a stall,
+# a queue, jitter) changes only the second part; a reboot of A restarts A's clock and changes the first part.
+# CLOCK_JUMP_ALLOWANCE_US covers stamping slack (a stamp taken a little before or after the radio event).
+# CLOCK_DRIFT_PPM is how fast the two clocks may slide apart. Two ESP32 crystals differ by tens of ppm; the
+# allowance is set far above that because it only loosens comparisons with packets long ago, while a reboot is
+# caught against the packets just before it, a few ms earlier, where 1000 ppm adds only microseconds.
+CLOCK_JUMP_ALLOWANCE_US = 20_000
+CLOCK_DRIFT_PPM = 1_000
 
 
 def _error(label: str, line: int, message: str) -> EchoLogError:
     return EchoLogError(f"{label}:{line}: {message}")
+
+
+def _wrap_hint(before: int, after: int) -> str:
+    """Extra text when a time stepping back from ``before`` to ``after`` looks like a 32-bit wrap."""
+    if after < before < _WRAP_US and before >= _WRAP_US - _WRAP_WINDOW_US and after < _WRAP_WINDOW_US:
+        return (f" (it went from {before} to {after}; the first is just under 2^32 = {_WRAP_US}, so the board's "
+                "microsecond clock looks like a 32-bit counter that wrapped, which happens every 4294.967296 s "
+                "= 71.58 min, for example Arduino micros() or a uint32_t copy of the time. Log "
+                "esp_timer_get_time() as a 64-bit number with printf %lld, or keep each run under 71 min)")
+    return ""
+
+
+def _check_row_text(content: str, label: str, line: int, columns: str) -> None:
+    if _ROW_CHARS.fullmatch(content):
+        return
+    if not _FORMAT_CHARS.fullmatch(content):
+        raise _error(label, line, _NOT_A_ROW)
+    names = columns.split(",")
+    fields = content.split(",")
+    rule = ("data rows are plain digits and commas, with no spaces, decimal points or + signs; print whole "
+            "microseconds as integers (printf %lld)")
+    if len(fields) != len(names):
+        raise _error(label, line, f"expected {len(names)} fields, got {len(fields)}; {rule}")
+    for name, value in zip(names, fields):
+        faults = [text for char, text in _FORMAT_FAULTS if char in value]
+        if faults:
+            raise _error(label, line, f"{name} is {value!r}, which holds {' and '.join(faults)}; {rule}")
 
 
 def _lines(text: str, label: str) -> list[tuple[int, str]]:
@@ -75,6 +129,9 @@ def _lines(text: str, label: str) -> list[tuple[int, str]]:
     if text.startswith("\ufeff"):
         raise _error(label, 1, "UTF-8 byte order mark is not allowed")
     if not text.endswith("\n"):
+        if "\n" not in text and "\r" in text:
+            raise _error(label, 1, "line endings are \\r only; the format needs \\n or \\r\\n line endings "
+                                   "(check the serial monitor's line-ending setting)")
         raise _error(label, text.count("\n") + 1, "last line has no newline (the capture may be cut off)")
     result: list[tuple[int, str]] = []
     for number, content in enumerate(text.split("\n")[:-1], 1):
@@ -143,8 +200,35 @@ def _parse_header(text: str, label: str, role: str) -> tuple[dict[str, str], dic
 
 def _number(value: str, label: str, line: int, field: str) -> int:
     if not _DIGITS.fullmatch(value):
+        if field != "seq" and value.startswith("-") and _DIGITS.fullmatch(value[1:]):
+            raise _error(label, line, f"{field} must be 1 to {_MAX_DIGITS} plain digits, but {value} is negative: "
+                                      "the board printed its 64-bit esp_timer_get_time() with a 32-bit format "
+                                      "such as %d or %ld, which goes negative after 2^31 us (35.79 min). Print it "
+                                      "with %lld (or PRId64)")
         raise _error(label, line, f"{field} must be 1 to {_MAX_DIGITS} plain digits")
     return int(value)
+
+
+def _seq_jump_message(previous: int, seq: int, rows: list[tuple[int, str]], position: int) -> str:
+    """Say why the sender's seq did not go up by exactly 1, as precisely as the rows allow."""
+    if seq == previous:
+        return (f"seq {seq} is on two rows in a row; the sender sends each seq once, so the serial output "
+                "repeated a line (or the firmware printed one packet twice)")
+    if seq == 0 and previous in (0xFF, 0xFFFF, 0xFFFFFFFF):
+        bits = previous.bit_length()
+        return (f"seq jumps from {previous} to 0: the seq counter is a {bits}-bit number and it wrapped. Use a "
+                "wider counter (a uint32_t that starts at 0 each boot does not wrap during a test)")
+    if seq < previous:
+        return (f"seq goes back to {seq} after {previous}; the board probably restarted its counter. A reboot "
+                "normally prints a new # zephyr-espnow-echo-log-1 header: cut the capture with "
+                "tools/extract_echo_log.py --split and use one block")
+    wanted = str(previous + 1)
+    for later_line, later in rows[position + 1:]:
+        if later.split(",", 1)[0] == wanted:
+            return (f"rows are not in seq order: seq {wanted} comes later, on line {later_line}, after seq {seq}. "
+                    "Print sender rows in seq order (hold each row until its echo arrives or its timeout "
+                    "passes, then print them in order)")
+    return f"seq jumps from {previous} to {seq}; it must go up by exactly 1 (lost serial lines?)"
 
 
 def parse_sender_log(text: str, label: str = "sender") -> SenderLog:
@@ -152,7 +236,8 @@ def parse_sender_log(text: str, label: str = "sender") -> SenderLog:
     parsed: list[tuple[int, int, int | None]] = []
     previous_seq: int | None = None
     previous_tx: int | None = None
-    for line, content in rows:
+    for position, (line, content) in enumerate(rows):
+        _check_row_text(content, label, line, _SENDER_COLS)
         fields = content.split(",")
         if len(fields) != 3:
             raise _error(label, line, f"expected 3 fields, got {len(fields)}")
@@ -160,11 +245,11 @@ def parse_sender_log(text: str, label: str = "sender") -> SenderLog:
         tx = _number(fields[1], label, line, "tx_us")
         echo = None if fields[2] == "" else _number(fields[2], label, line, "echo_us")
         if previous_seq is not None and seq != previous_seq + 1:
-            raise _error(label, line, f"seq jumps from {previous_seq} to {seq}; it must go up by exactly 1 (lost serial lines?)")
+            raise _error(label, line, _seq_jump_message(previous_seq, seq, rows, position))
         if previous_tx is not None and tx <= previous_tx:
-            raise _error(label, line, "tx_us must always increase")
+            raise _error(label, line, "tx_us must always increase" + _wrap_hint(previous_tx, tx))
         if echo is not None and echo < tx:
-            raise _error(label, line, "echo_us cannot precede tx_us")
+            raise _error(label, line, "echo_us cannot precede tx_us" + _wrap_hint(tx, echo))
         previous_seq, previous_tx = seq, tx
         parsed.append((seq, tx, echo))
     return SenderLog(header, tuple(parsed), hashlib.sha256(text.encode("utf-8")).hexdigest(), label,
@@ -177,6 +262,7 @@ def parse_echoer_log(text: str, label: str = "echoer") -> EchoerLog:
     previous_rx: int | None = None
     seen: set[int] = set()
     for line, content in rows:
+        _check_row_text(content, label, line, _ECHOER_COLS)
         fields = content.split(",")
         if len(fields) != 4:
             raise _error(label, line, f"expected 4 fields, got {len(fields)}")
@@ -189,11 +275,13 @@ def parse_echoer_log(text: str, label: str = "echoer") -> EchoerLog:
                 raise _error(label, line, "rssi_dbm must be an integer from -128 to 0")
             rssi = int(fields[3])
         if previous_rx is not None and rx < previous_rx:
-            raise _error(label, line, "rx_us must never decrease")
+            raise _error(label, line, "rx_us must never decrease" + _wrap_hint(previous_rx, rx))
         if echo_tx is not None and echo_tx < rx:
-            raise _error(label, line, "echo_tx_us cannot precede rx_us")
+            raise _error(label, line, "echo_tx_us cannot precede rx_us" + _wrap_hint(rx, echo_tx))
         if seq in seen and echo_tx is not None:
-            raise _error(label, line, "a repeated arrival must have an empty echo_tx_us (only the first arrival is echoed)")
+            raise _error(label, line, "a repeated arrival must have an empty echo_tx_us (only the first arrival is "
+                                      "echoed; if board A rebooted mid-test, its new session reuses seq numbers and "
+                                      "B's log mixes two sessions)")
         seen.add(seq)
         previous_rx = rx
         parsed.append((seq, rx, echo_tx, rssi))
@@ -209,6 +297,75 @@ def _key_line(log: SenderLog | EchoerLog, key: str) -> int:
     return dict(log.header_lines).get(key, 1)
 
 
+def _check_one_sender_session(sender: SenderLog, echoer: EchoerLog, first: dict[int, tuple[int, int | None, int | None]],
+                              first_line: dict[int, int]) -> None:
+    """Refuse an echoer log whose first arrivals come from two sender sessions (a sender reboot).
+
+    In plain words: call the clock gap C = B's clock minus A's clock. Each packet gives
+    offset = rx_us - tx_us = C + d_out, where d_out (the trip from A to B) is never negative, so C is at
+    most the offset. If A also got the echo back, A's round trip minus the time B held the packet,
+    (echo_us - tx_us) - (echo_tx_us - rx_us) = d_out + d_back, is at least d_out, so C is at least
+    offset minus that. Each packet therefore pins C inside a window [low, high]. A stall makes the
+    offset bigger but makes the round trip bigger by the same amount, so the window still holds the
+    same C. A reboot of A moves C itself, so the new packet's window no longer overlaps the earlier
+    ones. The check keeps the tightest high and low seen so far (each widened by clock drift since its
+    packet) and refuses when a packet's window misses them by more than CLOCK_JUMP_ALLOWANCE_US.
+
+    A packet without an echo (lost on the way back) gives only its high side; it still counts on that
+    side. This catches reboots the duplicate window misses, such as a first session shorter than 1 s. It
+    cannot see a reboot that moves C by less than the allowance plus the round trip (about 24 ms with a
+    4 ms round trip); a reboot moves C by roughly the time from A's first send before it to A's first send
+    after it, so that would take a one-packet session at 50 Hz and a restart of about 4 ms.
+    """
+    allowance = CLOCK_JUMP_ALLOWANCE_US * 1_000_000
+    # Tightest earlier bounds, stored as (value * 1e6 -/+ ppm * tx_us, seq, value) so that the drift
+    # widening for a later packet at time tx is just + ppm * tx (whole numbers, no rounding).
+    high: tuple[int, int, int] | None = None
+    low: tuple[int, int, int] | None = None
+    for seq, tx, echo in sender.rows:
+        arrival = first.get(seq)
+        if arrival is None:
+            continue
+        rx, echo_tx, _ = arrival
+        offset = rx - tx
+        bound = None
+        if echo is not None and echo_tx is not None and (echo - tx) - (echo_tx - rx) >= 0:
+            bound = (echo - tx) - (echo_tx - rx)  # d_out + d_back; a negative one is reported later
+        drift = CLOCK_DRIFT_PPM * tx
+        if bound is not None and high is not None and (offset - bound) * 1_000_000 > high[0] + drift + allowance:
+            raise _clock_jump_error(echoer, first_line[seq], high[1], seq, (offset - bound) - high[2], "up",
+                                    echo - tx, bound)
+        if low is not None and offset * 1_000_000 < low[0] - drift - allowance:
+            raise _clock_jump_error(echoer, first_line[seq], low[1], seq, low[2] - offset, "down", None, None)
+        key = offset * 1_000_000 - drift
+        if high is None or key <= high[0]:
+            high = (key, seq, offset)
+        if bound is not None:
+            key = (offset - bound) * 1_000_000 + drift
+            if low is None or key >= low[0]:
+                low = (key, seq, offset - bound)
+
+
+def _clock_jump_error(echoer: EchoerLog, line: int, earlier: int, seq: int, jump_us: int, direction: str,
+                      rtt_us: int | None, bound_us: int | None) -> EchoLogError:
+    head = (f"B's clock minus A's clock {'rose' if direction == 'up' else 'fell'} by at least {jump_us / 1e6:.3f} s "
+            f"between seq {earlier} and seq {seq}")
+    if direction == "up":
+        return _error(echoer.label, line,
+                      f"{head}: rx_us - tx_us moved, and seq {seq}'s own round trip on board A was only "
+                      f"{rtt_us / 1e3:.3f} ms, so at most {bound_us / 1e3:.3f} ms of the change can be a slow link. "
+                      "A stall or a queue on the radio cannot do this (it lengthens the round trip by the same "
+                      "amount), and within one sender session the clocks only drift by microseconds per second. So "
+                      "the echoer's arrivals come from two sender sessions: board A most likely rebooted (for example "
+                      "a brownout on its first sends) while board B kept running. Reset both boards together and "
+                      "capture a new pair")
+    return _error(echoer.label, line,
+                  f"{head}: seq {earlier}'s round trip on board A limits how much of its rx_us - tx_us was a slow "
+                  f"link, and seq {seq} arrived too early for the same clocks. One sender session cannot do this, so "
+                  "the two files do not belong together: check that both come from the same run and that neither "
+                  "board restarted. Reset both boards together and capture a new pair")
+
+
 def logs_to_trace_dict(sender: SenderLog, echoer: EchoerLog | None, *, trace_id: str, status: str,
                        source: str | None = None, provenance: dict | None = None, notes: str | None = None) -> dict:
     """Cross-check the two logs and build a ``sender_round_trip`` trace dict.
@@ -218,6 +375,7 @@ def logs_to_trace_dict(sender: SenderLog, echoer: EchoerLog | None, *, trace_id:
     """
     sh = sender.header
     first: dict[int, tuple[int, int | None, int | None]] = {}
+    first_line: dict[int, int] = {}
     repeats: dict[int, list[tuple[int, int | None]]] = {}
     out_of_order: set[int] = set()
     if echoer is not None:
@@ -230,14 +388,26 @@ def logs_to_trace_dict(sender: SenderLog, echoer: EchoerLog | None, *, trace_id:
         highest: int | None = None
         for i, (seq, rx, echo_tx, rssi) in enumerate(echoer.rows):
             if seq not in sender_seqs:
-                raise _error(echoer.label, _row_line(echoer, i), f"seq {seq} does not appear in the sender file")
+                raise _error(echoer.label, _row_line(echoer, i),
+                             f"seq {seq} does not appear in the sender file (if board A rebooted during the test, "
+                             "board B's log holds packets from another sender session)")
             if seq in first:
+                gap = rx - first[seq][0]
+                if gap > DUPLICATE_WINDOW_US:
+                    raise _error(echoer.label, _row_line(echoer, i),
+                                 f"seq {seq} arrives again {gap / 1e6:.3f} s after its first arrival on line "
+                                 f"{first_line[seq]}. A radio duplicate comes within milliseconds, so this is "
+                                 "most likely a second sender session: did board A reboot or get reset while "
+                                 "board B kept running? Then B's log mixes two sender sessions and cannot be "
+                                 "matched to one sender log. Reset both boards together and capture a new pair")
                 repeats.setdefault(seq, []).append((rx, rssi))
                 continue
             first[seq] = (rx, echo_tx, rssi)
+            first_line[seq] = _row_line(echoer, i)
             if highest is not None and seq < highest:
                 out_of_order.add(seq)
             highest = seq if highest is None else max(highest, seq)
+        _check_one_sender_session(sender, echoer, first, first_line)
     low, high = (min(first), max(first)) if first else (None, None)
     packets: list[dict[str, Any]] = []
     for i, (seq, tx, echo) in enumerate(sender.rows):
@@ -248,7 +418,8 @@ def logs_to_trace_dict(sender: SenderLog, echoer: EchoerLog | None, *, trace_id:
             if echoer is not None:
                 if arrival is None or arrival[1] is None:
                     raise _error(sender.label, _row_line(sender, i),
-                                 f"echo logged for seq {seq} but the echoer log shows no echo for it (a serial log is incomplete)")
+                                 f"echo logged for seq {seq} but the echoer log shows no echo for it (a serial log is "
+                                 "incomplete: serial lines were lost, or board B rebooted or was reset)")
                 hold = arrival[1] - arrival[0]
                 if hold > echo - tx:
                     raise _error(sender.label, _row_line(sender, i),
