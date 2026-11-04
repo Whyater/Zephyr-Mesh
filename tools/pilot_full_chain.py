@@ -119,6 +119,7 @@ CELLS = {
     "s6_fail": Cell("s6_fail", radio_delay_s=0.20, loss_probability=0.30, noise_std_m=0.05),
 }
 VARIANTS = ("w2_truth", "w1", "w2", "w2_comp")
+CHECKPOINT = "checkpoint.jsonl"
 STEADY_FROM_S = 6.0  # secondary window, chosen after the pre-registration (post hoc)
 
 
@@ -293,31 +294,50 @@ def run_pilot(output: Path, n_seeds: int = 5) -> dict:
     partial = output.with_name(output.name + ".partial")
     partial.mkdir(parents=True, exist_ok=True)
     seeds = seed_list(n_seeds)
-    rows = []
+    # Checkpoint: one JSON line per finished (cell, motion) group. A rerun with the same output
+    # resumes from it; the finished folder only appears when every group is done.
+    checkpoint = partial / CHECKPOINT
+    rows: list[dict] = []
+    done: set[tuple[str, str]] = set()
+    if checkpoint.exists():
+        for line in checkpoint.read_text().splitlines():
+            record = json.loads(line)
+            if record["seeds"] != seeds:
+                raise SystemExit(f"{checkpoint} was made with other seeds; use a new output folder")
+            rows.extend(record["rows"])
+            done.add((record["cell"], record["motion"]))
+        print(f"resuming: {len(done)} groups already in {checkpoint}", flush=True)
     started = time.perf_counter()
     for cell in CELLS.values():
         for motion in MOTIONS:
+            if (cell.name, motion) in done:
+                continue
+            group: list[dict] = []
             for seed in seeds:
                 s6 = tracker_only(motion, cell, seed)
                 late = s6.errors_m[s6.query_times_s >= STEADY_FROM_S - BURN_IN_TOLERANCE_S]
                 late_p95 = float(np.percentile(late, 95))
-                rows.append({"cell": cell.name, "motion": motion, "variant": "tracker_only", "seed": seed,
-                             "p95_m": s6.p95_error_m, "max_m": s6.max_error_m, "median_m": None,
-                             "p95_steady_m": late_p95,
-                             "failed_steady": bool(late_p95 > 0.25 or float(np.max(late)) > 0.5),
-                             "estimate_p95_m": s6.p95_error_m, "min_separation_m": None,
-                             "non_nominal_fraction": None, "landed": None, "failed": s6.failed})
+                group.append({"cell": cell.name, "motion": motion, "variant": "tracker_only", "seed": seed,
+                              "p95_m": s6.p95_error_m, "max_m": s6.max_error_m, "median_m": None,
+                              "p95_steady_m": late_p95,
+                              "failed_steady": bool(late_p95 > 0.25 or float(np.max(late)) > 0.5),
+                              "estimate_p95_m": s6.p95_error_m, "min_separation_m": None,
+                              "non_nominal_fraction": None, "landed": None, "failed": s6.failed})
                 for variant in VARIANTS:
                     wiring = "w1" if variant == "w1" else "w2"
                     lead = LEAD_S + (cell.radio_delay_s if variant == "w2_comp" else 0.0)
                     source = "truth" if variant == "w2_truth" else "tracker"
                     r = run_loop(motion, cell, wiring=wiring, lead_s=lead, seed=seed, goal_source=source)
-                    rows.append({"cell": cell.name, "motion": motion, "variant": variant, "seed": seed,
-                                 "p95_m": r.follow_p95_m, "max_m": r.follow_max_m, "median_m": r.follow_median_m,
-                                 "p95_steady_m": r.follow_p95_steady_m, "failed_steady": r.failed_steady,
-                                 "estimate_p95_m": r.estimate_p95_m, "min_separation_m": r.min_separation_m,
-                                 "non_nominal_fraction": r.non_nominal_fraction, "landed": r.landed,
-                                 "failed": r.failed})
+                    group.append({"cell": cell.name, "motion": motion, "variant": variant, "seed": seed,
+                                  "p95_m": r.follow_p95_m, "max_m": r.follow_max_m, "median_m": r.follow_median_m,
+                                  "p95_steady_m": r.follow_p95_steady_m, "failed_steady": r.failed_steady,
+                                  "estimate_p95_m": r.estimate_p95_m, "min_separation_m": r.min_separation_m,
+                                  "non_nominal_fraction": r.non_nominal_fraction, "landed": r.landed,
+                                  "failed": r.failed})
+            with open(checkpoint, "a") as handle:
+                record = {"cell": cell.name, "motion": motion, "seeds": seeds, "rows": group}
+                handle.write(json.dumps(record) + "\n")
+            rows.extend(group)
             print(f"done {cell.name} {motion} ({time.perf_counter() - started:.0f} s)", flush=True)
     summary_cells = []
     for cell in CELLS:
@@ -361,7 +381,7 @@ def run_pilot(output: Path, n_seeds: int = 5) -> dict:
                    "the goal law (lead plus fixed offset) is a pilot choice, not a registered controller",
                    "follow error is sampled every 0.01 s; the S6 estimate error every 0.02 s"],
         "cells_summary": summary_cells,
-        "elapsed_s": time.perf_counter() - started,
+        "elapsed_s_last_invocation": time.perf_counter() - started,
     }
     with open(partial / "per_run.csv", "w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
@@ -369,6 +389,7 @@ def run_pilot(output: Path, n_seeds: int = 5) -> dict:
         writer.writerows(rows)
     (partial / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     _plot(summary_cells, partial / "pilot_full_chain.png")
+    checkpoint.unlink()  # per_run.csv now holds the same rows
     if output.exists():
         _move_into(partial, output)  # an empty folder was given
     else:

@@ -90,3 +90,48 @@ def test_refuses_nonempty_output(tmp_path):
     with pytest.raises(SystemExit):
         pilot.run_pilot(tmp_path, n_seeds=1)
 
+
+
+def _fake_rows(cell, motion, seeds):
+    rows = []
+    for seed in seeds:
+        for variant in ("tracker_only",) + pilot.VARIANTS:
+            rows.append({"cell": cell, "motion": motion, "variant": variant, "seed": seed, "p95_m": 0.1,
+                         "max_m": 0.2, "median_m": 0.05, "p95_steady_m": 0.1, "failed_steady": False,
+                         "estimate_p95_m": 0.1, "min_separation_m": 1.4, "non_nominal_fraction": 0.0,
+                         "landed": False, "failed": False})
+    return rows
+
+
+def test_resume_reads_the_checkpoint_and_runs_nothing_new(tmp_path, monkeypatch):
+    import json
+
+    def no_runs(*args, **kwargs):
+        raise AssertionError("a finished group was run again")
+
+    monkeypatch.setattr(pilot, "run_loop", no_runs)
+    monkeypatch.setattr(pilot, "tracker_only", no_runs)
+    seeds = seed_list(1)
+    output = tmp_path / "out"
+    partial = tmp_path / "out.partial"
+    partial.mkdir()
+    with open(partial / pilot.CHECKPOINT, "w") as handle:
+        for cell in pilot.CELLS:
+            for motion in ("constant_velocity", "constant_turn"):
+                handle.write(json.dumps({"cell": cell, "motion": motion, "seeds": seeds,
+                                         "rows": _fake_rows(cell, motion, seeds)}) + "\n")
+    summary = pilot.run_pilot(output, n_seeds=1)
+    assert len(summary["cells_summary"]) == len(pilot.CELLS) * 2 * (1 + len(pilot.VARIANTS))
+    assert (output / "per_run.csv").exists() and (output / "summary.json").exists()
+    assert not partial.exists() and not (output / pilot.CHECKPOINT).exists()
+
+
+def test_resume_refuses_a_checkpoint_with_other_seeds(tmp_path):
+    import json
+
+    partial = tmp_path / "out.partial"
+    partial.mkdir()
+    (partial / pilot.CHECKPOINT).write_text(json.dumps({"cell": "zero", "motion": "constant_velocity",
+                                                        "seeds": [1, 2], "rows": []}) + "\n")
+    with pytest.raises(SystemExit):
+        pilot.run_pilot(tmp_path / "out", n_seeds=1)
