@@ -298,3 +298,97 @@ def test_asymmetric_legs_give_the_mean_of_both_legs_and_say_it_is_an_estimate():
     assert any("same mean time" in a for a in fit["delay"]["assumptions"])
     assert any("(d_back - d_out) / 2" in c for c in fit["delay"]["consequences"])
     assert "one_way_measured" not in str(fit) and "measured one-way" not in str(fit).lower()
+
+
+# ---------------------------------------------------------------- repair: formatting mistakes and short sessions
+
+@pytest.mark.parametrize("row, field, cause", [
+    ("0, 1000000, 1004040", "tx_us", "space"),        # spaces after commas
+    ("0,1.000000,1.004040", "tx_us", "decimal point"),  # seconds printed as decimals
+    ("0,+1000000,", "tx_us", "+ sign"),
+])
+def test_a_badly_formatted_data_row_names_the_field_not_serial_noise(row, field, cause):
+    s_rows, _ = bench(3)
+    with pytest.raises(EchoLogError) as exc:
+        parse_sender_log(_text(SENDER_META, s_rows[:1] + [row.replace("0,", "1,", 1)] + s_rows[2:]), "sender.csv")
+    message = str(exc.value)
+    assert message.startswith(f"sender.csv:{S0 + 1}: {field} ")
+    assert cause in message and "serial output" not in message
+
+
+def test_a_stray_carriage_return_is_named_not_called_serial_noise():
+    s_rows, _ = bench(3)
+    s_rows[1] += "\r"  # with CRLF endings this row ends \r\r\n
+    with pytest.raises(EchoLogError) as exc:
+        parse_sender_log(_text(SENDER_META, s_rows).replace("\n", "\r\n"), "sender.csv")
+    message = str(exc.value)
+    assert message.startswith(f"sender.csv:{S0 + 1}: echo_us ")
+    assert "a stray \\r" in message and "serial output" not in message
+
+
+def test_an_echoer_row_with_spaces_names_the_field():
+    _, e_rows = bench(3)
+    e_rows[2] = e_rows[2].replace(",", ", ")
+    with pytest.raises(EchoLogError) as exc:
+        parse_echoer_log(_text(ECHOER_META, e_rows), "echoer.csv")
+    assert str(exc.value).startswith(f"echoer.csv:{E0 + 2}: rx_us ") and "space" in str(exc.value)
+
+
+def _reboot_logs(first_session, reboot_us):
+    """A sends seq 0..first_session-1, reboots, then sends seq 0..39; B runs on and logs both sessions."""
+    _, e1 = bench(first_session, rx0=500_000)
+    s2, e2 = bench(40, tx0=300_000, rx0=500_000 + first_session * 20_000 + reboot_us)
+    e2 = [row.split(",") for row in e2]
+    e2 = [f"{seq},{rx},{'' if int(seq) < first_session else etx},{rssi}" for seq, rx, etx, rssi in e2]
+    s2 = [row if int(row.split(",")[0]) >= first_session else ",".join(row.split(",")[:2]) + "," for row in s2]
+    return parse_sender_log(_text(SENDER_META, s2), "sender.csv"), parse_echoer_log(_text(ECHOER_META, e1 + e2),
+                                                                                    "echoer.csv")
+
+
+def test_a_sender_reboot_after_a_very_short_first_session_is_caught():
+    """A browns out after 5 packets (0.1 s) and is back 0.5 s later, so each repeat is only 0.6 s late.
+
+    The 1 s duplicate window cannot see this. The clock offset can: rx_us - tx_us is B's clock minus
+    A's clock plus the one-way delay. A's clock restarts at the reboot, so the offset jumps by the
+    0.1 s session plus the 0.5 s reboot = 0.6 s between seq 4 (session 1) and seq 5 (session 2).
+    """
+    sender, echoer = _reboot_logs(5, 500_000)
+    with pytest.raises(EchoLogError) as exc:
+        logs_to_trace_dict(sender, echoer, trace_id="reboot", status="synthetic")
+    message = str(exc.value)
+    assert message.startswith(f"echoer.csv:{E0 + 5 + 5}:")  # seq 5, the first session-2 arrival
+    assert "0.600 s" in message and "seq 4" in message and "reboot" in message
+
+
+def test_a_repeat_exactly_one_second_later_is_accepted_and_one_microsecond_more_is_refused():
+    for extra, refused in ((1_000_000, False), (1_000_001, True)):
+        s_rows, e_rows = bench(10)
+        seq, rx, _, rssi = e_rows[3].split(",")
+        e_rows.append(f"{seq},{int(rx) + extra},,{rssi}")
+        e_rows.sort(key=lambda r: int(r.split(",")[1]))
+        if refused:
+            with pytest.raises(EchoLogError, match="arrives again 1.000 s"):
+                _trace(s_rows, e_rows)
+        else:
+            assert sum(p.duplicate is True for p in _trace(s_rows, e_rows).packets) == 1
+
+
+def test_a_late_delivery_and_a_long_loss_stretch_with_drift_still_import():
+    """One packet arrives 15 ms late; then 3000 packets (60 s) are lost while B's clock drifts 100 ppm.
+
+    Hand numbers: 100 ppm over 60 s is 6 ms of offset change, and the late packet moves the offset by
+    15 ms, both far below a reboot (hundreds of ms).
+    """
+    s_rows, e_rows = bench(3020, lost_out=set(range(10, 3010)))
+    rows = []
+    for row in e_rows:
+        seq, rx, etx, rssi = (int(v) for v in row.split(","))
+        rx += (rx - 500_000) // 10_000  # 100 ppm fast
+        etx = rx + 40
+        if seq == 5:
+            rx, etx = rx + 15_000, etx + 15_000
+        rows.append(f"{seq},{rx},{etx},{rssi}")
+    s_rows = [r if int(r.split(",")[0]) != 5 else r.rsplit(",", 1)[0] + f",{int(r.rsplit(',', 1)[1]) + 15_000}"
+              for r in s_rows]
+    trace = _trace(s_rows, rows)
+    assert sum(p.outcome == "lost" for p in trace.packets) == 3000

@@ -57,8 +57,14 @@ _RSSI = re.compile(r"0|-[1-9][0-9]{0,2}")
 _RATE = re.compile(r"[0-9]{1,9}(\.[0-9]{1,9})?")
 _SENDER_COLS = "seq,tx_us,echo_us"
 _ECHOER_COLS = "seq,rx_us,echo_tx_us,rssi_dbm"
-# A data row holds only these characters. Anything else is other serial output mixed into the log.
+# A data row holds only these characters.
 _ROW_CHARS = re.compile(r"[0-9,-]*")
+# A row of only these characters is a data row printed in the wrong format (spaces, decimals, + signs, an extra
+# \r). A row with anything else (letters, brackets, colons) is other serial output mixed into the log.
+_FORMAT_CHARS = re.compile(r"[0-9,.+ \r-]*")
+_FORMAT_FAULTS = ((" ", "a space"), (".", "a decimal point (stamps are whole microseconds, not seconds)"),
+                  ("+", "a + sign"), ("\r", "a stray \\r (the line ends \\r\\r\\n; check the serial monitor's "
+                                      "line-ending setting)"))
 _NOT_A_ROW = ("this is not a data row: it holds text other than digits, commas and minus signs, so other "
               "serial output (for example an ESP-IDF log line such as 'W (1234) wifi: ...' or a boot message) "
               "got mixed into the log. Turn other output off during the test (esp_log_level_set(\"*\", ESP_LOG_NONE)) and "
@@ -69,6 +75,13 @@ _WRAP_WINDOW_US = 600_000_000
 # A radio duplicate (a MAC retry whose ack was lost) arrives milliseconds after the first copy. A repeat
 # this much later is not a radio duplicate; it is the same seq from another sender session.
 DUPLICATE_WINDOW_US = 1_000_000
+# Within one sender session, rx_us - tx_us (B's clock minus A's clock plus the one-way delay) moves only by
+# changes in the delay (milliseconds) and by clock drift (tens of ppm). A sender reboot restarts A's clock, so
+# the offset jumps by the time from A's first boot to its second: at least the reboot time, which for an ESP32
+# that must boot and start Wi-Fi is hundreds of ms. A jump above this limit (plus the drift allowance) means
+# the echoer's first arrivals come from two sender sessions.
+OFFSET_JUMP_US = 100_000
+OFFSET_DRIFT_PPM = 100
 
 
 def _error(label: str, line: int, message: str) -> EchoLogError:
@@ -85,9 +98,21 @@ def _wrap_hint(before: int, after: int) -> str:
     return ""
 
 
-def _check_row_text(content: str, label: str, line: int) -> None:
-    if not _ROW_CHARS.fullmatch(content):
+def _check_row_text(content: str, label: str, line: int, columns: str) -> None:
+    if _ROW_CHARS.fullmatch(content):
+        return
+    if not _FORMAT_CHARS.fullmatch(content):
         raise _error(label, line, _NOT_A_ROW)
+    names = columns.split(",")
+    fields = content.split(",")
+    rule = ("data rows are plain digits and commas, with no spaces, decimal points or + signs; print whole "
+            "microseconds as integers (printf %lld)")
+    if len(fields) != len(names):
+        raise _error(label, line, f"expected {len(names)} fields, got {len(fields)}; {rule}")
+    for name, value in zip(names, fields):
+        faults = [text for char, text in _FORMAT_FAULTS if char in value]
+        if faults:
+            raise _error(label, line, f"{name} is {value!r}, which holds {' and '.join(faults)}; {rule}")
 
 
 def _lines(text: str, label: str) -> list[tuple[int, str]]:
@@ -207,7 +232,7 @@ def parse_sender_log(text: str, label: str = "sender") -> SenderLog:
     previous_seq: int | None = None
     previous_tx: int | None = None
     for position, (line, content) in enumerate(rows):
-        _check_row_text(content, label, line)
+        _check_row_text(content, label, line, _SENDER_COLS)
         fields = content.split(",")
         if len(fields) != 3:
             raise _error(label, line, f"expected 3 fields, got {len(fields)}")
@@ -232,7 +257,7 @@ def parse_echoer_log(text: str, label: str = "echoer") -> EchoerLog:
     previous_rx: int | None = None
     seen: set[int] = set()
     for line, content in rows:
-        _check_row_text(content, label, line)
+        _check_row_text(content, label, line, _ECHOER_COLS)
         fields = content.split(",")
         if len(fields) != 4:
             raise _error(label, line, f"expected 4 fields, got {len(fields)}")
@@ -265,6 +290,31 @@ def _row_line(log: SenderLog | EchoerLog, index: int) -> int:
 
 def _key_line(log: SenderLog | EchoerLog, key: str) -> int:
     return dict(log.header_lines).get(key, 1)
+
+
+def _check_one_sender_session(sender: SenderLog, echoer: EchoerLog, first: dict[int, tuple[int, int | None, int | None]],
+                              first_line: dict[int, int]) -> None:
+    """Refuse an echoer log whose first arrivals come from two sender sessions (a sender reboot).
+
+    This catches reboots the duplicate window misses, such as a first session shorter than 1 s.
+    It cannot see a restart faster than ``OFFSET_JUMP_US``.
+    """
+    previous: tuple[int, int, int] | None = None  # seq, tx_us, offset
+    for seq, tx, _ in sender.rows:
+        arrival = first.get(seq)
+        if arrival is None:
+            continue
+        offset = arrival[0] - tx
+        if previous is not None:
+            jump = offset - previous[2]
+            if abs(jump) > OFFSET_JUMP_US + (tx - previous[1]) * OFFSET_DRIFT_PPM // 1_000_000:
+                raise _error(echoer.label, first_line[seq],
+                             f"the gap between the two boards' clocks (rx_us - tx_us) jumps by {jump / 1e6:.3f} s "
+                             f"between seq {previous[0]} and seq {seq}. Within one sender session it moves only by "
+                             "milliseconds (delay changes and clock drift), so the echoer's arrivals come from two "
+                             "sender sessions: board A most likely rebooted (for example a brownout on its first "
+                             "sends) while board B kept running. Reset both boards together and capture a new pair")
+        previous = (seq, tx, offset)
 
 
 def logs_to_trace_dict(sender: SenderLog, echoer: EchoerLog | None, *, trace_id: str, status: str,
@@ -308,6 +358,7 @@ def logs_to_trace_dict(sender: SenderLog, echoer: EchoerLog | None, *, trace_id:
             if highest is not None and seq < highest:
                 out_of_order.add(seq)
             highest = seq if highest is None else max(highest, seq)
+        _check_one_sender_session(sender, echoer, first, first_line)
     low, high = (min(first), max(first)) if first else (None, None)
     packets: list[dict[str, Any]] = []
     for i, (seq, tx, echo) in enumerate(sender.rows):
