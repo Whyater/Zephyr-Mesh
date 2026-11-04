@@ -1,0 +1,2971 @@
+{
+ "schema": "zephyr-public-number-sources-1",
+ "about": "Which registered run output each number in the public pages comes from. Read by tools/check_public_numbers.py; its docstring explains the fields.",
+ "files": [
+  "README.md",
+  "docs/RESULTS.md",
+  "docs/LIMITATIONS.md"
+ ],
+ "quotes": [
+  {
+   "file": "README.md",
+   "quote": "showing a synthetic 50-drone replay",
+   "numbers": [
+    {
+     "text": "50",
+     "kind": "not_a_claim",
+     "note": "describes the screenshot of a synthetic replay"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "It models one quadcopter as a full 6-degree-of-freedom rigid body",
+   "numbers": [
+    {
+     "text": "one",
+     "kind": "not_a_claim"
+    },
+    {
+     "text": "6",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "6-DOF drone and controller<br/>",
+   "numbers": [
+    {
+     "text": "6",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "The failure line below is 0.25 m of tracking error",
+   "numbers": [
+    {
+     "text": "0.25",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "failure_p95_m"
+      ]
+     },
+     "note": "research criterion"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "Its p95 error (the error it stays under 95 % of the time) crosses the 0.25 m line at 200 ms of delay with no loss, for a 1 m/s target, 10 Hz measurements, 5 cm noise and 50 seeds",
+   "numbers": [
+    {
+     "text": "95",
+     "kind": "not_a_claim",
+     "note": "defines p95"
+    },
+    {
+     "text": "0.25",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "failure_p95_m"
+      ]
+     }
+    },
+    {
+     "text": "200",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "arms.naive.label": "fails"
+       }
+      ],
+      "op": "min",
+      "field": [
+       "delay_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "1",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "target_speed_mps"
+      ]
+     }
+    },
+    {
+     "text": "10",
+     "kind": "setting",
+     "note": "observation_period_s 0.1 in the s6-recovery config"
+    },
+    {
+     "text": "5",
+     "kind": "setting"
+    },
+    {
+     "text": "50",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "design",
+       "n_seeds"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "The 200 ms depends on the sensor noise (the filter is always told 5 cm): with 0 or 2 cm it still passes at 200 ms and first fails at 300 ms (the next delay tested), and with 10 cm it fails from 150 ms",
+   "numbers": [
+    {
+     "text": "200",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "arms.naive.label": "fails"
+       }
+      ],
+      "op": "min",
+      "field": [
+       "delay_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "5",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "tracker_measurement_std_m"
+      ],
+      "scale": 100
+     }
+    },
+    {
+     "text": "0",
+     "kind": "setting"
+    },
+    {
+     "text": "2",
+     "kind": "setting"
+    },
+    {
+     "text": "200",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/s6-recovery/summary.json",
+       "select": [
+        "cells",
+        {
+         "slice": "main",
+         "motion": "constant_velocity",
+         "loss_model": "independent",
+         "loss_probability": 0.0,
+         "noise_std_m": 0.0,
+         "jitter_s": 0.0,
+         "tracker_measurement_std_m": 0.05,
+         "arms.naive.label": "passes"
+        }
+       ],
+       "op": "max",
+       "field": [
+        "delay_s"
+       ],
+       "scale": 1000
+      },
+      {
+       "path": "sim/runs/s6-recovery/summary.json",
+       "select": [
+        "cells",
+        {
+         "slice": "main",
+         "motion": "constant_velocity",
+         "loss_model": "independent",
+         "loss_probability": 0.0,
+         "noise_std_m": 0.02,
+         "jitter_s": 0.0,
+         "tracker_measurement_std_m": 0.05,
+         "arms.naive.label": "passes"
+        }
+       ],
+       "op": "max",
+       "field": [
+        "delay_s"
+       ],
+       "scale": 1000
+      }
+     ]
+    },
+    {
+     "text": "300",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/s6-recovery/summary.json",
+       "select": [
+        "cells",
+        {
+         "slice": "main",
+         "motion": "constant_velocity",
+         "loss_model": "independent",
+         "loss_probability": 0.0,
+         "noise_std_m": 0.0,
+         "jitter_s": 0.0,
+         "tracker_measurement_std_m": 0.05,
+         "arms.naive.label": "fails"
+        }
+       ],
+       "op": "min",
+       "field": [
+        "delay_s"
+       ],
+       "scale": 1000
+      },
+      {
+       "path": "sim/runs/s6-recovery/summary.json",
+       "select": [
+        "cells",
+        {
+         "slice": "main",
+         "motion": "constant_velocity",
+         "loss_model": "independent",
+         "loss_probability": 0.0,
+         "noise_std_m": 0.02,
+         "jitter_s": 0.0,
+         "tracker_measurement_std_m": 0.05,
+         "arms.naive.label": "fails"
+        }
+       ],
+       "op": "min",
+       "field": [
+        "delay_s"
+       ],
+       "scale": 1000
+      }
+     ]
+    },
+    {
+     "text": "10",
+     "kind": "setting"
+    },
+    {
+     "text": "150",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.1,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "arms.naive.label": "fails"
+       }
+      ],
+      "op": "min",
+      "field": [
+       "delay_s"
+      ],
+      "scale": 1000
+     }
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "cuts the 300 ms error with no loss from 0.36 m to 0.16 m on a straight line, and from 0.38 m to 0.29 m on a 1 m radius turn",
+   "numbers": [
+    {
+     "text": "300",
+     "kind": "setting"
+    },
+    {
+     "text": "0.36",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "delay_s": 0.3
+       },
+       "arms",
+       "naive",
+       "p95_median_m"
+      ]
+     }
+    },
+    {
+     "text": "0.16",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "delay_s": 0.3
+       },
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ]
+     }
+    },
+    {
+     "text": "0.38",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_turn",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "delay_s": 0.3
+       },
+       "arms",
+       "naive",
+       "p95_median_m"
+      ]
+     }
+    },
+    {
+     "text": "0.29",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_turn",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "delay_s": 0.3
+       },
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ]
+     }
+    },
+    {
+     "text": "1",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "turn_radius_m"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "at 30 % random loss the recovery tracker fails from 150 ms just like the basic one, and at 50 % both fail at every delay",
+   "numbers": [
+    {
+     "text": "30",
+     "kind": "setting"
+    },
+    {
+     "text": "150",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/s6-recovery/summary.json",
+       "select": [
+        "cells",
+        {
+         "slice": "main",
+         "motion": "constant_turn",
+         "loss_model": "independent",
+         "loss_probability": 0.3,
+         "noise_std_m": 0.05,
+         "jitter_s": 0.0,
+         "tracker_measurement_std_m": 0.05,
+         "arms.recovery.label": "fails"
+        }
+       ],
+       "op": "min",
+       "field": [
+        "delay_s"
+       ],
+       "scale": 1000
+      },
+      {
+       "path": "sim/runs/s6-recovery/summary.json",
+       "select": [
+        "cells",
+        {
+         "slice": "main",
+         "motion": "constant_turn",
+         "loss_model": "independent",
+         "loss_probability": 0.3,
+         "noise_std_m": 0.05,
+         "jitter_s": 0.0,
+         "tracker_measurement_std_m": 0.05,
+         "arms.naive.label": "fails"
+        }
+       ],
+       "op": "min",
+       "field": [
+        "delay_s"
+       ],
+       "scale": 1000
+      }
+     ]
+    },
+    {
+     "text": "one",
+     "kind": "not_a_claim"
+    },
+    {
+     "text": "50",
+     "kind": "setting"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "On a 1 m radius turn at 300 ms delay and 30 % loss, a tracker that models turning stays under the line (0.20 m) where the straight-line recovery tracker fails (0.40 m)",
+   "numbers": [
+    {
+     "text": "1",
+     "kind": "setting"
+    },
+    {
+     "text": "300",
+     "kind": "setting"
+    },
+    {
+     "text": "30",
+     "kind": "setting"
+    },
+    {
+     "text": "0.20",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-turn/summary.json",
+      "select": [
+       "cells",
+       {
+        "key": "ct/rate10/d0.3/j0/l0.3-independent/gaussian0.05"
+       },
+       "arms",
+       "ct",
+       "p95_median_m"
+      ]
+     },
+     "note": "arm ct, the constant turn-rate model"
+    },
+    {
+     "text": "0.40",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-turn/summary.json",
+      "select": [
+       "cells",
+       {
+        "key": "ct/rate10/d0.3/j0/l0.3-independent/gaussian0.05"
+       },
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "in an 80 s check, two micro-quad profiles built from published specs at 0.33 s of delay the wobble after a 1 m step still shrinks, but slowly (its peak in each 10 s window falls from 0.73 m to 0.41 m over 80 s), and at 0.34 s it grows instead (up to 1.24 m)",
+   "numbers": [
+    {
+     "text": "80",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/a6-long-check/long_check.json",
+      "select": [
+       "duration_s"
+      ]
+     }
+    },
+    {
+     "text": "two",
+     "kind": "setting"
+    },
+    {
+     "text": "0.33",
+     "kind": "setting"
+    },
+    {
+     "text": "1",
+     "kind": "setting"
+    },
+    {
+     "text": "10",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/a6-long-check/long_check.json",
+      "select": [
+       "window_s"
+      ]
+     }
+    },
+    {
+     "text": "0.73",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/a6-long-check/long_check.json",
+       "select": [
+        "rows",
+        {
+         "arm": "b",
+         "profile": "crazyflie-class",
+         "delay_s": 0.33,
+         "step_m": 1.0
+        },
+        "window_peak_error_m",
+        1
+       ]
+      },
+      {
+       "path": "sim/runs/a6-long-check/long_check.json",
+       "select": [
+        "rows",
+        {
+         "arm": "b",
+         "profile": "esp-fly-class",
+         "delay_s": 0.33,
+         "step_m": 1.0
+        },
+        "window_peak_error_m",
+        1
+       ]
+      }
+     ],
+     "note": "window 2; window 1 holds the 1 m step itself"
+    },
+    {
+     "text": "0.41",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/a6-long-check/long_check.json",
+       "select": [
+        "rows",
+        {
+         "arm": "b",
+         "profile": "crazyflie-class",
+         "delay_s": 0.33,
+         "step_m": 1.0
+        },
+        "window_peak_error_m",
+        -1
+       ]
+      },
+      {
+       "path": "sim/runs/a6-long-check/long_check.json",
+       "select": [
+        "rows",
+        {
+         "arm": "b",
+         "profile": "esp-fly-class",
+         "delay_s": 0.33,
+         "step_m": 1.0
+        },
+        "window_peak_error_m",
+        -1
+       ]
+      }
+     ]
+    },
+    {
+     "text": "80",
+     "kind": "setting"
+    },
+    {
+     "text": "0.34",
+     "kind": "setting"
+    },
+    {
+     "text": "1.24",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/a6-long-check/long_check.json",
+      "select": [
+       "rows",
+       {
+        "arm": "b",
+        "delay_s": 0.34,
+        "step_m": 1.0
+       }
+      ],
+      "op": "max",
+      "field": [
+       "window_peak_error_m"
+      ]
+     },
+     "note": "largest window peak over both profiles"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "the worst p95 radio latency in the tracker test was about 27.5 ms (the median over repeated runs; the worst single run was about 40 ms), well under the 200 ms where the tracker starts failing from delay at 5 cm noise (150 ms at 10 cm)",
+   "numbers": [
+    {
+     "text": "27.5",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/c-exp017-tolerance-r2/summary.json",
+      "select": [
+       "headline",
+       "max_cell_p95_latency_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "40",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/c-exp017-tolerance-r2/per_seed.csv",
+      "select": [],
+      "op": "max",
+      "field": [
+       "latency_p95_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "200",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "arms.naive.label": "fails"
+       }
+      ],
+      "op": "min",
+      "field": [
+       "delay_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "5",
+     "kind": "setting"
+    },
+    {
+     "text": "150",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.1,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "arms.naive.label": "fails"
+       }
+      ],
+      "op": "min",
+      "field": [
+       "delay_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "10",
+     "kind": "setting"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "Twelve drones each sending 32-byte packets 50 times a second keep the channel about two thirds busy. With retries every packet arrives, with a p95 latency of 4.4 ms. This assumes no outside Wi-Fi traffic and that every drone hears every other one",
+   "numbers": [
+    {
+     "text": "Twelve",
+     "kind": "setting"
+    },
+    {
+     "text": "32",
+     "kind": "setting"
+    },
+    {
+     "text": "50",
+     "kind": "setting"
+    },
+    {
+     "text": "two thirds",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/c-exp014-mac-r2/cells.csv",
+      "select": [
+       {
+        "n": 12,
+        "rate_hz": 50,
+        "payload_bytes": 32,
+        "mode": "unicast_r5"
+       },
+       "busy_fraction_median"
+      ],
+      "scale": 1.0
+     },
+     "tolerance": 0.03,
+     "rounding_note": "the text says about"
+    },
+    {
+     "text": "4.4",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/c-exp014-mac-r2/cells.csv",
+      "select": [
+       {
+        "n": 12,
+        "rate_hz": 50,
+        "payload_bytes": 32,
+        "mode": "unicast_r5"
+       },
+       "latency_p95_median_s"
+      ],
+      "scale": 1000
+     },
+     "note": "retry limit 5, the default MAC; the r10 row is the same"
+    },
+    {
+     "text": "one",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "Set up once",
+   "numbers": [
+    {
+     "text": "once",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "Error drops about 16x each time the time step halves, ratios of 16.09, 16.03 and 16.01, so order about 4",
+   "numbers": [
+    {
+     "text": "16",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/s2-physics-v2/convergence.json",
+       "select": [
+        "results",
+        0,
+        "error_ratio_to_next"
+       ]
+      },
+      {
+       "path": "sim/runs/s2-physics-v2/convergence.json",
+       "select": [
+        "results",
+        1,
+        "error_ratio_to_next"
+       ]
+      },
+      {
+       "path": "sim/runs/s2-physics-v2/convergence.json",
+       "select": [
+        "results",
+        2,
+        "error_ratio_to_next"
+       ]
+      }
+     ]
+    },
+    {
+     "text": "16.09",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s2-physics-v2/convergence.json",
+      "select": [
+       "results",
+       0,
+       "error_ratio_to_next"
+      ]
+     }
+    },
+    {
+     "text": "16.03",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s2-physics-v2/convergence.json",
+      "select": [
+       "results",
+       1,
+       "error_ratio_to_next"
+      ]
+     }
+    },
+    {
+     "text": "16.01",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s2-physics-v2/convergence.json",
+      "select": [
+       "results",
+       2,
+       "error_ratio_to_next"
+      ]
+     }
+    },
+    {
+     "text": "4",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/s2-physics-v2/convergence.json",
+       "select": [
+        "results",
+        0,
+        "error_ratio_to_next"
+       ],
+       "transform": "log2"
+      },
+      {
+       "path": "sim/runs/s2-physics-v2/convergence.json",
+       "select": [
+        "results",
+        1,
+        "error_ratio_to_next"
+       ],
+       "transform": "log2"
+      },
+      {
+       "path": "sim/runs/s2-physics-v2/convergence.json",
+       "select": [
+        "results",
+        2,
+        "error_ratio_to_next"
+       ],
+       "transform": "log2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "Vertical 3 m step: 8.4 % overshoot, settles in 3.0 s; 1 m sideways step: 19 % overshoot, settles in 3.4 s",
+   "numbers": [
+    {
+     "text": "3",
+     "kind": "setting"
+    },
+    {
+     "text": "8.4",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s0-baseline-v2/report.json",
+      "select": [
+       "scenarios",
+       "vertical",
+       "overshoot_pct"
+      ]
+     }
+    },
+    {
+     "text": "3.0",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s0-baseline-v2/report.json",
+      "select": [
+       "scenarios",
+       "vertical",
+       "settling_time_s"
+      ]
+     }
+    },
+    {
+     "text": "1",
+     "kind": "setting"
+    },
+    {
+     "text": "19",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s0-baseline-v2/report.json",
+      "select": [
+       "scenarios",
+       "lateral",
+       "overshoot_pct"
+      ]
+     }
+    },
+    {
+     "text": "3.4",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s0-baseline-v2/report.json",
+      "select": [
+       "scenarios",
+       "lateral",
+       "settling_time_s"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "The controller refuses time steps at or above 2/18 = 0.111 s",
+   "numbers": [
+    {
+     "text": "2",
+     "kind": "setting"
+    },
+    {
+     "text": "18",
+     "kind": "setting"
+    },
+    {
+     "text": "0.111",
+     "kind": "setting"
+    }
+   ],
+   "note": "a code limit checked by sim/tests/test_vehicle.py -k sampled_attitude_limit, not a run output"
+  },
+  {
+   "file": "README.md",
+   "quote": "Running the same scenario and seed twice gives byte-identical output (run it twice to two files",
+   "numbers": [
+    {
+     "text": "twice",
+     "kind": "not_a_claim"
+    },
+    {
+     "text": "twice",
+     "kind": "not_a_claim"
+    },
+    {
+     "text": "two",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "longer than the default 1 hour limit. `--timeout 10800` gives each run up to 3 hours (10800 seconds). | `python tools/reproduce_all.py --timeout 10800`",
+   "numbers": [
+    {
+     "text": "1",
+     "kind": "not_a_claim"
+    },
+    {
+     "text": "10800",
+     "kind": "not_a_claim"
+    },
+    {
+     "text": "3",
+     "kind": "not_a_claim"
+    },
+    {
+     "text": "10800",
+     "kind": "not_a_claim"
+    },
+    {
+     "text": "10800",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "Python 3.12 or 3.13 (3.14 is untested)",
+   "numbers": [
+    {
+     "text": "3.12",
+     "kind": "not_a_claim"
+    },
+    {
+     "text": "3.13",
+     "kind": "not_a_claim"
+    },
+    {
+     "text": "3.14",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "RK4 error against time step, dropping about 16x each time",
+   "numbers": [
+    {
+     "text": "16",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/s2-physics-v2/convergence.json",
+       "select": [
+        "results",
+        0,
+        "error_ratio_to_next"
+       ]
+      },
+      {
+       "path": "sim/runs/s2-physics-v2/convergence.json",
+       "select": [
+        "results",
+        1,
+        "error_ratio_to_next"
+       ]
+      },
+      {
+       "path": "sim/runs/s2-physics-v2/convergence.json",
+       "select": [
+        "results",
+        2,
+        "error_ratio_to_next"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "not full 6-DOF swarm flight",
+   "numbers": [
+    {
+     "text": "6",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "macOS 14 or newer",
+   "numbers": [
+    {
+     "text": "14",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "expect a one-time security prompt",
+   "numbers": [
+    {
+     "text": "one",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "A full 6-degree-of-freedom quadcopter simulation",
+   "numbers": [
+    {
+     "text": "6",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "Drag is switched off in the two micro-quad profiles",
+   "numbers": [
+    {
+     "text": "two",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "compare how well each one recovers",
+   "numbers": [
+    {
+     "text": "one",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "README.md",
+   "quote": "Re-filtering them cut the error by under 1 cm in a follow-up test",
+   "numbers": [
+    {
+     "text": "1",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-retro/summary.json",
+      "select": [
+       "cells"
+      ],
+      "op": "max",
+      "field": [
+       "paired_vs_recovery",
+       "retro",
+       "p95_diff_median_m"
+      ],
+      "scale": 100
+     },
+     "compare": "below"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "In simulation (target at 1 m/s, 10 Hz measurements, 5 cm noise, 50 seeds), the naive tracker's p95 error (the error it stays under 95 % of the time) grows by about speed x delay and crosses the 0.25 m failure line at 200 ms with no loss",
+   "numbers": [
+    {
+     "text": "1",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "target_speed_mps"
+      ]
+     }
+    },
+    {
+     "text": "10",
+     "kind": "setting"
+    },
+    {
+     "text": "5",
+     "kind": "setting"
+    },
+    {
+     "text": "50",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "design",
+       "n_seeds"
+      ]
+     }
+    },
+    {
+     "text": "95",
+     "kind": "not_a_claim",
+     "note": "defines p95"
+    },
+    {
+     "text": "0.25",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "failure_p95_m"
+      ]
+     }
+    },
+    {
+     "text": "200",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "arms.naive.label": "fails"
+       }
+      ],
+      "op": "min",
+      "field": [
+       "delay_s"
+      ],
+      "scale": 1000
+     }
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "That 200 ms depends on the sensor noise (the filter is always told 5 cm): with 0 or 2 cm the naive tracker still passes at 200 ms and first fails at 300 ms (the next delay tested), and with 10 cm it fails from 150 ms",
+   "numbers": [
+    {
+     "text": "200",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "arms.naive.label": "fails"
+       }
+      ],
+      "op": "min",
+      "field": [
+       "delay_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "5",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "tracker_measurement_std_m"
+      ],
+      "scale": 100
+     }
+    },
+    {
+     "text": "0",
+     "kind": "setting"
+    },
+    {
+     "text": "2",
+     "kind": "setting"
+    },
+    {
+     "text": "200",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/s6-recovery/summary.json",
+       "select": [
+        "cells",
+        {
+         "slice": "main",
+         "motion": "constant_velocity",
+         "loss_model": "independent",
+         "loss_probability": 0.0,
+         "noise_std_m": 0.0,
+         "jitter_s": 0.0,
+         "tracker_measurement_std_m": 0.05,
+         "arms.naive.label": "passes"
+        }
+       ],
+       "op": "max",
+       "field": [
+        "delay_s"
+       ],
+       "scale": 1000
+      },
+      {
+       "path": "sim/runs/s6-recovery/summary.json",
+       "select": [
+        "cells",
+        {
+         "slice": "main",
+         "motion": "constant_velocity",
+         "loss_model": "independent",
+         "loss_probability": 0.0,
+         "noise_std_m": 0.02,
+         "jitter_s": 0.0,
+         "tracker_measurement_std_m": 0.05,
+         "arms.naive.label": "passes"
+        }
+       ],
+       "op": "max",
+       "field": [
+        "delay_s"
+       ],
+       "scale": 1000
+      }
+     ]
+    },
+    {
+     "text": "300",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/s6-recovery/summary.json",
+       "select": [
+        "cells",
+        {
+         "slice": "main",
+         "motion": "constant_velocity",
+         "loss_model": "independent",
+         "loss_probability": 0.0,
+         "noise_std_m": 0.0,
+         "jitter_s": 0.0,
+         "tracker_measurement_std_m": 0.05,
+         "arms.naive.label": "fails"
+        }
+       ],
+       "op": "min",
+       "field": [
+        "delay_s"
+       ],
+       "scale": 1000
+      },
+      {
+       "path": "sim/runs/s6-recovery/summary.json",
+       "select": [
+        "cells",
+        {
+         "slice": "main",
+         "motion": "constant_velocity",
+         "loss_model": "independent",
+         "loss_probability": 0.0,
+         "noise_std_m": 0.02,
+         "jitter_s": 0.0,
+         "tracker_measurement_std_m": 0.05,
+         "arms.naive.label": "fails"
+        }
+       ],
+       "op": "min",
+       "field": [
+        "delay_s"
+       ],
+       "scale": 1000
+      }
+     ]
+    },
+    {
+     "text": "10",
+     "kind": "setting"
+    },
+    {
+     "text": "150",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.1,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "arms.naive.label": "fails"
+       }
+      ],
+      "op": "min",
+      "field": [
+       "delay_s"
+      ],
+      "scale": 1000
+     }
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "cuts the 300 ms error with no loss from 0.36 m to 0.16 m on a straight line (no failing cell up to 300 ms and 50 % random loss) and from 0.38 m to 0.29 m on a 1 m radius turn (the first failure moves from 200 ms to 300 ms)",
+   "numbers": [
+    {
+     "text": "300",
+     "kind": "setting"
+    },
+    {
+     "text": "0.36",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "delay_s": 0.3
+       },
+       "arms",
+       "naive",
+       "p95_median_m"
+      ]
+     }
+    },
+    {
+     "text": "0.16",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "delay_s": 0.3
+       },
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ]
+     }
+    },
+    {
+     "text": "300",
+     "kind": "setting",
+     "note": "largest delay tested"
+    },
+    {
+     "text": "50",
+     "kind": "setting",
+     "note": "largest random loss tested"
+    },
+    {
+     "text": "0.38",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_turn",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "delay_s": 0.3
+       },
+       "arms",
+       "naive",
+       "p95_median_m"
+      ]
+     }
+    },
+    {
+     "text": "0.29",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_turn",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "delay_s": 0.3
+       },
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ]
+     }
+    },
+    {
+     "text": "1",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "turn_radius_m"
+      ]
+     }
+    },
+    {
+     "text": "200",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_turn",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "arms.naive.label": "fails"
+       }
+      ],
+      "op": "min",
+      "field": [
+       "delay_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "300",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_turn",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "arms.recovery.label": "fails"
+       }
+      ],
+      "op": "min",
+      "field": [
+       "delay_s"
+      ],
+      "scale": 1000
+     }
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "at 30 % random loss it fails from 150 ms just like naive, at 50 % both fail at every delay and recovery is up to 2 cm worse, and with bursty loss it can be up to 13 cm worse",
+   "numbers": [
+    {
+     "text": "30",
+     "kind": "setting"
+    },
+    {
+     "text": "150",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/s6-recovery/summary.json",
+       "select": [
+        "cells",
+        {
+         "slice": "main",
+         "motion": "constant_turn",
+         "loss_model": "independent",
+         "loss_probability": 0.3,
+         "noise_std_m": 0.05,
+         "jitter_s": 0.0,
+         "tracker_measurement_std_m": 0.05,
+         "arms.recovery.label": "fails"
+        }
+       ],
+       "op": "min",
+       "field": [
+        "delay_s"
+       ],
+       "scale": 1000
+      },
+      {
+       "path": "sim/runs/s6-recovery/summary.json",
+       "select": [
+        "cells",
+        {
+         "slice": "main",
+         "motion": "constant_turn",
+         "loss_model": "independent",
+         "loss_probability": 0.3,
+         "noise_std_m": 0.05,
+         "jitter_s": 0.0,
+         "tracker_measurement_std_m": 0.05,
+         "arms.naive.label": "fails"
+        }
+       ],
+       "op": "min",
+       "field": [
+        "delay_s"
+       ],
+       "scale": 1000
+      }
+     ]
+    },
+    {
+     "text": "50",
+     "kind": "setting"
+    },
+    {
+     "text": "2",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "motion": "constant_turn",
+        "loss_model": "independent",
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "slice": "main",
+        "loss_probability": 0.5
+       }
+      ],
+      "op": "max",
+      "field": [
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ],
+      "field_minus": [
+       "arms",
+       "naive",
+       "p95_median_m"
+      ],
+      "scale": 100
+     },
+     "note": "largest cell-median gap; the paired median gap is 2.1 cm"
+    },
+    {
+     "text": "13",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "motion": "constant_turn",
+        "loss_model": "burst",
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "slice": "burst"
+       }
+      ],
+      "op": "max",
+      "field": [
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ],
+      "field_minus": [
+       "arms",
+       "naive",
+       "p95_median_m"
+      ],
+      "scale": 100
+     }
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "one constant-velocity filter with one fixed tuning; a 1 m/s target and one 1 m turn; 10 Hz; the 0.25 m line",
+   "numbers": [
+    {
+     "text": "one",
+     "kind": "setting"
+    },
+    {
+     "text": "one",
+     "kind": "setting"
+    },
+    {
+     "text": "1",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "target_speed_mps"
+      ]
+     }
+    },
+    {
+     "text": "one",
+     "kind": "setting"
+    },
+    {
+     "text": "1",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "turn_radius_m"
+      ]
+     }
+    },
+    {
+     "text": "10",
+     "kind": "setting"
+    },
+    {
+     "text": "0.25",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "failure_p95_m"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "for nine target paths (straight lines, circles, a jinking path, a figure eight, start and stop) under random and bursty packet loss. Most cells are ties, and with 30 to 50 % bursty loss",
+   "numbers": [
+    {
+     "text": "nine",
+     "kind": "setting"
+    },
+    {
+     "text": "eight",
+     "kind": "not_a_claim",
+     "note": "the figure-eight path"
+    },
+    {
+     "text": "30",
+     "kind": "setting"
+    },
+    {
+     "text": "50",
+     "kind": "setting"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "with the same 0.25 m p95 research line. In the map, a cell fails when at least half its seeds fail",
+   "numbers": [
+    {
+     "text": "0.25",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "config",
+       "failure_p95_m"
+      ]
+     }
+    },
+    {
+     "text": "half",
+     "kind": "setting"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "putting out-of-order packets back into the filter gains under 1 cm (paired median, at most 0.94 cm)",
+   "numbers": [
+    {
+     "text": "1",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-retro/summary.json",
+      "select": [
+       "cells"
+      ],
+      "op": "max",
+      "field": [
+       "paired_vs_recovery",
+       "retro",
+       "p95_diff_median_m"
+      ],
+      "scale": 100
+     },
+     "compare": "below"
+    },
+    {
+     "text": "0.94",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-retro/summary.json",
+      "select": [
+       "cells"
+      ],
+      "op": "max",
+      "field": [
+       "paired_vs_recovery",
+       "retro",
+       "p95_diff_median_m"
+      ],
+      "scale": 100
+     }
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "on a 1 m radius turn at 300 ms delay and 30 % loss, a turn-rate model stays under the line (0.20 m) where the straight-line recovery tracker fails (0.40 m). The price on straight lines is up to 2 cm with no loss, up to 3 cm with random loss, and up to 10 cm with 50 % bursty loss",
+   "numbers": [
+    {
+     "text": "1",
+     "kind": "setting"
+    },
+    {
+     "text": "300",
+     "kind": "setting"
+    },
+    {
+     "text": "30",
+     "kind": "setting"
+    },
+    {
+     "text": "0.20",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-turn/summary.json",
+      "select": [
+       "cells",
+       {
+        "key": "ct/rate10/d0.3/j0/l0.3-independent/gaussian0.05"
+       },
+       "arms",
+       "ct",
+       "p95_median_m"
+      ]
+     }
+    },
+    {
+     "text": "0.40",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-turn/summary.json",
+      "select": [
+       "cells",
+       {
+        "key": "ct/rate10/d0.3/j0/l0.3-independent/gaussian0.05"
+       },
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ]
+     }
+    },
+    {
+     "text": "2",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-turn/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "cell.target": "cv",
+        "cell.loss_model": "independent",
+        "cell.noise_std_m": 0.05,
+        "cell.noise_model": "gaussian",
+        "cell.outlier_probability": 0.0,
+        "cell.rate_hz": 10,
+        "cell.jitter_s": 0.0,
+        "cell.loss_probability": 0.0
+       }
+      ],
+      "op": "max",
+      "field": [
+       "arms",
+       "ct",
+       "p95_median_m"
+      ],
+      "field_minus": [
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ],
+      "scale": 100
+     },
+     "note": "ct cell median minus recovery cell median, 5 cm noise"
+    },
+    {
+     "text": "3",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-turn/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "cell.target": "cv",
+        "cell.loss_model": "independent",
+        "cell.noise_std_m": 0.05,
+        "cell.noise_model": "gaussian",
+        "cell.outlier_probability": 0.0,
+        "cell.rate_hz": 10,
+        "cell.jitter_s": 0.0
+       }
+      ],
+      "op": "max",
+      "field": [
+       "arms",
+       "ct",
+       "p95_median_m"
+      ],
+      "field_minus": [
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ],
+      "scale": 100
+     }
+    },
+    {
+     "text": "10",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-turn/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "burst",
+        "cell.target": "cv",
+        "cell.loss_model": "burst",
+        "cell.noise_std_m": 0.05,
+        "cell.noise_model": "gaussian",
+        "cell.outlier_probability": 0.0,
+        "cell.rate_hz": 10,
+        "cell.jitter_s": 0.0,
+        "cell.loss_probability": 0.5
+       }
+      ],
+      "op": "max",
+      "field": [
+       "arms",
+       "ct",
+       "p95_median_m"
+      ],
+      "field_minus": [
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ],
+      "scale": 100
+     }
+    },
+    {
+     "text": "50",
+     "kind": "setting"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "a simple sync exchange every 0.1 to 1 s keeps the extra error within 1 cm of perfect clocks. It only misses with a 10 s interval and half the sync exchanges lost (about 29 % of sync messages)",
+   "numbers": [
+    {
+     "text": "0.1",
+     "kind": "setting"
+    },
+    {
+     "text": "1",
+     "kind": "setting"
+    },
+    {
+     "text": "1",
+     "kind": "performance",
+     "known": {
+      "status": "unmatched",
+      "reason": "not yet mapped: the perfect-clock reference for the s6-clocks extra error was not traced"
+     }
+    },
+    {
+     "text": "10",
+     "kind": "setting"
+    },
+    {
+     "text": "half",
+     "kind": "setting"
+    },
+    {
+     "text": "29",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/s6-clocks/summary.json",
+      "select": [
+       "cells",
+       {
+        "cell.clock.mode": "ntp"
+       }
+      ],
+      "op": "max",
+      "field": [
+       "cell",
+       "clock",
+       "sync_loss_probability"
+      ],
+      "scale": 100
+     },
+     "note": "per-message loss that makes half the two-message exchanges fail"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "With 5 cm noise and 100 ms delay on the turn with no loss, sending after every 10 cm of movement (about 20 packets/s) gives 11.6 cm p95, against 16.9 cm at 10 packets/s and 12.1 cm at 25 packets/s. On a straight line with 30 % loss, about 19 packets/s gives 12.2 cm, against 13.9 cm at 10 packets/s and 9.7 cm at 25 packets/s. Sending positions as 16-bit numbers at 1 mm saves about 10 % of the bytes on air and moves p95 by at most 2 % with periodic sending, and up to 6 % either way with event sending",
+   "numbers": [
+    {
+     "text": "5",
+     "kind": "setting"
+    },
+    {
+     "text": "100",
+     "kind": "setting"
+    },
+    {
+     "text": "10",
+     "kind": "setting"
+    },
+    {
+     "text": "20",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-sending/summary.json",
+      "select": [
+       "cells",
+       {
+        "policy": "evt10cm_f32",
+        "cell.target": "ct",
+        "cell.loss_model": "independent",
+        "cell.loss_probability": 0.0,
+        "cell.noise_std_m": 0.05,
+        "cell.delay_s": 0.1
+       },
+       "budget",
+       "packets_per_second_median"
+      ]
+     }
+    },
+    {
+     "text": "11.6",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-sending/summary.json",
+      "select": [
+       "cells",
+       {
+        "policy": "evt10cm_f32",
+        "cell.target": "ct",
+        "cell.loss_model": "independent",
+        "cell.loss_probability": 0.0,
+        "cell.noise_std_m": 0.05,
+        "cell.delay_s": 0.1
+       },
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ],
+      "scale": 100
+     }
+    },
+    {
+     "text": "16.9",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-sending/summary.json",
+      "select": [
+       "cells",
+       {
+        "policy": "per10_f32",
+        "cell.target": "ct",
+        "cell.loss_model": "independent",
+        "cell.loss_probability": 0.0,
+        "cell.noise_std_m": 0.05,
+        "cell.delay_s": 0.1
+       },
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ],
+      "scale": 100
+     }
+    },
+    {
+     "text": "10",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-sending/summary.json",
+      "select": [
+       "cells",
+       {
+        "policy": "per10_f32",
+        "cell.target": "ct",
+        "cell.loss_model": "independent",
+        "cell.loss_probability": 0.0,
+        "cell.noise_std_m": 0.05,
+        "cell.delay_s": 0.1
+       },
+       "budget",
+       "packets_per_second_median"
+      ]
+     }
+    },
+    {
+     "text": "12.1",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-sending/summary.json",
+      "select": [
+       "cells",
+       {
+        "policy": "per20_f32",
+        "cell.target": "ct",
+        "cell.loss_model": "independent",
+        "cell.loss_probability": 0.0,
+        "cell.noise_std_m": 0.05,
+        "cell.delay_s": 0.1
+       },
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ],
+      "scale": 100
+     }
+    },
+    {
+     "text": "25",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-sending/summary.json",
+      "select": [
+       "cells",
+       {
+        "policy": "per20_f32",
+        "cell.target": "ct",
+        "cell.loss_model": "independent",
+        "cell.loss_probability": 0.0,
+        "cell.noise_std_m": 0.05,
+        "cell.delay_s": 0.1
+       },
+       "budget",
+       "packets_per_second_median"
+      ]
+     },
+     "note": "the policy named per20 sends 25.08 packets/s"
+    },
+    {
+     "text": "30",
+     "kind": "setting"
+    },
+    {
+     "text": "19",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-sending/summary.json",
+      "select": [
+       "cells",
+       {
+        "policy": "evt10cm_f32",
+        "cell.target": "cv",
+        "cell.loss_model": "independent",
+        "cell.loss_probability": 0.3,
+        "cell.noise_std_m": 0.05,
+        "cell.delay_s": 0.1
+       },
+       "budget",
+       "packets_per_second_median"
+      ]
+     }
+    },
+    {
+     "text": "12.2",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-sending/summary.json",
+      "select": [
+       "cells",
+       {
+        "policy": "evt10cm_f32",
+        "cell.target": "cv",
+        "cell.loss_model": "independent",
+        "cell.loss_probability": 0.3,
+        "cell.noise_std_m": 0.05,
+        "cell.delay_s": 0.1
+       },
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ],
+      "scale": 100
+     }
+    },
+    {
+     "text": "13.9",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-sending/summary.json",
+      "select": [
+       "cells",
+       {
+        "policy": "per10_f32",
+        "cell.target": "cv",
+        "cell.loss_model": "independent",
+        "cell.loss_probability": 0.3,
+        "cell.noise_std_m": 0.05,
+        "cell.delay_s": 0.1
+       },
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ],
+      "scale": 100
+     }
+    },
+    {
+     "text": "10",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-sending/summary.json",
+      "select": [
+       "cells",
+       {
+        "policy": "per10_f32",
+        "cell.target": "cv",
+        "cell.loss_model": "independent",
+        "cell.loss_probability": 0.3,
+        "cell.noise_std_m": 0.05,
+        "cell.delay_s": 0.1
+       },
+       "budget",
+       "packets_per_second_median"
+      ]
+     }
+    },
+    {
+     "text": "9.7",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-sending/summary.json",
+      "select": [
+       "cells",
+       {
+        "policy": "per20_f32",
+        "cell.target": "cv",
+        "cell.loss_model": "independent",
+        "cell.loss_probability": 0.3,
+        "cell.noise_std_m": 0.05,
+        "cell.delay_s": 0.1
+       },
+       "arms",
+       "recovery",
+       "p95_median_m"
+      ],
+      "scale": 100
+     }
+    },
+    {
+     "text": "25",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-sending/summary.json",
+      "select": [
+       "cells",
+       {
+        "policy": "per20_f32",
+        "cell.target": "cv",
+        "cell.loss_model": "independent",
+        "cell.loss_probability": 0.3,
+        "cell.noise_std_m": 0.05,
+        "cell.delay_s": 0.1
+       },
+       "budget",
+       "packets_per_second_median"
+      ]
+     }
+    },
+    {
+     "text": "16",
+     "kind": "not_a_claim"
+    },
+    {
+     "text": "1",
+     "kind": "setting"
+    },
+    {
+     "text": "10",
+     "kind": "performance",
+     "known": {
+      "status": "unmatched",
+      "reason": "not yet mapped: on-air byte saving needs a ratio of two policies' budgets"
+     }
+    },
+    {
+     "text": "2",
+     "kind": "performance",
+     "known": {
+      "status": "unmatched",
+      "reason": "not yet mapped: largest p95 change between float and 16-bit policies across cells"
+     }
+    },
+    {
+     "text": "6",
+     "kind": "performance",
+     "known": {
+      "status": "unmatched",
+      "reason": "not yet mapped: largest p95 change between float and 16-bit policies across cells"
+     }
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "most cells are ties between trackers (39 of the 55 cells where any tracker passes). In 8 of 63 cells nothing works even at zero delay, all with 30 to 50 % bursty loss",
+   "numbers": [
+    {
+     "text": "39",
+     "kind": "performance",
+     "known": {
+      "status": "unmatched",
+      "reason": "not yet mapped: tie count needs the atlas tie rule"
+     }
+    },
+    {
+     "text": "55",
+     "kind": "performance",
+     "known": {
+      "status": "unmatched",
+      "reason": "not yet mapped: count of atlas cells where any tracker passes"
+     }
+    },
+    {
+     "text": "8",
+     "kind": "performance",
+     "known": {
+      "status": "unmatched",
+      "reason": "not yet mapped: count of atlas cells failing at zero delay"
+     }
+    },
+    {
+     "text": "63",
+     "kind": "setting",
+     "note": "atlas map cells: 9 paths x 7 loss conditions"
+    },
+    {
+     "text": "30",
+     "kind": "setting"
+    },
+    {
+     "text": "50",
+     "kind": "setting"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "the map uses 20 seeds per cell and 5 cm noise at 10 Hz; the clock test uses one 100 ms link",
+   "numbers": [
+    {
+     "text": "20",
+     "kind": "setting"
+    },
+    {
+     "text": "5",
+     "kind": "setting"
+    },
+    {
+     "text": "10",
+     "kind": "setting"
+    },
+    {
+     "text": "one",
+     "kind": "setting"
+    },
+    {
+     "text": "100",
+     "kind": "setting"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "--seeds 20 --imm-strata",
+   "numbers": [
+    {
+     "text": "20",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "with two micro-quad profiles built from published specs",
+   "numbers": [
+    {
+     "text": "two",
+     "kind": "setting"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "In an 80 s check on both profiles, at 0.33 s of delay the wobble after a 1 m step still shrinks, but slowly (its peak in each 10 s window falls from 0.73 m to 0.41 m over 80 s), and at 0.34 s it grows instead (up to 1.24 m). A hand calculation from the controller's phase margin gives 0.338 s for the loop without sampling effects",
+   "numbers": [
+    {
+     "text": "80",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/a6-long-check/long_check.json",
+      "select": [
+       "duration_s"
+      ]
+     }
+    },
+    {
+     "text": "0.33",
+     "kind": "setting"
+    },
+    {
+     "text": "1",
+     "kind": "setting"
+    },
+    {
+     "text": "10",
+     "kind": "setting",
+     "source": {
+      "path": "sim/runs/a6-long-check/long_check.json",
+      "select": [
+       "window_s"
+      ]
+     }
+    },
+    {
+     "text": "0.73",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/a6-long-check/long_check.json",
+       "select": [
+        "rows",
+        {
+         "arm": "b",
+         "profile": "crazyflie-class",
+         "delay_s": 0.33,
+         "step_m": 1.0
+        },
+        "window_peak_error_m",
+        1
+       ]
+      },
+      {
+       "path": "sim/runs/a6-long-check/long_check.json",
+       "select": [
+        "rows",
+        {
+         "arm": "b",
+         "profile": "esp-fly-class",
+         "delay_s": 0.33,
+         "step_m": 1.0
+        },
+        "window_peak_error_m",
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "text": "0.41",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/a6-long-check/long_check.json",
+       "select": [
+        "rows",
+        {
+         "arm": "b",
+         "profile": "crazyflie-class",
+         "delay_s": 0.33,
+         "step_m": 1.0
+        },
+        "window_peak_error_m",
+        -1
+       ]
+      },
+      {
+       "path": "sim/runs/a6-long-check/long_check.json",
+       "select": [
+        "rows",
+        {
+         "arm": "b",
+         "profile": "esp-fly-class",
+         "delay_s": 0.33,
+         "step_m": 1.0
+        },
+        "window_peak_error_m",
+        -1
+       ]
+      }
+     ]
+    },
+    {
+     "text": "80",
+     "kind": "setting"
+    },
+    {
+     "text": "0.34",
+     "kind": "setting"
+    },
+    {
+     "text": "1.24",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/a6-long-check/long_check.json",
+      "select": [
+       "rows",
+       {
+        "arm": "b",
+        "delay_s": 0.34,
+        "step_m": 1.0
+       }
+      ],
+      "op": "max",
+      "field": [
+       "window_peak_error_m"
+      ]
+     }
+    },
+    {
+     "text": "0.338",
+     "kind": "performance",
+     "sources": [
+      {
+       "path": "sim/runs/a6-control-tolerance/d_crit.json",
+       "select": [
+        "profiles",
+        "crazyflie-class",
+        "hand_xy",
+        "d_crit_s"
+       ]
+      },
+      {
+       "path": "sim/runs/a6-control-tolerance/d_crit.json",
+       "select": [
+        "profiles",
+        "esp-fly-class",
+        "hand_xy",
+        "d_crit_s"
+       ]
+      }
+     ],
+     "note": "continuous-loop hand value, both profiles"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "the limit drops to about 20 to 30 ms",
+   "numbers": [
+    {
+     "text": "20",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/a6-control-tolerance/d_crit.json",
+      "select": [
+       "profiles",
+       "crazyflie-class",
+       "slice_c",
+       "stable_delay_s"
+      ],
+      "scale": 1000
+     },
+     "note": "largest stable whole-state delay tested; first unstable is 30 ms"
+    },
+    {
+     "text": "30",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/a6-control-tolerance/d_crit.json",
+      "select": [
+       "profiles",
+       "esp-fly-class",
+       "slice_c",
+       "stable_delay_s"
+      ],
+      "scale": 1000
+     },
+     "note": "largest stable whole-state delay tested; first unstable is 40 ms"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "one controller tuning; the 80 s check uses one seed per case",
+   "numbers": [
+    {
+     "text": "one",
+     "kind": "setting"
+    },
+    {
+     "text": "80",
+     "kind": "setting"
+    },
+    {
+     "text": "one",
+     "kind": "setting"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "worst p95 radio latency in the tracker test was about 27.5 ms (the median over repeated runs; the worst single run was about 40 ms), well under the 200 ms where the tracker starts failing from delay at 5 cm noise (150 ms at 10 cm)",
+   "numbers": [
+    {
+     "text": "27.5",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/c-exp017-tolerance-r2/summary.json",
+      "select": [
+       "headline",
+       "max_cell_p95_latency_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "40",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/c-exp017-tolerance-r2/per_seed.csv",
+      "select": [],
+      "op": "max",
+      "field": [
+       "latency_p95_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "200",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.05,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "arms.naive.label": "fails"
+       }
+      ],
+      "op": "min",
+      "field": [
+       "delay_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "5",
+     "kind": "setting"
+    },
+    {
+     "text": "150",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-recovery/summary.json",
+      "select": [
+       "cells",
+       {
+        "slice": "main",
+        "motion": "constant_velocity",
+        "loss_model": "independent",
+        "loss_probability": 0.0,
+        "noise_std_m": 0.1,
+        "jitter_s": 0.0,
+        "tracker_measurement_std_m": 0.05,
+        "arms.naive.label": "fails"
+       }
+      ],
+      "op": "min",
+      "field": [
+       "delay_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "10",
+     "kind": "setting"
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "Twelve drones each sending 32-byte packets 50 times a second keep the channel about two thirds busy. With retries every packet arrives, with a p95 latency of 4.4 ms. Without retries about 98 % arrive",
+   "numbers": [
+    {
+     "text": "Twelve",
+     "kind": "setting"
+    },
+    {
+     "text": "32",
+     "kind": "setting"
+    },
+    {
+     "text": "50",
+     "kind": "setting"
+    },
+    {
+     "text": "two thirds",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/c-exp014-mac-r2/cells.csv",
+      "select": [
+       {
+        "n": 12,
+        "rate_hz": 50,
+        "payload_bytes": 32,
+        "mode": "unicast_r5"
+       },
+       "busy_fraction_median"
+      ],
+      "scale": 1.0
+     },
+     "tolerance": 0.03,
+     "rounding_note": "the text says about"
+    },
+    {
+     "text": "4.4",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/c-exp014-mac-r2/cells.csv",
+      "select": [
+       {
+        "n": 12,
+        "rate_hz": 50,
+        "payload_bytes": 32,
+        "mode": "unicast_r5"
+       },
+       "latency_p95_median_s"
+      ],
+      "scale": 1000
+     }
+    },
+    {
+     "text": "98",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/c-exp014-mac-r2/cells.csv",
+      "select": [
+       {
+        "n": 12,
+        "rate_hz": 50,
+        "payload_bytes": 32,
+        "mode": "unicast_r0"
+       },
+       "delivery_pooled"
+      ],
+      "scale": 100
+     }
+    }
+   ]
+  },
+  {
+   "file": "docs/RESULTS.md",
+   "quote": "the model's top packet rate is about 13 % below the one published measurement",
+   "numbers": [
+    {
+     "text": "13",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/c-exp014-mac-r2/summary.json",
+      "select": [
+       "cross_check",
+       "gap_simulated_minus_published"
+      ],
+      "divide_by": [
+       "cross_check",
+       "published_measurement_packets_per_s"
+      ],
+      "scale": -100
+     }
+    },
+    {
+     "text": "one",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "docs/LIMITATIONS.md",
+   "quote": "Re-filtering them cut the error by under 1 cm in a follow-up test",
+   "numbers": [
+    {
+     "text": "1",
+     "kind": "performance",
+     "source": {
+      "path": "sim/runs/s6-retro/summary.json",
+      "select": [
+       "cells"
+      ],
+      "op": "max",
+      "field": [
+       "paired_vs_recovery",
+       "retro",
+       "p95_diff_median_m"
+      ],
+      "scale": 100
+     },
+     "compare": "below"
+    }
+   ]
+  },
+  {
+   "file": "docs/LIMITATIONS.md",
+   "quote": "a fixed estimate for a 450 g frame",
+   "numbers": [
+    {
+     "text": "450",
+     "kind": "setting"
+    }
+   ]
+  },
+  {
+   "file": "docs/LIMITATIONS.md",
+   "quote": "can differ in the last one or two digits",
+   "numbers": [
+    {
+     "text": "one",
+     "kind": "not_a_claim"
+    },
+    {
+     "text": "two",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "docs/LIMITATIONS.md",
+   "quote": "a tight tolerance (relative 1e-9)",
+   "numbers": [
+    {
+     "text": "1e-9",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "docs/LIMITATIONS.md",
+   "quote": "an absolute 1e-9 second contract tolerance",
+   "numbers": [
+    {
+     "text": "1e-9",
+     "kind": "not_a_claim"
+    }
+   ]
+  },
+  {
+   "file": "docs/LIMITATIONS.md",
+   "quote": "not a full 3D scene",
+   "numbers": [
+    {
+     "text": "3",
+     "kind": "not_a_claim"
+    }
+   ]
+  }
+ ]
+}
