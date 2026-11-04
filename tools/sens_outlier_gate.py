@@ -227,7 +227,7 @@ def _git_revision() -> str:
         return "unknown"
 
 
-def figure(summary: list[dict], path: Path) -> None:
+def figure(summary: list[dict], path: Path, delay: float = 0.2) -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -236,7 +236,6 @@ def figure(summary: list[dict], path: Path) -> None:
 
     pal = horizon_mpl.apply_style("light")
     fig, axes = plt.subplots(2, 2, figsize=(9, 6.2), sharex=True, constrained_layout=True)
-    delay = 0.1
     for col, motion in enumerate(MOTIONS):
         for arm in ARMS:
             style = horizon_mpl.arm_style(arm.name, pal)
@@ -260,6 +259,8 @@ def figure(summary: list[dict], path: Path) -> None:
         title = "straight line, 1 m/s" if motion == "constant_velocity" else "circle, 1 m radius"
         axes[0, col].set_title(f"{title}, delay {delay:g} s")
         axes[0, col].axhline(0.25, color=pal["lineStrong"], linewidth=0.8, linestyle="--")
+        axes[0, col].annotate("S6 fail line (p95 0.25 m)", (5, 0.25), xytext=(0, 3), textcoords="offset points",
+                              ha="right", va="bottom", fontsize=8, color=pal["textSecondary"])
         axes[0, col].set_ylabel("median p95 error (m)")
         axes[1, col].set_ylabel("failing seeds (of 50)")
         axes[1, col].set_xlabel("outlier frames (%)")
