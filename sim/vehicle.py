@@ -186,6 +186,7 @@ class ActuatedQuadrotor:
         wind_velocity: Iterable[float] = (0.0, 0.0, 0.0),
         substeps: int = 1,
         disturbance: Any = None,
+        ground: Any = None,
     ) -> None:
         if not isinstance(profile, HardwareProfile) and not _is_v2_profile(profile):
             raise ValueError("profile must be a HardwareProfile")
@@ -195,6 +196,8 @@ class ActuatedQuadrotor:
             raise ValueError("substeps and disturbance require a v2 profile")
         self.substeps = int(substeps)
         self.disturbance = disturbance
+        # Optional sim.ground.GroundPlane; None (the default) means no floor.
+        self.ground = ground
         self.time_s = 0.0
         self.profile = profile
         self._v2 = _is_v2_profile(profile)
@@ -226,6 +229,7 @@ class ActuatedQuadrotor:
             # v1: estimated from the profile geometry (HardwareProfile.estimated_inertia_kg_m2).
             # v2: taken from the profile document.
             inertia_kg_m2=inertia,
+            ground=ground,
         )
         self.controller = controller or GeometricFlightController()
 
@@ -352,4 +356,6 @@ class ActuatedQuadrotor:
         self.drone.quaternion[:] = (1.0, 0.0, 0.0, 0.0)
         self.drone.angular_velocity[:] = 0.0
         self.actuator.reset()
+        if self.ground is not None:
+            self.ground.reset()
         self.time_s = 0.0

@@ -8,7 +8,8 @@ from sim.environment import AIR_DENSITY, GRAVITY, calculate_drag, relative_air_v
 class SixDOFInterceptor:
     def __init__(self, init_pos=(0.0, 0.0, 0.0), mass=0.450, *,
                  drag_coefficient=1.3, cross_sectional_area=0.05,
-                 wind_velocity=(0.0, 0.0, 0.0), inertia_kg_m2=(0.0023, 0.0023, 0.0040)):
+                 wind_velocity=(0.0, 0.0, 0.0), inertia_kg_m2=(0.0023, 0.0023, 0.0040),
+                 ground=None):
         """Create a 13-state rigid body using SI units.
 
         ``wind_velocity`` is inertial-frame air velocity in m/s. Drag uses
@@ -19,6 +20,11 @@ class SixDOFInterceptor:
         and z.  The default is a fixed estimate for a 450 g, 5-inch frame. It
         is not derived from ``mass``, so pass a matching value when ``mass``
         describes a different airframe.
+
+        ``ground`` is an optional ``sim.ground.GroundPlane``. The default
+        ``None`` means no floor, exactly as before: the body can fall
+        through z = 0. With a ground, each step ends by putting the body
+        back on the floor if it went below it.
         """
         self.mass = float(mass)
         if not np.isfinite(self.mass) or self.mass <= 0:
@@ -48,6 +54,7 @@ class SixDOFInterceptor:
         self.velocity = np.zeros(3, dtype=float)
         self.quaternion = np.array([1.0, 0.0, 0.0, 0.0], dtype=float)
         self.angular_velocity = np.zeros(3, dtype=float)
+        self.ground = ground
 
     def model_provenance(self) -> dict[str, object]:
         """Return JSON-safe provenance for this synthetic dynamics model.
@@ -56,7 +63,7 @@ class SixDOFInterceptor:
         13-state physics or any public step result.  Coefficients are inputs
         to a transparent fixture until a measured calibration is supplied.
         """
-        return {
+        record = {
             "status": "synthetic",
             "model": "six_dof_rigid_body",
             "integrator": "classical_rk4",
@@ -72,6 +79,10 @@ class SixDOFInterceptor:
             },
             "evidence_boundary": "synthetic coefficient fixture; not measured airframe calibration",
         }
+        if self.ground is not None:
+            # Only present when a floor is attached, so the default record is unchanged.
+            record["ground"] = self.ground.model_provenance()
+        return record
 
     def _state_vector(self):
         return np.concatenate((self.position, self.velocity, self.quaternion, self.angular_velocity))
@@ -154,3 +165,5 @@ class SixDOFInterceptor:
             raise FloatingPointError("quaternion lost a finite, nonzero norm")
         self.quaternion /= norm
         self.angular_velocity = next_state[10:13].copy()
+        if self.ground is not None:
+            self.ground.after_step(self, state, dt)
