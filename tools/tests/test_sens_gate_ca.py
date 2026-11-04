@@ -133,3 +133,15 @@ def test_compare_to_switching_finds_equal_and_changed_rows(tmp_path):
 def test_refuses_to_write_under_sim_runs():
     with pytest.raises(SystemExit):
         ca.main(["--output", str(ca.ROOT / "sim" / "runs" / "nope"), "--seeds", "1"])
+
+
+def test_main_exits_nonzero_when_the_control_differs(tmp_path):
+    """One seed: the reference holds the real control rows with one p95 changed, so the run must fail."""
+    rows = [{k: v for k, v in r.items() if k != "_outcome"}
+            for spec_cell in ca.plan()
+            for r in sw.cell_runs(spec_cell[0], spec_cell[1], spec_cell[2], [ca.seed_list(1)[0]],
+                                  arms=ca.CONTROL_ARMS)]
+    rows[0]["p95_error_m"] += 1e-9
+    ref = tmp_path / "ref.csv"
+    _write_reference(ref, rows)
+    assert ca.main(["--output", str(tmp_path / "out"), "--seeds", "1", "--compare", str(ref)]) == 1

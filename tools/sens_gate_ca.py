@@ -254,6 +254,9 @@ def main(argv=None) -> int:
     if control is not None:
         print(json.dumps({"control_vs_switching_study": {k: control[k] for k in
                                                          ("compared", "missing", "differences")}}))
+        if control["differences"] or control["missing"] or not control["compared"]:
+            print("CONTROL FAILED: the control arms do not reproduce the switching study", file=sys.stderr)
+            return 1
     return 0
 
 
