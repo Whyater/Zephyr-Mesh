@@ -11,18 +11,18 @@ The lag value test is a hand calculation.
 import numpy as np
 import pytest
 
-from tools import sens_tracker_numeric as w20
+from tools import sens_tracker_numeric as numeric
 from tools import sens_tracker_tick_explain as tx
 
 
 @pytest.mark.parametrize("scenario", ["straight", "turn"])
 def test_fast_filter_reproduces_numeric_tool_traces(scenario):
-    seed = w20.seed_list(1)[0]
+    seed = numeric.seed_list(1)[0]
     r = tx.x0_check(scenario, seed, 20.0)
-    assert r["fast_exact_vs_w20_f64_exact_m"] < 1e-9
-    assert r["fast_next_vs_w20_tick_next_f64_m"] < 1e-9
+    assert r["fast_exact_vs_numeric_f64_exact_m"] < 1e-9
+    assert r["fast_next_vs_numeric_tick_next_f64_m"] < 1e-9
     # float32 vs float64: rounding sized, far under a millimetre
-    assert r["fast_next_vs_w20_f32_tick_next_m"] < 1e-3
+    assert r["fast_next_vs_numeric_f32_tick_next_m"] < 1e-3
 
 
 def test_next_tick_lag_hand_values():
@@ -35,8 +35,8 @@ def test_next_tick_lag_hand_values():
 def test_constant_relabel_is_a_pure_time_shift():
     # Fusing every measurement L later gives, once the start-up transient is
     # gone, the exact filter's estimate from L earlier: est_L(t) = est(t - L).
-    seed = w20.seed_list(1)[0]
-    times, z = w20.make_measurements("straight", 0.05, seed, 40.0)
+    seed = numeric.seed_list(1)[0]
+    times, z = numeric.make_measurements("straight", 0.05, seed, 40.0)
     x0 = np.zeros(3)
     lag = 0.0057
     a = tx.fast_filter(times, z, q=0.1, r_var=0.0025, x0=x0)
@@ -61,6 +61,6 @@ def test_matched_truth_has_white_noise_acceleration_variances():
 
 
 def test_run_case_smoke():
-    rows = tx.run_case("matched", w20.seed_list(1)[0], 6.0, variants=("exact", "next"))
+    rows = tx.run_case("matched", numeric.seed_list(1)[0], 6.0, variants=("exact", "next"))
     assert {(r["variant"], r["scoring"]) for r in rows} == {(v, s) for v in ("exact", "next") for s in ("tick", "ms")}
     assert all(np.isfinite(r["p95_m"]) and r["p95_m"] > 0 for r in rows)

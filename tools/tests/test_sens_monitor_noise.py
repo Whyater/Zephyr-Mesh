@@ -1,4 +1,4 @@
-"""Tests for the monitor-mission sensor noise side run (N11)."""
+"""Tests for the monitor-mission sensor noise side run."""
 from __future__ import annotations
 
 import csv

@@ -35,25 +35,25 @@ RUNS = "sim/runs"
 # list, and also if a folder listed here no longer exists or gets an entry, so
 # this list cannot go stale. Registering a folder means deleting its line here.
 UNREGISTERED_RUN_DIRS = {
-    # found 2026-11-04, Needs Abyan: radio-model burst table from
+    # found 2026-11-04, needs owner review: radio-model burst table from
     # tools/burst_bridge_radio_table.py; never registered.
-    "burst-bridge-radio": "no entry yet (Needs Abyan)",
-    # found 2026-11-04, Needs Abyan: EXP-025 ellipsoid diagnosis outputs; no
+    "burst-bridge-radio": "no entry yet (needs owner review)",
+    # found 2026-11-04, needs owner review: EXP-025 ellipsoid diagnosis outputs; no
     # generating command is recorded anywhere in the repo.
-    "d4-ellipsoid-diagnosis": "no entry yet (Needs Abyan)",
-    # found 2026-11-04, Needs Abyan: EXP-035 mission logs from tools/e_exp035_logs.py.
+    "d4-ellipsoid-diagnosis": "no entry yet (needs owner review)",
+    # found 2026-11-04, needs owner review: EXP-035 mission logs from tools/e_exp035_logs.py.
     # The logs carry the git revision they were made with, so they cannot match
     # byte for byte from a different commit, which may be why it has no entry.
-    "e-exp035-logs": "no entry yet (Needs Abyan)",
-    # found 2026-11-04, Needs Abyan: summary built from other run folders by
+    "e-exp035-logs": "no entry yet (needs owner review)",
+    # found 2026-11-04, needs owner review: summary built from other run folders by
     # tools/e_missions_atlas.py; never registered.
-    "missions-atlas": "no entry yet (Needs Abyan)",
-    # found 2026-11-04, Needs Abyan: EXP-038 (a proposal) from tools/retry_fades.py;
+    "missions-atlas": "no entry yet (needs owner review)",
+    # found 2026-11-04, needs owner review: EXP-038 (a proposal) from tools/retry_fades.py;
     # never registered.
-    "retry-fades-exp038": "no entry yet (Needs Abyan)",
-    # found 2026-11-04, Needs Abyan: S6 interaction analysis from tools/s6_interaction.py;
+    "retry-fades-exp038": "no entry yet (needs owner review)",
+    # found 2026-11-04, needs owner review: S6 interaction analysis from tools/s6_interaction.py;
     # never registered.
-    "s6-interaction": "no entry yet (Needs Abyan)",
+    "s6-interaction": "no entry yet (needs owner review)",
 }
 
 # Files that do not count as results when deciding whether a folder needs an entry.

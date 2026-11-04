@@ -8,7 +8,7 @@ fit do with it. A quirk is either refused with a plain message, flagged with a
 INTAKE.md), or accepted on purpose, in which case the test says why.
 
 Run ``python tools/tests/test_vision_log_quirks.py`` from the repo root (with
-PYTHONPATH=.) to print the outlier-skew numbers used in the session notes.
+PYTHONPATH=.) to print the outlier-skew numbers.
 """
 from __future__ import annotations
 

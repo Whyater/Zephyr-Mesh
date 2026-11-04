@@ -18,7 +18,7 @@ is applied inside the worker (not in the parent), because the process pool
 starts fresh interpreters on macOS and Windows.
 
 Arms:
-  planned            sensor = estimator = sigma, sigma in {0.25, 0.5, 1.0, 2.0} (the N11 plan)
+  planned            sensor = estimator = sigma, sigma in {0.25, 0.5, 1.0, 2.0} (the pre-registered plan)
   posthoc_matched    sensor = estimator = sigma, sigma in {4.0, 8.0}  (post hoc, not in the plan)
   posthoc_sensor     sensor sigma in {2, 4, 8}, estimator held at 0.5  (post hoc)
   posthoc_estimator  estimator sigma in {2, 4, 8}, sensor held at 0.5  (post hoc)
@@ -248,12 +248,12 @@ def summarize(rows: list[dict]) -> dict:
         cells.append(item)
     matched_arms = ("planned", "posthoc_matched")
     return {
-        "experiment": "N11 side run on EXP-033 (monitor mission), sensor noise varied",
+        "experiment": "Side run on EXP-033 (monitor mission), sensor noise varied",
         "simulated": True,
         "fixed": {"adapter": "point_mass", "delay_s": DELAY_S, "n_seeds": N_SEEDS,
                   "seeds": "seeds_for(33, 30), the first 30 of the registered 50"},
         "posthoc_arms": ["posthoc_matched", "posthoc_sensor", "posthoc_estimator"],
-        "posthoc_note": ("Only the planned arm is in the N11 plan. The post hoc arms were added before any sim run, "
+        "posthoc_note": ("Only the planned arm is in the pre-registered plan. The post hoc arms were added before any sim run, "
                          "after an independent hand check said the planned grid would not break."),
         "control": control_check(rows),
         "effective_sigma": effective_sigma_check(rows),

@@ -152,7 +152,7 @@ def test_replot_reads_per_run_csv_back_to_the_same_summary(tmp_path):
     assert pilot.summarize(pilot.read_rows(path)) == pilot.summarize(rows)
 
 
-# Lead goal rule. Hand values first, then the registered bands (packet "Lead goal rule pilot").
+# Lead goal rule. Hand values first, then the bands fixed before the run.
 
 def test_turn_predict_matches_circle_geometry():
     # Start (1, 0) heading +y at 1 m/s, turning left at 1 rad/s: that is the unit circle round the

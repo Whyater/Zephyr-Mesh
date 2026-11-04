@@ -63,7 +63,7 @@ SCENARIOS = {
 VARIANTS = ("f64_exact", "f32_exact", "f64_tick", "f32_tick", "f32_tick_next", "f32_simple")
 REFERENCE = "f64_exact"
 
-# Pre-registered pass lines (see the run packet).
+# Pass lines fixed before the first run.
 F32_REL_P95 = 0.01
 F32_REL_NIS = 0.01
 F32_MAX_POS_DIFF_M = 0.001
